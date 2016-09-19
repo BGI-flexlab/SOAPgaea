@@ -1,4 +1,4 @@
-package org.bgi.flexlab.gaea.data.mapreduce.input.fastqadaptor;
+package org.bgi.flexlab.gaea.data.mapreduce.input.adaptor;
 
 import java.io.IOException;
 

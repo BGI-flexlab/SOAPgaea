@@ -10,7 +10,6 @@ import htsjdk.samtools.SAMSequenceRecord;
 import htsjdk.samtools.SAMTagUtil;
 import htsjdk.samtools.SAMUtils;
 import htsjdk.samtools.SAMValidationError;
-import htsjdk.samtools.SAMRecord.SAMTagAndValue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
