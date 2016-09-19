@@ -1,0 +1,74 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>org.bgi.flexlab</groupId>
+  <artifactId>gaea</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <packaging>jar</packaging>
+
+  <name>gaea</name>
+  <url>http://maven.apache.org</url>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>3.8.1</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+    	<groupId>htsjdk</groupId>
+    	<artifactId>htsjdk</artifactId>
+    	<version>1.130</version>
+    	<systemPath>${basedir}/src/lib/htsjdk-1.130.jar</systemPath>
+    	<scope>system</scope>
+    </dependency>
+    <dependency>
+    	<groupId>common-logging</groupId>
+    	<artifactId>common-logging</artifactId>
+    	<version>1.1.3</version>
+    	<systemPath>${basedir}/src/lib/commons-logging-1.1.3.jar</systemPath>
+    	<scope>system</scope>
+    </dependency>
+    <dependency>
+    	<groupId>hadoop-bam</groupId>
+    	<artifactId>hadoop-bam</artifactId>
+    	<version>7.0</version>
+    	<systemPath>${basedir}/src/lib/hadoop-bam.jar</systemPath>
+    	<scope>system</scope>
+    </dependency>
+    <dependency>
+    	<groupId>hadoop-common</groupId>
+    	<artifactId>hadoop-common</artifactId>
+    	<version>2.6.0-cdh5.6.0</version>
+    	<systemPath>${basedir}/src/lib/hadoop-common-2.6.0-cdh5.6.0.jar</systemPath>
+    	<scope>system</scope>
+    </dependency>
+    <dependency>
+    	<groupId>hadoop-hdfs</groupId>
+    	<artifactId>hadoop-hdfs</artifactId>
+    	<version>2.6.0-cdh5.6.0</version>
+    	<systemPath>${basedir}/src/lib/hadoop-hdfs-2.6.0-cdh5.6.0.jar</systemPath>
+    	<scope>system</scope>
+    </dependency>
+    <dependency>
+    	<groupId>hadoop-mapreduce</groupId>
+    	<artifactId>hadoop-mapreduce</artifactId>
+    	<version>2.6.0-cdh5.6.0</version>
+    	<systemPath>${basedir}/src/lib/hadoop-mapreduce-client-core-2.6.0-cdh5.6.0.jar</systemPath>
+    	<scope>system</scope>
+    </dependency>
+    <dependency>
+    	<groupId>cofoja</groupId>
+    	<artifactId>cofoja</artifactId>
+    	<version>1.0-r139</version>
+    	<scope>system</scope>
+    	<systemPath>${basedir}/src/lib/cofoja-1.0-r139.jar</systemPath>
+    </dependency>
+  </dependencies>
+</project>
