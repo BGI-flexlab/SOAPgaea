@@ -1,5 +1,6 @@
 package org.bgi.flexlab.gaea.exception;
 
+
 public class UserException extends RuntimeException {
 	private static final long serialVersionUID = 4451398435363715205L;
 
@@ -37,4 +38,15 @@ public class UserException extends RuntimeException {
 			super(String.format("pileup exception :", message));
 		}
 	}
+	
+	  public static class MalformedVCFHeader extends UserException {
+	        /**
+			 * 
+			 */
+			private static final long serialVersionUID = 7027922936632516646L;
+
+			public MalformedVCFHeader(String message) {
+	            super(String.format("The provided VCF file has a malformed header: %s", message));
+	        }
+    }
 }
