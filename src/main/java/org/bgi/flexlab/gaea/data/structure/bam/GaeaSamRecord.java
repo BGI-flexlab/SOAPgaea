@@ -24,27 +24,15 @@ import org.bgi.flexlab.gaea.util.ReadUtils;
 public class GaeaSamRecord extends SAMRecord {
 	// ReduceReads specific attribute tags
 	public static final String REDUCED_READ_CONSENSUS_TAG = "RR";
-	// original alignment startwhen reads has clipped
-	public static final String REDUCED_READ_ORIGINAL_ALIGNMENT_START_SHIFT = "OP";
-	// original alignment end when reads has clipped
-	public static final String REDUCED_READ_ORIGINAL_ALIGNMENT_END_SHIFT = "OE";
 	// Base Quality Score Recalibrator specific attribute tags
 	public static final String BQSR_BASE_INSERTION_QUALITIES = "BI";
 	// base qualities for deletions
 	public static final String BQSR_BASE_DELETION_QUALITIES = "BD";
-	@SuppressWarnings("unused")
-	private static final int READ_PAIRED_FLAG = 0x1;
 	private static final int PROPER_PAIR_FLAG = 0x2;
 	private static final int MATE_UNMAPPED_FLAG = 0x8;
-	@SuppressWarnings("unused")
-	private static final int READ_STRAND_FLAG = 0x10;
 	private static final int MATE_STRAND_FLAG = 0x20;
 	private static final int FIRST_OF_PAIR_FLAG = 0x40;
 	private static final int SECOND_OF_PAIR_FLAG = 0x80;
-	@SuppressWarnings("unused")
-	private static final int NOT_PRIMARY_ALIGNMENT_FLAG = 0x100;
-	@SuppressWarnings("unused")
-	private static final int READ_FAILS_VENDOR_QUALITY_CHECK_FLAG = 0x200;
 	private static final int DUPLICATE_READ_FLAG = 0x400;
 	public static final String NO_ALIGNMENT_REFERENCE_NAME = "*";
 	public static final int NO_ALIGNMENT_REFERENCE_INDEX = -1;
@@ -94,12 +82,11 @@ public class GaeaSamRecord extends SAMRecord {
 		this.setMateAlignmentStart(mateAlignmentStart);
 		this.setInferredInsertSize(insertSize);
 	}
-
-	public static boolean hasReferenceName(final Integer referenceIndex,
-			final String referenceName) {
-		return (referenceIndex != null && referenceIndex != NO_ALIGNMENT_REFERENCE_INDEX)
-				|| !NO_ALIGNMENT_REFERENCE_NAME.equals(referenceName);
-	}
+	
+	private static boolean hasReferenceName(final Integer referenceIndex, final String referenceName) {
+        return (referenceIndex != null && referenceIndex != NO_ALIGNMENT_REFERENCE_INDEX) ||
+                !NO_ALIGNMENT_REFERENCE_NAME.equals(referenceName);
+    }
 
 	/**
 	 * @return true if this SAMRecord has a reference, either as a String or
@@ -169,10 +156,7 @@ public class GaeaSamRecord extends SAMRecord {
 			final int alignmentStart, final boolean isMate) {
 		final boolean hasReference = hasReferenceName(referenceIndex,
 				referenceName);
-
-		// ret is only instantiate if there are errors to report, in order to
-		// reduce GC in the typical case
-		// in which everything is valid. It's ugly, but more efficient.
+		
 		ArrayList<SAMValidationError> ret = null;
 		if (!hasReference) {
 			if (alignmentStart != 0) {
@@ -268,7 +252,6 @@ public class GaeaSamRecord extends SAMRecord {
 		this.setReferenceIndex(sam.getReferenceIndex());
 		this.setAlignmentStart(sam.getAlignmentStart());
 		this.setMappingQuality(sam.getMappingQuality());
-		// this.setCigarString(sam.getCigarString());
 		this.setCigar(sam.getCigar());
 		this.setMateReferenceName(sam.getMateReferenceName());
 		this.setMateReferenceIndex(sam.getMateReferenceIndex());
@@ -526,9 +509,6 @@ public class GaeaSamRecord extends SAMRecord {
 	 *
 	 * Note: getUnclippedStart() adds soft and hard clips, this function only
 	 * adds soft clips.
-	 *
-	 * @return the unclipped start of the read taking soft clips (but not hard
-	 *         clips) into account
 	 */
 	public int getSoftStart() {
 		if (softStart < 0) {
@@ -550,9 +530,6 @@ public class GaeaSamRecord extends SAMRecord {
 	 *
 	 * Note: getUnclippedEnd() adds soft and hard clips, this function only adds
 	 * soft clips.
-	 *
-	 * @return the unclipped end of the read taking soft clips (but not hard
-	 *         clips) into account
 	 */
 	public int getSoftEnd() {
 		if (softEnd < 0) {
@@ -581,11 +558,6 @@ public class GaeaSamRecord extends SAMRecord {
 
 	/**
 	 * The number of bases corresponding the i'th base of the reduced read.
-	 *
-	 * @param i
-	 *            the read based coordinate inside the read
-	 * @return the number of bases corresponding to the i'th base of the reduced
-	 *         read
 	 */
 	public final byte getReducedCount(final int i) {
 		byte firstCount = getReducedReadCounts()[0];
@@ -612,13 +584,7 @@ public class GaeaSamRecord extends SAMRecord {
 		byte[] quals = getExistingBaseDeletionQualities();
 		if (quals == null) {
 			quals = new byte[getBaseQualities().length];
-			Arrays.fill(quals, (byte) 45); // Some day in the future when base
-											// insertion and base deletion quals
-											// exist the samtools API will
-											// be updated and the original quals
-											// will be pulled here, but for now
-											// we assume the original quality is
-											// a flat Q45
+			Arrays.fill(quals, (byte) 45); 
 			setBaseQualities(quals, EventType.BASE_DELETION);
 		}
 		return quals;

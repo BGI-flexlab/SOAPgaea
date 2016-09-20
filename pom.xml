@@ -70,5 +70,12 @@
     	<scope>system</scope>
     	<systemPath>${basedir}/src/lib/cofoja-1.0-r139.jar</systemPath>
     </dependency>
+    <dependency>
+    	<groupId>kryo</groupId>
+    	<artifactId>kryo</artifactId>
+    	<version>2.21</version>
+    	<scope>system</scope>
+    	<systemPath>${basedir}/src/lib/kryo-2.21.jar</systemPath>
+    </dependency>
   </dependencies>
 </project>

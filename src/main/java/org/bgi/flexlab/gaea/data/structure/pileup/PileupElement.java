@@ -121,6 +121,10 @@ public class PileupElement implements Comparable<PileupElement> {
 	public int getBaseIndex() {
 		return getBaseIndex(offset);
 	}
+	
+	public boolean getReadNegativeStrandFlag(){
+		return getRead().getReadNegativeStrandFlag();
+	}
 
 	public byte getQuality() {
 		return getQuality(offset);
