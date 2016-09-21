@@ -11,7 +11,7 @@ import java.io.Serializable;
  * @author ZhangZhi
  *
  */
-public class SNPInfo implements Serializable{
+public class SNPInformation implements Serializable{
 
 	/**
 	 * 序列化版本ID
@@ -36,7 +36,7 @@ public class SNPInfo implements Serializable{
 	 * 设置snpBasicInfo属性
 	 * @param snpBasicInfo
 	 */
-	public void setSnpBasicInfo(byte snpBasicInfo) {
+	public void setSnpBasicInformation(byte snpBasicInfo) {
 		this.snpBasicInfo = snpBasicInfo;
 	}
 
@@ -67,7 +67,7 @@ public class SNPInfo implements Serializable{
 		boolean freqCStatus = !((snpBasicInfo & 16) == 0);
 		boolean freqTStatus = !((snpBasicInfo & 8) == 0);
 		boolean freqGStatus = !((snpBasicInfo & 4) == 0);
-		//System.out.println(freqAStatus + "\t" + freqCStatus + "\t" + freqTStatus + "\t" + freqGStatus);
+		
 		float freq = 0f;
 		switch (allele) {
 		case 0: // A
