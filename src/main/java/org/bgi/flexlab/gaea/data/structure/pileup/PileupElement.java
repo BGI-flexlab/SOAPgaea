@@ -31,8 +31,6 @@ public class PileupElement implements Comparable<PileupElement> {
 	/**
 	 * Creates a new pileup element.
 	 */
-	@Requires({ "read != null", "offset >= -1",
-			"offset <= read.getReadLength()" })
 	public PileupElement(final GaeaSamRecord read, final int offset,
 			final boolean isDeletion, final boolean isBeforeDeletion,
 			final boolean isAfterDeletion, final boolean isBeforeInsertion,
@@ -146,7 +144,7 @@ public class PileupElement implements Comparable<PileupElement> {
 	}
 
 	/**
-	 * @return actual sequence of inserted bases, or a null if the event is a
+	 * actual sequence of inserted bases, or a null if the event is a
 	 *         deletion or if there is no event in the associated read.
 	 */
 	public String getEventBases() {
@@ -199,11 +197,6 @@ public class PileupElement implements Comparable<PileupElement> {
 
 	/**
 	 * Returns the number of elements in the pileup element.
-	 *
-	 * Unless this is a reduced read, the number of elements in a pileup element
-	 * is one. In the event of this being a reduced read and a deletion, we
-	 * return the average number of elements between the left and right elements
-	 * to the deletion. We assume the deletion to be left aligned.
 	 */
 	public int getRepresentativeCount() {
 		int representativeCount = 1;

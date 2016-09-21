@@ -31,7 +31,7 @@ public class GenomeShare {
 	/**
 	 * 染色体信息Map
 	 */
-	private Map<String, ChromosomeInfoShare> chromosomeInfoMap = new ConcurrentHashMap<String, ChromosomeInfoShare>();	
+	private Map<String, ChromosomeInformationShare> chromosomeInfoMap = new ConcurrentHashMap<String, ChromosomeInformationShare>();	
 	
 	/**
 	 * boolean for distribute reference
@@ -144,9 +144,9 @@ public class GenomeShare {
 			}
 			if (chromosomeInfoMap.containsKey(chrs[0])) {
 				// map chr and get length
-				chromosomeInfoMap.get(chrs[0]).loadChr(chrs[1]);
+				chromosomeInfoMap.get(chrs[0]).loadChromosome(chrs[1]);
 				chromosomeInfoMap.get(chrs[0]).setLength(Integer.parseInt(chrs[2]));
-				chromosomeInfoMap.get(chrs[0]).setChrName(chrs[0]);
+				chromosomeInfoMap.get(chrs[0]).setChromosomeName(chrs[0]);
 			}
 		}
 		in.close();
@@ -175,9 +175,9 @@ public class GenomeShare {
 			}
 			if (chromosomeInfoMap.containsKey(chrs[0])) {
 				// map chr and get length
-				chromosomeInfoMap.get(chrs[0]).loadChr(chrs[0] + "ref");
+				chromosomeInfoMap.get(chrs[0]).loadChromosome(chrs[0] + "ref");
 				chromosomeInfoMap.get(chrs[0]).setLength(Integer.parseInt(chrs[2]));
-				chromosomeInfoMap.get(chrs[0]).setChrName(chrs[0]);
+				chromosomeInfoMap.get(chrs[0]).setChromosomeName(chrs[0]);
 			}
 		}
 		br.close();
@@ -213,7 +213,7 @@ public class GenomeShare {
 			if (chromosomeInfoMap.containsKey(chrs[0])) {
 				// map chr and get length
 				chromosomeInfoMap.get(chrs[0]).setLength(Integer.parseInt(chrs[2]));
-				chromosomeInfoMap.get(chrs[0]).setChrName(chrs[0]);
+				chromosomeInfoMap.get(chrs[0]).setChromosomeName(chrs[0]);
 			}
 		}
 		in.close();
@@ -248,7 +248,7 @@ public class GenomeShare {
 			indexPath = listSplit[2];
 			size = Integer.parseInt(listSplit[3]);
 			if (chromosomeInfoMap.containsKey(chromosome)) {
-				chromosomeInfoMap.get(chromosome).loaddbSNP(dbsnpPath, indexPath, size);
+				chromosomeInfoMap.get(chromosome).loadDbSNP(dbsnpPath, indexPath, size);
 			}
 		}
 		in.close();
@@ -276,7 +276,7 @@ public class GenomeShare {
 			indexPath = chromosome + "dbsnpIndex";
 			size = Integer.parseInt(listSplit[3]);
 			if (chromosomeInfoMap.containsKey(chromosome)) {
-				chromosomeInfoMap.get(chromosome).loaddbSNP(dbsnpPath, indexPath, size);
+				chromosomeInfoMap.get(chromosome).loadDbSNP(dbsnpPath, indexPath, size);
 			}
 		}
 		br.close();
@@ -298,7 +298,7 @@ public class GenomeShare {
 	 * 获取染色体信息Map
 	 * @return
 	 */
-	public Map<String, ChromosomeInfoShare> getChromosomeInfoMap() {
+	public Map<String, ChromosomeInformationShare> getChromosomeInfoMap() {
 		return chromosomeInfoMap;
 	}
 
@@ -307,7 +307,7 @@ public class GenomeShare {
 	 * @param chrName
 	 * @return
 	 */
-	public ChromosomeInfoShare getChromosomeInfo(String chrName) {
+	public ChromosomeInformationShare getChromosomeInfo(String chrName) {
 		if(chromosomeInfoMap.get(getChrnameFormat(chrName)) == null)
 			throw new RuntimeException("chr name not in GaeaIndex of ref:" + chrName);
 		return chromosomeInfoMap.get(getChrnameFormat(chrName));
@@ -319,7 +319,7 @@ public class GenomeShare {
 	 * @return
 	 */
 	public boolean addChr(String chrName){		
-		ChromosomeInfoShare newChr = new ChromosomeInfoShare();
+		ChromosomeInformationShare newChr = new ChromosomeInformationShare();
 		chromosomeInfoMap.put(chrName, newChr);
 		if(chromosomeInfoMap.get(chrName) != null) {
 			return true;

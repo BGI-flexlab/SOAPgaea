@@ -83,8 +83,6 @@ public class ChromosomeDbSNPShare {
 
 	/**
 	 * 读取dbsnp index文件
-	 * @param indexPath
-	 * @throws IOException
 	 */
 	public void loadDbSNPIndex(String indexPath) throws IOException {
 		DataInputStream in = new DataInputStream(new BufferedInputStream(new FileInputStream(indexPath)));
@@ -98,11 +96,6 @@ public class ChromosomeDbSNPShare {
 	
 	/**
 	 * 二分法查找
-	 * @param start
-	 * @param end
-	 * @param array
-	 * @param value
-	 * @return
 	 */
 	public int binarySearch(int start, int end, int[] array, int value){
 		int i, j, k, index = -1;
@@ -140,10 +133,10 @@ public class ChromosomeDbSNPShare {
 	 * @param pos
 	 * @return SNPInfo
 	 */
-	public SNPInfo findSNP(int pos) {
+	public SNPInformation findSNP(int pos) {
 		byte snpBasicInfo;
 		float alleleFreq;
-		SNPInfo snpinfo = new SNPInfo();
+		SNPInformation snpinfo = new SNPInformation();
 		
 		int index = findDbSNPIndex(pos);
 		if(index == -1) {
@@ -155,7 +148,7 @@ public class ChromosomeDbSNPShare {
 		alleleFreq = dbsnpBuffer[0].getFloat();
 		dbsnpBuffer[0].position(0);
 		
-		snpinfo.setSnpBasicInfo(snpBasicInfo);
+		snpinfo.setSnpBasicInformation(snpBasicInfo);
 		snpinfo.setAlleleFreq(alleleFreq);
 
 		return snpinfo;

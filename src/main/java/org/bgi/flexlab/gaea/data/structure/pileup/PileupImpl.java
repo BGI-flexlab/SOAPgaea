@@ -7,46 +7,46 @@ import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
 
 public class PileupImpl extends AbstractPileup<PileupImpl, PileupElement> {
-	public PileupImpl(GenomeLocation loc) {
-		super(loc);
+	public PileupImpl(GenomeLocation location) {
+		super(location);
 	}
 
-	public PileupImpl(GenomeLocation loc, List<GaeaSamRecord> reads,
+	public PileupImpl(GenomeLocation location, List<GaeaSamRecord> reads,
 			List<Integer> offsets) {
-		super(loc, reads, offsets);
+		super(location, reads, offsets);
 	}
 
-	public PileupImpl(GenomeLocation loc, List<GaeaSamRecord> reads, int offset) {
-		super(loc, reads, offset);
+	public PileupImpl(GenomeLocation location, List<GaeaSamRecord> reads, int offset) {
+		super(location, reads, offset);
 	}
 
-	public PileupImpl(GenomeLocation loc, List<PileupElement> pileupElements) {
-		super(loc, pileupElements);
+	public PileupImpl(GenomeLocation location, List<PileupElement> pileupElements) {
+		super(location, pileupElements);
 	}
 
-	public PileupImpl(GenomeLocation loc,
+	public PileupImpl(GenomeLocation location,
 			Map<String, PileupImpl> pileupElementsBySample) {
-		super(loc, pileupElementsBySample);
+		super(location, pileupElementsBySample);
 	}
 
 	/**
 	 * Optimization of above constructor where all of the cached data is
 	 * provided
 	 */
-	public PileupImpl(GenomeLocation loc, List<PileupElement> pileup, int size,
+	public PileupImpl(GenomeLocation location, List<PileupElement> pileup, int size,
 			int nDeletions, int nMQ0Reads) {
-		super(loc, pileup, size, nDeletions, nMQ0Reads);
+		super(location, pileup, size, nDeletions, nMQ0Reads);
 	}
 
-	protected PileupImpl(GenomeLocation loc,
+	protected PileupImpl(GenomeLocation location,
 			PileupElementTracker<PileupElement> tracker) {
-		super(loc, tracker);
+		super(location, tracker);
 	}
 
 	@Override
-	protected PileupImpl createNewPileup(GenomeLocation loc,
+	protected PileupImpl createNewPileup(GenomeLocation location,
 			PileupElementTracker<PileupElement> tracker) {
-		return new PileupImpl(loc, tracker);
+		return new PileupImpl(location, tracker);
 	}
 
 	@Override

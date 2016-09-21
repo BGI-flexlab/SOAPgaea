@@ -32,9 +32,9 @@ public abstract class AbstractPileup<AP extends AbstractPileup<AP, PE>, PE exten
 	 * Create a new version of a read backed pileup at loc, using the reads and
 	 * their corresponding offsets.
 	 */
-	public AbstractPileup(GenomeLocation loc, List<GaeaSamRecord> reads,
+	public AbstractPileup(GenomeLocation location, List<GaeaSamRecord> reads,
 			List<Integer> offsets) {
-		this.location = loc;
+		this.location = location;
 		this.pileupElementTracker = readsOffsets2Pileup(reads, offsets);
 	}
 
@@ -42,8 +42,8 @@ public abstract class AbstractPileup<AP extends AbstractPileup<AP, PE>, PE exten
 	 * Create a new version of a read backed pileup at loc without any aligned
 	 * reads
 	 */
-	public AbstractPileup(GenomeLocation loc) {
-		this(loc, new UnifiedPileupElementTracker<PE>());
+	public AbstractPileup(GenomeLocation location) {
+		this(location, new UnifiedPileupElementTracker<PE>());
 	}
 
 	/**
@@ -52,15 +52,15 @@ public abstract class AbstractPileup<AP extends AbstractPileup<AP, PE>, PE exten
 	 * is well-formed and merely keeps a pointer to pileup. Don't go changing
 	 * the data in pileup.
 	 */
-	public AbstractPileup(GenomeLocation loc, List<PE> pileup) {
-		if (loc == null)
+	public AbstractPileup(GenomeLocation location, List<PE> pileup) {
+		if (location == null)
 			throw new UserException.PileupException(
-					"Illegal null genomeloc in pileup");
+					"Illegal null genome location in pileup");
 		if (pileup == null)
 			throw new UserException.PileupException(
-					"Illegal null pileup in AbstractPileup");
+					"Illegal null pileup in abstract pileup");
 
-		this.location = loc;
+		this.location = location;
 		this.pileupElementTracker = new UnifiedPileupElementTracker<PE>(pileup);
 		calculateCachedData();
 	}
@@ -69,25 +69,25 @@ public abstract class AbstractPileup<AP extends AbstractPileup<AP, PE>, PE exten
 	 * Optimization of above constructor where all of the cached data is
 	 * provided
 	 */
-	public AbstractPileup(GenomeLocation loc, List<PE> pileup, int size,
+	public AbstractPileup(GenomeLocation location, List<PE> pileup, int size,
 			int nDeletions, int nMQ0Reads) {
-		if (loc == null)
+		if (location == null)
 			throw new UserException.PileupException(
-					"Illegal null genomelocation in UnifiedReadBackedPileup");
+					"Illegal null genome location in UnifiedReadBackedPileup");
 		if (pileup == null)
 			throw new UserException.PileupException(
 					"Illegal null pileup in UnifiedReadBackedPileup");
 
-		this.location = loc;
+		this.location = location;
 		this.pileupElementTracker = new UnifiedPileupElementTracker<PE>(pileup);
 		this.size = size;
 		this.nDeletions = nDeletions;
 		this.nMQ0Reads = nMQ0Reads;
 	}
 
-	protected AbstractPileup(GenomeLocation loc,
+	protected AbstractPileup(GenomeLocation location,
 			PileupElementTracker<PE> tracker) {
-		this.location = loc;
+		this.location = location;
 		this.pileupElementTracker = tracker;
 		calculateCachedData();
 	}
@@ -105,9 +105,9 @@ public abstract class AbstractPileup<AP extends AbstractPileup<AP, PE>, PE exten
 		this.pileupElementTracker = tracker;
 	}
 
-	public AbstractPileup(GenomeLocation loc, List<GaeaSamRecord> reads,
+	public AbstractPileup(GenomeLocation location, List<GaeaSamRecord> reads,
 			int offset) {
-		this.location = loc;
+		this.location = location;
 		this.pileupElementTracker = readsOffsets2Pileup(reads, offset);
 	}
 
@@ -191,17 +191,14 @@ public abstract class AbstractPileup<AP extends AbstractPileup<AP, PE>, PE exten
 		UnifiedPileupElementTracker<PE> pileup = new UnifiedPileupElementTracker<PE>();
 		for (GaeaSamRecord read : reads) {
 			pileup.add(createNewPileupElement(read, offset, false, false,
-					false, false, false, false)); // only used to create fake
-													// pileups for testing so
-													// ancillary information is
-													// not important
+					false, false, false, false)); 
 		}
 
 		return pileup;
 	}
 
 	protected abstract AbstractPileup<AP, PE> createNewPileup(
-			GenomeLocation loc, PileupElementTracker<PE> pileupElementTracker);
+			GenomeLocation location, PileupElementTracker<PE> pileupElementTracker);
 
 	protected abstract PE createNewPileupElement(final GaeaSamRecord read,
 			final int offset, final boolean isDeletion,
@@ -368,30 +365,23 @@ public abstract class AbstractPileup<AP extends AbstractPileup<AP, PE>, PE exten
 			}
 		} else {
 			Map<String, UnifiedPileupElementTracker<PE>> trackerMap = new HashMap<String, UnifiedPileupElementTracker<PE>>();
-
-			for (String sample : sampleNames) { // initialize pileups for each
-												// sample
+			for (String sample : sampleNames) { 
 				UnifiedPileupElementTracker<PE> filteredTracker = new UnifiedPileupElementTracker<PE>();
 				trackerMap.put(sample, filteredTracker);
 			}
-			for (PE p : pileupElementTracker) { // go through all pileup
-												// elements only once and add
-												// them to the respective
-												// sample's pileup
+			for (PE p : pileupElementTracker) { 
 				GaeaSamRecord read = p.getRead();
 				if (read.getReadGroup() != null) {
 					String sample = read.getReadGroup().getSample();
 					UnifiedPileupElementTracker<PE> tracker = trackerMap
 							.get(sample);
-					if (tracker != null) // we only add the pileup the requested
-											// samples. Completely ignore the
-											// rest
+					if (tracker != null) // we only add the pileup the requested samples
 						tracker.add(p);
 				}
 			}
 			for (Map.Entry<String, UnifiedPileupElementTracker<PE>> entry : trackerMap
 					.entrySet())
-				// create the RBP for each sample
+				// create the AP for each sample
 				result.put(entry.getKey(),
 						createNewPileup(location, entry.getValue()));
 		}
@@ -426,23 +416,7 @@ public abstract class AbstractPileup<AP extends AbstractPileup<AP, PE>, PE exten
 					filteredTracker) : null;
 		}
 	}
-
-	// --------------------------------------------------------
-	//
-	// iterators
-	//
-	// --------------------------------------------------------
-
-	/**
-	 * The best way to access PileupElements where you only care about the bases
-	 * and quals in the pileup.
-	 * <p/>
-	 * for (PileupElement p : this) { doSomething(p); }
-	 * <p/>
-	 * Provides efficient iteration of the data.
-	 *
-	 * @return
-	 */
+	
 	@Override
 	public Iterator<PileupElement> iterator() {
 		return new Iterator<PileupElement>() {
@@ -465,22 +439,8 @@ public abstract class AbstractPileup<AP extends AbstractPileup<AP, PE>, PE exten
 	}
 
 	/**
-	 * The best way to access PileupElements where you only care not only about
-	 * bases and quals in the pileup but also need access to the index of the
-	 * pileup element in the pile.
-	 *
-	 * for (ExtendedPileupElement p : this) { doSomething(p); }
-	 *
-	 * Provides efficient iteration of the data.
-	 *
-	 * @return
-	 */
-
-	/**
 	 * Simple useful routine to count the number of deletion bases in this
 	 * pileup
-	 *
-	 * @return
 	 */
 	@Override
 	public int getNumberOfDeletions() {
@@ -493,7 +453,7 @@ public abstract class AbstractPileup<AP extends AbstractPileup<AP, PE>, PE exten
 	}
 
 	/**
-	 * @return the number of physical elements in this pileup
+	 * the number of physical elements in this pileup
 	 */
 	@Override
 	public int getNumberOfElements() {
@@ -501,7 +461,7 @@ public abstract class AbstractPileup<AP extends AbstractPileup<AP, PE>, PE exten
 	}
 
 	/**
-	 * @return the number of abstract elements in this pileup
+	 * the number of abstract elements in this pileup
 	 */
 	@Override
 	public int depthOfCoverage() {
@@ -511,7 +471,7 @@ public abstract class AbstractPileup<AP extends AbstractPileup<AP, PE>, PE exten
 	}
 
 	/**
-	 * @return true if there are 0 elements in the pileup, false otherwise
+	 * true if there are 0 elements in the pileup, false otherwise
 	 */
 	@Override
 	public boolean isEmpty() {
@@ -519,10 +479,7 @@ public abstract class AbstractPileup<AP extends AbstractPileup<AP, PE>, PE exten
 	}
 	
 	/**
-	 * Get counts of A, C, G, T in order, which returns a int[4] vector with
-	 * counts according to BaseUtils.simpleBaseToBaseIndex for each base.
-	 *
-	 * @return
+	 * Get counts of A, C, G, T in order
 	 */
 	@SuppressWarnings("deprecation")
 	@Override
@@ -562,18 +519,11 @@ public abstract class AbstractPileup<AP extends AbstractPileup<AP, PE>, PE exten
 		return String.format("%s %s %c %s %s", getLocation().getContig(),
 				getLocation().getStart(), // chromosome name and coordinate
 				ref, // reference base
-				new String(getBases()), getQualsString());
+				new String(getBases()), getQualitiesString());
 	}
 
-	// --------------------------------------------------------
-	//
-	// Convenience functions that may be slow
-	//
-	// --------------------------------------------------------
-
 	/**
-	 * Returns a list of the reads in this pileup. Note this call costs O(n) and
-	 * allocates fresh lists each time
+	 * Returns a list of the reads in this pileup.
 	 */
 	@Override
 	public List<GaeaSamRecord> getReads() {
@@ -607,10 +557,7 @@ public abstract class AbstractPileup<AP extends AbstractPileup<AP, PE>, PE exten
 	}
 
 	/**
-	 * Returns a list of the offsets in this pileup. Note this call costs O(n)
-	 * and allocates fresh lists each time
-	 *
-	 * @return
+	 * Returns a list of the offsets in this pileup. 
 	 */
 	@Override
 	public List<Integer> getOffsets() {
@@ -622,10 +569,7 @@ public abstract class AbstractPileup<AP extends AbstractPileup<AP, PE>, PE exten
 	}
 
 	/**
-	 * Returns an array of the bases in this pileup. Note this call costs O(n)
-	 * and allocates fresh array each time
-	 *
-	 * @return
+	 * Returns an array of the bases in this pileup.
 	 */
 	@Override
 	public byte[] getBases() {
@@ -638,13 +582,10 @@ public abstract class AbstractPileup<AP extends AbstractPileup<AP, PE>, PE exten
 	}
 
 	/**
-	 * Returns an array of the quals in this pileup. Note this call costs O(n)
-	 * and allocates fresh array each time
-	 *
-	 * @return
+	 * Returns an array of the qualities in this pileup.
 	 */
 	@Override
-	public byte[] getQualites() {
+	public byte[] getQualities() {
 		byte[] v = new byte[getNumberOfElements()];
 		int pos = 0;
 		for (PileupElement pile : pileupElementTracker) {
@@ -655,11 +596,9 @@ public abstract class AbstractPileup<AP extends AbstractPileup<AP, PE>, PE exten
 
 	/**
 	 * Get an array of the mapping qualities
-	 *
-	 * @return
 	 */
 	@Override
-	public byte[] getMappingQualites() {
+	public byte[] getMappingQualities() {
 		byte[] v = new byte[getNumberOfElements()];
 		int pos = 0;
 		for (PileupElement pile : pileupElementTracker) {
@@ -668,20 +607,16 @@ public abstract class AbstractPileup<AP extends AbstractPileup<AP, PE>, PE exten
 		return v;
 	}
 
-	static String qualites2String(byte[] quals) {
+	private String getQualitiesString() {
+		byte[] qualities = getQualities();
 		StringBuilder qualStr = new StringBuilder();
-		for (int qual : quals) {
-			qual = Math.min(qual, 63); // todo: fixme, this isn't a good idea
-			char qualChar = (char) (33 + qual); // todo: warning, this is
-												// illegal for qual > 63
+		for (int qual : qualities) {
+			qual = Math.min(qual, 63); // todo: fixme
+			char qualChar = (char) (33 + qual); 
 			qualStr.append(qualChar);
 		}
 
 		return qualStr.toString();
-	}
-
-	private String getQualsString() {
-		return qualites2String(getQualites());
 	}
 
 	@Override

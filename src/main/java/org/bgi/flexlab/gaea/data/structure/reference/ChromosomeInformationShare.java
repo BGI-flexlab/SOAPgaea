@@ -12,20 +12,21 @@ import java.nio.channels.FileChannel.MapMode;
 
 /**
  * 染色体信息共享内存
+ * 
  * @author ZhangYong
  *
  */
-public class ChromosomeInfoShare {
-	
+public class ChromosomeInformationShare {
+
 	private static int CAPACITY = Byte.SIZE / 4;
-	
-	public static final char[] FASTA_ABB = new char[] {'A', 'C', 'T', 'G'};
-	
+
+	public static final char[] FASTA_ABB = new char[] { 'A', 'C', 'T', 'G' };
+
 	/**
 	 * 染色体名称
 	 */
 	private String chrName;
-	
+
 	/**
 	 * 染色体对应参考基因组长度
 	 */
@@ -36,7 +37,7 @@ public class ChromosomeInfoShare {
 	 * 01, T: 10, G:11 每个long类型变量可以存储16个碱基的信息
 	 */
 	private MappedByteBuffer[] refSeq; // reference seq map
-	
+
 	/**
 	 * dbSNP 信息
 	 */
@@ -45,21 +46,23 @@ public class ChromosomeInfoShare {
 	/**
 	 * @return the chrName
 	 */
-	public String getChrName() {
+	public String getChromosomeName() {
 		return chrName;
 	}
 
 	/**
-	 * @param chrName the chrName to set
+	 * @param chrName
+	 *            the chrName to set
 	 */
-	public void setChrName(String chrName) {
+	public void setChromosomeName(String chrName) {
 		this.chrName = chrName;
 	}
 
 	/**
 	 * 设置染色体对应参考基因组长度
 	 * 
-	 * @param chrLen 染色体长度
+	 * @param chrLen
+	 *            染色体长度
 	 */
 	public void setLength(int chrLen) {
 		length = chrLen;
@@ -77,10 +80,12 @@ public class ChromosomeInfoShare {
 
 	/**
 	 * 映射一条染色体文件到内存
-	 * @param chr 染色体文件名
+	 * 
+	 * @param chr
+	 *            染色体文件名
 	 * @throws IOException
 	 */
-	public void loadChr(String chr) throws IOException {
+	public void loadChromosome(String chr) throws IOException {
 		RandomAccessFile raf = new RandomAccessFile(chr, "r");
 		FileChannel fc = raf.getChannel();
 		int blocks = (int) ((fc.size() / Integer.MAX_VALUE) + 1);
@@ -91,25 +96,28 @@ public class ChromosomeInfoShare {
 		for (int i = 0; i < blocks; i++) {
 			start = Integer.MAX_VALUE * i;
 			remain = (long) (fc.size() - start);
-			size = (int) ((remain > Integer.MAX_VALUE) ? Integer.MAX_VALUE : remain);
+			size = (int) ((remain > Integer.MAX_VALUE) ? Integer.MAX_VALUE
+					: remain);
 			MappedByteBuffer mapedBB = fc.map(MapMode.READ_ONLY, start, size);
 			allMbb[i] = mapedBB;
 		}
 		raf.close();
 		refSeq = allMbb;
 	}
-	
+
 	/**
-	 * 映射dbSNP信息到内存
-	 * 有dbsnp信息才初始化dbsnpInfo
+	 * 映射dbSNP信息到内存 有dbsnp信息才初始化dbsnpInfo
+	 * 
 	 * @throws IOException
-	 * @param dbsnpPath dbSNP path
+	 * @param dbsnpPath
+	 *            dbSNP path
 	 * @return 0
 	 */
-	public void loaddbSNP(String dbsnpPath, String indexPath, int size) throws IOException {
+	public void loadDbSNP(String dbsnpPath, String indexPath, int size)
+			throws IOException {
 		dbsnpInfo = new ChromosomeDbSNPShare(dbsnpPath, indexPath, size);
 	}
-	
+
 	/**
 	 * 获取dbsnp信息
 	 * 
@@ -123,7 +131,8 @@ public class ChromosomeInfoShare {
 	/**
 	 * 按参考基因组序列的位置获取一个碱基编码
 	 * 
-	 * @param pos position
+	 * @param pos
+	 *            position
 	 * @return base
 	 */
 	public byte getBinaryBase(int pos) {
@@ -138,20 +147,22 @@ public class ChromosomeInfoShare {
 			base &= 0x0f;
 		}
 		if (pos % 2 == 1) {
-			base >>= 4; 
+			base >>= 4;
 			base &= 0x0f;
 		}
 		return base;
 	}
-	
+
 	/**
 	 * 获取碱基
+	 * 
 	 * @param pos
 	 * @return
 	 */
 	public char getBase(int pos) {
-		if(pos >= length) return 0;
-		
+		if (pos >= length)
+			return 0;
+
 		int posi = pos / CAPACITY;
 		byte base;
 
@@ -163,28 +174,31 @@ public class ChromosomeInfoShare {
 			base &= 0x0f;
 		}
 		if (pos % 2 == 1) {
-			base >>= 4; 
+			base >>= 4;
 			base &= 0x0f;
 		}
 		return getFastaAbb(base);
 	}
 
-	/**获取染色体序列
-	 * @param start 从0开始
+	/**
+	 * 获取染色体序列
+	 * 
+	 * @param start
+	 *            从0开始
 	 * @param end
 	 * @return String 序列
 	 */
-	public String getBaseSeq(int start, int end) {
-		if(start >= length) {
+	public String getBaseSequence(int start, int end) {
+		if (start >= length) {
 			return "";
 		}
-		
+
 		StringBuffer seq = new StringBuffer();
 		byte[] bases;
-		
+
 		int posi = start / CAPACITY;
 		int pose;
-		if(end >= length) {
+		if (end >= length) {
 			System.err.println("seq end has reach the end of chromesome");
 			pose = (length - 1) / CAPACITY;
 		} else {
@@ -194,47 +208,48 @@ public class ChromosomeInfoShare {
 		refSeq[0].position(posi);
 		refSeq[0].get(bases, 0, pose - posi + 1);
 		refSeq[0].position(0);
-		
+
 		if (start % 2 == 0) {
 			seq.append(getFastaAbb(bases[0] & 0x0f));
-			seq.append(getFastaAbb((bases[0] >> 4)& 0x0f));
+			seq.append(getFastaAbb((bases[0] >> 4) & 0x0f));
 		}
 		if (start % 2 == 1) {
-			seq.append(getFastaAbb((bases[0] >> 4)& 0x0f));
+			seq.append(getFastaAbb((bases[0] >> 4) & 0x0f));
 		}
-		//取一个位点
-		if(start == end) {
+		// 取一个位点
+		if (start == end) {
 			return seq.toString();
 		}
-		for(int i = 1; i < bases.length - 1; i++) {
+		for (int i = 1; i < bases.length - 1; i++) {
 			seq.append(getFastaAbb(bases[i] & 0x0f));
-			seq.append(getFastaAbb((bases[i] >> 4)& 0x0f));
+			seq.append(getFastaAbb((bases[i] >> 4) & 0x0f));
 		}
 		if (end % 2 == 0) {
 			seq.append(getFastaAbb(bases[bases.length - 1] & 0x0f));
 		}
 		if (end % 2 == 1) {
 			seq.append(getFastaAbb(bases[bases.length - 1] & 0x0f));
-			seq.append(getFastaAbb((bases[bases.length - 1] >> 4)& 0x0f));
+			seq.append(getFastaAbb((bases[bases.length - 1] >> 4) & 0x0f));
 		}
 		return seq.toString();
 	}
-	
+
 	/**
 	 * 获取单倍字母表
 	 */
 	public static char getFastaAbb(int code) {
 		int index = (code & 0x07);
-		if((index & 0x04) != 0) {
+		if ((index & 0x04) != 0) {
 			return 'N';
-		}
-		else
+		} else
 			return FASTA_ABB[index];
 	}
 
 	/**
 	 * 转换byte数组为字符串
-	 * @param b 输入byte数组
+	 * 
+	 * @param b
+	 *            输入byte数组
 	 * @return 返回相应的字符串
 	 */
 	public static String bytes2String(byte[] b) {
@@ -247,9 +262,6 @@ public class ChromosomeInfoShare {
 
 	/**
 	 * byte转换为double类型
-	 * @param b
-	 * @param i
-	 * @return
 	 */
 	public static double byteToDouble(byte[] b, int i) {
 		long l = 0;
@@ -259,4 +271,3 @@ public class ChromosomeInfoShare {
 		return Double.longBitsToDouble(l);
 	}
 }
-

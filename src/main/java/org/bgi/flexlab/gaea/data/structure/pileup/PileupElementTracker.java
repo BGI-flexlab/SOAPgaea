@@ -73,8 +73,9 @@ class SamplePileupElementTracker<PE extends PileupElement> extends
 
 	public void addElements(final String sample,
 			PileupElementTracker<PE> elements) {
-		if(pileupMap.containsKey(sample))
-			throw new UserException.PileupException("add elements for sample "+sample+" is duplication?");
+		if (pileupMap.containsKey(sample))
+			throw new UserException.PileupException("add elements for sample "
+					+ sample + " is duplication?");
 		pileupMap.put(sample, elements);
 		size += elements.size();
 	}
@@ -82,8 +83,8 @@ class SamplePileupElementTracker<PE extends PileupElement> extends
 	public Iterator<PE> iterator() {
 		return new MultipleSamplesPileupElementIterator<PE>(this);
 	}
-	
-	public int sampleSize(){
+
+	public int sampleSize() {
 		return pileupMap.keySet().size();
 	}
 

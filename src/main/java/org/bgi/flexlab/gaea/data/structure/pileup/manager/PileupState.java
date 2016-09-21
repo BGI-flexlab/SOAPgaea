@@ -14,44 +14,43 @@ public class PileupState {
 	/**
 	 * samrecord list
 	 */
-	private Queue<GaeaSamRecord> records=null;
+	private Queue<GaeaSamRecord> records = null;
 
 	/**
 	 * alignment context for pileup
 	 */
-	AlignmentContext nextAlignmentContext=null;
-	
-	
+	AlignmentContext nextAlignmentContext = null;
+
 	/**
 	 * read state
 	 */
-	Queue<SamRecordState> readStates=null;
+	Queue<SamRecordState> readStates = null;
 	/**
 	 * 
 	 * Location
 	 */
-	private GenomeLocation location=null;
-	
+	private GenomeLocation location = null;
+
 	/**
 	 * GenomicParse
 	 */
-	GenomeLocationParser genomeLocParser=null;
-	
+	GenomeLocationParser genomeLocParser = null;
+
 	private PileupStateUtils readsUtil = null;
-	
-	public PileupState(ArrayList<GaeaSamRecord> records,GenomeLocationParser genomeLocParser)
-	{
-		this.records=new LinkedList<GaeaSamRecord>(records);
-		readStates=new LinkedList<SamRecordState>();
-		this.genomeLocParser=genomeLocParser;
+
+	public PileupState(ArrayList<GaeaSamRecord> records,
+			GenomeLocationParser genomeLocParser) {
+		this.records = new LinkedList<GaeaSamRecord>(records);
+		readStates = new LinkedList<SamRecordState>();
+		this.genomeLocParser = genomeLocParser;
 		readsUtil = new PileupStateUtils();
 	}
-	
-	 public boolean hasNext() {
-	        lazyLoadNextAlignmentContext();
-	        return (nextAlignmentContext != null);
-	    }
-	
+
+	public boolean hasNext() {
+		lazyLoadNextAlignmentContext();
+		return (nextAlignmentContext != null);
+	}
+
 	private void lazyLoadNextAlignmentContext() {
 		if (nextAlignmentContext == null
 				&& (!readStates.isEmpty() || !records.isEmpty())) {

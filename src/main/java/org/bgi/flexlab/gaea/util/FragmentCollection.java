@@ -15,8 +15,6 @@ public class FragmentCollection<T> {
 
     /**
      * Gets the T elements not containing overlapping elements, in no particular order
-     *
-     * @return
      */
     public Collection<T> getSingletonReads() {
         return singletons;
@@ -24,8 +22,6 @@ public class FragmentCollection<T> {
 
     /**
      * Gets the T elements containing overlapping elements, in no particular order
-     *
-     * @return
      */
     public Collection<List<T>> getOverlappingPairs() {
         return overlappingPairs;

@@ -84,7 +84,6 @@ public class SamRecordUtils {
 	}
 
 	public static byte[] getReducedReadCounts(SAMRecord sam) {
-
 		byte[] reducedReadCounts = sam
 				.getByteArrayAttribute(REDUCED_READ_CONSENSUS_TAG);
 

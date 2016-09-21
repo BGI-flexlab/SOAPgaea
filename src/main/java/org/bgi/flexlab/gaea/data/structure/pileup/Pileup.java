@@ -61,17 +61,17 @@ public interface Pileup extends Iterable<PileupElement>{
     public int getNumberOfMappingQualityZeroReads();
 
     /**
-     * @return the number of physical elements in this pileup (a reduced read is counted just once)
+     * the number of physical elements in this pileup (a reduced read is counted just once)
      */
     public int getNumberOfElements();
 
     /**
-     * @return the number of abstract elements in this pileup (reduced reads are expanded to count all reads that they represent)
+     * the number of abstract elements in this pileup (reduced reads are expanded to count all reads that they represent)
      */
     public int depthOfCoverage();
 
     /**
-     * @return true if there are 0 elements in the pileup, false otherwise
+     * true if there are 0 elements in the pileup, false otherwise
      */
     public boolean isEmpty();
 
@@ -98,19 +98,18 @@ public interface Pileup extends Iterable<PileupElement>{
 
     /**
      * Returns an array of the bases in this pileup. 
-     * @return
      */
     public byte[] getBases();
 
     /**
     * Returns an array of the quals in this pileup. 
     */
-    public byte[] getQualites();
+    public byte[] getQualities();
 
     /**
      * Get an array of the mapping qualities
      */
-    public byte[] getMappingQualites();
+    public byte[] getMappingQualities();
 
     /**
      * Converts this pileup into a FragmentCollection (see FragmentUtils for documentation)
