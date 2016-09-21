@@ -31,17 +31,6 @@ public class BuildIndex {
 	private static Map<String, ChromosomeInformation> chromosomeInfoMap = new ConcurrentHashMap<String, ChromosomeInformation>();
 
 	/**
-	 * format chromosome name
-	 */
-	private static String getChromosomeNameFormat(String chrName) {
-		String newChrName = chrName.toLowerCase();
-		if (!chrName.startsWith("chr")) {
-			newChrName = "chr" + newChrName;
-		}
-		return newChrName;
-	}
-
-	/**
 	 * read fasta reference
 	 * 
 	 * @param refSeqPath
@@ -78,7 +67,7 @@ public class BuildIndex {
 							&& '\r' != line.charAt(pos)
 							&& '\f' != line.charAt(pos); pos++) {
 					}
-					String newChrName = getChromosomeNameFormat(line.substring(
+					String newChrName = GenomeShare.getChromosomeNameFormat(line.substring(
 							1, pos));
 
 					// 判断添加染色体信息是否成功
@@ -270,31 +259,5 @@ public class BuildIndex {
 		ChromosomeInformation newChr = new ChromosomeInformation();
 		chromosomeInfoMap.put(chrName, newChr);
 		return (chromosomeInfoMap.get(chrName) != null) ? true : false;
-	}
-
-	/**
-	 * 创建文件夹
-	 * 
-	 * @param path
-	 *            文件夹路径
-	 */
-	private static void createDirectory(String path) {
-		File myFolderPath = new File(path.toString());
-		if (!myFolderPath.exists()) {
-			myFolderPath.mkdir();
-		}
-	}
-
-	/**
-	 * 获取绝对路径
-	 * 
-	 * @param filePath
-	 *            文件名当前路径
-	 * @return absPath 文件绝对路径
-	 */
-	private static String absolutelyPath(String filePath) {
-		File file = new File(filePath);
-		String abs = file.getAbsolutePath();
-		return abs;
 	}
 }

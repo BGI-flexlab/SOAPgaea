@@ -46,7 +46,7 @@ public class GenomeShare {
 	 * @throws IOException
 	 * @throws URISyntaxException
 	 */
-	public static boolean disCacheRef(String chrList, Configuration conf) throws IOException, URISyntaxException {
+	public static boolean distributeCacheReference(String chrList, Configuration conf) throws IOException, URISyntaxException {
 		DistributedCache.createSymlink(conf);
 		DistributedCache.addCacheFile(new URI(chrList+ "#" + "refList"), conf);
 		
@@ -84,7 +84,7 @@ public class GenomeShare {
 		Configuration conf = new Configuration();
 		
 		//分布式缓存ref
-        if(disCacheRef(chrList, conf)) {
+        if(distributeCacheReference(chrList, conf)) {
         	conf.setBoolean("cacheref", true);
         } else {
         	System.err.println("Error distribute cache reference!");
@@ -94,7 +94,7 @@ public class GenomeShare {
 	
 	public boolean loadGenome(String refList, String dbsnpList) {
 		try {
-			loadChrList(refList);
+			loadChromosomeList(refList);
 		} catch (Exception e) {
 			// TODO: handle exception
 			return false;
@@ -108,7 +108,7 @@ public class GenomeShare {
 			return false;
 		
 		try {
-			loadChrList();
+			loadChromosomeList();
 		} catch (Exception e) {
 			// TODO: handle exception
 			return false;
@@ -121,7 +121,7 @@ public class GenomeShare {
 	 * @param chrList	包含所有染色体文件路径的list文件
 	 * @throws IOException
 	 */
-	public void loadChrList(String chrList) throws IOException{
+	public void loadChromosomeList(String chrList) throws IOException{
 		Configuration conf = new Configuration();
 		Path refPath = new Path(chrList);
 		FileSystem fs = refPath.getFileSystem(conf);
@@ -158,7 +158,7 @@ public class GenomeShare {
 	 * 从distribute cache中读取
 	 * @throws IOException
 	 */
-	public void loadChrList() throws IOException{
+	public void loadChromosomeList() throws IOException{
 		BufferedReader br = new BufferedReader(new FileReader(new File("refList")));
 		
 		String line = new String();
@@ -188,7 +188,7 @@ public class GenomeShare {
 	 * @param chrList	包含所有染色体文件路径的list文件
 	 * @throws IOException
 	 */
-	public void loadBasicInfo(String chrList) throws IOException{
+	public void loadBasicInformation(String chrList) throws IOException{
 		Configuration conf = new Configuration();
 		Path refPath = new Path(chrList);
 		FileSystem fs = refPath.getFileSystem(conf);
@@ -226,7 +226,7 @@ public class GenomeShare {
 	 * @throws IOException
 	 */
 	
-	public void loaddbSNPList(String dbsnpListPath) throws IOException{
+	public void loadDbSNPList(String dbsnpListPath) throws IOException{
 		Configuration conf = new Configuration();
 		Path dbPath = new Path(dbsnpListPath);
 		FileSystem fs = dbPath.getFileSystem(conf);
@@ -261,7 +261,7 @@ public class GenomeShare {
 	 * @throws IOException
 	 */
 	
-	public void loaddbSNPList() throws IOException{
+	public void loadDbSNPList() throws IOException{
 		BufferedReader br = new BufferedReader(new FileReader(new File("dbsnpList")));
 		
 		String line = new String();
@@ -285,7 +285,7 @@ public class GenomeShare {
 	/**
 	 * format chrname
 	 */
-	private static String getChrnameFormat(String chrName) {
+	public static String getChromosomeNameFormat(String chrName) {
 		String newChrName = chrName.toLowerCase();
 		if(!chrName.startsWith("chr")) {
 			newChrName = "chr" + newChrName;
@@ -308,9 +308,9 @@ public class GenomeShare {
 	 * @return
 	 */
 	public ChromosomeInformationShare getChromosomeInfo(String chrName) {
-		if(chromosomeInfoMap.get(getChrnameFormat(chrName)) == null)
+		if(chromosomeInfoMap.get(getChromosomeNameFormat(chrName)) == null)
 			throw new RuntimeException("chr name not in GaeaIndex of ref:" + chrName);
-		return chromosomeInfoMap.get(getChrnameFormat(chrName));
+		return chromosomeInfoMap.get(getChromosomeNameFormat(chrName));
 	}
 
 	/**
