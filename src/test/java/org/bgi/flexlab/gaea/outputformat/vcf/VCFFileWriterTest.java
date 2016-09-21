@@ -7,8 +7,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import org.apache.hadoop.conf.Configuration;
-import org.bgi.flexlab.gaea.inputformat.vcf.codec.VCFCodec;
-import org.bgi.flexlab.gaea.outputformat.vcf.VCFFileWriter;
+import org.bgi.flexlab.gaea.data.mapreduce.output.vcf.VCFFileWriter;
+import org.bgi.flexlab.gaea.data.structure.vcf.VCFCodec;
 import org.bgi.flexlab.gaea.structure.header.VCFHeader;
 
 import htsjdk.variant.variantcontext.VariantContext;
