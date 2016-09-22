@@ -122,16 +122,22 @@ class VCFRecordReader extends RecordReader<LongWritable, Text> {
 		return it.hasNext() && it.getPosition() <= currentPos && it.peek().startsWith("##");
 	}
 	
-	@Override public void close(){ reader.close();}
+	@Override 
+	public void close(){ reader.close();}
 	
-	@Override public float getProgress() {
+	@Override 
+	public float getProgress() {
 		return length == 0 ? 1 : (float) reader.getPosition() / length;
 	}
 	
-	@Override public LongWritable getCurrentKey   ()  { return key;}
-	@Override public Text         getCurrentValue ()  { return value;}
+	@Override 
+	public LongWritable getCurrentKey()  { return key;}
 	
-	@Override public boolean nextKeyValue() throws IOException {
+	@Override 
+	public Text getCurrentValue()  { return value;}
+	
+	@Override 
+	public boolean nextKeyValue() throws IOException {
 		if( !it.hasNext() || it.getPosition() > length) {
 			return false;
 		}
@@ -144,6 +150,5 @@ class VCFRecordReader extends RecordReader<LongWritable, Text> {
 		value.set(new Text(line)); 
 	  
 		return true;
-	    
 	}
 }
