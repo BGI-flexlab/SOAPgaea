@@ -10,7 +10,7 @@ import java.util.Date;
 import org.apache.commons.math3.util.FastMath;
 import org.bgi.flexlab.gaea.data.structure.positioninformation.PositionInformation;
 import org.bgi.flexlab.gaea.util.FisherTest;
-import org.bgi.flexlab.gaea.util.SystemConfig;
+import org.bgi.flexlab.gaea.util.SystemConfiguration;
 
 /**
  * VCF格式
@@ -148,7 +148,7 @@ public class VCFFormat {
 		setInfo(posInfo, RankSumTestValue);
 	
 		calBQValue(posInfo.getBaseQualSum(), posInfo.getBaseQualNum());
-		calSbPvalue(posInfo.getSbstrandSum(), (posInfo.getBase() & 0x3), SystemConfig.getFastaVabbr(type));
+		calSbPvalue(posInfo.getSbstrandSum(), (posInfo.getBase() & 0x3), SystemConfiguration.getFastaVabbr(type));
 		if(mode == 0) {
 			calADValue(altBases, posInfo);
 			calPLvaule((byte) (posInfo.getBase() & 0x7), altBases, prob);
@@ -260,7 +260,7 @@ public class VCFFormat {
 	 * @param
 	 */
 	public void setVCFAltACAFGT(byte type, char base) {
-		String altBase = SystemConfig.getFastaVabbr(type);
+		String altBase = SystemConfiguration.getFastaVabbr(type);
 		if(altBase.length() > 1) {
 			int i;
 			if((i = altBase.indexOf(String.valueOf(base))) != -1) {

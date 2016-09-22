@@ -13,7 +13,7 @@ import java.util.ResourceBundle;
  *
  */
 
-public class SystemConfig {
+public class SystemConfiguration {
 	/**
 	 * BAM flags
 	 */

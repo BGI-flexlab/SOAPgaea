@@ -76,11 +76,6 @@ public class PileupStateUtils {
 				continue;
 
 			if (op == CigarOperator.D) {
-				// TODO -- LIBS is totally busted for deletions so that
-				// reads with Ds right before Is in their CIGAR are broken;
-				// must fix
-				// if (readInfo.includeReadsWithDeletionAtLoci()) { // only
-				// add deletions to the pileup if we are authorized to do so
 				pile.add(new PileupElement(read, readOffset, true,
 						isBeforeDeletion, isAfterDeletion, isBeforeInsertion,
 						isAfterInsertion, isNextToSoftClip, null,

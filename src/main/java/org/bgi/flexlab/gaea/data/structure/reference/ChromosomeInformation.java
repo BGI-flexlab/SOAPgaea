@@ -9,7 +9,7 @@ import java.io.DataOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-import org.bgi.flexlab.gaea.util.SystemConfig;
+import org.bgi.flexlab.gaea.util.SystemConfiguration;
 
 /**
  * 染色体信息
@@ -47,7 +47,7 @@ public class ChromosomeInformation {
 		// 为类成员变量length赋值
 		length = sequence.length();
 		int capacity = length;
-		if (length % SystemConfig.getCapacity() != 0)
+		if (length % SystemConfiguration.getCapacity() != 0)
 			capacity++;
 
 		// 为类成员变量binarySeq分配内存空间
@@ -55,8 +55,8 @@ public class ChromosomeInformation {
 
 		// 处理碱基序列的每一个字符，初始化binarySeq数组。每个碱基用4bit表示。
 		for (int i = 0; i < sequence.length(); i++) {
-			binarySeq[i / SystemConfig.getCapacity()] |= ((((byte) sequence
-					.charAt(i) >> 1) & 7) << (i % SystemConfig.getCapacity() * 4));
+			binarySeq[i / SystemConfiguration.getCapacity()] |= ((((byte) sequence
+					.charAt(i) >> 1) & 7) << (i % SystemConfiguration.getCapacity() * 4));
 		}
 	}
 
@@ -68,8 +68,8 @@ public class ChromosomeInformation {
 	 */
 	public void insertSnpInformation(int pos) {
 		byte intValue = 1;
-		binarySeq[pos / SystemConfig.getCapacity()] |= (intValue << (pos
-				% SystemConfig.getCapacity() * 4 + 3));
+		binarySeq[pos / SystemConfiguration.getCapacity()] |= (intValue << (pos
+				% SystemConfiguration.getCapacity() * 4 + 3));
 	}
 
 	/**

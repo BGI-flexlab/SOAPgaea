@@ -11,11 +11,11 @@ public class BaseUtils {
 	public final static byte N = (byte) 'N';
 	public final static byte D = (byte) 'D';
 
-	public final static byte[] BASES = { A, C, G, T };
-	public final static byte[] EXTENDED_BASES = { A, C, G, T, N, D };
+	public final static byte[] BASES = { A, C, T, G };
+	public final static byte[] EXTENDED_BASES = { A, C, T, G, N, D };
 
 	public enum Base {
-		A('A', 0), C('C', 1), G('G', 2), T('T', 3);
+		A('A', 0), C('C', 1), T('T', 2), G('G', 3);
 
 		byte b;
 		int index;
@@ -58,10 +58,10 @@ public class BaseUtils {
 		baseIndexMap['*'] = 0; 
 		baseIndexMap['C'] = 1;
 		baseIndexMap['c'] = 1;
-		baseIndexMap['G'] = 2;
-		baseIndexMap['g'] = 2;
-		baseIndexMap['T'] = 3;
-		baseIndexMap['t'] = 3;
+		baseIndexMap['T'] = 2;
+		baseIndexMap['t'] = 2;
+		baseIndexMap['G'] = 3;
+		baseIndexMap['g'] = 3;
 	}
 
 	public static final byte DELETION_INDEX = 4;
@@ -228,9 +228,9 @@ public class BaseUtils {
 		case 1:
 			return 'C';
 		case 2:
-			return 'G';
-		case 3:
 			return 'T';
+		case 3:
+			return 'G';
 		default:
 			return '.';
 		}
@@ -246,9 +246,9 @@ public class BaseUtils {
 		case 1:
 			return 0; // C -> A
 		case 2:
-			return 3; // G -> T
+			return 3; // T -> G
 		case 3:
-			return 2; // T -> G
+			return 2; // G -> T
 		default:
 			return -1;
 		}
@@ -260,12 +260,12 @@ public class BaseUtils {
 	static public byte complementIndex(int baseIndex) {
 		switch (baseIndex) {
 		case 0:
-			return 3; // a -> t
+			return 2; // a -> t
 		case 1:
-			return 2; // c -> g
-		case 2:
-			return 1; // g -> c
+			return 3; // c -> g
 		case 3:
+			return 1; // g -> c
+		case 2:
 			return 0; // t -> a
 		default:
 			return -1; // wtf?

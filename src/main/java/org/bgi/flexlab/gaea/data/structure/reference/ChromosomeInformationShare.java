@@ -5,10 +5,10 @@
 package org.bgi.flexlab.gaea.data.structure.reference;
 
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
-import java.nio.channels.FileChannel.MapMode;
+
+import org.bgi.flexlab.gaea.exception.OutOfBoundException;
+import org.bgi.flexlab.gaea.util.SystemConfiguration;
 
 /**
  * 染色体信息共享内存
@@ -16,11 +16,9 @@ import java.nio.channels.FileChannel.MapMode;
  * @author ZhangYong
  *
  */
-public class ChromosomeInformationShare {
+public class ChromosomeInformationShare extends InformationShare {
 
 	private static int CAPACITY = Byte.SIZE / 4;
-
-	public static final char[] FASTA_ABB = new char[] { 'A', 'C', 'T', 'G' };
 
 	/**
 	 * 染色体名称
@@ -70,9 +68,6 @@ public class ChromosomeInformationShare {
 
 	/**
 	 * 获取染色体对应参考基因组长度
-	 * 
-	 * @param
-	 * @return int
 	 */
 	public int getLength() {
 		return length;
@@ -86,23 +81,7 @@ public class ChromosomeInformationShare {
 	 * @throws IOException
 	 */
 	public void loadChromosome(String chr) throws IOException {
-		RandomAccessFile raf = new RandomAccessFile(chr, "r");
-		FileChannel fc = raf.getChannel();
-		int blocks = (int) ((fc.size() / Integer.MAX_VALUE) + 1);
-		MappedByteBuffer[] allMbb = new MappedByteBuffer[blocks];
-		int start = 0;
-		long remain = 0;
-		int size = 0;
-		for (int i = 0; i < blocks; i++) {
-			start = Integer.MAX_VALUE * i;
-			remain = (long) (fc.size() - start);
-			size = (int) ((remain > Integer.MAX_VALUE) ? Integer.MAX_VALUE
-					: remain);
-			MappedByteBuffer mapedBB = fc.map(MapMode.READ_ONLY, start, size);
-			allMbb[i] = mapedBB;
-		}
-		raf.close();
-		refSeq = allMbb;
+		loadInformation(chr, refSeq);
 	}
 
 	/**
@@ -128,56 +107,42 @@ public class ChromosomeInformationShare {
 		return dbsnpInfo;
 	}
 
+	public byte[] getBytes(int start, int end) {
+		if (start >= length)
+			throw new OutOfBoundException(start, length);
+
+		byte[] bases;
+
+		int posi = start / CAPACITY;
+		int pose;
+		if (end >= length) {
+			pose = (length - 1) / CAPACITY;
+		} else {
+			pose = end / CAPACITY;
+		}
+		bases = new byte[pose - posi + 1];
+		refSeq[0].position(posi);
+		refSeq[0].get(bases, 0, pose - posi + 1);
+		refSeq[0].position(0);
+
+		return bases;
+	}
+
 	/**
-	 * 按参考基因组序列的位置获取一个碱基编码
+	 * get base from reference position
 	 * 
-	 * @param pos
-	 *            position
+	 * @param position
 	 * @return base
 	 */
 	public byte getBinaryBase(int pos) {
-		int posi = pos / CAPACITY;
-		byte base;
-
-		refSeq[0].position(posi);
-		base = refSeq[0].get();
-		refSeq[0].position(0);
-
-		if (pos % 2 == 0) {
-			base &= 0x0f;
-		}
-		if (pos % 2 == 1) {
-			base >>= 4;
-			base &= 0x0f;
-		}
-		return base;
+		return getBytes(pos, pos)[0];
 	}
 
 	/**
 	 * 获取碱基
-	 * 
-	 * @param pos
-	 * @return
 	 */
 	public char getBase(int pos) {
-		if (pos >= length)
-			return 0;
-
-		int posi = pos / CAPACITY;
-		byte base;
-
-		refSeq[0].position(posi);
-		base = refSeq[0].get();
-		refSeq[0].position(0);
-
-		if (pos % 2 == 0) {
-			base &= 0x0f;
-		}
-		if (pos % 2 == 1) {
-			base >>= 4;
-			base &= 0x0f;
-		}
-		return getFastaAbb(base);
+		return SystemConfiguration.getFastaAbb(getBinaryBase(pos));
 	}
 
 	/**
@@ -189,60 +154,33 @@ public class ChromosomeInformationShare {
 	 * @return String 序列
 	 */
 	public String getBaseSequence(int start, int end) {
-		if (start >= length) {
-			return "";
-		}
-
 		StringBuffer seq = new StringBuffer();
-		byte[] bases;
+		byte[] bases = getBytes(start, end);
 
-		int posi = start / CAPACITY;
-		int pose;
-		if (end >= length) {
-			System.err.println("seq end has reach the end of chromesome");
-			pose = (length - 1) / CAPACITY;
+		if ((start & 0x1) == 0) {
+			seq.append(SystemConfiguration.getFastaAbb(bases[0] & 0x0f));
+			seq.append(SystemConfiguration.getFastaAbb((bases[0] >> 4) & 0x0f));
 		} else {
-			pose = end / CAPACITY;
-		}
-		bases = new byte[pose - posi + 1];
-		refSeq[0].position(posi);
-		refSeq[0].get(bases, 0, pose - posi + 1);
-		refSeq[0].position(0);
-
-		if (start % 2 == 0) {
-			seq.append(getFastaAbb(bases[0] & 0x0f));
-			seq.append(getFastaAbb((bases[0] >> 4) & 0x0f));
-		}
-		if (start % 2 == 1) {
-			seq.append(getFastaAbb((bases[0] >> 4) & 0x0f));
+			seq.append(SystemConfiguration.getFastaAbb((bases[0] >> 4) & 0x0f));
 		}
 		// 取一个位点
 		if (start == end) {
 			return seq.toString();
 		}
 		for (int i = 1; i < bases.length - 1; i++) {
-			seq.append(getFastaAbb(bases[i] & 0x0f));
-			seq.append(getFastaAbb((bases[i] >> 4) & 0x0f));
+			seq.append(SystemConfiguration.getFastaAbb(bases[i] & 0x0f));
+			seq.append(SystemConfiguration.getFastaAbb((bases[i] >> 4) & 0x0f));
 		}
-		if (end % 2 == 0) {
-			seq.append(getFastaAbb(bases[bases.length - 1] & 0x0f));
-		}
-		if (end % 2 == 1) {
-			seq.append(getFastaAbb(bases[bases.length - 1] & 0x0f));
-			seq.append(getFastaAbb((bases[bases.length - 1] >> 4) & 0x0f));
+		if ((end & 0x1) == 0) {
+			seq.append(SystemConfiguration
+					.getFastaAbb(bases[bases.length - 1] & 0x0f));
+		} else {
+			seq.append(SystemConfiguration
+					.getFastaAbb(bases[bases.length - 1] & 0x0f));
+			seq.append(SystemConfiguration
+					.getFastaAbb((bases[bases.length - 1] >> 4) & 0x0f));
 		}
 		return seq.toString();
-	}
-
-	/**
-	 * 获取单倍字母表
-	 */
-	public static char getFastaAbb(int code) {
-		int index = (code & 0x07);
-		if ((index & 0x04) != 0) {
-			return 'N';
-		} else
-			return FASTA_ABB[index];
 	}
 
 	/**

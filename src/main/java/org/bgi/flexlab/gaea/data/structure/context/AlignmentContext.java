@@ -8,7 +8,7 @@ import org.bgi.flexlab.gaea.data.structure.pileup.Pileup;
 import org.bgi.flexlab.gaea.exception.UserException;
 
 public class AlignmentContext {
-	protected GenomeLocation loc = null;
+	protected GenomeLocation location = null;
 	protected Pileup basePileup = null;
 	protected boolean hasPileupBeenDownsampled;
 
@@ -44,7 +44,7 @@ public class AlignmentContext {
 			throw new UserException.PileupException(
 					"BUG: skippedBases is -1 in Alignment context");
 
-		this.loc = loc;
+		this.location = loc;
 		this.basePileup = basePileup;
 		this.skippedBases = skippedBases;
 		this.hasPileupBeenDownsampled = hasPileupBeenDownsampled;
@@ -96,7 +96,7 @@ public class AlignmentContext {
 	}
 
 	public GenomeLocation getLocation() {
-		return loc;
+		return location;
 	}
 
 	/**

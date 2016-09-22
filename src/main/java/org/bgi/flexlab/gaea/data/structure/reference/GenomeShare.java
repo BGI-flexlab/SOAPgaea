@@ -96,7 +96,6 @@ public class GenomeShare {
 		try {
 			loadChromosomeList(refList);
 		} catch (Exception e) {
-			// TODO: handle exception
 			return false;
 		}
 		return true;
@@ -135,7 +134,7 @@ public class GenomeShare {
 			chrFile = line.toString();
 			chrs = chrFile.split("\t");
 			// insert chr
-			if(!addChr(chrs[0])) {
+			if(!addChromosome(chrs[0])) {
 				StringBuilder errorDescription = new StringBuilder();
 				errorDescription.append("map Chromosome ");
 				errorDescription.append(chrs[1]);
@@ -166,7 +165,7 @@ public class GenomeShare {
 			String[] chrs = line.split("\t");
 			System.err.println(line);
 			// insert chr
-			if(!addChr(chrs[0])) {
+			if(!addChromosome(chrs[0])) {
 				StringBuilder errorDescription = new StringBuilder();
 				errorDescription.append("map Chromosome ");
 				errorDescription.append(chrs[1]);
@@ -203,7 +202,7 @@ public class GenomeShare {
 			chrs = chrFile.split("\t");
 			
 			// insert chr
-			if(!addChr(chrs[0])) {
+			if(!addChromosome(chrs[0])) {
 				StringBuilder errorDescription = new StringBuilder();
 				errorDescription.append("map Chromosome ");
 				errorDescription.append(chrs[1]);
@@ -318,7 +317,7 @@ public class GenomeShare {
 	 * @param chrName 染色体名称
 	 * @return
 	 */
-	public boolean addChr(String chrName){		
+	public boolean addChromosome(String chrName){		
 		ChromosomeInformationShare newChr = new ChromosomeInformationShare();
 		chromosomeInfoMap.put(chrName, newChr);
 		if(chromosomeInfoMap.get(chrName) != null) {
