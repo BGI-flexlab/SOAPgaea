@@ -24,12 +24,12 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.bgi.flexlab.gaea.data.structure.header.VCFConstants;
-import org.bgi.flexlab.gaea.data.structure.header.VCFFormatHeaderLine;
-import org.bgi.flexlab.gaea.data.structure.header.VCFHeader;
-import org.bgi.flexlab.gaea.data.structure.header.VCFHeaderLine;
-import org.bgi.flexlab.gaea.data.structure.header.VCFHeaderLineCount;
-import org.bgi.flexlab.gaea.data.structure.header.VCFHeaderVersion;
-import org.bgi.flexlab.gaea.data.structure.header.VCFInfoHeaderLine;
+import htsjdk.variant.vcf.VCFFormatHeaderLine;
+import htsjdk.variant.vcf.VCFHeader;
+import htsjdk.variant.vcf.VCFHeaderLine;
+import htsjdk.variant.vcf.VCFHeaderLineCount;
+import htsjdk.variant.vcf.VCFHeaderVersion;
+import htsjdk.variant.vcf.VCFInfoHeaderLine;
 import org.bgi.flexlab.gaea.exception.UserException;
 
 
@@ -38,6 +38,7 @@ import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.GenotypeBuilder;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.VariantContextBuilder;
+import htsjdk.variant.variantcontext.writer.VariantContextWriter;
 
 
 

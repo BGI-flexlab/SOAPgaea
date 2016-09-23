@@ -1,4 +1,4 @@
-package org.bgi.flexlab.gaea.outputformat.vcf;
+package org.bgi.flexlab.gaea.data.mapreduce.output.vcf;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -8,10 +8,11 @@ import java.util.ArrayList;
 
 import org.apache.hadoop.conf.Configuration;
 import org.bgi.flexlab.gaea.data.mapreduce.output.vcf.VCFFileWriter;
-import org.bgi.flexlab.gaea.data.structure.vcf.VCFCodec;
-import org.bgi.flexlab.gaea.structure.header.VCFHeader;
+import org.bgi.flexlab.gaea.data.structure.vcf.codec.VCFCodec;
 
 import htsjdk.variant.variantcontext.VariantContext;
+import htsjdk.variant.vcf.VCFHeader;
+
 import org.junit.Test;
 
 import junit.framework.Assert;
