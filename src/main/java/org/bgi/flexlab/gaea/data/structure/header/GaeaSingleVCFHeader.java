@@ -1,9 +1,15 @@
 package org.bgi.flexlab.gaea.data.structure.header;
 
+import htsjdk.samtools.seekablestream.SeekableStream;
+import htsjdk.variant.vcf.VCFHeader;
+import htsjdk.variant.vcf.VCFHeaderLine;
+import htsjdk.variant.vcf.VCFHeaderVersion;
+
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
@@ -13,6 +19,8 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.compress.CompressionCodec;
 import org.apache.hadoop.io.compress.CompressionCodecFactory;
 import org.apache.hadoop.util.LineReader;
+import org.seqdoop.hadoop_bam.util.VCFHeaderReader;
+import org.seqdoop.hadoop_bam.util.WrapSeekable;
 
 public class GaeaSingleVCFHeader extends GaeaVCFHeader implements Serializable{
 	/**
@@ -30,6 +38,8 @@ public class GaeaSingleVCFHeader extends GaeaVCFHeader implements Serializable{
 	 */
 	private String headerInfo;
 	
+	private VCFHeader header;
+	
 	/**
 	 * parse header from given VCF files
 	 * @param inVcf
@@ -43,6 +53,16 @@ public class GaeaSingleVCFHeader extends GaeaVCFHeader implements Serializable{
 		if(output != null) {//multi-sample do not write to HDFS, top class will handle this.
 			writeHeaderToHDFS(output);
 		}
+	}
+	
+	public void readHeaderFrom(Path path, FileSystem fs) throws IOException {
+		SeekableStream i = WrapSeekable.openPath(fs, path);
+		readHeaderFrom(i);
+		i.close();
+	}
+	
+	public void readHeaderFrom(SeekableStream in) throws IOException {
+		this.setHeader(VCFHeaderReader.readHeaderFrom(in));
 	}
 	
 	public void readSingleHeader(Path vcfPath, Configuration conf) throws IOException {
@@ -142,6 +162,26 @@ public class GaeaSingleVCFHeader extends GaeaVCFHeader implements Serializable{
 	
 	public String getHeaderInfo() {
 		return headerInfo;
+	}
+	
+	public VCFHeaderVersion getVCFVersion(VCFHeader vcfHeader) {
+		String versionLine = null;
+		Set<VCFHeaderLine> vcfHeaderLineSet = vcfHeader.getMetaDataInInputOrder();
+		for (VCFHeaderLine vcfHeaderLine : vcfHeaderLineSet) {
+    		if(VCFHeaderVersion.isFormatString(vcfHeaderLine.getKey())){
+    			versionLine = vcfHeaderLine.toString();
+    			break;
+    		}
+		}
+		return VCFHeaderVersion.getHeaderVersion("##"+versionLine);
+	}
+
+	public VCFHeader getHeader() {
+		return header;
+	}
+
+	public void setHeader(VCFHeader header) {
+		this.header = header;
 	}
 
 }
