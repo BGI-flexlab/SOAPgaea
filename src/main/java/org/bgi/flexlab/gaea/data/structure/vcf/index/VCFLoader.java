@@ -10,10 +10,11 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.util.LineReader;
-import htsjdk.variant.variantcontext.VariantContext;
+import org.bgi.flexlab.gaea.data.structure.vcf.codec.VCFCodec;
 
-import org.bgi.flexlab.gaea.data.structure.vcf.VCFCodec;
-import org.bgi.flexlab.gaea.structure.header.VCFHeader;
+import htsjdk.variant.variantcontext.VariantContext;
+import htsjdk.variant.vcf.VCFHeader;
+
 
 
 

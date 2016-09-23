@@ -1,10 +1,10 @@
-package org.bgi.flexlab.gaea.structure.header;
+package org.bgi.flexlab.gaea.data.structure.header;
 
 import java.io.IOException;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
-import org.bgi.flexlab.gaea.structure.header.GaeaSingleVCFHeader;
+import org.bgi.flexlab.gaea.data.structure.header.GaeaSingleVCFHeader;
 import org.junit.Before;
 import org.junit.Test;
 

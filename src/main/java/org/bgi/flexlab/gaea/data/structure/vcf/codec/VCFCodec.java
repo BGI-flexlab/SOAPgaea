@@ -11,15 +11,15 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.bgi.flexlab.gaea.data.structure.header.VCFConstants;
-import org.bgi.flexlab.gaea.data.structure.header.VCFHeader;
-import org.bgi.flexlab.gaea.data.structure.header.VCFHeaderVersion;
+import htsjdk.variant.vcf.VCFConstants;
+import htsjdk.variant.vcf.VCFHeader;
+import htsjdk.variant.vcf.VCFHeaderVersion;
+import htsjdk.variant.vcf.AbstractVCFCodec;
 
 import htsjdk.tribble.TribbleException;
 import htsjdk.tribble.readers.LineIterator;
 import htsjdk.tribble.readers.LineReader;
 import htsjdk.variant.variantcontext.VariantContext;
-
 
 /**
  * A feature codec for the VCF 4 specification

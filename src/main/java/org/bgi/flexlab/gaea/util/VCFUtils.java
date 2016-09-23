@@ -18,13 +18,13 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import org.apache.log4j.Logger;
-import org.bgi.flexlab.gaea.structure.header.VCFCompoundHeaderLine;
-import org.bgi.flexlab.gaea.structure.header.VCFContigHeaderLine;
-import org.bgi.flexlab.gaea.structure.header.VCFFilterHeaderLine;
-import org.bgi.flexlab.gaea.structure.header.VCFHeader;
-import org.bgi.flexlab.gaea.structure.header.VCFHeaderLine;
-import org.bgi.flexlab.gaea.structure.header.VCFHeaderLineType;
-import org.bgi.flexlab.gaea.structure.header.VCFIDHeaderLine;
+import htsjdk.variant.vcf.VCFCompoundHeaderLine;
+import htsjdk.variant.vcf.VCFContigHeaderLine;
+import htsjdk.variant.vcf.VCFFilterHeaderLine;
+import htsjdk.variant.vcf.VCFHeader;
+import htsjdk.variant.vcf.VCFHeaderLine;
+import htsjdk.variant.vcf.VCFHeaderLineType;
+import htsjdk.variant.vcf.VCFIDHeaderLine;
 import org.bgi.flexlab.gaea.utils.sam.VariantDataTracker;
 import htsjdk.variant.variantcontext.VariantContext;
 
