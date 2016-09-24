@@ -9,20 +9,25 @@ import java.io.IOException;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.bgi.flexlab.gaea.data.structure.header.GaeaSingleVCFHeader;
-import org.bgi.flexlab.gaea.tools.annotator.effect.SnpEffectPredictor;
+import org.bgi.flexlab.gaea.tools.annotator.config.Config;
+import org.bgi.flexlab.gaea.tools.annotator.db.DBAnno;
+import org.bgi.flexlab.gaea.tools.annotator.effect.VcfAnnotationContext;
+import org.bgi.flexlab.gaea.tools.annotator.effect.VcfAnnotator;
 
 public class VariantAnnotationMapper extends Mapper<LongWritable, Text, NullWritable, Text> {
 	
 	private VCFHeader vcfHeader = null;
 	private VCFHeaderVersion vcfVersion = null;
-	private SnpEffectPredictor effectPredictor = null;
 	private Text resultValue = new Text();
+	private VCFCodec vcfCodec = new VCFCodec();
+	private VcfAnnotator vcfAnnotator = null;
+	private DBAnno dbAnno = null;
+	private Config userConfig = null;
 	
 	
 	@Override
@@ -30,15 +35,17 @@ public class VariantAnnotationMapper extends Mapper<LongWritable, Text, NullWrit
 			throws IOException, InterruptedException {
 		Configuration conf = context.getConfiguration();
 		
+		userConfig = new Config();
+		
 		Path inputPath = new Path(conf.get("inputFilePath"));
 		
 		GaeaSingleVCFHeader singleVcfHeader = new GaeaSingleVCFHeader();
 		singleVcfHeader.readHeaderFrom(inputPath, inputPath.getFileSystem(conf));
 		vcfHeader = singleVcfHeader.getHeader();
 		vcfVersion = singleVcfHeader.getVCFVersion(vcfHeader);
-		
-//		SnpEffPredictorFactory spf = new SnpEffPredictorFactoryRefSeq();
-//		effectPredictor = spf.create();
+		vcfCodec.setVCFHeader(vcfHeader, vcfVersion);
+		vcfAnnotator = new VcfAnnotator(null);
+		dbAnno = new DBAnno();
     	
 	}
 
@@ -51,17 +58,14 @@ public class VariantAnnotationMapper extends Mapper<LongWritable, Text, NullWrit
 		if (vcfLine.startsWith("#")) {
 			return;
 		}
-		VCFCodec vcfCodec = new VCFCodec();
-		vcfCodec.setVCFHeader(vcfHeader, vcfVersion);
+		
 		VariantContext variantContext = vcfCodec.decode(vcfLine);
-		StringBuilder varTest = new StringBuilder();
-		varTest.append(variantContext.getContig());
-		varTest.append('-');
-		varTest.append(variantContext.getStart());
-//		System.out.println(variantContext.getContig() + "-" + variantContext.getStart()+'-' + variantContext.getEnd());
-//		variantContext.getAlleles();
-//		effectPredictor.variantEffect(variant);
-		resultValue.set(varTest.toString());
+		VcfAnnotationContext vcfAnnoContext = new VcfAnnotationContext(variantContext);
+		
+		vcfAnnotator.annotate(vcfAnnoContext);
+		dbAnno.annotate(vcfAnnoContext);
+		
+		resultValue.set(vcfAnnoContext.toVcfLine());
 		context.write(NullWritable.get(), resultValue);
 		
 	}

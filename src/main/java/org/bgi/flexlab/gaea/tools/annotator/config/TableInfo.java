@@ -1,4 +1,4 @@
-package org.bgi.flexlab.gaea.tools.annotator.conf;
+package org.bgi.flexlab.gaea.tools.annotator.config;
 
 import java.io.Serializable;
 import java.util.HashMap;

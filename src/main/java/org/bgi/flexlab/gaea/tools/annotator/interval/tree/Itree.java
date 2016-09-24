@@ -1,6 +1,5 @@
 package org.bgi.flexlab.gaea.tools.annotator.interval.tree;
 
-import org.bgi.flexlab.gaea.tools.annotator.interval.Genome;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Interval;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Marker;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Markers;
@@ -39,7 +38,7 @@ public interface Itree extends Iterable<Marker> {
 	/**
 	 * Load intervals from file
 	 */
-	public void load(String fileName, Genome genome);
+//	public void load(String fileName, Genome genome);
 
 	/**
 	 * Perform an interval query, returning the intervals that

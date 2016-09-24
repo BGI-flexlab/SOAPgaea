@@ -4,8 +4,8 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 
-import org.bgi.flexlab.gaea.tools.annotator.conf.TableInfo;
-import org.bgi.flexlab.gaea.tools.annotator.conf.TableInfo.DbType;
+import org.bgi.flexlab.gaea.tools.annotator.config.TableInfo;
+import org.bgi.flexlab.gaea.tools.annotator.config.TableInfo.DbType;
 
 /**
  * @author huangzhibo

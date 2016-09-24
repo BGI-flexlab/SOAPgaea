@@ -1,6 +1,5 @@
 package org.bgi.flexlab.gaea.tools.annotator.interval;
 
-import org.bgi.flexlab.gaea.tools.annotator.binseq.DnaSequence;
 import org.bgi.flexlab.gaea.tools.annotator.codons.CodonTable;
 import org.bgi.flexlab.gaea.tools.annotator.codons.CodonTables;
 import org.bgi.flexlab.gaea.tools.annotator.effect.EffectType;
@@ -18,7 +17,7 @@ public class Chromosome extends Marker {
 	private static final long serialVersionUID = 1636197649250882952L;
 
 	double chromosomeNum;
-	DnaSequence sequence = null;
+//	DnaSequence sequence = null;
 
 	/**
 	 * Compare chromosome names
@@ -90,13 +89,13 @@ public class Chromosome extends Marker {
 		return CodonTables.getInstance().getTable(getGenome(), getId());
 	}
 
-	public DnaSequence getDnaSequence() {
-		return sequence;
-	}
-
-	public String getSequence() {
-		return sequence.toString();
-	}
+//	public DnaSequence getDnaSequence() {
+//		return sequence;
+//	}
+//
+//	public String getSequence() {
+//		return sequence.toString();
+//	}
 
 	/**
 	 * Is this a mitochondrial chromosome?
@@ -125,13 +124,13 @@ public class Chromosome extends Marker {
 		end = len - 1; // Remember that intervals are zero-based
 	}
 
-	/**
-	 * Set sequence for this chromosome
-	 * @param sequenceStr
-	 */
-	public void setSequence(String sequenceStr) {
-		sequence = new DnaSequence(sequenceStr, true);
-		setLength(sequenceStr.length()); // Update chromosome length
-	}
+//	/**
+//	 * Set sequence for this chromosome
+//	 * @param sequenceStr
+//	 */
+//	public void setSequence(String sequenceStr) {
+//		sequence = new DnaSequence(sequenceStr, true);
+//		setLength(sequenceStr.length()); // Update chromosome length
+//	}
 
 }

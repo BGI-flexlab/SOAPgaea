@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Set;
 
-import org.bgi.flexlab.gaea.tools.annotator.conf.Config;
+import org.bgi.flexlab.gaea.tools.annotator.config.Config;
 import org.bgi.flexlab.gaea.tools.annotator.effect.EffectType;
 import org.bgi.flexlab.gaea.tools.annotator.effect.VariantEffect;
 import org.bgi.flexlab.gaea.tools.annotator.effect.VariantEffect.ErrorWarningType;
@@ -156,13 +156,13 @@ public class Gene extends IntervalAndSubIntervals<Transcript> implements Seriali
 		return clone;
 	}
 
-	/**
-	 * Calculate CpG bias: number of CpG / expected[CpG]
-	 */
-	public double cpgExonBias() {
-		ObservedOverExpectedCpG oe = new ObservedOverExpectedCpG();
-		return oe.oe(this);
-	}
+//	/**
+//	 * Calculate CpG bias: number of CpG / expected[CpG]
+//	 */
+//	public double cpgExonBias() {
+//		ObservedOverExpectedCpG oe = new ObservedOverExpectedCpG();
+//		return oe.oe(this);
+//	}
 
 	/**
 	 * Filter transcripts by TSL

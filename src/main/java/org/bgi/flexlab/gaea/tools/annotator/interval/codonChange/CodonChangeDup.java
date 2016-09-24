@@ -1,6 +1,6 @@
 package org.bgi.flexlab.gaea.tools.annotator.interval.codonChange;
 
-import org.bgi.flexlab.gaea.tools.annotator.conf.Config;
+import org.bgi.flexlab.gaea.tools.annotator.config.Config;
 import org.bgi.flexlab.gaea.tools.annotator.effect.EffectType;
 import org.bgi.flexlab.gaea.tools.annotator.effect.VariantEffects;
 import org.bgi.flexlab.gaea.tools.annotator.effect.VariantEffect.EffectImpact;

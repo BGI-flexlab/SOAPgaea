@@ -7,14 +7,13 @@ import java.util.List;
 import java.util.Set;
 
 import org.bgi.flexlab.gaea.tools.annotator.codons.CodonTable;
-import org.bgi.flexlab.gaea.tools.annotator.conf.Config;
+import org.bgi.flexlab.gaea.tools.annotator.config.Config;
 import org.bgi.flexlab.gaea.tools.annotator.interval.BioType;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Custom;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Exon;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Gene;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Intron;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Marker;
-import org.bgi.flexlab.gaea.tools.annotator.interval.Motif;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Regulation;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Transcript;
 import org.bgi.flexlab.gaea.tools.annotator.interval.TranscriptSupportLevel;
@@ -229,8 +228,6 @@ public class VariantEffect implements Cloneable, Comparable<VariantEffect> {
 		// Create effect string
 		if (!codonEffect.isEmpty()) e = codonEffect;
 		else if (isRegulation()) return getEffectTypeString(useSeqOntology, useFirstEffect) + "[" + ((Regulation) marker).getName() + "]";
-//		else if (isNextProt()) return getEffectTypeString(useSeqOntology, useFirstEffect) + "[" + VcfEffect.vcfEffSafe(((NextProt) marker).getId()) + "]"; // Make sure this 'id' is not dangerous in a VCF 'EFF' field
-		else if (isMotif()) return getEffectTypeString(useSeqOntology, useFirstEffect) + "[" + ((Motif) marker).getPwmId() + ":" + ((Motif) marker).getPwmName() + "]";
 		else if (isCustom()) {
 			// Custom interval
 			String label = ((Custom) marker).getLabel();

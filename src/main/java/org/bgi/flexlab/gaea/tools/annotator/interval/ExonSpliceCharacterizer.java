@@ -2,7 +2,7 @@ package org.bgi.flexlab.gaea.tools.annotator.interval;
 
 import java.util.HashMap;
 
-import org.bgi.flexlab.gaea.tools.annotator.conf.Config;
+import org.bgi.flexlab.gaea.tools.annotator.config.Config;
 import org.bgi.flexlab.gaea.tools.annotator.effect.SnpEffectPredictor;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Exon.ExonSpliceType;
 import org.bgi.flexlab.gaea.tools.annotator.util.CountByType;
@@ -29,7 +29,7 @@ public class ExonSpliceCharacterizer {
 	public ExonSpliceCharacterizer(Genome genome) {
 		this.genome = genome;
 		typeByExon = new HashMap<Exon, Exon.ExonSpliceType>();
-	}
+	} 
 
 	public ExonSpliceCharacterizer(String genomeVer) {
 		Config config = new Config(genomeVer);
