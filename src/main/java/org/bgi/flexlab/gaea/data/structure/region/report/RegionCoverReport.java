@@ -1,4 +1,4 @@
-package org.bgi.flexlab.gaea.data.structure.region;
+package org.bgi.flexlab.gaea.data.structure.region.report;
 
 import java.util.Arrays;
 
