@@ -39,9 +39,9 @@ public class VariantAnnotationMapper extends Mapper<LongWritable, Text, NullWrit
 		
 		genome = new GenomeShare();
 		if (conf.get("cacheref") != null)
-			genome.loadChrList();
+			genome.loadChromosomeList();
 		else
-			genome.loadChrList(conf.get("reference"));
+			genome.loadChromosomeList(conf.get("reference"));
 		
 		userConfig = new Config();
 		AnnotatorBuild annoBuild = new AnnotatorBuild(userConfig);

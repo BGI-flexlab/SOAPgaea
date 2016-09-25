@@ -2,7 +2,7 @@ package org.bgi.flexlab.gaea.tools.annotator.sequence;
 
 import java.io.Serializable;
 
-import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInfoShare;
+import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Genome;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Marker;
 import org.bgi.flexlab.gaea.tools.annotator.util.GprSeq;
@@ -29,7 +29,7 @@ public class GenomicSequences implements Serializable {
 	boolean allSmallLoaded; // Have all "small" chromosomes been loaded? (i.e. have we already loaded 'sequence.bin' file?)
 	boolean disableLoad = false; // Do not load sequences from disk. Used minly for test cases
 	Genome genome; // Reference genome
-	private ChromosomeInfoShare chrShare=null;
+	private ChromosomeInformationShare chrShare=null;
 
 	public GenomicSequences(Genome genome) {
 		this.genome = genome;
@@ -42,7 +42,7 @@ public class GenomicSequences implements Serializable {
 	public String querySequence(Marker marker) {
 		marker.getChromosomeName();
 		// Calculate start and end coordiantes
-		String seq = chrShare.getBaseSeq(marker.getStart(), marker.getEnd());
+		String seq = chrShare.getBaseSequence(marker.getStart(), marker.getEnd());
 		// Return sequence in same direction as 'marker'
 		if (marker.isStrandMinus()) seq = GprSeq.reverseWc(seq);
 		return seq;
