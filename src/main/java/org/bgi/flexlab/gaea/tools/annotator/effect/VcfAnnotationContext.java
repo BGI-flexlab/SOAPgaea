@@ -8,10 +8,10 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.bgi.flexlab.gaea.tools.annotator.align.VcfRefAltAlign;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Chromosome;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Genome;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Variant;
+import org.bgi.flexlab.gaea.tools.annotator.realignment.VcfRefAltAlign;
 
 /**
  *  AnnotationContext + VariantContext

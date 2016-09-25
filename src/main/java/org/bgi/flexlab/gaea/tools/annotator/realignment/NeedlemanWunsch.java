@@ -1,4 +1,4 @@
-package org.bgi.flexlab.gaea.tools.annotator.align;
+package org.bgi.flexlab.gaea.tools.annotator.realignment;
 
 /**
  * Needleman-Wunsch (global sequence alignment) algorithm for sequence  alignment (short strings, since it's not memory optimized)

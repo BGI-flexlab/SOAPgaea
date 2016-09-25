@@ -6,7 +6,6 @@ import java.io.Serializable;
 import java.util.List;
 
 import org.bgi.flexlab.gaea.tools.annotator.config.Config;
-import org.bgi.flexlab.gaea.tools.annotator.effect.VariantEffect.EffectImpact;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Variant;
 
 /**
@@ -32,7 +31,7 @@ public class VcfAnnotator implements Serializable{
 	 * @return true if the entry was annotated
 	 */
 	public boolean annotate(VcfAnnotationContext vac) {
-		boolean filteredOut = false;
+//		boolean filteredOut = false;
 		//---
 		// Analyze all changes in this VCF entry
 		// Note, this is the standard analysis.

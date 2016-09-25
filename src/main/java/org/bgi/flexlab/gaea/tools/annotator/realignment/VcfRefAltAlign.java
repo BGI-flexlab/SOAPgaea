@@ -1,4 +1,4 @@
-package org.bgi.flexlab.gaea.tools.annotator.align;
+package org.bgi.flexlab.gaea.tools.annotator.realignment;
 
 import org.bgi.flexlab.gaea.tools.annotator.interval.Variant.VariantType;
 
