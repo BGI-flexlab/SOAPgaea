@@ -26,7 +26,7 @@ public class BasicRegion extends Region {
 	 */
 	private int regionSize;
 
-	private FlankRegion flankRegion;
+	protected FlankRegion flankRegion;
 	
 	public BasicRegion() {
 		super();
@@ -119,48 +119,6 @@ public class BasicRegion extends Region {
 		}
 	}
 	
-	
-	public void parseBedFileFromHDFS(String bedFilePath, boolean isWithFlank) throws IOException {
-		FileIterator it = new FileIterator(bedFilePath);
-		while(it.hasNext()) {
-			parseBedRegion(it, isWithFlank);
-		}
-		it.close();
-		//System.err.println("region size:" + regionSize);
-	}
-	
-	private void parseBedRegion(FileIterator it, boolean isWithFlank) {
-		String line=it.next().toString().trim();
-		String[] splitArray = line.split("\\s+");
-		if(line.equals("") || line == null) {
-			return;
-		}
-		
-		boolean skipLine = parseBedFileLine(splitArray, this);
-		if(skipLine) {
-			return;
-		} else {
-			addChrSize(chrName, calRegionSize(start, end));
-		}
-		
-		if(isWithFlank) {
-			while(it.hasNext()) {
-				line=it.next().toString().trim();
-				splitArray = line.split("\t");
-				skipLine = parseBedFileLine(splitArray, flankRegion);
-				if(skipLine) {
-					continue;
-				} else {
-					addChrSize(flankRegion.getChrName(), calRegionSize(flankRegion.getStart(), flankRegion.getEnd()));
-				}
-				
-				processWindow();
-			}
-			//处理最后一个窗口
-			processWindow(start, end, chrName);
-		}
-	}
-	
 	@Deprecated
 	public void parseBedFile(String bedFilePath, boolean isWithFlank) throws IOException {
 		BufferedReader br = new BufferedReader(new FileReader(bedFilePath));
@@ -244,7 +202,7 @@ public class BasicRegion extends Region {
 			return 0;
 	}
 	
-	private void addChrSize(String chrName, int size) {
+	protected void addChrSize(String chrName, int size) {
 		chrName = getChrNameFormat(chrName);
 		if(chrsSize.containsKey(chrName)) {
 			chrsSize.put(chrName, chrsSize.get(chrName) + size);
@@ -262,7 +220,7 @@ public class BasicRegion extends Region {
 	}
 	
 	
-	private boolean parseBedFileLine(String[] splitArray, Region region){
+	protected boolean parseBedFileLine(String[] splitArray, Region region){
 		if(splitArray.length == 1) {
 			System.out.println("region value is the whole chromosome:" + splitArray[0]);
 			chrs.add(splitArray[0]);
@@ -280,7 +238,7 @@ public class BasicRegion extends Region {
 		return false;
 	}
 	
-	private void processWindow() {
+	protected void processWindow() {
 		if(notSorted()) {
 			throw new RuntimeException("BED file is not sorted:" + flankRegion.getStart() + "<" + start);
 		}
@@ -297,7 +255,7 @@ public class BasicRegion extends Region {
 		}
 	}
 	
-	private void processWindow(int start, int end, String chrName){
+	protected void processWindow(int start, int end, String chrName){
 		int flankStart = start - flankRegion.getExtendSize() > 0 ? start - flankRegion.getExtendSize() : 0;
 		int flankEnd =  end + flankRegion.getExtendSize();
 		flankRegion.updateRegionSize(calRegionSize(flankStart, flankEnd));
@@ -305,7 +263,7 @@ public class BasicRegion extends Region {
 	}
 
 	
-	private int calRegionSize(int start, int end) {
+	protected int calRegionSize(int start, int end) {
 		return (end - start + 1);
 	}
 	

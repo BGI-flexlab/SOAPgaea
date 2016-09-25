@@ -1,19 +1,20 @@
-package org.bgi.flexlab.gaea.tools.annotator.conf;
+package org.bgi.flexlab.gaea.tools.annotator.config;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.io.Serializable;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import org.apache.commons.io.IOUtils;
 import org.bgi.flexlab.gaea.tools.annotator.effect.SnpEffectPredictor;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Genome;
 import org.bgi.flexlab.gaea.tools.annotator.util.CountByType;
@@ -36,8 +37,9 @@ public class Config implements Serializable {
 	private static final String dbConfigFileName = "dbconf.json";
 	private static String configFileName = "config.properties";
 	
-	public static String  ref = null;
-	public static String  geneInfo = null;
+	private String  ref = null;
+	private String  geneInfo = null;
+	private String  cytoBandFile = null;
 	
 	boolean debug = false; // Debug mode?
 	boolean verbose = false; // Verbose
@@ -62,7 +64,7 @@ public class Config implements Serializable {
 
 	
 	public Config() {
-		this(configFileName);
+//		this(configFileName);
 	}
 	
 	public Config(String configFileName) {
@@ -94,9 +96,11 @@ public class Config implements Serializable {
 		URL url = Config.class.getClassLoader().getResource(dbConfigFileName);
 		String fileName = url.getPath();
 		
+		
 		Gson gson = new Gson();
 		try {
-			dbInfo =  gson.fromJson(IOUtils.toString(new FileInputStream(fileName)), new TypeToken<HashMap<String, TableInfo>>() {  
+			Reader reader =  new InputStreamReader(Config.class.getResourceAsStream(fileName), "UTF-8");
+			dbInfo =  gson.fromJson(reader, new TypeToken<HashMap<String, TableInfo>>() {  
             }.getType());
 		} catch ( JsonSyntaxException | IOException e) {
 			dbInfo = null;
@@ -108,6 +112,32 @@ public class Config implements Serializable {
 			return true;
 		}
 		return false;
+	}
+
+	private static void testProp() {
+		Properties pps = new Properties();
+		try {
+			pps.load(Config.class.getClassLoader().getResourceAsStream("dbconf.properties")); 
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		pps.getProperty("codon.Standard", "");	
+		
+		Enumeration<?> enum1 = pps.propertyNames();//得到配置文件的名字
+		while(enum1.hasMoreElements()) {
+		           String strKey = (String) enum1.nextElement();
+		           String strValue = pps.getProperty(strKey);
+		            System.out.println(strKey + "=" + strValue);
+        }
+		
+		if( pps.containsKey("test.test1xtest2") ){
+			System.out.println("lll");
+		}
+
 	}
 	
 	/**
@@ -124,6 +154,7 @@ public class Config implements Serializable {
 				properties.load(new FileReader(confFile));
 				return true;
 			}else {
+				System.out.println(configFileName);
 				//	used for debug
 				properties.load(Config.class.getClassLoader().getResourceAsStream("dbconf.properties"));
 				if (!properties.isEmpty()) {
@@ -150,9 +181,9 @@ public class Config implements Serializable {
 		tagsByDB = new HashMap<String, String[]>();
 		for (String key : keys) {
 			if (key.equalsIgnoreCase("ref")) {
-				ref = properties.getProperty(key);
+				setRef(properties.getProperty(key));
 			}else if (key.equalsIgnoreCase("geneInfo")) {
-				geneInfo = properties.getProperty(key);
+				setGeneInfo(properties.getProperty(key));
 			}else if (key.endsWith(ANNO_FIELDS_SUFIX)) {
 				String dbName = key.substring(0, key.length() - ANNO_FIELDS_SUFIX.length());
 
@@ -227,10 +258,6 @@ public class Config implements Serializable {
 
 		return configFile;
 	}
-	
-	
-	
-	
 	
 	public void setHgvsOneLetterAA(boolean hgvsOneLetterAa) {
 		this.hgvsOneLetterAa = hgvsOneLetterAa;
@@ -331,6 +358,44 @@ public class Config implements Serializable {
 			if (debug) Gpr.debug(msg, 1);
 			else System.err.println(msg);
 		}
+	}
+
+	public String getGeneInfo() {
+		return geneInfo;
+	}
+
+	public void setGeneInfo(String geneInfo) {
+		this.geneInfo = geneInfo;
+	}
+
+	public String getRef() {
+		return ref;
+	}
+
+	public void setRef(String ref) {
+		this.ref = ref;
+	}
+
+	public String getCytoBandFile() {
+		return cytoBandFile;
+	}
+
+	public void setCytoBandFile(String cytoBandFile) {
+		this.cytoBandFile = cytoBandFile;
+	}
+	
+	public static void main(String[] args) throws Exception {
+		Config config = new Config();
+		Config.testProp();
+	}
+
+	public SnpEffectPredictor loadSnpEffectPredictor() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public SnpEffectPredictor getSnpEffectPredictor() {
+		return snpEffectPredictor;
 	}
 
 }

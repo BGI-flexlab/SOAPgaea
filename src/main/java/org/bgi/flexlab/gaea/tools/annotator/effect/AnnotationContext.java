@@ -1,4 +1,4 @@
-package org.bgi.flexlab.gaea.tools.annotator.context;
+package org.bgi.flexlab.gaea.tools.annotator.effect;
 
 import htsjdk.variant.vcf.VCFConstants;
 
@@ -27,11 +27,9 @@ import org.bgi.flexlab.gaea.tools.annotator.interval.Transcript;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Variant;
 
 /**
- * @author huangzhibo
- *
- * 注释结果类
+ * Common annotation context
  */
-public class AnnoContext{
+public class AnnotationContext{
 
 	public static boolean debug = false;
 	
@@ -87,18 +85,18 @@ public class AnnoContext{
 	private static Map<String, Object> NO_VALUE = Collections.unmodifiableMap(new HashMap<String, Object>());
 	private Map<String, Object> annoItems = NO_VALUE;
 
-	public AnnoContext(Map<String, Object> annoItems) {
+	public AnnotationContext(Map<String, Object> annoItems) {
 		init();
 		if ( annoItems != null && ! annoItems.isEmpty() ) {
             this.annoItems = annoItems;
         }
 	}
 
-	public AnnoContext(VariantEffect variantEffect) {
+	public AnnotationContext(VariantEffect variantEffect) {
 		this(variantEffect, true, false);
 	}
 
-	public AnnoContext(VariantEffect variantEffect, boolean useSequenceOntology, boolean useFirstEffect) {
+	public AnnotationContext(VariantEffect variantEffect, boolean useSequenceOntology, boolean useFirstEffect) {
 		init();
 		this.variantEffect = variantEffect;
 		this.useSequenceOntology = useSequenceOntology;
@@ -512,7 +510,7 @@ public class AnnoContext{
 
 	
 	/**
-	 * Set all fields form 'variantEffect'
+	 * Set all fields from 'variantEffect'
 	 */
 	void set(VariantEffect variantEffect) {
 		// Allele

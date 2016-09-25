@@ -42,7 +42,7 @@ import htsjdk.variant.variantcontext.writer.VariantContextWriter;
 
 
 
-public class VCFFileWriter implements VariantContextWriter {
+public abstract class VCFFileWriter implements VariantContextWriter {
 	private final static String VERSION_LINE = VCFHeader.METADATA_INDICATOR
 			+ VCFHeaderVersion.VCF4_1.getFormatString() + "="
 			+ VCFHeaderVersion.VCF4_1.getVersionString();
@@ -73,24 +73,7 @@ public class VCFFileWriter implements VariantContextWriter {
 		initWriter(filePath, conf);
     }
 	
-	private void initWriter(String filePath, Configuration conf) {
-		if(conf != null) {
-			FileSystem fs;
-			try {
-				Path vcfPath = new Path(filePath);
-				fs = vcfPath.getFileSystem(conf);
-				writer = new BufferedWriter(new OutputStreamWriter(fs.create(vcfPath)));
-			} catch (IOException e) {
-				throw new RuntimeEOFException(e);
-			}
-		} else {
-			try {
-				writer = new BufferedWriter(new FileWriter(new File(filePath)));
-			} catch (IOException e) {
-				throw new RuntimeEOFException(e);
-			}
-		}
-	}
+	public abstract void initWriter(String filePath, Configuration conf);
 
 	// --------------------------------------------------------------------------------
 	//

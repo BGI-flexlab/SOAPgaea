@@ -1,14 +1,15 @@
 package org.bgi.flexlab.gaea.data.structure.region;
 
 import org.bgi.flexlab.gaea.data.structure.region.SingleRegion.Regiondata;
-import org.bgi.flexlab.gaea.report.util.ReportUtils;
+import org.bgi.flexlab.gaea.data.structure.region.statistic.BedSingleRegionStatistic;
+import org.bgi.flexlab.gaea.util.MathUtils;
 
-public class RegionChromosomeInfo {
+public class RegionChromosomeInformation {
 	private int size;
 	private int coverageNum;
 	private long depthNum;
 	
-	public RegionChromosomeInfo() {
+	public RegionChromosomeInformation() {
 		size = 0;
 		coverageNum = 0;
 		depthNum = 0;
@@ -26,9 +27,9 @@ public class RegionChromosomeInfo {
 		sb.append("\t");
 		sb.append(size);
 		sb.append("\t");
-		sb.append(ReportUtils.doubleformat.format(getCoverage()));
+		sb.append(MathUtils.doubleformat.format(getCoverage()));
 		sb.append("\t");
-		sb.append(ReportUtils.doubleformat.format(getAverageDepth()));
+		sb.append(MathUtils.doubleformat.format(getAverageDepth()));
 		sb.append("\n");
 		
 		return sb.toString();

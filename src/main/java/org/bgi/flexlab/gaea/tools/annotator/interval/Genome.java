@@ -11,7 +11,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 
-import org.bgi.flexlab.gaea.tools.annotator.binseq.GenomicSequences;
 import org.bgi.flexlab.gaea.tools.annotator.effect.EffectType;
 import org.bgi.flexlab.gaea.tools.annotator.util.Gpr;
 
@@ -41,7 +40,6 @@ public class Genome extends Marker implements Serializable, Iterable<Chromosome>
 	Boolean codingInfo = null; // Do we have coding info from genes?
 	Boolean transcriptSupportLevelInfo = null; // Do we have 'TranscriptSupportLevel' info in transcripts?
 	GenomicSequences genomicSequences; // Store all genomic sequences (of interest) here
-	CytoBands cytoBands;
 
 	/**
 	 * Create a genome from a faidx file.
@@ -76,7 +74,7 @@ public class Genome extends Marker implements Serializable, Iterable<Chromosome>
 		chromosomes = new HashMap<String, Chromosome>();
 		genes = new Genes(this);
 		genomicSequences = new GenomicSequences(this);
-		genomicSequences.build();
+//		genomicSequences.build();
 		setGenomeId();
 	}
 
@@ -88,7 +86,7 @@ public class Genome extends Marker implements Serializable, Iterable<Chromosome>
 		chromosomes = new HashMap<String, Chromosome>();
 		genes = new Genes(this);
 		genomicSequences = new GenomicSequences(this);
-		genomicSequences.build();
+//		genomicSequences.build();
 		setGenomeId();
 	}
 
@@ -98,7 +96,7 @@ public class Genome extends Marker implements Serializable, Iterable<Chromosome>
 		type = EffectType.GENOME;
 		genes = new Genes(this);
 		genomicSequences = new GenomicSequences(this);
-		genomicSequences.build();
+//		genomicSequences.build();
 
 		species = properties.getProperty(version + ".genome");
 		if (species == null) throw new RuntimeException("Property: '" + version + ".genome' not found");
@@ -200,11 +198,6 @@ public class Genome extends Marker implements Serializable, Iterable<Chromosome>
 		});
 
 		return chrs;
-	}
-
-	public synchronized CytoBands getCytoBands() {
-		if (cytoBands == null) cytoBands = new CytoBands(this);
-		return cytoBands;
 	}
 
 	public String getFastaDir() {
@@ -368,24 +361,6 @@ public class Genome extends Marker implements Serializable, Iterable<Chromosome>
 	public void remove(Chromosome chromo) {
 		chromosomeNames.remove(chromo.getId());
 		chromosomes.remove(chromo.getId());
-	}
-
-	/**
-	 * Save genome to file
-	 */
-	public void save(String fileName) {
-		// Create a list of 'markers' to save
-		Markers markers = new Markers();
-		markers.add(this);
-
-		for (Chromosome chr : this)
-			markers.add(chr);
-
-		for (Gene g : this.getGenes())
-			markers.add(g);
-
-		// Save markers to file
-		markers.save(fileName);
 	}
 
 	private void setGenomeId() {

@@ -4,7 +4,7 @@ import java.io.BufferedReader;
 import java.util.List;
 
 import org.bgi.flexlab.gaea.tools.annotator.collections.MultivalueHashMap;
-import org.bgi.flexlab.gaea.tools.annotator.conf.Config;
+import org.bgi.flexlab.gaea.tools.annotator.config.Config;
 import org.bgi.flexlab.gaea.tools.annotator.effect.SnpEffectPredictor;
 import org.bgi.flexlab.gaea.tools.annotator.interval.BioType;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Cds;
@@ -118,7 +118,7 @@ public class SnpEffPredictorFactoryRefSeq extends SnpEffPredictorFactory {
 	public SnpEffectPredictor create() {
 		try {
 			// Read gene intervals from a file
-			if (fileName == null) fileName = config.getBaseFileNameGenes() + ".refseq";
+			if (fileName == null) fileName = Config.get().getGeneInfo();
 
 			if (verbose) System.out.print("Reading gene intervals file : '" + fileName + "'\n\t\t");
 			readRefSeqFile(); // Read gene info

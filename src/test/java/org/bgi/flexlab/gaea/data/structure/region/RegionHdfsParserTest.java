@@ -8,22 +8,10 @@ import org.junit.Test;
 
 import junit.framework.Assert;
 
-public class BasicRegionTest {
-
-	@Test
-	public void parseBedFileTest() throws IOException {
-		BasicRegion rg = new BasicRegion();
-		rg.parseBedFile("F:\\BGIBigData\\TestData\\Bed\\MedExome_hg19_UCSCBrowser.bed", true);
-		Assert.assertEquals(112214187, rg.getRegionSize());
-		Assert.assertEquals(257268185, rg.getRegionFlankSize());
-		Assert.assertTrue(rg.isPositionInRegion("chr9", 139350039));
-		Assert.assertTrue(rg.isPositionInFlank("chr1", 70118));
-		Assert.assertTrue(rg.isReadInRegion("chr1", 10041045, 10041147));
-	}
-	
+public class RegionHdfsParserTest {
 	@Test
 	public void parseBedFileFromHDFSTest() throws IOException {
-		BasicRegion rg = new BasicRegion();
+		RegionHdfsParser rg = new RegionHdfsParser();
 		rg.parseBedFileFromHDFS("MedExome_hg19_UCSCBrowser.bed", true);
 		Assert.assertEquals(112214187, rg.getRegionSize());
 		Assert.assertEquals(257268185, rg.getRegionFlankSize());

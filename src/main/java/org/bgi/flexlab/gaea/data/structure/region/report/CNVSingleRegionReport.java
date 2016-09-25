@@ -4,12 +4,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.bgi.flexlab.gaea.data.structure.region.CNVSingleRegionStatistic;
+import org.bgi.flexlab.gaea.data.structure.positioninformation.IntPositionInformation;
 import org.bgi.flexlab.gaea.data.structure.region.SingleRegion;
 import org.bgi.flexlab.gaea.data.structure.region.SingleRegion.Regiondata;
-import org.bgi.flexlab.gaea.data.structure.region.SingleRegionStatistic;
-import org.bgi.flexlab.gaea.util.Utils;
-import org.bgi.flexlab.gaea.util.posInfo.IntPositionInformation;
+import org.bgi.flexlab.gaea.data.structure.region.statistic.CNVSingleRegionStatistic;
+import org.bgi.flexlab.gaea.data.structure.region.statistic.SingleRegionStatistic;
+import org.bgi.flexlab.gaea.util.ChromosomeUtils;
 
 public class CNVSingleRegionReport extends SingleRegionReport<CNVSingleRegionStatistic>{
 	private double allRegionAverageDeepth = 0;
@@ -123,7 +123,7 @@ public class CNVSingleRegionReport extends SingleRegionReport<CNVSingleRegionSta
 		updateResult();
 		for(Regiondata regionData : result.keySet()) {
 			CNVSingleRegionStatistic statistic = (CNVSingleRegionStatistic) result.get(regionData);
-			String formatChrName = Utils.FormatChrName(regionData.getChrName());
+			String formatChrName = ChromosomeUtils.formatChrName(regionData.getChrName());
 			if(!formatChrName.equals("chrx") && !formatChrName.equals("chry") && !formatChrName.equals("chrm")) {
 				deepthAll += statistic.getDepthNum();
 				regionSizeTotal += regionData.size();

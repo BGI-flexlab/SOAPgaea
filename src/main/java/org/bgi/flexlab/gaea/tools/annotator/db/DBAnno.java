@@ -5,9 +5,10 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-import org.bgi.flexlab.gaea.tools.annotator.conf.Config;
-import org.bgi.flexlab.gaea.tools.annotator.conf.TableInfo;
+import org.bgi.flexlab.gaea.tools.annotator.config.Config;
+import org.bgi.flexlab.gaea.tools.annotator.config.TableInfo;
 import org.bgi.flexlab.gaea.tools.annotator.db.Condition.ConditionKey;
+import org.bgi.flexlab.gaea.tools.annotator.effect.VcfAnnotationContext;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Variant;
 import org.bgi.flexlab.gaea.tools.annotator.outputformat.AnnoVcfRecord;
 
@@ -19,7 +20,7 @@ public class DBAnno implements Serializable{
 	private  Config config = null;
 	HashMap<String, AbstractDbQuery> DbQueryMap = null;
 	
-	DBAnno(){
+	public DBAnno(){
 		config = Config.getConfigInstance();
 	}
 	
@@ -80,6 +81,11 @@ public class DBAnno implements Serializable{
 			tags[i] = fields.get(fieldList[i]);
 		}
 		return tags;
+	}
+
+	public void annotate(VcfAnnotationContext vcfAnnoContext) {
+		// TODO Auto-generated method stub
+		
 	}
 	
 

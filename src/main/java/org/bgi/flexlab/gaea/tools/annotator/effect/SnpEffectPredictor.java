@@ -5,7 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.bgi.flexlab.gaea.tools.annotator.conf.Config;
+import org.bgi.flexlab.gaea.tools.annotator.config.Config;
 import org.bgi.flexlab.gaea.tools.annotator.effect.VariantEffect.ErrorWarningType;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Chromosome;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Exon;
@@ -606,6 +606,8 @@ public class SnpEffectPredictor implements Serializable {
 				// Analyze all markers
 				if (variant.isNonRef()) marker.variantEffectNonRef(variant, variantEffects);
 				else marker.variantEffect(variant, variantEffects);
+				
+//				variantEffects.add(variant, marker, marker.getType(), "");
 
 				// Do we have 'per gene' information?
 				if (intervalForestGene != null && marker instanceof Gene) //
@@ -704,8 +706,8 @@ public class SnpEffectPredictor implements Serializable {
 	 * Calculate translocations variant effects 
 	 */
 	void variantEffectBnd(Variant variant, VariantEffects variantEffects, Markers intersects) {
-		// Create a new variant effect for structural variants, add effect (if any)
-		VariantEffectStructural veff = new VariantEffectStructural(variant, intersects);
+//		// Create a new variant effect for structural variants, add effect (if any)
+//		VariantEffectStructural veff = new VariantEffectStructural(variant, intersects);
 
 		//		EffectType et = veff.getEffectType();
 		//		boolean considerFussion = (et == EffectType.NONE //

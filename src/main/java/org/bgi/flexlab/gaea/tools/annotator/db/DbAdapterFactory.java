@@ -1,6 +1,6 @@
 package org.bgi.flexlab.gaea.tools.annotator.db;
 
-import org.bgi.flexlab.gaea.tools.annotator.conf.TableInfo.DbType;
+import org.bgi.flexlab.gaea.tools.annotator.config.TableInfo.DbType;
 
 public class DbAdapterFactory {
 	

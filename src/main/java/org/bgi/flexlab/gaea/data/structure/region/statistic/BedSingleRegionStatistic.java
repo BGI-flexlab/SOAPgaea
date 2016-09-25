@@ -1,8 +1,8 @@
 package org.bgi.flexlab.gaea.data.structure.region.statistic;
 
-import org.bgi.flexlab.gaea.GaeaRefernce.ChromosomeInfoShare;
+import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
 import org.bgi.flexlab.gaea.data.structure.region.SingleRegion.Regiondata;
-import org.bgi.flexlab.gaea.report.bam.BAMQCException;
+import org.bgi.flexlab.gaea.exception.BAMQCException;
 
 public class BedSingleRegionStatistic extends SingleRegionStatistic{
 	//private short[] ATCG;
@@ -33,7 +33,7 @@ public class BedSingleRegionStatistic extends SingleRegionStatistic{
 		}*/
 	}
 	
-	public void calRefGCrate(ChromosomeInfoShare chrInfo, Regiondata regionData, int extendSize) {
+	public void calRefGCrate(ChromosomeInformationShare chrInfo, Regiondata regionData, int extendSize) {
 		int CGbaseNum = 0;
 		int ATCGbaseNum = 0;
 		if(extendSize == 0) {
@@ -41,7 +41,7 @@ public class BedSingleRegionStatistic extends SingleRegionStatistic{
 				extendSize = (200 - regionData.size()) / 2 + 1;
 			}
 		}
-		for(char base : chrInfo.getBaseSeq(regionData.getStart() - extendSize > 0 ? regionData.getStart() - extendSize : 0, regionData.getEnd() + extendSize).toCharArray()) {
+		for(char base : chrInfo.getBaseSequence(regionData.getStart() - extendSize > 0 ? regionData.getStart() - extendSize : 0, regionData.getEnd() + extendSize).toCharArray()) {
 			if(base == 'C' || base == 'G' || base == 'c' || base == 'g') {
 				CGbaseNum++;
 			}

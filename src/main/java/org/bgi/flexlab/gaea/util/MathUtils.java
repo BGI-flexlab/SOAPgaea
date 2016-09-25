@@ -1,8 +1,12 @@
 package org.bgi.flexlab.gaea.util;
 
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.util.Collection;
 
 public class MathUtils {
+    public static DecimalFormat doubleformat = new DecimalFormat("0.000");
+
 	public static int fastRound(double d) {
         return (d > 0.0) ? (int) (d + 0.5d) : (int) (d - 0.5d);
     }
@@ -40,4 +44,8 @@ public class MathUtils {
         }
         return total;
     }
+    
+	static {
+		doubleformat.setRoundingMode(RoundingMode.HALF_UP);
+	}
 }

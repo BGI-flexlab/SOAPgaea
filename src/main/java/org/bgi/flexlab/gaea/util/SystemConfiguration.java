@@ -7,11 +7,6 @@ package org.bgi.flexlab.gaea.util;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
-/**
- * GaeaSNP程序配置信息
- * @author ZhangZhi
- *
- */
 
 public class SystemConfiguration {
 	/**

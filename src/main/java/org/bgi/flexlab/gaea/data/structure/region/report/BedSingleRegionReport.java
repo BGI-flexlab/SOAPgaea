@@ -2,9 +2,9 @@ package org.bgi.flexlab.gaea.data.structure.region.report;
 
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.bgi.flexlab.gaea.data.structure.region.BedSingleRegionStatistic;
+import org.bgi.flexlab.gaea.data.structure.positioninformation.IntPositionInformation;
 import org.bgi.flexlab.gaea.data.structure.region.SingleRegion;
-import org.bgi.flexlab.gaea.util.posInfo.IntPositionInformation;
+import org.bgi.flexlab.gaea.data.structure.region.statistic.BedSingleRegionStatistic;
 
 public class BedSingleRegionReport extends SingleRegionReport<BedSingleRegionStatistic>{	
 	public BedSingleRegionReport(SingleRegion singleReigon) {

@@ -1,6 +1,5 @@
 package org.bgi.flexlab.gaea.tools.annotator.effect;
 
-import org.bgi.flexlab.gaea.tools.annotator.interval.CytoBands;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Exon;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Intron;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Marker;

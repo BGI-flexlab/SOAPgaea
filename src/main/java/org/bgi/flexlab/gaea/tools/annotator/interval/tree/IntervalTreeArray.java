@@ -3,7 +3,6 @@ package org.bgi.flexlab.gaea.tools.annotator.interval.tree;
 import java.util.Arrays;
 import java.util.Iterator;
 
-import org.bgi.flexlab.gaea.tools.annotator.interval.Genome;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Interval;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Marker;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Markers;
@@ -142,10 +141,10 @@ public class IntervalTreeArray implements Itree {
 		return markers.iterator();
 	}
 
-	@Override
-	public void load(String fileName, Genome genome) {
-		throw new RuntimeException("Unimplemented!");
-	}
+//	@Override
+//	public void load(String fileName, Genome genome) {
+//		throw new RuntimeException("Unimplemented!");
+//	}
 
 	/**
 	 * Get next index for entry and make sure there

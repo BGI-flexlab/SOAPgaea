@@ -3,7 +3,6 @@ package org.bgi.flexlab.gaea.tools.annotator.interval.tree;
 import java.io.Serializable;
 import java.util.Iterator;
 
-import org.bgi.flexlab.gaea.tools.annotator.interval.Genome;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Interval;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Marker;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Markers;
@@ -101,11 +100,11 @@ public class IntervalTreeOri implements Itree, Serializable {
 		return head.iterator();
 	}
 
-	@Override
-	public void load(String fileName, Genome genome) {
-		intervals.load(fileName, genome);
-		inSync = false;
-	}
+//	@Override
+//	public void load(String fileName, Genome genome) {
+//		intervals.load(fileName, genome);
+//		inSync = false;
+//	}
 
 	private String nodeString(IntervalNodeOri node, int level) {
 		if (node == null) return "";

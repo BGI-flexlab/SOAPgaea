@@ -1,7 +1,7 @@
 package org.bgi.flexlab.gaea.tools.annotator.effect;
 
 import org.bgi.flexlab.gaea.tools.annotator.codons.CodonTable;
-import org.bgi.flexlab.gaea.tools.annotator.conf.Config;
+import org.bgi.flexlab.gaea.tools.annotator.config.Config;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Transcript;
 import org.bgi.flexlab.gaea.tools.annotator.interval.VariantTranslocation;
 import org.bgi.flexlab.gaea.tools.annotator.util.Gpr;
