@@ -1,4 +1,4 @@
-package org.bgi.flexlab.gaea.tools.annotator.collections;
+package org.bgi.flexlab.gaea.tools.annotator.util;
 
 import java.util.Collection;
 import java.util.HashMap;

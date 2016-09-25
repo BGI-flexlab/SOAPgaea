@@ -3,7 +3,6 @@ package org.bgi.flexlab.gaea.tools.annotator.effect.factory;
 import java.io.BufferedReader;
 import java.util.List;
 
-import org.bgi.flexlab.gaea.tools.annotator.collections.MultivalueHashMap;
 import org.bgi.flexlab.gaea.tools.annotator.config.Config;
 import org.bgi.flexlab.gaea.tools.annotator.effect.SnpEffectPredictor;
 import org.bgi.flexlab.gaea.tools.annotator.interval.BioType;
@@ -15,6 +14,7 @@ import org.bgi.flexlab.gaea.tools.annotator.interval.Gene;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Marker;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Transcript;
 import org.bgi.flexlab.gaea.tools.annotator.util.Gpr;
+import org.bgi.flexlab.gaea.tools.annotator.util.MultivalueHashMap;
 
 /**
  * This class creates a SnpEffectPredictor from a TXT file dumped using UCSC table browser
