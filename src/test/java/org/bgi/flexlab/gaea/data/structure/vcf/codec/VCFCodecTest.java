@@ -8,7 +8,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import org.bgi.flexlab.gaea.data.structure.vcf.codec.VCFCodec;
+import org.bgi.flexlab.gaea.data.structure.vcf.codec.GaeaVCFCodec;
 import org.junit.Test;
 
 import htsjdk.variant.vcf.VCFHeader;
@@ -18,7 +18,7 @@ public class VCFCodecTest {
 
 	@Test
 	public void test() {
-		VCFCodec codec = new VCFCodec();
+		GaeaVCFCodec codec = new GaeaVCFCodec();
 		String input = "F:\\BGIBigData\\TestData\\VCF\\DNA1425995.vcf";
 		VCFHeader header=null;
     	ArrayList<String> headerLine=new ArrayList<String>();

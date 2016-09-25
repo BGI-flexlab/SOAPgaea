@@ -1,4 +1,4 @@
-package org.bgi.flexlab.gaea.data.structure.region;
+package org.bgi.flexlab.gaea.data.structure.region.statistic;
 
 import org.bgi.flexlab.gaea.GaeaRefernce.ChromosomeInfoShare;
 import org.bgi.flexlab.gaea.data.structure.region.SingleRegion.Regiondata;

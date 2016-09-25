@@ -8,7 +8,7 @@ import java.util.ArrayList;
 
 import org.apache.hadoop.conf.Configuration;
 import org.bgi.flexlab.gaea.data.mapreduce.output.vcf.VCFFileWriter;
-import org.bgi.flexlab.gaea.data.structure.vcf.codec.VCFCodec;
+import org.bgi.flexlab.gaea.data.structure.vcf.codec.GaeaVCFCodec;
 
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFHeader;
@@ -18,7 +18,7 @@ import org.junit.Test;
 import junit.framework.Assert;
 
 public class VCFFileWriterTest {
-	VCFCodec codec;
+	GaeaVCFCodec codec;
 
 	@Test
 	public void writeHeaderToLocalTest() throws IOException {
@@ -51,7 +51,7 @@ public class VCFFileWriterTest {
 		VCFHeader header;
 		String input = "/ifs4/ISDC_BD/huweipeng/data/testVCF/testVCF/DNA1425995.vcf";
 		BufferedReader reader=null;
-		codec = new VCFCodec();
+		codec = new GaeaVCFCodec();
 		ArrayList<String> headerLine=new ArrayList<String>();
     	File file=new File(input);
 		reader=new BufferedReader(new FileReader(file));

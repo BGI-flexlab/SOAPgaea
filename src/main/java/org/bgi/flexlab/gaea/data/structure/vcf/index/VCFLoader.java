@@ -10,7 +10,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.util.LineReader;
-import org.bgi.flexlab.gaea.data.structure.vcf.codec.VCFCodec;
+import org.bgi.flexlab.gaea.data.structure.vcf.codec.GaeaVCFCodec;
 
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFHeader;
@@ -23,7 +23,7 @@ public class VCFLoader  {
 	private Index<?, ?, VCFBlock> idx;
 	private String path;
 	private Configuration conf =new Configuration();
-	private VCFCodec codec=new VCFCodec();
+	private GaeaVCFCodec codec=new GaeaVCFCodec();
 	private VCFHeader header=null;
 	private FSDataInputStream getFSDataInputStream(String path) throws IOException {
 		Path p=new Path(path);
