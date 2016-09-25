@@ -1,5 +1,8 @@
 package org.bgi.flexlab.gaea.tools.annotator;
 
+import java.io.File;
+import java.io.FileReader;
+import java.io.Serializable;
 import java.util.Properties;
 
 import org.bgi.flexlab.gaea.tools.annotator.codons.CodonTable;
@@ -10,12 +13,23 @@ import org.bgi.flexlab.gaea.tools.annotator.effect.factory.SnpEffPredictorFactor
 import org.bgi.flexlab.gaea.tools.annotator.effect.factory.SnpEffPredictorFactoryRefSeq;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Chromosome;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Genome;
+import org.bgi.flexlab.gaea.tools.annotator.util.Gpr;
+import org.bgi.flexlab.gaea.tools.annotator.util.Timer;
 
-public class AnnotatorBuild {
+public class AnnotatorBuild implements Serializable{
+	
+	private static final long serialVersionUID = 8558515853505312687L;
+	
+	public static final String KEY_CODON_PREFIX = "codon.";
+	public static final String KEY_CODONTABLE_SUFIX = ".codonTable";
 
+	boolean debug = false; // Debug mode?
+	boolean verbose = false; // Verbose
 	private Config config; 
+	Properties properties;
 	boolean storeAlignments; // Store alignments (used for some test cases)
 	boolean storeSequences = false; // Store full sequences
+	
 	
 	public AnnotatorBuild(){
 		
@@ -23,6 +37,35 @@ public class AnnotatorBuild {
 	
 	public AnnotatorBuild(Config userConfig) {
 		config = userConfig;
+	}
+	
+	/**
+	 * Load properties from configuration file
+	 * @return true if success
+	 */
+	boolean loadProperties(String configFileName) {
+		try {
+			File confFile = new File(configFileName);
+			if (verbose) Timer.showStdErr("Reading config file: " + confFile.getCanonicalPath());
+
+			if (Gpr.canRead(configFileName)) {
+				// Load properties
+				properties.load(new FileReader(confFile));
+				return true;
+			}else {
+				System.out.println(configFileName);
+				//	used for debug
+				properties.load(Config.class.getClassLoader().getResourceAsStream("dbconf.properties"));
+				if (!properties.isEmpty()) {
+					return true;
+				}
+			}
+		} catch (Exception e) {
+			properties = null;
+			throw new RuntimeException(e);
+		}
+
+		return false;
 	}
 
 	/**
@@ -79,18 +122,16 @@ public class AnnotatorBuild {
 				if (codonTable == null) throw new RuntimeException("Error parsing property '" + key + "'. No such codon table '" + codonTableName + "'");
 
 				// Find genome
-				Genome gen = getGenome(genomeId);
+				Genome gen = config.getGenome(genomeId);
 				if (gen == null) throw new RuntimeException("Error parsing property '" + key + "'. No such genome '" + genomeId + "'");
 
 				if (chromo != null) {
 					// Find chromosome
 					Chromosome chr = gen.getOrCreateChromosome(chromo);
-
-					// Everything seems to be OK, go on
-					CodonTables.getInstance().set(genomeById.get(genomeId), chr, codonTable);
+					CodonTables.getInstance().set(config.getGenome(genomeId), chr, codonTable);
 				} else {
 					// Set genome-wide chromosome table
-					CodonTables.getInstance().set(genomeById.get(genomeId), codonTable);
+					CodonTables.getInstance().set(config.getGenome(genomeId), codonTable);
 				}
 			}
 		}

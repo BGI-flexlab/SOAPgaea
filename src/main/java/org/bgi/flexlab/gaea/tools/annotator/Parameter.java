@@ -64,7 +64,7 @@ public class Parameter implements Serializable {
 			{
 				acceptsAll(asList("i","input"), "Input file(VCF).").withRequiredArg().describedAs("String").ofType(String.class);
 				acceptsAll(asList("c","config"), "Config file.").withRequiredArg().describedAs("String").ofType(String.class);
-//				acceptsAll(asList("r","ref"), "indexed reference sequence file list [null].").withRequiredArg().describedAs("Sting").ofType(String.class);
+				acceptsAll(asList("r","reference"), "indexed reference sequence file list [null].").withRequiredArg().describedAs("Sting").ofType(String.class);
 				acceptsAll(asList("R","reducer"), "The number of reducer,default is 30.").withRequiredArg().describedAs("> 0").ofType(Integer.class);
 				acceptsAll(asList("T","outputType"), "input formate[0:txt;1:vcf],default is 0.").withRequiredArg().describedAs(">= 0").ofType(Integer.class);
 				acceptsAll(asList("o","output"), "Path of the output files.").withRequiredArg().describedAs("String").ofType(String.class);
@@ -78,9 +78,9 @@ public class Parameter implements Serializable {
 			inputFilePath = (String) options.valueOf("input");
 		}
 
-		if (options.has("ref")) {
-			referenceSequencePath = (String) options.valueOf("ref");
-		}
+//		if (options.has("reference")) {
+//			referenceSequencePath = (String) options.valueOf("reference");
+//		}
 		
 		//inputType
 		if(options.has("outputType"))
@@ -125,11 +125,11 @@ public class Parameter implements Serializable {
 			usage(parser);
 			System.exit(1);
 		}
-//		if (referenceSequencePath==null) {
-//			System.err.println("ERROR:the referenceSequence path is null");
-//			usage(parser);
-//			System.exit(1);
-//		}
+		if (referenceSequencePath==null) {
+			System.err.println("ERROR:the referenceSequence path is null");
+			usage(parser);
+			System.exit(1);
+		}
 		
 		if (outputPath==null) {
 			System.err.println("ERROR:the output path is null!");
@@ -183,6 +183,18 @@ public class Parameter implements Serializable {
 		return inputFilePath;
 	}
 	
+	public String getConfigFile() {
+		return configFile;
+	}
+	
+	public void setConfigFile(String configFile) {
+		this.configFile = configFile;
+	}
+	
+	public String getReferenceSequencePath() {
+		return referenceSequencePath;
+	}
+	
 	/**
 	 * 主函数
 	 * 
@@ -192,14 +204,6 @@ public class Parameter implements Serializable {
 	public static void main(String[] args) throws Exception {
 		Parameter parameter = new Parameter(args);
 		System.out.println(parameter.toString());
-	}
-
-	public String getConfigFile() {
-		return configFile;
-	}
-
-	public void setConfigFile(String configFile) {
-		this.configFile = configFile;
 	}
 
 
