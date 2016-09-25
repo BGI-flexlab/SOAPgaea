@@ -1,4 +1,4 @@
-package org.bgi.flexlab.gaea.data.structure.region.report;
+﻿package org.bgi.flexlab.gaea.data.structure.region.report;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -27,7 +27,7 @@ public abstract class SingleRegionReport<T extends SingleRegionStatistic> {
 		start = 0;
 		end = windowSize - 1;
 		int i = start;
-		
+
 		while(i <= end) {
 			if((index = singleReigon.posInRegion(chrName, i + winStart)) >= 0) {
 				break;
