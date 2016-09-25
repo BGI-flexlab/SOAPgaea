@@ -10,7 +10,6 @@ import org.bgi.flexlab.gaea.tools.annotator.config.TableInfo;
 import org.bgi.flexlab.gaea.tools.annotator.db.Condition.ConditionKey;
 import org.bgi.flexlab.gaea.tools.annotator.effect.VcfAnnotationContext;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Variant;
-import org.bgi.flexlab.gaea.tools.annotator.outputformat.AnnoVcfRecord;
 
 public class DBAnno implements Serializable{
 	
@@ -20,8 +19,8 @@ public class DBAnno implements Serializable{
 	private  Config config = null;
 	HashMap<String, AbstractDbQuery> DbQueryMap = null;
 	
-	public DBAnno(){
-		config = Config.getConfigInstance();
+	public DBAnno(Config config){
+		this.config = config;
 	}
 	
 	public HashMap<String, String> multiVcfLineAnno(List<AnnoVcfRecord> vcfRecords) {

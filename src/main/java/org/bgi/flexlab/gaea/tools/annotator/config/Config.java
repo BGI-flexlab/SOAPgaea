@@ -384,18 +384,17 @@ public class Config implements Serializable {
 		this.cytoBandFile = cytoBandFile;
 	}
 	
-	public static void main(String[] args) throws Exception {
-		Config config = new Config();
-		Config.testProp();
-	}
-
-	public SnpEffectPredictor loadSnpEffectPredictor() {
-		// TODO Auto-generated method stub
-		return null;
-	}
 
 	public SnpEffectPredictor getSnpEffectPredictor() {
 		return snpEffectPredictor;
 	}
 
+	public void setSnpEffectPredictor(SnpEffectPredictor snpEffectPredictor) {
+		this.snpEffectPredictor = snpEffectPredictor;
+	}
+
+	public static void main(String[] args) throws Exception {
+		Config config = new Config();
+		Config.testProp();
+	}
 }

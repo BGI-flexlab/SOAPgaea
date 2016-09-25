@@ -1,26 +1,11 @@
-package org.bgi.flexlab.gaea.tools.annotator.interval;
+package org.bgi.flexlab.gaea.tools.annotator.sequence;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
 
-import org.bgi.flexlab.gaea.tools.annotator.config.Config;
-import org.bgi.flexlab.gaea.tools.annotator.interval.Chromosome;
-import org.bgi.flexlab.gaea.tools.annotator.interval.Exon;
-import org.bgi.flexlab.gaea.tools.annotator.interval.Gene;
+import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInfoShare;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Genome;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Marker;
-import org.bgi.flexlab.gaea.tools.annotator.interval.MarkerSeq;
-import org.bgi.flexlab.gaea.tools.annotator.interval.Markers;
-import org.bgi.flexlab.gaea.tools.annotator.interval.Transcript;
-import org.bgi.flexlab.gaea.tools.annotator.interval.tree.IntervalForest;
-import org.bgi.flexlab.gaea.tools.annotator.interval.tree.Itree;
-import org.bgi.flexlab.gaea.tools.annotator.util.Gpr;
 import org.bgi.flexlab.gaea.tools.annotator.util.GprSeq;
-import org.bgi.flexlab.gaea.tools.annotator.util.Timer;
 
 /**
  * This class stores all "relevant" sequences in a genome
@@ -44,9 +29,23 @@ public class GenomicSequences implements Serializable {
 	boolean allSmallLoaded; // Have all "small" chromosomes been loaded? (i.e. have we already loaded 'sequence.bin' file?)
 	boolean disableLoad = false; // Do not load sequences from disk. Used minly for test cases
 	Genome genome; // Reference genome
+	private ChromosomeInfoShare chrShare=null;
 
 	public GenomicSequences(Genome genome) {
 		this.genome = genome;
+	}
+	
+	
+	/**
+	 * Get sequence for a marker
+	 */
+	public String querySequence(Marker marker) {
+		marker.getChromosomeName();
+		// Calculate start and end coordiantes
+		String seq = chrShare.getBaseSeq(marker.getStart(), marker.getEnd());
+		// Return sequence in same direction as 'marker'
+		if (marker.isStrandMinus()) seq = GprSeq.reverseWc(seq);
+		return seq;
 	}
 
 }

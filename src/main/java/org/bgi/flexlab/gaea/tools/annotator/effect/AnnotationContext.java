@@ -2,6 +2,7 @@ package org.bgi.flexlab.gaea.tools.annotator.effect;
 
 import htsjdk.variant.vcf.VCFConstants;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -29,7 +30,10 @@ import org.bgi.flexlab.gaea.tools.annotator.interval.Variant;
 /**
  * Common annotation context
  */
-public class AnnotationContext{
+public class AnnotationContext implements Serializable{
+
+	private static final long serialVersionUID = 5318310164237536996L;
+
 
 	public static boolean debug = false;
 	

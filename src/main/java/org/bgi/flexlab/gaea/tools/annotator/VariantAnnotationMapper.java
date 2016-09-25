@@ -14,6 +14,7 @@ import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.bgi.flexlab.gaea.data.structure.header.GaeaSingleVCFHeader;
+import org.bgi.flexlab.gaea.data.structure.reference.GenomeShare;
 import org.bgi.flexlab.gaea.tools.annotator.config.Config;
 import org.bgi.flexlab.gaea.tools.annotator.db.DBAnno;
 import org.bgi.flexlab.gaea.tools.annotator.effect.VcfAnnotationContext;
@@ -28,6 +29,7 @@ public class VariantAnnotationMapper extends Mapper<LongWritable, Text, NullWrit
 	private VcfAnnotator vcfAnnotator = null;
 	private DBAnno dbAnno = null;
 	private Config userConfig = null;
+	private static GenomeShare genome;
 	
 	
 	@Override
@@ -35,7 +37,16 @@ public class VariantAnnotationMapper extends Mapper<LongWritable, Text, NullWrit
 			throws IOException, InterruptedException {
 		Configuration conf = context.getConfiguration();
 		
+		genome = new GenomeShare();
+		if (conf.get("cacheref") != null)
+			genome.loadChrList();
+		else
+			genome.loadChrList(conf.get("reference"));
+		
 		userConfig = new Config();
+		AnnotatorBuild annoBuild = new AnnotatorBuild(userConfig);
+		
+		userConfig.setSnpEffectPredictor(annoBuild.createSnpEffPredictor());
 		
 		Path inputPath = new Path(conf.get("inputFilePath"));
 		
@@ -44,8 +55,9 @@ public class VariantAnnotationMapper extends Mapper<LongWritable, Text, NullWrit
 		vcfHeader = singleVcfHeader.getHeader();
 		vcfVersion = singleVcfHeader.getVCFVersion(vcfHeader);
 		vcfCodec.setVCFHeader(vcfHeader, vcfVersion);
+		
 		vcfAnnotator = new VcfAnnotator(null);
-		dbAnno = new DBAnno();
+		dbAnno = new DBAnno(userConfig);
     	
 	}
 

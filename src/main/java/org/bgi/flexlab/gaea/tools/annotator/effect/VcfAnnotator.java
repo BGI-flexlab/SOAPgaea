@@ -2,6 +2,7 @@ package org.bgi.flexlab.gaea.tools.annotator.effect;
 
 import htsjdk.variant.variantcontext.VariantContext;
 
+import java.io.Serializable;
 import java.util.List;
 
 import org.bgi.flexlab.gaea.tools.annotator.config.Config;
@@ -12,7 +13,9 @@ import org.bgi.flexlab.gaea.tools.annotator.interval.Variant;
  * Annotate a VCF entry
  *
  */
-public class VcfAnnotator {
+public class VcfAnnotator implements Serializable{
+	
+	private static final long serialVersionUID = -6632995517658045554L;
 	
 	Config config;
 	SnpEffectPredictor snpEffectPredictor;
@@ -34,13 +37,14 @@ public class VcfAnnotator {
 		// Analyze all changes in this VCF entry
 		// Note, this is the standard analysis.
 		//---
-		List<Variant> variants = vac.variants();
+		List<Variant> variants = vac.variants(config.getGenome());
 		for (Variant variant : variants) {
 
 			// Calculate effects: By default do not annotate non-variant sites
 			if (variant.isVariant()) {
 
 				VariantEffects variantEffects = snpEffectPredictor.variantEffect(variant);
+				
 
 			}
 		}

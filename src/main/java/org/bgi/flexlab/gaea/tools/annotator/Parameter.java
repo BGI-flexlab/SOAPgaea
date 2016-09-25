@@ -12,12 +12,6 @@ import java.io.Serializable;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 
-/**
- * 程序参数类
- * 
- * @author ZhangZhi, ZhangYong
- * 
- */
 public class Parameter implements Serializable {
 
 	/**
