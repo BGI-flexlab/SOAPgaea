@@ -11,8 +11,9 @@ public class PositionDepthSamtools extends IntPositionInformation implements Cal
 		super(windowSize);
 	}
 
+	@SuppressWarnings("rawtypes")
 	@Override
-	public void add(BamPositionInformation<SAMInformationBasic> posInfo) {
+	public void add(BamPositionInformation posInfo) {
 		if(posInfo.eligiblePos()) {
 			info[posInfo.distBetweenRefPosAndWinStart()]++;
 		}

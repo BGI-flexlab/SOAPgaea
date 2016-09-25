@@ -16,8 +16,9 @@ public class PositionIndelInformation extends BooleanPositionInformation impleme
 		// TODO Auto-generated constructor stub
 	}
 
+	@SuppressWarnings("rawtypes")
 	@Override
-	public void add(BamPositionInformation<SAMInformationBasic> posInfo) {
+	public void add(BamPositionInformation posInfo) {
 		// TODO Auto-generated method stub
 		CigarState cigarState = posInfo.getCigarState();
 		int cigar = cigarState.getCurrentCigar();
@@ -32,7 +33,8 @@ public class PositionIndelInformation extends BooleanPositionInformation impleme
 		}
 	}
 	
-	private boolean eligibleCigar(CigarState cigarState, int cigar, int cigarLength, BamPositionInformation<SAMInformationBasic> posInfo) {
+	@SuppressWarnings("rawtypes")
+	private boolean eligibleCigar(CigarState cigarState, int cigar, int cigarLength, BamPositionInformation posInfo) {
 		return cigarState.getCigarState()[1] + cigarLength - 1 == posInfo.getRefPosition() && 
 				cigarState.getCigarState()[0] + 1 < cigarState.getCigar().size();
 	}

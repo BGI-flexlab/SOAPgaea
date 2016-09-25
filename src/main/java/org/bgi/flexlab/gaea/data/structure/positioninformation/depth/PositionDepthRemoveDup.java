@@ -12,8 +12,9 @@ public class PositionDepthRemoveDup extends IntPositionInformation implements Ca
 		// TODO Auto-generated constructor stub
 	}
 
+	@SuppressWarnings("rawtypes")
 	@Override
-	public void add(BamPositionInformation<SAMInformationBasic> posInfo) {
+	public void add(BamPositionInformation posInfo) {
 		// TODO Auto-generated method stub
 		if(!posInfo.isDup()) {
 			info[posInfo.distBetweenRefPosAndWinStart()]++;

@@ -11,8 +11,9 @@ public class PositionATCGInformation extends PositionInformationUtils<ATCGCount>
 		super(windowSize);
 	}
 	
+	@SuppressWarnings("rawtypes")
 	@Override
-	public void add(BamPositionInformation<SAMInformationBasic> posInfo) {
+	public void add(BamPositionInformation posInfo) {
 		// TODO Auto-generated method stub
 		int base = posInfo.getBinaryBase();
 		if(base < 4) {

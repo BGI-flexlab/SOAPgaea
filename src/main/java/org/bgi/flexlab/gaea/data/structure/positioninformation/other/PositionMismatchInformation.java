@@ -12,13 +12,14 @@ public class PositionMismatchInformation extends BooleanPositionInformation impl
 	}
 
 	@Override
-	public void add(BamPositionInformation<SAMInformationBasic> posInfo) {
+	public void add(@SuppressWarnings("rawtypes") BamPositionInformation posInfo) {
 		if(eligiblePos(posInfo)) {
 			info[posInfo.distBetweenRefPosAndWinStart()] = true;
 		}
 	}
 
-	private boolean eligiblePos(BamPositionInformation<SAMInformationBasic> posInfo){
+	@SuppressWarnings("rawtypes")
+	private boolean eligiblePos(BamPositionInformation posInfo){
 		return !info[posInfo.distBetweenRefPosAndWinStart()] &&  
 				posInfo.getChrInfo().getBinaryBase(posInfo.getRefPosition()) != posInfo.getBinaryBase();
 	}
