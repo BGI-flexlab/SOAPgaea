@@ -36,10 +36,12 @@ public class VariantAnnotation extends Configured implements Tool{
 	private static void setConfiguration(Configuration conf, Parameter parameter) {
 		
 		//set reference
+		conf.set("inputFilePath", parameter.getInputFilePath());
 		conf.set("reference", parameter.getReferenceSequencePath());
 		conf.set("configFile", parameter.getConfigFile());
 		conf.set("outputType", parameter.getOutputType());
-		conf.setStrings("inputFilePath", parameter.getInputFilePath());
+		conf.setBoolean("verbose", parameter.isVerbose());
+		conf.setBoolean("debug", parameter.isDebug());
 	}
 
 	@Override
