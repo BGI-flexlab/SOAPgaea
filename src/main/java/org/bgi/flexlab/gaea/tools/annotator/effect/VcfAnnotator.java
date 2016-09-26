@@ -3,6 +3,7 @@ package org.bgi.flexlab.gaea.tools.annotator.effect;
 import htsjdk.variant.variantcontext.VariantContext;
 
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.List;
 
 import org.bgi.flexlab.gaea.tools.annotator.config.Config;
@@ -31,6 +32,9 @@ public class VcfAnnotator implements Serializable{
 	 * @return true if the entry was annotated
 	 */
 	public boolean annotate(VcfAnnotationContext vac) {
+		
+		HashMap<String, AnnotationContext> annotationContexts = new HashMap<String, AnnotationContext>();
+		
 //		boolean filteredOut = false;
 		//---
 		// Analyze all changes in this VCF entry
@@ -43,8 +47,9 @@ public class VcfAnnotator implements Serializable{
 			if (variant.isVariant()) {
 
 				VariantEffects variantEffects = snpEffectPredictor.variantEffect(variant);
-				
-
+				AnnotationContext annotationContext = new AnnotationContext(variantEffects.get());
+				annotationContexts.put(variant.getAlt(), annotationContext);
+				vac.setAnnotationContexts(annotationContexts);
 			}
 		}
 

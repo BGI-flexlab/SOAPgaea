@@ -1,8 +1,5 @@
 package org.bgi.flexlab.gaea.tools.annotator.config;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -10,12 +7,17 @@ import java.io.Serializable;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Properties;
 
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FSDataInputStream;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.bgi.flexlab.gaea.tools.annotator.codons.CodonTable;
+import org.bgi.flexlab.gaea.tools.annotator.codons.CodonTables;
 import org.bgi.flexlab.gaea.tools.annotator.effect.SnpEffectPredictor;
+import org.bgi.flexlab.gaea.tools.annotator.interval.Chromosome;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Genome;
 import org.bgi.flexlab.gaea.tools.annotator.util.CountByType;
 import org.bgi.flexlab.gaea.tools.annotator.util.Gpr;
@@ -31,15 +33,17 @@ public class Config implements Serializable {
 	
 	private static Config configInstance = null; 
 	
+	public static final String KEY_CODON_PREFIX = "codon.";
+	public static final String KEY_CODONTABLE_SUFIX = ".codonTable";
+	private static final String DB_CONFIG_JSON = "annotatorDatabaseInfo.json";
 	public static final String ANNO_FIELDS_SUFIX = ".fields";
 	public static int MAX_WARNING_COUNT = 20;
 	
-	private static final String dbConfigFileName = "dbconf.json";
-	private static String configFileName = "config.properties";
 	
 	private String  ref = null;
 	private String  geneInfo = null;
 	private String  cytoBandFile = null;
+	private String configFilePath = null;
 	
 	boolean debug = false; // Debug mode?
 	boolean verbose = false; // Verbose
@@ -54,48 +58,66 @@ public class Config implements Serializable {
 	String genomeVersion;
 	Properties properties;
 	Genome genome;
-	HashMap<String, Genome> genomeById;
 	SnpEffectPredictor snpEffectPredictor;
+	private Configuration conf;
 	
 	HashMap<String, String[]> tagsByDB = null;
 	HashMap<String, TableInfo> dbInfo = null;
 	
 	CountByType warningsCounter = new CountByType();
 
-	
-	public Config() {
-//		this(configFileName);
-	}
-	
-	public Config(String configFileName) {
-		this.setUserConf(configFileName);
-		loadProperties(configFileName);
-		setFieldByDB();
-		loadJson();
+	public Config(Configuration conf) {
+		this.conf = conf;
+		init();
 		configInstance = this;
 	}
 	
-	public HashMap<String, String[]> getTagsByDB() {
-		return tagsByDB;
-	}
-	
-	public HashMap<String, TableInfo> getDbInfo() {
-		return dbInfo;
-	}
-	
-	public String getUserConf() {
-		return configFileName;
+	private void init(){
+		treatAllAsProteinCoding = false;
+		onlyRegulation = false;
+		errorOnMissingChromo = true;
+		errorChromoHit = true;
+		
+		configFilePath = conf.get("configFile");
+		loadProperties(configFilePath); // Read config file and get a genome
+		createCodonTables(genomeVersion, properties); 
+		setFieldByDB();
+		loadJson();
 	}
 
-	private void setUserConf(String userConf) {
-		Config.configFileName = userConf;
+	/**
+	 * Load properties from configuration file
+	 * @return true if success
+	 */
+	boolean loadProperties(String configFileName) {
+		try {
+			Path confFilePath = new Path(configFileName);
+			FileSystem fs = confFilePath.getFileSystem(conf);
+			if(!fs.exists(confFilePath)) {
+				throw new RuntimeException(confFilePath.toString() + " don't exist.");
+			}
+			if(!fs.isFile(confFilePath)) {
+				throw new RuntimeException(confFilePath.toString() + " is not a file. GaeaSingleVcfHeader parser only support one vcf file.");
+			}
+			FSDataInputStream inputStream =  fs.open(confFilePath);
+			
+			properties.load(inputStream);
+
+			if (!properties.isEmpty()) {
+				return true;
+			}
+		} catch (Exception e) {
+			properties = null;
+			throw new RuntimeException(e);
+		}
+
+		return false;
 	}
 	
 	boolean loadJson() {
 
-		URL url = Config.class.getClassLoader().getResource(dbConfigFileName);
+		URL url = Config.class.getClassLoader().getResource(DB_CONFIG_JSON);
 		String fileName = url.getPath();
-		
 		
 		Gson gson = new Gson();
 		try {
@@ -113,62 +135,61 @@ public class Config implements Serializable {
 		}
 		return false;
 	}
-
-	private static void testProp() {
-		Properties pps = new Properties();
-		try {
-			pps.load(Config.class.getClassLoader().getResourceAsStream("dbconf.properties")); 
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		pps.getProperty("codon.Standard", "");	
-		
-		Enumeration<?> enum1 = pps.propertyNames();//得到配置文件的名字
-		while(enum1.hasMoreElements()) {
-		           String strKey = (String) enum1.nextElement();
-		           String strValue = pps.getProperty(strKey);
-		            System.out.println(strKey + "=" + strValue);
-        }
-		
-		if( pps.containsKey("test.test1xtest2") ){
-			System.out.println("lll");
-		}
-
-	}
 	
 	/**
-	 * Load properties from configuration file
-	 * @return true if success
+	 * Extract and create codon tables
 	 */
-	boolean loadProperties(String configFileName) {
-		try {
-			File confFile = new File(configFileName);
-			if (verbose) Timer.showStdErr("Reading config file: " + confFile.getCanonicalPath());
-
-			if (Gpr.canRead(configFileName)) {
-				// Load properties
-				properties.load(new FileReader(confFile));
-				return true;
-			}else {
-				System.out.println(configFileName);
-				//	used for debug
-				properties.load(Config.class.getClassLoader().getResourceAsStream("dbconf.properties"));
-				if (!properties.isEmpty()) {
-					return true;
-				}
+	void createCodonTables(String genomeId, Properties properties) {
+		//---
+		// Read codon tables
+		//---
+		for (Object key : properties.keySet()) {
+			if (key.toString().startsWith(KEY_CODON_PREFIX)) {
+				String name = key.toString().substring(KEY_CODON_PREFIX.length());
+				String table = properties.getProperty(key.toString());
+				CodonTable codonTable = new CodonTable(name, table);
+				CodonTables.getInstance().add(codonTable);
 			}
-		} catch (Exception e) {
-			properties = null;
-			throw new RuntimeException(e);
 		}
 
-		return false;
-	}
+		//---
+		// Assign codon tables for different genome+chromosome
+		//---
+		for (Object key : properties.keySet()) {
+			String keyStr = key.toString();
+			if (keyStr.endsWith(KEY_CODONTABLE_SUFIX) && keyStr.startsWith(genomeId + ".")) {
+				// Everything between gneomeName and ".codonTable" is assumed to be chromosome name
+				int chrNameEnd = keyStr.length() - KEY_CODONTABLE_SUFIX.length();
+				int chrNameStart = genomeId.length() + 1;
+				int chrNameLen = chrNameEnd - chrNameStart;
+				String chromo = null;
+				if (chrNameLen > 0) chromo = keyStr.substring(chrNameStart, chrNameEnd);
 
+				// Find codon table
+				String codonTableName = properties.getProperty(key.toString());
+				CodonTable codonTable = CodonTables.getInstance().getTable(codonTableName);
+				if (codonTable == null) throw new RuntimeException("Error parsing property '" + key + "'. No such codon table '" + codonTableName + "'");
+
+				if (chromo != null) {
+					// Find chromosome
+					Chromosome chr = genome.getOrCreateChromosome(chromo);
+					CodonTables.getInstance().set(genome, chr, codonTable);
+				} else {
+					// Set genome-wide chromosome table
+					CodonTables.getInstance().set(genome, codonTable);
+				}
+			}
+		}
+	}
+	
+	
+	public HashMap<String, String[]> getTagsByDB() {
+		return tagsByDB;
+	}
+	
+	public HashMap<String, TableInfo> getDbInfo() {
+		return dbInfo;
+	}
 	
 	private HashMap<String, String[]> setFieldByDB() {
 		
@@ -209,54 +230,8 @@ public class Config implements Serializable {
 		return genome;
 	}
 
-	public Genome getGenome(String genomeId) {
-		return genomeById.get(genomeId);
-	}
-
 	public String getGenomeVersion() {
 		return genomeVersion;
-	}
-	
-	/**
-	 * Reads a properties file
-	 * @return The path where config file is located
-	 */
-	String readProperties(String configFileName) {
-		properties = new Properties();
-		try {
-			// Build error message
-			File confFile = new File(configFileName);
-			if (loadProperties(configFileName)) return configFileName;
-
-			// Absolute path? Nothing else to do...
-			if (confFile.isAbsolute()) throw new RuntimeException("Cannot read config file '" + confFile.getCanonicalPath() + "'");
-
-			// Try reading from current execution directory
-			String confPath = getRelativeConfigPath() + "/" + configFileName;
-			confFile = new File(confPath);
-			if (loadProperties(confPath)) return confPath;
-
-			throw new RuntimeException("Cannot read config file '" + configFileName + "'\n");
-		} catch (FileNotFoundException e) {
-			throw new RuntimeException("Cannot find config file '" + configFileName + "'");
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-	}
-	
-	/**
-	 * Read config file
-	 */
-	String readProperties(String configFileName, Map<String, String> override) {
-		String configFile = readProperties(configFileName);
-
-		if (override != null) {
-			for (String key : override.keySet()) {
-				properties.setProperty(key, override.get(key));
-			}
-		}
-
-		return configFile;
 	}
 	
 	public void setHgvsOneLetterAA(boolean hgvsOneLetterAa) {
@@ -291,18 +266,18 @@ public class Config implements Serializable {
 		this.verbose = verbose;
 	}
 	
-	/**
-	 * Get the relative path to a config file
-	 */
-	String getRelativeConfigPath() {
-		URL url = Config.class.getProtectionDomain().getCodeSource().getLocation();
-		try {
-			File path = new File(url.toURI());
-			return path.getParent();
-		} catch (Exception e) {
-			throw new RuntimeException("Cannot get path '" + url + "'", e);
-		}
-	}
+//	/**
+//	 * Get the relative path to a config file
+//	 */
+//	String getRelativeConfigPath() {
+//		URL url = Config.class.getProtectionDomain().getCodeSource().getLocation();
+//		try {
+//			File path = new File(url.toURI());
+//			return path.getParent();
+//		} catch (Exception e) {
+//			throw new RuntimeException("Cannot get path '" + url + "'", e);
+//		}
+//	}
 
 	public boolean isDebug() {
 		return debug;
@@ -393,8 +368,8 @@ public class Config implements Serializable {
 		this.snpEffectPredictor = snpEffectPredictor;
 	}
 
-	public static void main(String[] args) throws Exception {
-		Config config = new Config();
-		Config.testProp();
-	}
+//	public static void main(String[] args) throws Exception {
+//		Config config = new Config();
+//		Config.testProp();
+//	}
 }

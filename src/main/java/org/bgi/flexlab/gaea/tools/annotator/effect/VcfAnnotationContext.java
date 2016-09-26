@@ -23,11 +23,12 @@ public class VcfAnnotationContext extends VariantContext{
 	}
 	public static final String FILTER_PASS = "PASS";
 	
-	List<String> alts;
+	private List<String> alts;
 	
 	protected LinkedList<Variant> variants;
 	
-	HashMap<String, AnnotationContext> annotationContexts;
+	private HashMap<String, AnnotationContext> annotationContexts;
+//	private HashMap<String, Variant> variantsMap;
 	
 	public VcfAnnotationContext(VariantContext variantContext){
 		super(variantContext);
@@ -167,8 +168,16 @@ public class VcfAnnotationContext extends VariantContext{
 			}
 		}
 	}
+	
+	public List<String> getAlts() {
+		return alts;
+	}
 
 	public String toVcfLine() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	public String toAnnotationString() {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -183,6 +192,36 @@ public class VcfAnnotationContext extends VariantContext{
 		return sb.toString();
 	}
 
+	public LinkedList<Variant> getVariants(){
+		return variants;
+	}
+
+	public HashMap<String, AnnotationContext> getAnnotationContexts() {
+		return annotationContexts;
+	}
+	
+	public AnnotationContext getAnnotationContext(String alt) {
+		return annotationContexts.get(alt);
+	}
+
+
+	public void setAnnotationContexts(HashMap<String, AnnotationContext> annotationContexts) {
+		this.annotationContexts = annotationContexts;
+	}
+	
+	public void add(){
+		
+	}
+
+
+	public Variant getVariant(String alt) {
+		for (Variant variant : variants) {
+			if(variant.getAlt() == alt){
+				return variant;
+			}
+		}
+		return null;
+	}
 	
 
 }

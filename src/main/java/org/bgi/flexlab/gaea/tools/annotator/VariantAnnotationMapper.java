@@ -43,7 +43,7 @@ public class VariantAnnotationMapper extends Mapper<LongWritable, Text, NullWrit
 		else
 			genome.loadChromosomeList(conf.get("reference"));
 		
-		userConfig = new Config();
+		userConfig = new Config(conf);
 		AnnotatorBuild annoBuild = new AnnotatorBuild(userConfig);
 		
 		userConfig.setSnpEffectPredictor(annoBuild.createSnpEffPredictor());
@@ -56,7 +56,7 @@ public class VariantAnnotationMapper extends Mapper<LongWritable, Text, NullWrit
 		vcfVersion = singleVcfHeader.getVCFVersion(vcfHeader);
 		vcfCodec.setVCFHeader(vcfHeader, vcfVersion);
 		
-		vcfAnnotator = new VcfAnnotator(null);
+		vcfAnnotator = new VcfAnnotator(userConfig);
 		dbAnno = new DBAnno(userConfig);
     	
 	}
@@ -77,7 +77,8 @@ public class VariantAnnotationMapper extends Mapper<LongWritable, Text, NullWrit
 		vcfAnnotator.annotate(vcfAnnoContext);
 		dbAnno.annotate(vcfAnnoContext);
 		
-		resultValue.set(vcfAnnoContext.toVcfLine());
+		resultValue.set(vcfAnnoContext.toAnnotationString());
+		
 		context.write(NullWritable.get(), resultValue);
 		
 	}

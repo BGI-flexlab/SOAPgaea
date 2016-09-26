@@ -68,6 +68,8 @@ public class Parameter implements Serializable {
 				acceptsAll(asList("R","reducer"), "The number of reducer,default is 30.").withRequiredArg().describedAs("> 0").ofType(Integer.class);
 				acceptsAll(asList("T","outputType"), "input formate[0:txt;1:vcf],default is 0.").withRequiredArg().describedAs(">= 0").ofType(Integer.class);
 				acceptsAll(asList("o","output"), "Path of the output files.").withRequiredArg().describedAs("String").ofType(String.class);
+				acceptsAll(asList("verbose"), "Display verbose information.");
+				acceptsAll(asList("debug"), "For debug.");
 				acceptsAll(asList("h","help"), "Display help information.");
 			}
 		};

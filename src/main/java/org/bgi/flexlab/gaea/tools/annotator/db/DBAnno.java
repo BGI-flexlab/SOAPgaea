@@ -8,32 +8,36 @@ import java.util.List;
 import org.bgi.flexlab.gaea.tools.annotator.config.Config;
 import org.bgi.flexlab.gaea.tools.annotator.config.TableInfo;
 import org.bgi.flexlab.gaea.tools.annotator.db.Condition.ConditionKey;
+import org.bgi.flexlab.gaea.tools.annotator.effect.AnnotationContext;
 import org.bgi.flexlab.gaea.tools.annotator.effect.VcfAnnotationContext;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Variant;
 
 public class DBAnno implements Serializable{
 	
-	
 	private static final long serialVersionUID = -3944211982294335404L;
 	
-	private  Config config = null;
+	private Config config = null;
 	HashMap<String, AbstractDbQuery> DbQueryMap = null;
 	
 	public DBAnno(Config config){
 		this.config = config;
 	}
 	
-	public HashMap<String, String> multiVcfLineAnno(List<AnnoVcfRecord> vcfRecords) {
-		return null;
+	public void annotate(VcfAnnotationContext vcfAnnoContext) {
+		// TODO Auto-generated method stub
+		
+		List<String> alts = vcfAnnoContext.getAlts();
+		for (String alt : alts) {
+			AnnotationContext annoContext = vcfAnnoContext.getAnnotationContext(alt);
+			Variant variant = vcfAnnoContext.getVariant(alt);
+			if (variant != null) {
+				System.err.println("[TEST] Varint is null in DBAnno.");
+			}
+			variantAnno(annoContext, variant);
+		}
 	}
 	
-	public HashMap<String, String> vcfLineAnno(AnnoVcfRecord vcfRecord) {
-		
-		return null;
-		
-	}
-	
-	public HashMap<String, String> variantAnno(Variant variant) {
+	public HashMap<String, String> variantAnno(AnnotationContext annoContext, Variant variant) {
 		
 		AbstractDbQuery dbQuery = null;
 		LinkedHashMap<ConditionKey, String> conditionMap = new LinkedHashMap<ConditionKey, String>();
@@ -66,12 +70,10 @@ public class DBAnno implements Serializable{
 			
 			HashMap<String,String> annoResults= dbQuery.query(condition, fields);
 			for (String annoTag : tags) {
-				variant.setAnnoItem(annoTag,annoResults.get(annoTag));
+				annoContext.putAnnoItem(annoTag, annoResults.get(annoTag));
 			}
 		}
-		
 		return null;
-		
 	}
 
 	private String[] toFields(HashMap<String, String> fields, String[] fieldList) {
@@ -81,11 +83,5 @@ public class DBAnno implements Serializable{
 		}
 		return tags;
 	}
-
-	public void annotate(VcfAnnotationContext vcfAnnoContext) {
-		// TODO Auto-generated method stub
-		
-	}
-	
 
 }

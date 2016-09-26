@@ -32,7 +32,9 @@ public class ExonSpliceCharacterizer {
 	} 
 
 	public ExonSpliceCharacterizer(String genomeVer) {
-		Config config = new Config(genomeVer);
+//		Config config = new Config(genomeVer); 
+//		TODO 处理
+		Config config = Config.getConfigInstance();
 		SnpEffectPredictor snpEffectPredictor = config.getSnpEffectPredictor();
 		genome = snpEffectPredictor.getGenome();
 		typeByExon = new HashMap<Exon, Exon.ExonSpliceType>();
