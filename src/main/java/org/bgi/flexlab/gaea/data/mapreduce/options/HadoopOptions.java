@@ -7,5 +7,5 @@ public interface HadoopOptions {
 	public void setHadoopConf(String[] args, Configuration conf);
 	
 	/*get options from hadoop configuration*/
-	public void getOptionsFromHadoopConf(Configuration conf);
+	public abstract void getOptionsFromHadoopConf(Configuration conf);
 }
