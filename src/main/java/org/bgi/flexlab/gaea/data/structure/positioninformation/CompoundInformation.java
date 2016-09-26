@@ -12,13 +12,35 @@ import org.bgi.flexlab.gaea.util.SystemConfiguration;
  * @param <T extends SAMInformationBasic>
  */
 public class CompoundInformation<T extends SAMInformationBasic> {
-	protected final T readInfo;
+	private T readInfo;
 	
-	protected final ChromosomeInformationShare chrInfo;
+    private int refPosition = 0;
 	
-	protected final int windowStart;
+	private int readPosition = 0;
 	
-	public CompoundInformation(int windowStart, T readInfo, ChromosomeInformationShare chrInfo) {
+	private ChromosomeInformationShare chrInfo = null;
+	
+	private int windowStart = 0;
+	
+	private int windowSize = 0;
+	
+	/**
+	 * Constructor for position information
+	 */
+		initialize(windowStart, readInfo, chrInfo);
+		this.refPosition = refPosition;
+		this.readPosition = readPosition;
+	}
+	
+	/**
+	 * Constructor for window information
+	 */
+	public CompoundInformation(int windowStart, int winSize, T readInfo, ChromosomeInformationShare chrInfo) {
+		initialize(windowStart, readInfo, chrInfo);
+		this.windowSize = winSize;
+	}
+	
+	private void initialize(int windowStart, T readInfo, ChromosomeInformationShare chrInfo) {
 		this.windowStart = windowStart;
 		this.readInfo = readInfo;
 		this.chrInfo = chrInfo;
@@ -56,5 +78,24 @@ public class CompoundInformation<T extends SAMInformationBasic> {
 	public int getWindowStart() {
 		return windowStart;
 	}
+	
+	public int distBetweenRefPosAndWinStart() {
+		return refPosition - windowStart;
+	}
+	
+	public int getBinaryBase() {
+		return readInfo.getBinaryBase(readPosition);
+	}
+	
+	public int getRefPosition() {
+		return refPosition;
+	}
 
+	public int getReadPosition() {
+		return readPosition;
+	}
+
+	public int getWindowSize(){
+		return windowSize;
+	}
 }
