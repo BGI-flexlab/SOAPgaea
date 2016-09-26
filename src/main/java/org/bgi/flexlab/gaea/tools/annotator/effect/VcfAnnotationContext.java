@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.bgi.flexlab.gaea.tools.annotator.interval.Chromosome;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Genome;
@@ -178,8 +180,47 @@ public class VcfAnnotationContext extends VariantContext{
 		return null;
 	}
 	public String toAnnotationString() {
+		StringBuilder sb = new StringBuilder();
+		for (String alt : alts) {
+			sb.append(this.contig);
+			sb.append("\t");
+			sb.append(this.start);
+			sb.append("\t");
+			sb.append(this.getReference());
+			sb.append("\t");
+			sb.append(alt);
+			sb.append("\t");
+			
+			AnnotationContext annoContext = getAnnotationContext(alt);
+			sb.append(annoContext.getGeneId());
+			sb.append("\t");
+			sb.append(annoContext.getGeneName());
+			sb.append("\t");
+			sb.append(annoContext.getHgvsDna());
+			sb.append("\t");
+			sb.append(annoContext.getHgvsProt());
+			sb.append("\t");
+			sb.append(annoContext.getEffectsStr());
+			sb.append("\t");
+			sb.append(annoContext.getFeatureId());
+			sb.append("\t");
+			sb.append(annoContext.getFeatureType());
+			sb.append("\t");
+			sb.append(annoContext.getExonId());
+			sb.append("\t");
+			
+			Map<String, Object> annoItems= annoContext.getAnnoItems();
+			Set<String> keys = annoItems.keySet();
+			for (String key : keys) {
+				sb.append(annoItems.get(key));
+				sb.append("\t");
+			}
+			
+			sb.append("\n");
+			
+		}
 		// TODO Auto-generated method stub
-		return null;
+		return sb.toString();
 	}
 	
 	private String listToString(List<String> list, String separator) { 
@@ -220,6 +261,7 @@ public class VcfAnnotationContext extends VariantContext{
 				return variant;
 			}
 		}
+		// TODO Auto-generated method stub
 		return null;
 	}
 	

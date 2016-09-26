@@ -27,7 +27,7 @@ public class Parameter implements Serializable {
 	/**
 	 * type
 	 */
-	private int outputType=0;
+	private String outputType=null;
 
 	private String inputFilePath=null;
 	
@@ -66,7 +66,7 @@ public class Parameter implements Serializable {
 				acceptsAll(asList("c","config"), "Config file.").withRequiredArg().describedAs("String").ofType(String.class);
 				acceptsAll(asList("r","reference"), "indexed reference sequence file list [null].").withRequiredArg().describedAs("Sting").ofType(String.class);
 				acceptsAll(asList("R","reducer"), "The number of reducer,default is 30.").withRequiredArg().describedAs("> 0").ofType(Integer.class);
-				acceptsAll(asList("T","outputType"), "input formate[0:txt;1:vcf],default is 0.").withRequiredArg().describedAs(">= 0").ofType(Integer.class);
+				acceptsAll(asList("T","outputType"), "input formate[txt,vcf],default is txt.").withRequiredArg().describedAs("String").ofType(String.class);
 				acceptsAll(asList("o","output"), "Path of the output files.").withRequiredArg().describedAs("String").ofType(String.class);
 				acceptsAll(asList("verbose"), "Display verbose information.");
 				acceptsAll(asList("debug"), "For debug.");
@@ -87,7 +87,7 @@ public class Parameter implements Serializable {
 		//inputType
 		if(options.has("outputType"))
 		{
-			setOutputType((Integer) options.valueOf("outputType"));
+			setOutputType((String) options.valueOf("outputType"));
 		}
 		if(options.has("output")) {
 			outputPath = (String) options.valueOf("output");
@@ -156,11 +156,11 @@ public class Parameter implements Serializable {
 		this.reducerNum = reducerNum;
 	}
 
-	public int getOutputType() {
+	public String getOutputType() {
 		return outputType;
 	}
 
-	public void setOutputType(int outputType) {
+	public void setOutputType(String outputType) {
 		this.outputType = outputType;
 	}
 	

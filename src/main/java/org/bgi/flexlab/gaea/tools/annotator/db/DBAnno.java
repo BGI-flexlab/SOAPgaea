@@ -48,9 +48,9 @@ public class DBAnno implements Serializable{
 		conditionMap.put(ConditionKey.ALT, String.valueOf(variant.getAlt()));
 		
 		
-		HashMap<String, String[]> tagsByDB = config.getTagsByDB();
+		HashMap<String, String[]> dbFieldsHashMap = config.getDbFieldsHashMap();
 		HashMap<String, TableInfo> dbInfo = config.getDbInfo();
-		for (String dbName : tagsByDB.keySet()) {
+		for (String dbName : dbFieldsHashMap.keySet()) {
 			
 			if(DbQueryMap.containsKey(dbName)){
 				dbQuery = DbQueryMap.get(dbName);
@@ -64,7 +64,7 @@ public class DBAnno implements Serializable{
 			}
 			
 			TableInfo tableInfo = dbInfo.get(dbName);
-			String[] tags = tagsByDB.get(dbName);
+			String[] tags = dbFieldsHashMap.get(dbName);
 			String[] fields = toFields(tableInfo.getFields(), tags);
 			Condition condition = new Condition(dbName,tableInfo,conditionMap);
 			

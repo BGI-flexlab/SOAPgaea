@@ -1,7 +1,6 @@
 package org.bgi.flexlab.gaea.tools.annotator.db;
 
 import java.util.HashMap;
-import java.util.List;
 
 import org.bgi.flexlab.gaea.tools.annotator.db.Condition.ConditionKey;
 

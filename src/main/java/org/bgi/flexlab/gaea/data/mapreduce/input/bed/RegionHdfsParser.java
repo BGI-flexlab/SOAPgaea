@@ -2,6 +2,7 @@ package org.bgi.flexlab.gaea.data.mapreduce.input.bed;
 
 import java.io.IOException;
 
+import org.bgi.flexlab.gaea.data.structure.region.BasicRegion;
 import org.bgi.flexlab.gaea.util.FileIterator;
 
 public class RegionHdfsParser extends BasicRegion{
