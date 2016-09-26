@@ -40,7 +40,7 @@ public class Parameter extends GaeaOptions implements Serializable {
 		addOption("o", "output",     true,  "output file(VCF).", true);
 		addOption("c", "config",     true,  "config file.", true);
 		addOption("r", "reference",  true,  "indexed reference sequence file list [null]", true);
-		addOption("T", "outputType", true,  "input file(VCF).");
+		addOption("T", "outputType", true,  "output file foramt[txt, vcf].");
 		addOption(null,"verbose",    false, "display verbose information.");
 		addOption(null,"debug",      false, "for debug.");
 		addOption("h", "help",       false, "help information.");
@@ -49,7 +49,6 @@ public class Parameter extends GaeaOptions implements Serializable {
 		try {
 			cmdLine = parser.parse(options, args);
 			if(cmdLine.hasOption("h")) { 
-				System.err.println("TEST");
 				helpInfo.printHelp("test", options);
 				System.exit(0);
 			}

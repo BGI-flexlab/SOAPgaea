@@ -8,6 +8,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Properties;
 
 import org.apache.hadoop.conf.Configuration;
@@ -33,6 +34,8 @@ public class Config implements Serializable {
 	
 	private static Config configInstance = null; 
 	
+	public static final String KEY_REFERENCE = "ref";
+	public static final String KEY_GENE_INFO = "GeneInfo";
 	public static final String KEY_CODON_PREFIX = "codon.";
 	public static final String KEY_CODONTABLE_SUFIX = ".codonTable";
 	private static final String DB_CONFIG_JSON = "annotatorDatabaseInfo.json";
@@ -42,7 +45,6 @@ public class Config implements Serializable {
 	
 	private String  ref = null;
 	private String  geneInfo = null;
-	private String  cytoBandFile = null;
 	private String configFilePath = null;
 	
 	boolean debug = false; // Debug mode?
@@ -61,6 +63,7 @@ public class Config implements Serializable {
 	SnpEffectPredictor snpEffectPredictor;
 	private Configuration conf;
 	
+	private List<String> dbNameList;
 	HashMap<String, String[]> dbFieldsHashMap = null;
 	HashMap<String, TableInfo> dbInfo = null;
 	
@@ -77,12 +80,13 @@ public class Config implements Serializable {
 		onlyRegulation = false;
 		errorOnMissingChromo = true;
 		errorChromoHit = true;
-		
 		configFilePath = conf.get("configFile");
+		
 		loadProperties(configFilePath); // Read config file and get a genome
-		createCodonTables(genomeVersion, properties); 
-		setFieldsByDB();
+//		TODO 支持在配置文件中自定义密码子体系 - CodonTable
+//		createCodonTables(genomeVersion, properties);  
 		loadJson();
+		parseProperties();
 	}
 
 	/**
@@ -182,6 +186,32 @@ public class Config implements Serializable {
 		}
 	}
 	
+	private boolean parseProperties() {
+		
+		// Sorted keys
+		ArrayList<String> keys = new ArrayList<String>();
+		for (Object k : properties.keySet())
+			keys.add(k.toString());
+		Collections.sort(keys);
+		ref = properties.getProperty(KEY_REFERENCE);
+		geneInfo = properties.getProperty(KEY_GENE_INFO);
+		
+		dbFieldsHashMap = new HashMap<String, String[]>();
+		dbNameList = new ArrayList<String>();
+		
+		//用户配置文件中注释字段的配置格式： dbSNP.fields = RS,DBSNP_CAF,DBSNP_COMMON,dbSNPBuildID
+		for (String key : keys) {
+			if (key.endsWith(ANNO_FIELDS_SUFIX)) {
+				String dbName = key.substring(0, key.length() - ANNO_FIELDS_SUFIX.length());
+				String[] fields = properties.getProperty(key).split(",");
+				if (fields != null && fields.length != 0) {
+					dbFieldsHashMap.put(dbName, fields);
+					dbNameList.add(dbName);
+				}
+			}
+		}
+		return true;
+	}
 	
 	public HashMap<String, String[]> getDbFieldsHashMap() {
 		return dbFieldsHashMap;
@@ -189,33 +219,6 @@ public class Config implements Serializable {
 	
 	public HashMap<String, TableInfo> getDbInfo() {
 		return dbInfo;
-	}
-	
-	private HashMap<String, String[]> setFieldsByDB() {
-		
-		// Sorted keys
-		ArrayList<String> keys = new ArrayList<String>();
-		for (Object k : properties.keySet())
-			keys.add(k.toString());
-		Collections.sort(keys);
-
-		dbFieldsHashMap = new HashMap<String, String[]>();
-		for (String key : keys) {
-			if (key.equalsIgnoreCase("ref")) {
-				setRef(properties.getProperty(key));
-			}else if (key.equalsIgnoreCase("geneInfo")) {
-				setGeneInfo(properties.getProperty(key));
-			}else if (key.endsWith(ANNO_FIELDS_SUFIX)) {
-				String dbName = key.substring(0, key.length() - ANNO_FIELDS_SUFIX.length());
-
-				// Add full name
-				String[] fields = properties.getProperty(key).split(",");
-				if (fields != null && fields.length != 0) {
-					dbFieldsHashMap.put(dbName, fields);
-				}
-			}
-		}
-		return dbFieldsHashMap;
 	}
 	
 	public String[] getFieldsByDB(String dbName){
@@ -355,21 +358,20 @@ public class Config implements Serializable {
 		this.ref = ref;
 	}
 
-	public String getCytoBandFile() {
-		return cytoBandFile;
-	}
-
-	public void setCytoBandFile(String cytoBandFile) {
-		this.cytoBandFile = cytoBandFile;
-	}
-	
-
 	public SnpEffectPredictor getSnpEffectPredictor() {
 		return snpEffectPredictor;
 	}
 
 	public void setSnpEffectPredictor(SnpEffectPredictor snpEffectPredictor) {
 		this.snpEffectPredictor = snpEffectPredictor;
+	}
+
+	public List<String> getDbNameList() {
+		return dbNameList;
+	}
+
+	public void setDbNameList(List<String> dbNameList) {
+		this.dbNameList = dbNameList;
 	}
 
 //	public static void main(String[] args) throws Exception {
