@@ -61,7 +61,7 @@ public class Config implements Serializable {
 	SnpEffectPredictor snpEffectPredictor;
 	private Configuration conf;
 	
-	HashMap<String, String[]> tagsByDB = null;
+	HashMap<String, String[]> dbFieldsHashMap = null;
 	HashMap<String, TableInfo> dbInfo = null;
 	
 	CountByType warningsCounter = new CountByType();
@@ -81,7 +81,7 @@ public class Config implements Serializable {
 		configFilePath = conf.get("configFile");
 		loadProperties(configFilePath); // Read config file and get a genome
 		createCodonTables(genomeVersion, properties); 
-		setFieldByDB();
+		setFieldsByDB();
 		loadJson();
 	}
 
@@ -183,15 +183,15 @@ public class Config implements Serializable {
 	}
 	
 	
-	public HashMap<String, String[]> getTagsByDB() {
-		return tagsByDB;
+	public HashMap<String, String[]> getDbFieldsHashMap() {
+		return dbFieldsHashMap;
 	}
 	
 	public HashMap<String, TableInfo> getDbInfo() {
 		return dbInfo;
 	}
 	
-	private HashMap<String, String[]> setFieldByDB() {
+	private HashMap<String, String[]> setFieldsByDB() {
 		
 		// Sorted keys
 		ArrayList<String> keys = new ArrayList<String>();
@@ -199,7 +199,7 @@ public class Config implements Serializable {
 			keys.add(k.toString());
 		Collections.sort(keys);
 
-		tagsByDB = new HashMap<String, String[]>();
+		dbFieldsHashMap = new HashMap<String, String[]>();
 		for (String key : keys) {
 			if (key.equalsIgnoreCase("ref")) {
 				setRef(properties.getProperty(key));
@@ -211,11 +211,15 @@ public class Config implements Serializable {
 				// Add full name
 				String[] fields = properties.getProperty(key).split(",");
 				if (fields != null && fields.length != 0) {
-					tagsByDB.put(dbName, fields);
+					dbFieldsHashMap.put(dbName, fields);
 				}
 			}
 		}
-		return tagsByDB;
+		return dbFieldsHashMap;
+	}
+	
+	public String[] getFieldsByDB(String dbName){
+		return dbFieldsHashMap.get(dbName);
 	}
 
 	public static Config getConfigInstance() {

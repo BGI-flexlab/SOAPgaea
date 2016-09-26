@@ -174,7 +174,7 @@ public class AnnotationContext implements Serializable{
 	}
 	
 	
-	 public int getNumannoItems() {
+	 public int getNumAnnoItems() {
 	        return annoItems.size();
 	 }
 

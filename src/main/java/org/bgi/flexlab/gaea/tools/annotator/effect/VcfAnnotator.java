@@ -3,6 +3,7 @@ package org.bgi.flexlab.gaea.tools.annotator.effect;
 import htsjdk.variant.variantcontext.VariantContext;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -57,6 +58,37 @@ public class VcfAnnotator implements Serializable{
 		
 		vac.setAnnotationContexts(annotationContexts);
 		return true;
+	}
+	
+	public List<String> convertAnnotationStrings(VcfAnnotationContext vac) {
+//		TODO
+		List<String> annoStrings = new ArrayList<String>();
+		for (String alt : vac.getAlts()) {
+			StringBuilder sb = new StringBuilder();
+			sb.append(vac.getContig());
+			sb.append("\t");
+			sb.append(vac.getStart());
+			sb.append("\t");
+			sb.append(vac.getReference());
+			sb.append("\t");
+			sb.append(alt);
+			sb.append("\t");
+			AnnotationContext annoContext = vac.getAnnotationContext(alt);
+			String[] commonTags = config.getFieldsByDB("common");
+			for (int i = 0; i < commonTags.length-1; i++) { 
+				sb.append(annoContext.getFieldByName(commonTags[i]));       
+				sb.append("\t");
+			}
+			sb.append(annoContext.getFieldByName(commonTags[commonTags.length-1])); 
+		}
+		
+		return annoStrings;
+	}
+	
+	public VariantContext convertAnnotationVcfline(VcfAnnotationContext vac) {
+//		TODO
+		
+		return null;
 	}
 
 }
