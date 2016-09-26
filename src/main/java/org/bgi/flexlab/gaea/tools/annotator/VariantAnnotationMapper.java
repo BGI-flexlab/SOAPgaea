@@ -6,6 +6,7 @@ import htsjdk.variant.vcf.VCFHeader;
 import htsjdk.variant.vcf.VCFHeaderVersion;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
@@ -30,12 +31,13 @@ public class VariantAnnotationMapper extends Mapper<LongWritable, Text, NullWrit
 	private DBAnno dbAnno = null;
 	private Config userConfig = null;
 	private static GenomeShare genome;
+	Configuration conf;
 	
 	
 	@Override
 	protected void setup(Context context)
 			throws IOException, InterruptedException {
-		Configuration conf = context.getConfiguration();
+		conf = context.getConfiguration();
 		
 		genome = new GenomeShare();
 		if (conf.get("cacheref") != null)
@@ -75,11 +77,18 @@ public class VariantAnnotationMapper extends Mapper<LongWritable, Text, NullWrit
 		VcfAnnotationContext vcfAnnoContext = new VcfAnnotationContext(variantContext);
 		
 		vcfAnnotator.annotate(vcfAnnoContext);
-		dbAnno.annotate(vcfAnnoContext);
+//		dbAnno.annotate(vcfAnnoContext);
 		
-		resultValue.set(vcfAnnoContext.toAnnotationString());
 		
-		context.write(NullWritable.get(), resultValue);
+		if (conf.get("outputType").equals("txt")) {
+			List<String> annoLines = vcfAnnotator.convertAnnotationStrings(vcfAnnoContext);
+			for (String annoLine : annoLines) {
+				resultValue.set(annoLine);
+				context.write(NullWritable.get(), resultValue);
+			}
+		}else {
+//			TODO other output format
+		}
 		
 	}
 }

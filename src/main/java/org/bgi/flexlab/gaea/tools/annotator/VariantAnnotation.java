@@ -38,6 +38,7 @@ public class VariantAnnotation extends Configured implements Tool{
 		//set reference
 		conf.set("reference", parameter.getReferenceSequencePath());
 		conf.set("configFile", parameter.getConfigFile());
+		conf.set("outputType", parameter.getOutputType());
 		conf.setStrings("inputFilePath", parameter.getInputFilePath());
 	}
 
