@@ -63,6 +63,11 @@
     	<systemPath>${basedir}/src/lib/hadoop-mapreduce-client-core-2.6.0-cdh5.6.0.jar</systemPath>
     	<scope>system</scope>
     </dependency>
+     <dependency>
+        <groupId>org.apache.hbase</groupId>
+        <artifactId>hbase-client</artifactId>
+        <version>1.0.0</version>
+    </dependency>
     <dependency>
     	<groupId>cofoja</groupId>
     	<artifactId>cofoja</artifactId>
