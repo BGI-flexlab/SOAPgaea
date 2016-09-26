@@ -4,140 +4,67 @@
  */
 package org.bgi.flexlab.gaea.tools.annotator;
 
-import static java.util.Arrays.asList;
-
-import java.io.IOException;
 import java.io.Serializable;
 
-import joptsimple.OptionParser;
-import joptsimple.OptionSet;
+import org.apache.commons.cli.ParseException;
+import org.bgi.flexlab.gaea.options.GaeaOptions;
 
-public class Parameter implements Serializable {
 
-	/**
-	 * 序列化版本ID
-	 */
+public class Parameter extends GaeaOptions implements Serializable {
+
 	private static final long serialVersionUID = -322870818035327827L;
 	
-	/**
-	 * Reducer个数
-	 */
-	private int reducerNum=30;
-
-	/**
-	 * type
-	 */
-	private String outputType=null;
-
-	private String inputFilePath=null;
+	private String configFile = null; //用户配置文件
+	private String outputType = null; //输出格式 txt,vcf
+	private String outputPath = null; 
+	private String inputFilePath = null;
 	
-	/**
-	 * 输出路径
-	 */
-	private String outputPath=null; 
-	
-	 /**
-	 * 参考序列
-	 */
-	private String referenceSequencePath=null;
+	private String referenceSequencePath = null; //参考序列gaeaindex
 	
 	private boolean mutiSample = false;
 	private boolean isCachedRef = false;
 	
-	private String configFile = null;
+	private boolean verbose = false;
+	private boolean debug = false;
 
-	/**
-	 * 构造函数
-	 */
-	public Parameter()
-	{
-		
+	public Parameter(){}
+	
+	public Parameter(String[] args) {
+		parse(args);
 	}
 	
-	/**
-	 * 构造函数
-	 */
-	public Parameter(String[] args) {
-	
-		// 初始化选项解析器
-		OptionParser parser = new OptionParser() {
-			{
-				acceptsAll(asList("i","input"), "Input file(VCF).").withRequiredArg().describedAs("String").ofType(String.class);
-				acceptsAll(asList("c","config"), "Config file.").withRequiredArg().describedAs("String").ofType(String.class);
-				acceptsAll(asList("r","reference"), "indexed reference sequence file list [null].").withRequiredArg().describedAs("Sting").ofType(String.class);
-				acceptsAll(asList("R","reducer"), "The number of reducer,default is 30.").withRequiredArg().describedAs("> 0").ofType(Integer.class);
-				acceptsAll(asList("T","outputType"), "input formate[txt,vcf],default is txt.").withRequiredArg().describedAs("String").ofType(String.class);
-				acceptsAll(asList("o","output"), "Path of the output files.").withRequiredArg().describedAs("String").ofType(String.class);
-				acceptsAll(asList("verbose"), "Display verbose information.");
-				acceptsAll(asList("debug"), "For debug.");
-				acceptsAll(asList("h","help"), "Display help information.");
+	@Override
+	public void parse(String[] args) {
+		
+		addOption("i", "input",      true,  "input file(VCF).", true);
+		addOption("o", "output",     true,  "output file(VCF).", true);
+		addOption("c", "config",     true,  "config file.", true);
+		addOption("r", "reference",  true,  "indexed reference sequence file list [null]", true);
+		addOption("T", "outputType", true,  "output file foramt[txt, vcf].");
+		addOption(null,"verbose",    false, "display verbose information.");
+		addOption(null,"debug",      false, "for debug.");
+		addOption("h", "help",       false, "help information.");
+		FormatHelpInfo("GaeaAnnotator", "0.0.1-SNAPSHOT");
+		
+		try {
+			cmdLine = parser.parse(options, args);
+			if(cmdLine.hasOption("h")) { 
+				helpInfo.printHelp("test", options);
+				System.exit(0);
 			}
-		};
-
-		OptionSet options = parser.parse(args);
-		
-		if (options.has("input")) {
-			inputFilePath = (String) options.valueOf("input");
-		}
-
-//		if (options.has("reference")) {
-//			referenceSequencePath = (String) options.valueOf("reference");
-//		}
-		
-		//inputType
-		if(options.has("outputType"))
-		{
-			setOutputType((String) options.valueOf("outputType"));
-		}
-		if(options.has("output")) {
-			outputPath = (String) options.valueOf("output");
-		}
-		
-		if(options.has("mutiSample"))
-		{
-			mutiSample=true;
-		}
-		
-		if (options.has("h") || inputFilePath == "" || outputPath == "") {
-			usage(parser);
+		} catch (ParseException e) {
+			helpInfo.printHelp("Options:", options, true);
 			System.exit(0);
 		}
-		checkPara(parser);
-	}
-
-
-	private void usage(OptionParser parser)
-	{
-		System.out.println("Software name: GaeaAnnotator");
-		System.out.println("Version: 1.00");
-		System.out.println("Last update: 2016.9.20");
-		System.out.println("Developed by: FlexLab | Science and Technology Division | BGI-shenzhen");
-		System.out.println("Copyright(c) 2012: BGI. All Rights Reserved.");
-		try {
-			parser.printHelpOn(System.out);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-	
-	private void checkPara(OptionParser parser)
-	{
-		if (inputFilePath==null) {
-			System.err.println("ERROR:the input file path is null!");
-			usage(parser);
-			System.exit(1);
-		}
-		if (referenceSequencePath==null) {
-			System.err.println("ERROR:the referenceSequence path is null");
-			usage(parser);
-			System.exit(1);
-		}
 		
-		if (outputPath==null) {
-			System.err.println("ERROR:the output path is null!");
-			usage(parser);
-			System.exit(1);
-		}
+		
+		inputFilePath = cmdLine.getOptionValue("input");
+		outputPath = cmdLine.getOptionValue("output");
+		configFile = cmdLine.getOptionValue("config");
+		referenceSequencePath = cmdLine.getOptionValue("reference","");
+		outputType = getOptionValue("outputType", "txt");
+		verbose = getOptionBooleanValue("verbose", false);
+		debug = getOptionBooleanValue("debug", false);
 	}
 	
 	public String getOutputPath() {
@@ -146,14 +73,6 @@ public class Parameter implements Serializable {
 
 	public void setOutputPath(String outputPath) {
 		this.outputPath = outputPath;
-	}
-
-	public int getReducerNum() {
-		return reducerNum;
-	}
-
-	public void setReducerNum(int reducerNum) {
-		this.reducerNum = reducerNum;
 	}
 
 	public String getOutputType() {
@@ -196,17 +115,34 @@ public class Parameter implements Serializable {
 	public String getReferenceSequencePath() {
 		return referenceSequencePath;
 	}
+
+	public boolean isVerbose() {
+		return verbose;
+	}
+
+	public void setVerbose(boolean verbose) {
+		this.verbose = verbose;
+	}
+
+	public boolean isDebug() {
+		return debug;
+	}
+
+	public void setDebug(boolean debug) {
+		this.debug = debug;
+	}
 	
 	/**
-	 * 主函数
+	 * 测试
 	 * 
 	 * @param args
 	 * @throws Exception
 	 */
 	public static void main(String[] args) throws Exception {
-		Parameter parameter = new Parameter(args);
-		System.out.println(parameter.toString());
+		String[] arg = {  "-c", "config.xml" };
+		Parameter parameter = new Parameter();
+		parameter.parse(arg);
+//		System.out.println(parameter.toString());
 	}
-
 
 }

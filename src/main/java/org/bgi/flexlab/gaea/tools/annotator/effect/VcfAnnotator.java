@@ -61,7 +61,6 @@ public class VcfAnnotator implements Serializable{
 	}
 	
 	public List<String> convertAnnotationStrings(VcfAnnotationContext vac) {
-//		TODO
 		List<String> annoStrings = new ArrayList<String>();
 		for (String alt : vac.getAlts()) {
 			StringBuilder sb = new StringBuilder();
@@ -72,16 +71,27 @@ public class VcfAnnotator implements Serializable{
 			sb.append(vac.getReference());
 			sb.append("\t");
 			sb.append(alt);
-			sb.append("\t");
 			AnnotationContext annoContext = vac.getAnnotationContext(alt);
-			String[] commonTags = config.getFieldsByDB("common");
-			for (int i = 0; i < commonTags.length-1; i++) { 
-				sb.append(annoContext.getFieldByName(commonTags[i]));       
-				sb.append("\t");
+			
+			List<String> dbNameList = config.getDbNameList();
+			for (String dbName : dbNameList) {
+				
+				String[] fields = config.getFieldsByDB(dbName);
+				
+				if (dbName.equalsIgnoreCase("GeneInfo")) {
+					for (String field : fields) {
+						sb.append("\t");
+						sb.append(annoContext.getFieldByName(field));       
+					}
+				}else {
+					for (String field : fields) {
+						sb.append("\t");
+						sb.append(annoContext.getAnnoItemAsString(field, "."));       
+					}
+				}
 			}
-			sb.append(annoContext.getFieldByName(commonTags[commonTags.length-1])); 
+			annoStrings.add(sb.toString());
 		}
-		
 		return annoStrings;
 	}
 	
