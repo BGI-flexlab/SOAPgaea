@@ -31,16 +31,15 @@ public class SingleRegion {
 				continue;
 			}
 			Regiondata regionData = new Regiondata(line, normalBed);
-			if(lastRegionData != null) {//����ǵ�һ��last����
+			if(lastRegionData != null) {
 				boolean nextRegion = updateRegion(regionData, lastRegionData, extendSize);
 				if(nextRegion) {
 					continue;
 				}
-			} else  {//��ʼ����һ��last������չ��Ҫ��չ
+			} else  {
 				lastRegionData = initLastRegion(regionData, lastRegionData, extendSize);
 			}
 			
-			//��⵱ǰdata�Ƿ�����ͬһȾɫ�壬����ǣ���ֱ����ӵ�index��
 			chrInterval = updateChrInterval(lastRegionData, regionData, chrInterval);
 			lastRegionData = initLastRegion(regionData, lastRegionData, extendSize);
 		}
@@ -65,7 +64,7 @@ public class SingleRegion {
 		if(canCombineRegion(regionData, lastRegionData, extendSize)) {//�µ�������Ժ�last�ϲ�
 			lastRegionData = combineRegion(regionData, lastRegionData, extendSize);
 			return true;
-		} else {//���ܺϲ��������last
+		} else {
 			regions.add(lastRegionData);
 			//System.err.println("add:" + lastRegionData.getNameString());
 		}
@@ -74,9 +73,9 @@ public class SingleRegion {
 	
 	private boolean updateRegion(Regiondata regionData, Regiondata lastRegionData, int extendSize) {
 		boolean nextRegion = true;
-		if(extendSize > 0) {//����չ
+		if(extendSize > 0) {
 			nextRegion = extendRegion(regionData, lastRegionData, extendSize);
-		} else {//��Ҫ��չ��ֱ�����last
+		} else {
 			if(lastRegionData.getChrName().equals(regionData.chrName) && regionData.getStart() < lastRegionData.getStart()) {
 				throw new RuntimeException("anno region is not sorted:" + regionData.getStart() + " < " + lastRegionData.getStart());
 			}

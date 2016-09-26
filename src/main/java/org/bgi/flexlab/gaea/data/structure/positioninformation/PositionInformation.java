@@ -7,11 +7,6 @@ package org.bgi.flexlab.gaea.data.structure.positioninformation;
 import java.io.Serializable;
 import java.util.Arrays;
 
-/** 
- * 位点信息类
- * @author ZhangZhi
- *
- */
 public class PositionInformation implements Serializable{
 
 	/**

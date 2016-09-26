@@ -1,8 +1,10 @@
-package org.bgi.flexlab.gaea.data.structure.region;
+package org.bgi.flexlab.gaea.data.structure.region.report;
 
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.bgi.flexlab.gaea.util.posInfo.IntPosInfo;
+import org.bgi.flexlab.gaea.data.structure.positioninformation.IntPositionInformation;
+import org.bgi.flexlab.gaea.data.structure.region.SingleRegion;
+import org.bgi.flexlab.gaea.data.structure.region.statistic.BedSingleRegionStatistic;
 
 public class BedSingleRegionReport extends SingleRegionReport<BedSingleRegionStatistic>{	
 	public BedSingleRegionReport(SingleRegion singleReigon) {
@@ -11,7 +13,7 @@ public class BedSingleRegionReport extends SingleRegionReport<BedSingleRegionSta
 	}
 
 	@Override
-	public String getWholeRegionInfo(IntPosInfo deep, int start, int end) {
+	public String getWholeRegionInfo(IntPositionInformation deep, int start, int end) {
 		int coverageNum = 0;
 		int depthNum = 0;
 		
@@ -32,7 +34,7 @@ public class BedSingleRegionReport extends SingleRegionReport<BedSingleRegionSta
 	}
 
 	@Override
-	public String getPartRegionInfo(IntPosInfo deep, int start, int end) {
+	public String getPartRegionInfo(IntPositionInformation deep, int start, int end) {
 		return getWholeRegionInfo(deep, start, end);
 	}
 

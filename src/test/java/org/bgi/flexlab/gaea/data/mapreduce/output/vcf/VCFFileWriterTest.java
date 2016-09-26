@@ -8,7 +8,8 @@ import java.util.ArrayList;
 
 import org.apache.hadoop.conf.Configuration;
 import org.bgi.flexlab.gaea.data.mapreduce.output.vcf.VCFFileWriter;
-import org.bgi.flexlab.gaea.data.structure.vcf.codec.VCFCodec;
+import org.bgi.flexlab.gaea.data.structure.vcf.codec.GaeaVCFCodec;
+import org.bgi.flexlab.gaea.data.structure.vcf.writer.VCFLocalWriter;
 
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFHeader;
@@ -18,24 +19,27 @@ import org.junit.Test;
 import junit.framework.Assert;
 
 public class VCFFileWriterTest {
-	VCFCodec codec;
+	GaeaVCFCodec codec;
 
 	@Test
 	public void writeHeaderToLocalTest() throws IOException {
 		String filePath = "localHeader";
-		Assert.assertEquals(29, writeHeader(filePath, null));
+		VCFLocalWriter writer = new VCFLocalWriter(filePath, false, false);
+		Assert.assertEquals(29, writeHeader(filePath, writer));
 	}
 
 	@Test
 	public void writeHeaderToHDFSTest() throws IOException {
 		String filePath = "HDFSHeader";
-		Assert.assertEquals(29, writeHeader(filePath, new Configuration(false)));
+		VCFHdfsWriter writer = new VCFHdfsWriter(filePath, false, false, new Configuration(false));
+		Assert.assertEquals(29, writeHeader(filePath, writer));
 	}
 	
 	@Test
 	public void addToLocalTest() throws IOException {
 		String filePath = "localDNA1425995.vcf";
-		int[] result = add(filePath, null);
+		VCFLocalWriter writer = new VCFLocalWriter(filePath, false, false);
+		int[] result = add(filePath, writer);
 		Assert.assertEquals(result[0], result[1]);
 
 	}
@@ -43,7 +47,8 @@ public class VCFFileWriterTest {
 	@Test
 	public void addToHDFSTest() throws IOException {
 		String filePath = "HDFSDNA1425995.vcf";
-		int[] result = add(filePath, new Configuration(false));
+		VCFHdfsWriter writer = new VCFHdfsWriter(filePath, false, false, new Configuration(false));
+		int[] result = add(filePath, writer);
 		Assert.assertEquals(result[0], result[1]);
 	}
 	
@@ -51,7 +56,7 @@ public class VCFFileWriterTest {
 		VCFHeader header;
 		String input = "/ifs4/ISDC_BD/huweipeng/data/testVCF/testVCF/DNA1425995.vcf";
 		BufferedReader reader=null;
-		codec = new VCFCodec();
+		codec = new GaeaVCFCodec();
 		ArrayList<String> headerLine=new ArrayList<String>();
     	File file=new File(input);
 		reader=new BufferedReader(new FileReader(file));
@@ -69,9 +74,8 @@ public class VCFFileWriterTest {
 		return header;
 	}
 	
-	private int writeHeader(String path, Configuration conf) throws IOException{
+	private int writeHeader(String path, VCFFileWriter writer) throws IOException{
 		String filePath = path;
-		VCFFileWriter writer = new VCFFileWriter(filePath, false, false, conf);
 		writer.writeHeader(getHeader());
 		writer.close();
 		BufferedReader reader = new BufferedReader(new FileReader(new File(filePath)));
@@ -90,10 +94,9 @@ public class VCFFileWriterTest {
 		return lines;
 	}
 	
-	private int[] add(String path, Configuration conf) throws IOException{
+	private int[] add(String path, VCFFileWriter writer) throws IOException{
 		String filePath = path;
 		int[] result = new int[2];
-		VCFFileWriter writer = new VCFFileWriter(filePath, false, false, conf);
 		writer.writeHeader(getHeader());
 		BufferedReader reader = new BufferedReader(new FileReader(
 				new File( "/ifs4/ISDC_BD/huweipeng/data/testVCF/testVCF/DNA1425995.vcf")));

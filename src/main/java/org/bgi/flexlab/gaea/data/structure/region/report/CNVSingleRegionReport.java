@@ -1,12 +1,15 @@
-package org.bgi.flexlab.gaea.data.structure.region;
+package org.bgi.flexlab.gaea.data.structure.region.report;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.bgi.flexlab.gaea.data.structure.positioninformation.IntPositionInformation;
+import org.bgi.flexlab.gaea.data.structure.region.SingleRegion;
 import org.bgi.flexlab.gaea.data.structure.region.SingleRegion.Regiondata;
-import org.bgi.flexlab.gaea.util.Utils;
-import org.bgi.flexlab.gaea.util.posInfo.IntPosInfo;
+import org.bgi.flexlab.gaea.data.structure.region.statistic.CNVSingleRegionStatistic;
+import org.bgi.flexlab.gaea.data.structure.region.statistic.SingleRegionStatistic;
+import org.bgi.flexlab.gaea.util.ChromosomeUtils;
 
 public class CNVSingleRegionReport extends SingleRegionReport<CNVSingleRegionStatistic>{
 	private double allRegionAverageDeepth = 0;
@@ -16,7 +19,7 @@ public class CNVSingleRegionReport extends SingleRegionReport<CNVSingleRegionSta
 		result = new ConcurrentHashMap<SingleRegion.Regiondata, CNVSingleRegionStatistic>();
 	}
 	
-	public String getWholeRegionInfo(IntPosInfo deep, int start, int end) {
+	public String getWholeRegionInfo(IntPositionInformation deep, int start, int end) {
 		ArrayList<Integer> deepth = new ArrayList<Integer>();
 		SingleRegionStatistic statistic = new SingleRegionStatistic();
 		
@@ -40,7 +43,7 @@ public class CNVSingleRegionReport extends SingleRegionReport<CNVSingleRegionSta
 		return outputString.toString();
 	}
 	
-	public String getPartRegionInfo(IntPosInfo deep, int start, int end) {
+	public String getPartRegionInfo(IntPositionInformation deep, int start, int end) {
 		SingleRegionStatistic statistic = new SingleRegionStatistic();
 		
 		if(deep.get(start) != 0){
@@ -120,7 +123,7 @@ public class CNVSingleRegionReport extends SingleRegionReport<CNVSingleRegionSta
 		updateResult();
 		for(Regiondata regionData : result.keySet()) {
 			CNVSingleRegionStatistic statistic = (CNVSingleRegionStatistic) result.get(regionData);
-			String formatChrName = Utils.FormatChrName(regionData.getChrName());
+			String formatChrName = ChromosomeUtils.formatChrName(regionData.getChrName());
 			if(!formatChrName.equals("chrx") && !formatChrName.equals("chry") && !formatChrName.equals("chrm")) {
 				deepthAll += statistic.getDepthNum();
 				regionSizeTotal += regionData.size();

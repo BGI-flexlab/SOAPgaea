@@ -14,6 +14,8 @@ public class BaseUtils {
 	public final static byte[] BASES = { A, C, T, G };
 	public final static byte[] EXTENDED_BASES = { A, C, T, G, N, D };
 
+	private static byte[] complementBaseTable = {2, 3, 0, 1};
+	
 	public enum Base {
 		A('A', 0), C('C', 1), T('T', 2), G('G', 3);
 
@@ -103,7 +105,25 @@ public class BaseUtils {
 	public static boolean isTransversion(byte base1, byte base2) {
 		return !isTransition(base1, base2);
 	}
-
+	/**
+	 * A->T or C->G is complement
+	 * @param base
+	 * @return
+	 */
+	public static byte getComplementBase(byte base) {
+		return complementBaseTable[base];
+	}
+	
+	public static byte getBinaryBase(byte charBase) {
+		byte base;
+		if(charBase== 'N' || charBase == 'n') {
+			base = 4;
+		} else {
+			base = (byte) ((charBase >> 1) &0x03);
+		}
+		return base;
+	}
+	
 	static public boolean basesAreEqual(byte base1, byte base2) {
 		return simpleBaseToBaseIndex(base1) == simpleBaseToBaseIndex(base2);
 	}

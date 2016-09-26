@@ -1,10 +1,12 @@
-package org.bgi.flexlab.gaea.data.structure.region;
+﻿package org.bgi.flexlab.gaea.data.structure.region.report;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import org.bgi.flexlab.gaea.data.structure.positioninformation.IntPositionInformation;
+import org.bgi.flexlab.gaea.data.structure.region.SingleRegion;
 import org.bgi.flexlab.gaea.data.structure.region.SingleRegion.Regiondata;
-import org.bgi.flexlab.gaea.util.posInfo.IntPosInfo;
+import org.bgi.flexlab.gaea.data.structure.region.statistic.SingleRegionStatistic;
 
 public abstract class SingleRegionReport<T extends SingleRegionStatistic> {
 	protected SingleRegion singleReigon;
@@ -20,13 +22,13 @@ public abstract class SingleRegionReport<T extends SingleRegionStatistic> {
 		return outputString.toString();
 	}
 	
-	public String getStatisticString(String chrName, int winStart, int windowSize, IntPosInfo deep, String title) {
+	public String getStatisticString(String chrName, int winStart, int windowSize, IntPositionInformation deep, String title) {
 		int start, end, index = -1;
 		start = 0;
 		end = windowSize - 1;
 		int i = start;
-		
-		while(i <= end) {//�ҵ���һ��index
+
+		while(i <= end) {
 			if((index = singleReigon.posInRegion(chrName, i + winStart)) >= 0) {
 				break;
 			}
@@ -35,9 +37,7 @@ public abstract class SingleRegionReport<T extends SingleRegionStatistic> {
 			}
 		}
 		if(index >= 0) {
-			//��֤����δ����Ⱦɫ�巶Χ��ͬʱ��һ������Ŀ�ʼС��binĩβ����������bin��ʼ
 			while(withinChrAndBin(index, winStart, windowSize, chrName)) {
-				//��������,���ܻ���ֻ��һ����������Ĳ���
 				int regionStart = singleReigon.getRegion(index).getStart();
 				int regionEnd = singleReigon.getRegion(index).getEnd();
 				//System.err.println("index:" + index + "\tstart-end:" +regionStart+"-"+regionEnd + "\tposition:"+i +"\t" + winStart);
@@ -70,9 +70,9 @@ public abstract class SingleRegionReport<T extends SingleRegionStatistic> {
 		return result;
 	}
 	
-	public abstract String getWholeRegionInfo(IntPosInfo deep, int start, int end);
+	public abstract String getWholeRegionInfo(IntPositionInformation deep, int start, int end);
 	
-	public abstract String getPartRegionInfo(IntPosInfo deep, int start, int end);
+	public abstract String getPartRegionInfo(IntPositionInformation deep, int start, int end);
 		
 	public abstract void parseReducerOutput(String line, boolean isPart);
 }
