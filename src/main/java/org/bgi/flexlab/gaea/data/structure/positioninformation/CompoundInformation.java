@@ -27,6 +27,8 @@ public class CompoundInformation<T extends SAMInformationBasic> {
 	/**
 	 * Constructor for position information
 	 */
+	public CompoundInformation( T readInfo, ChromosomeInformationShare chrInfo,
+			int windowStart, int refPosition, int readPosition) {
 		initialize(windowStart, readInfo, chrInfo);
 		this.refPosition = refPosition;
 		this.readPosition = readPosition;
