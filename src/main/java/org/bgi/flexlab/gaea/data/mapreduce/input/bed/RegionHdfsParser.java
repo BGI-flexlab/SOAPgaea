@@ -1,10 +1,11 @@
-package org.bgi.flexlab.gaea.data.structure.region;
+package org.bgi.flexlab.gaea.data.mapreduce.input.bed;
 
 import java.io.IOException;
 
 import org.bgi.flexlab.gaea.util.FileIterator;
 
 public class RegionHdfsParser extends BasicRegion{
+	
 	public void parseBedFileFromHDFS(String bedFilePath, boolean isWithFlank) throws IOException {
 		FileIterator it = new FileIterator(bedFilePath);
 		while(it.hasNext()) {

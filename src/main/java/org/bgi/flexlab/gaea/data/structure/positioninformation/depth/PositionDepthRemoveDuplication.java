@@ -5,9 +5,9 @@ import org.bgi.flexlab.gaea.data.structure.positioninformation.IntPositionInform
 import org.bgi.flexlab.gaea.util.SAMInformationBasic;
 import org.bgi.flexlab.gaea.data.structure.positioninformation.BamPositionInformation;
 
-public class PositionDepthRemoveDup extends IntPositionInformation implements CalculatePositionInforamtionInterface<SAMInformationBasic>{
+public class PositionDepthRemoveDuplication extends IntPositionInformation implements CalculatePositionInforamtionInterface<SAMInformationBasic>{
 
-	public PositionDepthRemoveDup(int windowSize) {
+	public PositionDepthRemoveDuplication(int windowSize) {
 		super(windowSize);
 		// TODO Auto-generated constructor stub
 	}

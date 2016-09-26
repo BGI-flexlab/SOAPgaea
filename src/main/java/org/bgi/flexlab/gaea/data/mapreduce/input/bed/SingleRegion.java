@@ -1,4 +1,4 @@
-package org.bgi.flexlab.gaea.data.structure.region;
+package org.bgi.flexlab.gaea.data.mapreduce.input.bed;
 
 import java.io.IOException;
 import java.util.ArrayList;
