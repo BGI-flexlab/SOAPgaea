@@ -49,10 +49,13 @@ public class VcfAnnotator implements Serializable{
 				VariantEffects variantEffects = snpEffectPredictor.variantEffect(variant);
 				AnnotationContext annotationContext = new AnnotationContext(variantEffects.get());
 				annotationContexts.put(variant.getAlt(), annotationContext);
-				vac.setAnnotationContexts(annotationContexts);
 			}
 		}
-
+		if (annotationContexts.isEmpty()) {
+			return false;
+		}
+		
+		vac.setAnnotationContexts(annotationContexts);
 		return true;
 	}
 
