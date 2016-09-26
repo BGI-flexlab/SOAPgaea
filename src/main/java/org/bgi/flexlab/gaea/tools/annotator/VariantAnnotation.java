@@ -9,6 +9,7 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.Tool;
+import org.bgi.flexlab.gaea.data.structure.reference.GenomeShare;
 
 public class VariantAnnotation extends Configured implements Tool{
 	
@@ -35,12 +36,9 @@ public class VariantAnnotation extends Configured implements Tool{
 	private static void setConfiguration(Configuration conf, Parameter parameter) {
 		
 		//set reference
-//		conf.set("reference", parameter.getReferenceSequencePath());
+		conf.set("reference", parameter.getReferenceSequencePath());
+		conf.set("configFile", parameter.getConfigFile());
 		conf.setStrings("inputFilePath", parameter.getInputFilePath());
-		conf.setInt("count", 0);
-		conf.getInt("count",0);
-//		conf.setBoolean("mutiSample", parameter.isMutiSample());
-//		conf.setBoolean("mutiSample", parameter.isMutiSample());
 	}
 
 	@Override
@@ -49,8 +47,8 @@ public class VariantAnnotation extends Configured implements Tool{
 		parameter = new Parameter(arg0);
 		setConfiguration(conf, parameter);
 		
-//		if(parameter.isCachedRef())
-//			CacheReference.disCacheRef(parameter.getReferenceSequencePath(), conf);
+		if(parameter.isCachedRef())
+			GenomeShare.distributeCacheReference(parameter.getReferenceSequencePath(), conf);
 		
 		Job job = Job.getInstance(conf, "GaeaAnnotator");
 		job.setNumReduceTasks(0);

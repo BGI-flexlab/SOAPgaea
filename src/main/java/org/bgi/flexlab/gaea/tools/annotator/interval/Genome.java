@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Properties;
 
 import org.bgi.flexlab.gaea.tools.annotator.effect.EffectType;
+import org.bgi.flexlab.gaea.tools.annotator.sequence.GenomicSequences;
 import org.bgi.flexlab.gaea.tools.annotator.util.Gpr;
 
 /**

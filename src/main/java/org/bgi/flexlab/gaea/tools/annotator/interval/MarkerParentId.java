@@ -7,6 +7,8 @@ package org.bgi.flexlab.gaea.tools.annotator.interval;
  */
 public class MarkerParentId extends Marker {
 
+	private static final long serialVersionUID = 1234176709588449399L;
+	
 	int parentId;
 
 	public MarkerParentId(int parentId) {

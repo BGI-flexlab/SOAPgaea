@@ -3,8 +3,6 @@ package org.bgi.flexlab.gaea.tools.annotator.effect;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Exon;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Intron;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Marker;
-import org.bgi.flexlab.gaea.tools.annotator.interval.Markers;
-import org.bgi.flexlab.gaea.tools.annotator.interval.VariantTranslocation;
 import org.bgi.flexlab.gaea.tools.annotator.util.Gpr;
 import org.bgi.flexlab.gaea.tools.annotator.util.GprSeq;
 
@@ -129,12 +127,12 @@ public class HgvsDna extends Hgvs {
 		// Create a marker and check that is comprised within exon boundaries
 		Marker m = new Marker(variant.getParent(), sstart, send, false, "");
 
-		Exon ex = variantEffect.getExon();
-		if (ex != null && ex.includes(m)) {
-			if (debug) Gpr.debug("Variant: " + variant + "\n\tmarker: " + m.toStr() + "\tsstart:" + sstart + "\tsend: " + send + "\n\texon: " + ex + "\n\tstrand: " + (strandPlus ? "+" : "-"));
-			seq = ex.getSequence(m);
-			if (debug) Gpr.debug("Sequence (Exon)  [ " + sstart + " , " + send + " ]: '" + seq + "'\talt: '" + variant.getAlt() + "'\tsequence (+ strand): " + (ex.isStrandPlus() ? ex.getSequence() : GprSeq.reverseWc(ex.getSequence())));
-		}
+//		Exon ex = variantEffect.getExon();
+//		if (ex != null && ex.includes(m)) {
+//			if (debug) Gpr.debug("Variant: " + variant + "\n\tmarker: " + m.toStr() + "\tsstart:" + sstart + "\tsend: " + send + "\n\texon: " + ex + "\n\tstrand: " + (strandPlus ? "+" : "-"));
+//			seq = ex.getSequence(m);
+//			if (debug) Gpr.debug("Sequence (Exon)  [ " + sstart + " , " + send + " ]: '" + seq + "'\talt: '" + variant.getAlt() + "'\tsequence (+ strand): " + (ex.isStrandPlus() ? ex.getSequence() : GprSeq.reverseWc(ex.getSequence())));
+//		}
 
 		// May be it is not completely in the exon. Use genomic sequences
 		if (seq == null) {
@@ -378,44 +376,44 @@ public class HgvsDna extends Hgvs {
 		return "-" + idx; // 5'UTR: We are before TSS, coordinates must be '-1', '-2', etc.
 	}
 
-	/**
-	 * Translocation nomenclature.
-	 * From HGVS:
-	 * 		Translocations are described at the molecular level using the
-	 * 		format "t(X;4)(p21.2;q34)", followed by the usual numbering, indicating
-	 * 		the position translocation breakpoint. The sequences of the translocation
-	 * 		breakpoints need to be submitted to a sequence database (Genbank, EMBL,
-	 * 		DDJB) and the accession.version numbers should be given (see Discussion).
-	 * 		E.g.:
-	 * 			t(X;4)(p21.2;q35)(c.857+101_857+102) denotes a translocation breakpoint
-	 * 			in the intron between coding DNA nucleotides 857+101 and 857+102, joining
-	 * 			chromosome bands Xp21.2 and 4q34
-	 */
-	protected String prefixTranslocation() {
-		VariantTranslocation vtr = (VariantTranslocation) variant;
-
-		// Chromosome part
-		String chrCoords = "(" //
-				+ vtr.getChromosomeName() //
-				+ ";" //
-				+ vtr.getEndPoint().getChromosomeName() //
-				+ ")" //
-				;
-
-		// Get cytobands
-		String band1 = "";
-		CytoBands cytoBands = genome.getCytoBands();
-		Markers bands1 = cytoBands.query(vtr);
-		if (!bands1.isEmpty()) band1 = bands1.get(0).getId(); // Get first match
-
-		String band2 = "";
-		Markers bands2 = cytoBands.query(vtr.getEndPoint());
-		if (!bands2.isEmpty()) band2 = bands2.get(0).getId(); // Get first match
-
-		String bands = "(" + band1 + ";" + band2 + ")";
-
-		return "t" + chrCoords + bands + "(";
-	}
+//	/**
+//	 * Translocation nomenclature.
+//	 * From HGVS:
+//	 * 		Translocations are described at the molecular level using the
+//	 * 		format "t(X;4)(p21.2;q34)", followed by the usual numbering, indicating
+//	 * 		the position translocation breakpoint. The sequences of the translocation
+//	 * 		breakpoints need to be submitted to a sequence database (Genbank, EMBL,
+//	 * 		DDJB) and the accession.version numbers should be given (see Discussion).
+//	 * 		E.g.:
+//	 * 			t(X;4)(p21.2;q35)(c.857+101_857+102) denotes a translocation breakpoint
+//	 * 			in the intron between coding DNA nucleotides 857+101 and 857+102, joining
+//	 * 			chromosome bands Xp21.2 and 4q34
+//	 */
+//	protected String prefixTranslocation() {
+//		VariantTranslocation vtr = (VariantTranslocation) variant;
+//
+//		// Chromosome part
+//		String chrCoords = "(" //
+//				+ vtr.getChromosomeName() //
+//				+ ";" //
+//				+ vtr.getEndPoint().getChromosomeName() //
+//				+ ")" //
+//				;
+//
+//		// Get cytobands
+//		String band1 = "";
+//		CytoBands cytoBands = genome.getCytoBands();
+//		Markers bands1 = cytoBands.query(vtr);
+//		if (!bands1.isEmpty()) band1 = bands1.get(0).getId(); // Get first match
+//
+//		String band2 = "";
+//		Markers bands2 = cytoBands.query(vtr.getEndPoint());
+//		if (!bands2.isEmpty()) band2 = bands2.get(0).getId(); // Get first match
+//
+//		String bands = "(" + band1 + ";" + band2 + ")";
+//
+//		return "t" + chrCoords + bands + "(";
+//	}
 
 	@Override
 	public String toString() {
@@ -453,7 +451,7 @@ public class HgvsDna extends Hgvs {
 			break;
 
 		case BND:
-			prefix = prefixTranslocation();
+//			prefix = prefixTranslocation();
 			type = "";
 			suffix = ")";
 			break;

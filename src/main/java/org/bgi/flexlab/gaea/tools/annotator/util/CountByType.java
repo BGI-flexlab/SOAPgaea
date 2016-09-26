@@ -14,7 +14,6 @@ import java.util.Set;
  *
  * @author pcingola
  */
-@SuppressWarnings("serial")
 public class CountByType implements Serializable {
 
 	/**
@@ -51,25 +50,6 @@ public class CountByType implements Serializable {
 	 */
 	public long get(String type) {
 		return getCount(countByType, type);
-	}
-
-	/**
-	 * Background color used for table (heatmap)
-	 * @return An html coded color
-	 */
-	public String getColorHtml(String type) {
-		if (countByType.get(type) == null) return "ffffff"; // Not found? => White
-
-		long count = get(type);
-
-		Long max = Long.MIN_VALUE, min = Long.MAX_VALUE;
-		for (String key : countByType.keySet()) {
-			long v = get(key);
-			max = Math.max(max, v);
-			min = Math.min(min, v);
-		}
-
-		return GprHtml.heatMapColor(count, max, min, 0xff0000, 0x00ff00);
 	}
 
 	long getCount(HashMap<String, Long> hash, String type) {

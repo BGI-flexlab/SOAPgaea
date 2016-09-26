@@ -3,29 +3,20 @@ package org.bgi.flexlab.gaea.options;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.PosixParser;
 
 public abstract class GaeaOptions {
 	protected Options options = new Options();
-	protected CommandLineParser parser = new PosixParser();
 	protected CommandLine cmdLine;
+	protected CommandLineParser parser = new PosixParser();
 	protected HelpFormatter helpInfo = new HelpFormatter();
-
-	/**
-	 * set default values of options
-	 */
-	abstract public void setDefault();
 
 	/**
 	 * parse parameter
 	 */
 	abstract public void parse(String[] args);
-
-	/**
-	 * check options
-	 */
-	abstract public void check();
 
 	/**
 	 * help info must use it before parse.
@@ -42,17 +33,17 @@ public abstract class GaeaOptions {
 		sb.append("E-mail: zhangyong2@genomics.org.cn or lishengkang@genomics.cn\n");
 		sb.append("Copyright(c) 2015: BGI. All Rights Reserved.\n\n");
 		helpInfo.setNewLine("\n");
-		helpInfo.setSyntaxPrefix("hadoop jar " + softwareName
-				+ ".jar [options]\n" + sb.toString() + "\n");
+		helpInfo.setSyntaxPrefix("hadoop jar " + "gaea.jar " + softwareName
+				+ " [options]\n" + sb.toString() + "\n");
 		helpInfo.setWidth(2 * HelpFormatter.DEFAULT_WIDTH);
 	}
 
 	/**
-	 * add boolean options
+	 * add boolean option
 	 */
 	protected void addBooleanOption(String opt, String longOpt,
 			String description) {
-		options.addOption(opt, longOpt, false, description);
+		addOption(opt, longOpt, false, description);
 	}
 
 	/**
@@ -65,22 +56,47 @@ public abstract class GaeaOptions {
 	 */
 	protected void addOption(String opt, String longOpt, boolean hasArg,
 			String description) {
-		options.addOption(opt, longOpt, hasArg, description);
-	}
-	
-	protected String getOptionValue(String opt) {
-		return getOptionValue(opt);
-	}
-	
-	protected boolean getOptionBooleanValue(String opt){
-		return cmdLine.hasOption(opt);
+		addOption(opt, longOpt, hasArg, description, false);
 	}
 
-	protected double getOptionDoubleValue(String opt) {
-		return Double.parseDouble(cmdLine.getOptionValue(opt));
+	/**
+	 * add required option
+	 */
+	protected void addOption(String opt, String longOpt, boolean hasArg,
+			String description, boolean required) {
+		Option option = new Option(opt, longOpt, hasArg, description);
+		option.setRequired(required);
+		options.addOption(option);
+	}
+
+	protected String getOptionValue(String opt, String defaultValue) {
+		if (cmdLine.hasOption(opt))
+			return cmdLine.getOptionValue(opt);
+
+		return defaultValue;
 	}
 	
-	protected long getOptionLongValue(String opt){
-		return Long.parseLong(getOptionValue(opt));
+	protected int getOptionIntValue(String opt,int defaultValue){
+		if(cmdLine.hasOption(opt))
+			return Integer.parseInt(cmdLine.getOptionValue(opt));
+		return defaultValue;
+	}
+
+	protected boolean getOptionBooleanValue(String opt, boolean defaultValue) {
+		if (cmdLine.hasOption(opt))
+			return true;
+		return defaultValue;
+	}
+
+	protected double getOptionDoubleValue(String opt, double defaultValue) {
+		if (cmdLine.hasOption(opt))
+			return Double.parseDouble(cmdLine.getOptionValue(opt));
+		return defaultValue;
+	}
+
+	protected long getOptionLongValue(String opt,long defaultValue) {
+		if(cmdLine.hasOption(opt))
+			return Long.parseLong(cmdLine.getOptionValue(opt));
+		return defaultValue;
 	}
 }

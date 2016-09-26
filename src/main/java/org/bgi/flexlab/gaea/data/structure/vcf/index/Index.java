@@ -1,4 +1,5 @@
 package org.bgi.flexlab.gaea.data.structure.vcf.index;
+
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;

@@ -1,6 +1,7 @@
 package org.bgi.flexlab.gaea.tools.annotator.interval;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.bgi.flexlab.gaea.tools.annotator.config.Config;
 import org.bgi.flexlab.gaea.tools.annotator.effect.EffectType;
@@ -9,13 +10,14 @@ import org.bgi.flexlab.gaea.tools.annotator.effect.VariantEffect.ErrorWarningTyp
 import org.bgi.flexlab.gaea.tools.annotator.interval.Variant.VariantType;
 import org.bgi.flexlab.gaea.tools.annotator.interval.codonChange.CodonChange;
 import org.bgi.flexlab.gaea.tools.annotator.util.Gpr;
+import org.bgi.flexlab.gaea.tools.annotator.util.GprSeq;
 
 /**
  * Interval for an exon
  *
  * @author pcingola
  */
-public class Exon extends MarkerSeq implements MarkerWithFrame {
+public class Exon extends Marker implements MarkerWithFrame {
 
 	/**
 	 * Characterize exons based on alternative splicing
@@ -41,6 +43,8 @@ public class Exon extends MarkerSeq implements MarkerWithFrame {
 	int aaIdxStart = -1, aaIdxEnd = -1; // First and last AA indexes that intersect with this exon
 	ArrayList<SpliceSite> spliceSites;
 	ExonSpliceType spliceType = ExonSpliceType.NONE;
+	private String sequence;
+	
 
 	public Exon() {
 		super();
@@ -248,6 +252,17 @@ public class Exon extends MarkerSeq implements MarkerWithFrame {
 	}
 
 
+	/**
+	 * Base in this marker at position 'index' (relative to marker start)
+	 */
+	public String basesAt(int index, int len) {
+		if (isStrandMinus()) {
+			int idx = sequence.length() - index - len;
+			return GprSeq.reverseWc(sequence.substring(idx, idx+len)); // Minus strand => Sequence has been reversed and WC-complemented
+		}
+		return sequence.substring(index, index+len);
+	}
+
 	public void setAaIdx(int aaIdxStart, int aaIdxEnd) {
 		this.aaIdxStart = aaIdxStart;
 		this.aaIdxEnd = aaIdxEnd;
@@ -318,6 +333,45 @@ public class Exon extends MarkerSeq implements MarkerWithFrame {
 			if (ss.intersects(variant)) ss.variantEffect(variant, variantEffects);
 
 		return exonAnnotated;
+	}
+	
+	/**
+	 * Set sequence
+	 *
+	 * WARNING: Sequence is always according to coding
+	 * strand. So use you should use setSequence( GprSeq.reverseWc( seq ) )
+	 * if the marker is in negative strand.
+	 */
+	public void setSequence(String sequence) {
+		if ((sequence == null) || (sequence.length() <= 0)) this.sequence = "";
+
+		// Sometimes sequence length doesn't match interval length
+		if (sequence.length() != size()) {
+
+			if (sequence.length() > size()) {
+				// Sequence is longer? => Trim sequence
+				sequence = sequence.substring(0, size());
+			} else {
+				// Sequence is shorter? Pad with 'N'
+				char ns[] = new char[size() - sequence.length()];
+				Arrays.fill(ns, 'N');
+				sequence = sequence + new String(ns);
+			}
+		}
+//		TODO ambiguous sequence
+		this.sequence = sequence;
+	}
+	
+	public String getSequence() {
+		return sequence;
+	}
+	
+	/**
+	 * Do we have a sequence for this exon?
+	 */
+	public boolean hasSequence() {
+		if (size() <= 0) return true; // This interval has zero length, so sequence should be empty anyway (it is OK if its empty)
+		return (sequence != null) && (!sequence.isEmpty());
 	}
 
 }
