@@ -11,8 +11,9 @@ public class PositionDepthNormal extends IntPositionInformation implements Calcu
 		super(windowSize);
 	}
 
+	@SuppressWarnings("rawtypes")
 	@Override
-	public void add(BamPositionInformation<SAMInformationBasic> posInfo) {
+	public void add(BamPositionInformation posInfo) {
 		info[posInfo.distBetweenRefPosAndWinStart()]++;
 	}
 }

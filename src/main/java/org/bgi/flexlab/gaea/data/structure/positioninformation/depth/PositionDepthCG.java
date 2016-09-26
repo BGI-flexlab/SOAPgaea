@@ -12,8 +12,9 @@ public class PositionDepthCG extends IntPositionInformation implements Calculate
 		// TODO Auto-generated constructor stub
 	}
 
+	@SuppressWarnings("rawtypes")
 	@Override
-	public void add(BamPositionInformation<SAMInformationBasic> posInfo) {
+	public void add(BamPositionInformation posInfo) {
 		// TODO Auto-generated method stub
 		if(posInfo.eligiblePos()) {
 			info[posInfo.distBetweenRefPosAndWinStart()]++;

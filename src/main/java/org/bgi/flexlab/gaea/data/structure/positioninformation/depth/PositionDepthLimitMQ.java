@@ -13,8 +13,9 @@ public class PositionDepthLimitMQ extends IntPositionInformation implements Calc
 		this.minMQ = minMQ;
 	}
 
+	@SuppressWarnings("rawtypes")
 	@Override
-	public void add(BamPositionInformation<SAMInformationBasic> posInfo) {
+	public void add(BamPositionInformation posInfo) {
 		if(posInfo.getMappingQual() >= minMQ)
 			info[posInfo.distBetweenRefPosAndWinStart()]++;
 	}
