@@ -20,6 +20,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.util.LineReader;
+import org.bgi.flexlab.gaea.util.ChromosomeUtils;
 
 /**
  * Genome内存共享
@@ -282,18 +283,6 @@ public class GenomeShare {
 	}
 	
 	/**
-	 * format chrname
-	 */
-	public static String getChromosomeNameFormat(String chrName) {
-		String newChrName = chrName.toLowerCase();
-		if(!chrName.startsWith("chr")) {
-			newChrName = "chr" + newChrName;
-		}
-		return newChrName;
-	}
-	
-	
-	/**
 	 * 获取染色体信息Map
 	 * @return
 	 */
@@ -307,9 +296,9 @@ public class GenomeShare {
 	 * @return
 	 */
 	public ChromosomeInformationShare getChromosomeInfo(String chrName) {
-		if(chromosomeInfoMap.get(getChromosomeNameFormat(chrName)) == null)
+		if(chromosomeInfoMap.get(ChromosomeUtils.formatChrName(chrName)) == null)
 			throw new RuntimeException("chr name not in GaeaIndex of ref:" + chrName);
-		return chromosomeInfoMap.get(getChromosomeNameFormat(chrName));
+		return chromosomeInfoMap.get(ChromosomeUtils.formatChrName(chrName));
 	}
 
 	/**
