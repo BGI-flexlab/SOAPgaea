@@ -4,13 +4,13 @@ import org.apache.commons.cli.ParseException;
 import org.apache.hadoop.conf.Configuration;
 import org.bgi.flexlab.gaea.data.mapreduce.options.HadoopOptions;
 
-public class FilterQualityControlOptions extends GaeaOptions implements
+public class FastqQualityControlOptions extends GaeaOptions implements
 		HadoopOptions {
 	private final static String SOFTWARE_NAME = "FilterQualityControl";
 	private final static String SOFTWARE_VERSION = "1.0";
 	private final static int LENGTH_QUALITY = 64;
 
-	public FilterQualityControlOptions() {
+	public FastqQualityControlOptions() {
 		addOption("1", "in1fq", true, "the first fastq", true);
 		addOption("2", "in2fq", true, "the second fastq", true);
 		addOption("3", "adapter1", true, "the first adapter list file");
@@ -27,9 +27,9 @@ public class FilterQualityControlOptions extends GaeaOptions implements
 		addOption("q", "qualityRate", true, "low quality rate(default:0.5)");
 		addOption("N", "NRate", true, "Maximum N rate(default:0.1)");
 		addOption("s", "trimStart", true,
-				"cut n bp of reads from start(default: 0)");
+				"cut n bp of reads from start(default:0)");
 		addOption("e", "trimEnd", true,
-				"cut n bp of reads from end(default: 0)");
+				"cut n bp of reads from end(default:0)");
 		addOption("5", "ignored1fq", false, "not output reads from fastq1");
 		addOption("6", "ignored2fq", false, "not output reads from fastq2");
 		addOption("m", "multiSample", true, "Mulit samples list");
@@ -38,11 +38,11 @@ public class FilterQualityControlOptions extends GaeaOptions implements
 		addOption("q", "qualityFreq", false, "output quality frequency statice");
 		addOption("M", "ignoredSample", false, "QC statictis together");
 		addOption("D", "dyncut", false, "run dyncutadaptor process");
-		addOption("S", "seed", true, "initial length of adaptor.[10]");
+		addOption("S", "seed", true, "initial length of adaptor.(default:10)");
 		addOption("T", "ignoredTail", true,
-				"don't cut tail in the last n bp.[3]");
-		addOption("A", "mismatch", true, "tolerate mismatchs.[1]");
-		addOption("B", "minimum", true, "don't keep seqences shorter.[0]");
+				"don't cut tail in the last n bp.(default:3)");
+		addOption("A", "mismatch", true, "tolerate mismatchs.(default:1)");
+		addOption("B", "minimum", true, "don't keep seqences shorter.(default:0)");
 		addOption("h", "help", false, "help information");
 
 		FormatHelpInfo(SOFTWARE_NAME, SOFTWARE_VERSION);
@@ -84,7 +84,7 @@ public class FilterQualityControlOptions extends GaeaOptions implements
 			cmdLine = parser.parse(options, args);
 		} catch (ParseException e) {
 			System.err.println(e.getMessage());
-			helpInfo.printHelp(SOFTWARE_NAME + " options list:", options);
+			printHelpInfotmation(SOFTWARE_NAME);
 			System.exit(1);
 		}
 
@@ -140,7 +140,6 @@ public class FilterQualityControlOptions extends GaeaOptions implements
 					.println("> Invailid value of quality score schema. Please check it. (0: NCBI/Sanger or Illumina 1.8 and later; 1: Illumina Pipeline 1.5 to 1.7; 2: Illumina Pipeline 1.3 and 1.4; 3: Illumina Pipeline 1.2 and earlier.)");
 			System.exit(1);
 		}
-
 	}
 
 	public String getAdapter1() {

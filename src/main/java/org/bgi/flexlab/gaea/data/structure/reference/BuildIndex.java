@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.bgi.flexlab.gaea.exception.NullFilePathException;
+import org.bgi.flexlab.gaea.util.ChromosomeUtils;
 
 /**
  * create reference and dbSNP file index
@@ -64,7 +65,7 @@ public class BuildIndex {
 							&& '\r' != line.charAt(pos)
 							&& '\f' != line.charAt(pos); pos++) {
 					}
-					String newChrName = GenomeShare.getChromosomeNameFormat(line.substring(
+					String newChrName = ChromosomeUtils.formatChrName(line.substring(
 							1, pos));
 
 					// 判断添加染色体信息是否成功

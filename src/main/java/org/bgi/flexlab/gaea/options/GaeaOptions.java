@@ -23,8 +23,10 @@ public abstract class GaeaOptions {
 	 */
 	public void FormatHelpInfo(String softwareName, String version) {
 		StringBuilder sb = new StringBuilder();
-		sb.append("Software name: ");
-		sb.append(softwareName);
+		if (softwareName != null) {
+			sb.append("Software name: ");
+			sb.append(softwareName);
+		}
 		sb.append("\nVersion: ");
 		sb.append(version);
 		sb.append("\nLast update: 2015.02.19\n");
@@ -33,9 +35,15 @@ public abstract class GaeaOptions {
 		sb.append("E-mail: zhangyong2@genomics.org.cn or lishengkang@genomics.cn\n");
 		sb.append("Copyright(c) 2015: BGI. All Rights Reserved.\n\n");
 		helpInfo.setNewLine("\n");
+		if(softwareName == null)
+			softwareName = "tools_name";
 		helpInfo.setSyntaxPrefix("hadoop jar " + "gaea.jar " + softwareName
 				+ " [options]\n" + sb.toString() + "\n");
 		helpInfo.setWidth(2 * HelpFormatter.DEFAULT_WIDTH);
+	}
+
+	protected void printHelpInfotmation(String softwareName) {
+		helpInfo.printHelp(softwareName + " options list:", options);
 	}
 
 	/**
@@ -75,9 +83,9 @@ public abstract class GaeaOptions {
 
 		return defaultValue;
 	}
-	
-	protected int getOptionIntValue(String opt,int defaultValue){
-		if(cmdLine.hasOption(opt))
+
+	protected int getOptionIntValue(String opt, int defaultValue) {
+		if (cmdLine.hasOption(opt))
 			return Integer.parseInt(cmdLine.getOptionValue(opt));
 		return defaultValue;
 	}
@@ -94,8 +102,8 @@ public abstract class GaeaOptions {
 		return defaultValue;
 	}
 
-	protected long getOptionLongValue(String opt,long defaultValue) {
-		if(cmdLine.hasOption(opt))
+	protected long getOptionLongValue(String opt, long defaultValue) {
+		if (cmdLine.hasOption(opt))
 			return Long.parseLong(cmdLine.getOptionValue(opt));
 		return defaultValue;
 	}
