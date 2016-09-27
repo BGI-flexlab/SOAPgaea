@@ -3,9 +3,9 @@
 import java.util.HashMap;
 import java.util.Map;
 
+import org.bgi.flexlab.gaea.data.mapreduce.input.bed.SingleRegion;
+import org.bgi.flexlab.gaea.data.mapreduce.input.bed.SingleRegion.Regiondata;
 import org.bgi.flexlab.gaea.data.structure.positioninformation.IntPositionInformation;
-import org.bgi.flexlab.gaea.data.structure.region.SingleRegion;
-import org.bgi.flexlab.gaea.data.structure.region.SingleRegion.Regiondata;
 import org.bgi.flexlab.gaea.data.structure.region.statistic.SingleRegionStatistic;
 
 public abstract class SingleRegionReport<T extends SingleRegionStatistic> {

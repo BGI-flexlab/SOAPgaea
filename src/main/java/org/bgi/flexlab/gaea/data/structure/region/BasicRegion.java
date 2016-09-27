@@ -1,17 +1,11 @@
 package org.bgi.flexlab.gaea.data.structure.region;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.hadoop.util.StringInterner;
-import org.bgi.flexlab.gaea.util.FileIterator;
-import org.junit.experimental.theories.Theories;
+import org.bgi.flexlab.gaea.util.ChromosomeUtils;
 
 public class BasicRegion extends Region {
 
@@ -20,11 +14,6 @@ public class BasicRegion extends Region {
 	 * 每条染色体在区域中的大小
 	 */
 	private Map<String, Integer> chrsSize;
-	
-	/**
-	 * 区域总大小
-	 */
-	private int regionSize;
 
 	protected FlankRegion flankRegion;
 	
@@ -119,35 +108,6 @@ public class BasicRegion extends Region {
 		}
 	}
 	
-	@Deprecated
-	public void parseBedFile(String bedFilePath, boolean isWithFlank) throws IOException {
-		BufferedReader br = new BufferedReader(new FileReader(bedFilePath));
-		String line = "";
-		String[] splitArray;
-
-		while((line = br.readLine()) != null) {
-			splitArray = line.split("\t");
-			boolean skipLine = parseBedFileLine(splitArray, this);
-			if(skipLine) {
-				continue;
-			}
-			if(isWithFlank) {
-				while((line = br.readLine()) != null) {
-					splitArray = line.split("\t");
-					skipLine = parseBedFileLine(splitArray, flankRegion);
-					if(skipLine) {
-						continue;
-					}
-					processWindow();
-				}
-				//处理最后一个窗口
-				processWindow(start, end, chrName);
-			}
-		}
-		
-		br.close();
-	}
-	
 	private void positionInRegion(String chrName,long position,ArrayList<Integer[]> list,HashSet<String> starts){
 		String id = formartID(position, chrName);
 		
@@ -194,31 +154,23 @@ public class BasicRegion extends Region {
 	
 	public int getChrSize(String chrName) {
 		//SSystem.out.println(chrName);
-		chrName = getChrNameFormat(chrName);
+		chrName = ChromosomeUtils.formatChrName(chrName);
 		//System.out.println(chrName);
-		if(chrsSize.containsKey(chrName))
+		if(chrsSize.containsKey(chrName)) {
 			return chrsSize.get(chrName);
-		else
+		} else {
 			return 0;
+		}
 	}
 	
 	protected void addChrSize(String chrName, int size) {
-		chrName = getChrNameFormat(chrName);
+		chrName = ChromosomeUtils.formatChrName(chrName);
 		if(chrsSize.containsKey(chrName)) {
 			chrsSize.put(chrName, chrsSize.get(chrName) + size);
 		} else {
 			chrsSize.put(chrName, size);
 		}
 	}
-	
-	private String getChrNameFormat(String chrName) {
-		chrName = chrName.toLowerCase();
-		if(!chrName.startsWith("chr")) {
-			chrName = "chr" + chrName;
-		}
-		return chrName;
-	}
-	
 	
 	protected boolean parseBedFileLine(String[] splitArray, Region region){
 		if(splitArray.length == 1) {
