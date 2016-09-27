@@ -1,12 +1,7 @@
 package org.bgi.flexlab.gaea.data.mapreduce.output.vcf;
 
-import htsjdk.samtools.util.RuntimeEOFException;
-
 import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -21,8 +16,6 @@ import htsjdk.tribble.TribbleException;
 import htsjdk.tribble.util.ParsingUtils;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
 import org.bgi.flexlab.gaea.data.structure.header.VCFConstants;
 import htsjdk.variant.vcf.VCFFormatHeaderLine;
 import htsjdk.variant.vcf.VCFHeader;
@@ -38,6 +31,7 @@ import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.GenotypeBuilder;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.VariantContextBuilder;
+import htsjdk.variant.variantcontext.writer.IntGenotypeFieldAccessors;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
 
 

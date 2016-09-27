@@ -1,9 +1,8 @@
 package org.bgi.flexlab.gaea.data.structure.region;
 
-import static org.junit.Assert.*;
-
 import java.io.IOException;
 
+import org.bgi.flexlab.gaea.data.mapreduce.input.bed.RegionHdfsParser;
 import org.junit.Test;
 
 import junit.framework.Assert;

@@ -1,25 +1,13 @@
 package org.bgi.flexlab.gaea.data.structure.vcf.codec;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 
-import htsjdk.variant.vcf.VCFConstants;
 import htsjdk.variant.vcf.VCFHeader;
 import htsjdk.variant.vcf.VCFHeaderVersion;
-import htsjdk.variant.vcf.AbstractVCFCodec;
 import htsjdk.variant.vcf.VCFCodec;
 import htsjdk.tribble.TribbleException;
-import htsjdk.tribble.readers.LineIterator;
-import htsjdk.tribble.readers.LineReader;
-import htsjdk.variant.variantcontext.VariantContext;
 
 /**
  * A feature codec for the VCF 4 specification
