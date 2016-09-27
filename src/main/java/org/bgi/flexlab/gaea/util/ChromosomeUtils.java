@@ -9,5 +9,4 @@ public class ChromosomeUtils {
 		}
 		return chrName;
 	}
-	
 }
