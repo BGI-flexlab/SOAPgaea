@@ -46,12 +46,17 @@ public class VcfAnnotator implements Serializable{
 
 			// Calculate effects: By default do not annotate non-variant sites
 			if (variant.isVariant()) {
-
 				VariantEffects variantEffects = snpEffectPredictor.variantEffect(variant);
-				AnnotationContext annotationContext = new AnnotationContext(variantEffects.get());
-				annotationContexts.put(variant.getAlt(), annotationContext);
+				for (VariantEffect variantEffect : variantEffects) {
+					if (config.isVerbose()) {
+						System.out.println("variantEffect:" + variantEffect.toStringSimple(true));
+					}
+					AnnotationContext annotationContext = new AnnotationContext(variantEffect);
+					annotationContexts.put(variant.getAlt(), annotationContext);
+				}
 			}
 		}
+		
 		if (annotationContexts.isEmpty()) {
 			return false;
 		}

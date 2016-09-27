@@ -11,9 +11,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 
+import org.bgi.flexlab.gaea.data.structure.reference.GenomeShare;
 import org.bgi.flexlab.gaea.tools.annotator.effect.EffectType;
-import org.bgi.flexlab.gaea.tools.annotator.sequence.GenomicSequences;
 import org.bgi.flexlab.gaea.tools.annotator.util.Gpr;
+import org.bgi.flexlab.gaea.tools.annotator.util.GprSeq;
 
 /**
  *
@@ -30,17 +31,14 @@ public class Genome extends Marker implements Serializable, Iterable<Chromosome>
 
 	int genomeId;
 	long length = -1;
-	String species;
 	String version;
-	String fastaDir;
 	ArrayList<String> chromosomeNames;
 	ArrayList<String> chromosomeNamesSorted = null;
-	String chromoFastaFiles[];
 	HashMap<String, Chromosome> chromosomes;
 	Genes genes; // All genes, transcripts, exons, UTRs, CDS, etc.
 	Boolean codingInfo = null; // Do we have coding info from genes?
 	Boolean transcriptSupportLevelInfo = null; // Do we have 'TranscriptSupportLevel' info in transcripts?
-	GenomicSequences genomicSequences; // Store all genomic sequences (of interest) here
+	GenomeShare genomeShare;
 
 	/**
 	 * Create a genome from a faidx file.
@@ -74,8 +72,6 @@ public class Genome extends Marker implements Serializable, Iterable<Chromosome>
 		chromosomeNames = new ArrayList<String>();
 		chromosomes = new HashMap<String, Chromosome>();
 		genes = new Genes(this);
-		genomicSequences = new GenomicSequences(this);
-//		genomicSequences.build();
 		setGenomeId();
 	}
 
@@ -86,38 +82,23 @@ public class Genome extends Marker implements Serializable, Iterable<Chromosome>
 		chromosomeNames = new ArrayList<String>();
 		chromosomes = new HashMap<String, Chromosome>();
 		genes = new Genes(this);
-		genomicSequences = new GenomicSequences(this);
-//		genomicSequences.build();
 		setGenomeId();
 	}
 
-	public Genome(String version, Properties properties) {
-		super(null, 0, Integer.MAX_VALUE, false, version);
-		this.version = version;
-		type = EffectType.GENOME;
-		genes = new Genes(this);
-		genomicSequences = new GenomicSequences(this);
-//		genomicSequences.build();
-
-		species = properties.getProperty(version + ".genome");
-		if (species == null) throw new RuntimeException("Property: '" + version + ".genome' not found");
-		species = species.trim();
-
-		chromosomeNames = new ArrayList<String>();
-		String[] chromosomeNames = propertyToStringArray(properties, version + ".chromosomes");
-
-		// Fasta file & dir (optional)
-		if (properties.getProperty(version + ".fasta_dir") != null) fastaDir = properties.getProperty(version + ".fasta_dir").trim();
-		else fastaDir = "";
-		if (properties.getProperty(version + ".chromo_fasta_files") != null) chromoFastaFiles = propertyToStringArray(properties, version + ".chromo_fasta_files");
-		else chromoFastaFiles = new String[0];
-
-		chromosomes = new HashMap<String, Chromosome>();
-		for (String chName : chromosomeNames)
-			add(new Chromosome(this, 0, 0, chName));
-
-		setGenomeId();
-	}
+//	public Genome(String version, Properties properties) {
+//		super(null, 0, Integer.MAX_VALUE, false, version);
+//		this.version = version;
+//		type = EffectType.GENOME;
+//		genes = new Genes(this);
+//		chromosomeNames = new ArrayList<String>();
+//		String[] chromosomeNames = propertyToStringArray(properties, version + ".chromosomes");
+//
+//		chromosomes = new HashMap<String, Chromosome>();
+//		for (String chName : chromosomeNames)
+//			add(new Chromosome(this, 0, 0, chName));
+//
+//		setGenomeId();
+//	}
 
 	/**
 	 * Add a chromosome
@@ -160,10 +141,6 @@ public class Genome extends Marker implements Serializable, Iterable<Chromosome>
 		return chr;
 	}
 
-	public String[] getChromoFastaFiles() {
-		return chromoFastaFiles;
-	}
-
 	/**
 	 * Find chromosome 'chromoName'
 	 */
@@ -201,10 +178,6 @@ public class Genome extends Marker implements Serializable, Iterable<Chromosome>
 		return chrs;
 	}
 
-	public String getFastaDir() {
-		return fastaDir;
-	}
-
 	public Genes getGenes() {
 		return genes;
 	}
@@ -240,10 +213,6 @@ public class Genome extends Marker implements Serializable, Iterable<Chromosome>
 		return id + "[" + genomeId + "]";
 	}
 
-	public GenomicSequences getGenomicSequences() {
-		return genomicSequences;
-	}
-
 	/**
 	 * Get or create a chromosome
 	 */
@@ -251,10 +220,6 @@ public class Genome extends Marker implements Serializable, Iterable<Chromosome>
 		Chromosome chr = getChromosome(chromoName);
 		if (chr == null) chr = createChromosome(chromoName);
 		return chr;
-	}
-
-	public String getSpecies() {
-		return species;
 	}
 
 	public String getVersion() {
@@ -471,7 +436,6 @@ public class Genome extends Marker implements Serializable, Iterable<Chromosome>
 
 		// Genome & Genes
 		sb.append("#-----------------------------------------------\n");
-		sb.append("# Genome name                : '" + species + "'" + "\n");
 		sb.append("# Genome version             : '" + version + "'\n");
 		sb.append("# Genome ID                  : '" + getGenomeId() + "'" + "\n");
 		sb.append("# Has protein coding info    : " + hasCodingInfo() + "\n");
@@ -545,5 +509,18 @@ public class Genome extends Marker implements Serializable, Iterable<Chromosome>
 
 		return sb.toString();
 	}
+	
+	/**
+	 * Get sequence for a marker
+	 */
+	public String querySequence(Marker marker) {
+		String chr = marker.getChromosomeName();
+		// Calculate start and end coordiantes
+		String seq = genomeShare.getChromosomeInfo(chr).getBaseSequence(marker.getStart(), marker.getEnd());
+		// Return sequence in same direction as 'marker'
+		if (marker.isStrandMinus()) seq = GprSeq.reverseWc(seq);
+		return seq;
+	}
+
 
 }

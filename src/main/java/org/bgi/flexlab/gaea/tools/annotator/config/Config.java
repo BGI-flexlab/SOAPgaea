@@ -38,10 +38,9 @@ public class Config implements Serializable {
 	public static final String KEY_GENE_INFO = "GeneInfo";
 	public static final String KEY_CODON_PREFIX = "codon.";
 	public static final String KEY_CODONTABLE_SUFIX = ".codonTable";
-	private static final String DB_CONFIG_JSON = "annotatorDatabaseInfo.json";
+	private static final String DB_CONFIG_JSON = "AnnotatorConfig.json";
 	public static final String ANNO_FIELDS_SUFIX = ".fields";
 	public static int MAX_WARNING_COUNT = 20;
-	
 	
 	private String  ref = null;
 	private String  geneInfo = null;
@@ -104,9 +103,8 @@ public class Config implements Serializable {
 				throw new RuntimeException(confFilePath.toString() + " is not a file. GaeaSingleVcfHeader parser only support one vcf file.");
 			}
 			FSDataInputStream inputStream =  fs.open(confFilePath);
-			
 			properties.load(inputStream);
-
+			
 			if (!properties.isEmpty()) {
 				return true;
 			}
