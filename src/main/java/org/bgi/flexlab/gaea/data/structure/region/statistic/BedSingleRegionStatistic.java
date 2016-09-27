@@ -1,7 +1,7 @@
 package org.bgi.flexlab.gaea.data.structure.region.statistic;
 
+import org.bgi.flexlab.gaea.data.mapreduce.input.bed.SingleRegion.Regiondata;
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
-import org.bgi.flexlab.gaea.data.structure.region.SingleRegion.Regiondata;
 import org.bgi.flexlab.gaea.exception.BAMQCException;
 
 public class BedSingleRegionStatistic extends SingleRegionStatistic{

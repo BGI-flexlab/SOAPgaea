@@ -5,7 +5,8 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 
-import org.bgi.flexlab.gaea.data.structure.region.SingleRegion.Regiondata;
+import org.bgi.flexlab.gaea.data.mapreduce.input.bed.SingleRegion.Regiondata;
+
 
 
 public class CNVSingleRegionStatistic extends SingleRegionStatistic{

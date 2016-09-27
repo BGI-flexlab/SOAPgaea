@@ -5,8 +5,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.bgi.flexlab.gaea.data.structure.positioninformation.CalculatePositionInforamtionInterface;
+import org.bgi.flexlab.gaea.data.structure.positioninformation.CompoundInformation;
 import org.bgi.flexlab.gaea.data.structure.reads.BamQCReadInformation;
-import org.bgi.flexlab.gaea.data.structure.positioninformation.BamPositionInformation;
 
 public class PositionDepthCNV implements CalculatePositionInforamtionInterface<BamQCReadInformation>{
 	private ArrayList<PositionDepthCNVLane> cnvUsedDepth = new ArrayList<PositionDepthCNVLane>();
@@ -23,7 +23,7 @@ public class PositionDepthCNV implements CalculatePositionInforamtionInterface<B
 	}
 
 	@Override
-	public void add(BamPositionInformation<BamQCReadInformation> posInfo) {
+	public void add(CompoundInformation<BamQCReadInformation> posInfo) {
 		if(posInfo.eligiblePos() ) {
 				//readInfo.getMappingQual() >= 10 && readInfo.getQualValue(readPosition) >= 15) {
 			int depthIndex = 0;

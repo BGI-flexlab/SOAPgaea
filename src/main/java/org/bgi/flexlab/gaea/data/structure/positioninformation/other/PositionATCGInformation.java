@@ -1,7 +1,7 @@
 package org.bgi.flexlab.gaea.data.structure.positioninformation.other;
 
 import org.bgi.flexlab.gaea.data.structure.positioninformation.CalculatePositionInforamtionInterface;
-import org.bgi.flexlab.gaea.data.structure.positioninformation.BamPositionInformation;
+import org.bgi.flexlab.gaea.data.structure.positioninformation.CompoundInformation;
 import org.bgi.flexlab.gaea.data.structure.positioninformation.PositionInformationUtils;
 import org.bgi.flexlab.gaea.util.SAMInformationBasic;
 
@@ -13,7 +13,7 @@ public class PositionATCGInformation extends PositionInformationUtils<ATCGCount>
 	
 	@SuppressWarnings("rawtypes")
 	@Override
-	public void add(BamPositionInformation posInfo) {
+	public void add(CompoundInformation posInfo) {
 		// TODO Auto-generated method stub
 		int base = posInfo.getBinaryBase();
 		if(base < 4) {
