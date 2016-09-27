@@ -34,7 +34,7 @@ public class ChromosomeInformationShare extends InformationShare {
 	 * 二进制格式的序列。 每4个bit表示一个碱基的信息: 第一位表示dbSNPstatus 第二位表示N 最后两位表示碱基类型，其中A: 00, C:
 	 * 01, T: 10, G:11 每个long类型变量可以存储16个碱基的信息
 	 */
-	private MappedByteBuffer[] refSeq; // reference seq map
+	// private MappedByteBuffer[] refSeq; // reference seq map
 
 	/**
 	 * dbSNP 信息
@@ -81,7 +81,7 @@ public class ChromosomeInformationShare extends InformationShare {
 	 * @throws IOException
 	 */
 	public void loadChromosome(String chr) throws IOException {
-		loadInformation(chr, refSeq);
+		loadInformation(chr);
 	}
 
 	/**
@@ -108,7 +108,7 @@ public class ChromosomeInformationShare extends InformationShare {
 	}
 
 	public byte[] getBytes(int start, int end) {
-		if (start >= length)
+		if (start > length)
 			throw new OutOfBoundException(start, length);
 
 		byte[] bases;
@@ -121,9 +121,9 @@ public class ChromosomeInformationShare extends InformationShare {
 			pose = end / CAPACITY;
 		}
 		bases = new byte[pose - posi + 1];
-		refSeq[0].position(posi);
-		refSeq[0].get(bases, 0, pose - posi + 1);
-		refSeq[0].position(0);
+		byteBuffer[0].position(posi);
+		byteBuffer[0].get(bases, 0, pose - posi + 1);
+		byteBuffer[0].position(0);
 
 		return bases;
 	}

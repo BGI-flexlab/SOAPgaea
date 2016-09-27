@@ -30,7 +30,7 @@ public class ChromosomeDbSNPShare extends InformationShare {
 	/**
 	 * 存储dbSNP信息的Map文件
 	 */
-	private MappedByteBuffer[] dbsnpBuffer;
+	//private MappedByteBuffer[] dbsnpBuffer;
 
 	/**
 	 * dbSNP占用存储空间大小
@@ -63,7 +63,7 @@ public class ChromosomeDbSNPShare extends InformationShare {
 	 * @param dbsnpPath
 	 */
 	public void loadDbSNP(String dbsnpPath) throws IOException {
-		loadInformation(dbsnpPath, dbsnpBuffer);
+		loadInformation(dbsnpPath);
 	}
 
 	/**
@@ -128,10 +128,10 @@ public class ChromosomeDbSNPShare extends InformationShare {
 			return null;
 		}
 
-		dbsnpBuffer[0].position(index * dbsnpSize);
-		snpBasicInfo = dbsnpBuffer[0].get();
-		alleleFreq = dbsnpBuffer[0].getFloat();
-		dbsnpBuffer[0].position(0);
+		byteBuffer[0].position(index * dbsnpSize);
+		snpBasicInfo = byteBuffer[0].get();
+		alleleFreq = byteBuffer[0].getFloat();
+		byteBuffer[0].position(0);
 
 		snpinfo.setSnpBasicInformation(snpBasicInfo);
 		snpinfo.setAlleleFreq(alleleFreq);
