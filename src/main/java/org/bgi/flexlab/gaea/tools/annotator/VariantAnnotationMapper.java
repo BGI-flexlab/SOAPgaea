@@ -30,7 +30,7 @@ public class VariantAnnotationMapper extends Mapper<LongWritable, Text, NullWrit
 	private VcfAnnotator vcfAnnotator = null;
 	private DBAnno dbAnno = null;
 	private Config userConfig = null;
-	private static GenomeShare genome;
+	private static GenomeShare genomeShare;
 	Configuration conf;
 	
 	
@@ -39,11 +39,11 @@ public class VariantAnnotationMapper extends Mapper<LongWritable, Text, NullWrit
 			throws IOException, InterruptedException {
 		conf = context.getConfiguration();
 		
-		genome = new GenomeShare();
+		genomeShare = new GenomeShare();
 		if (conf.get("cacheref") != null)
-			genome.loadChromosomeList();
+			genomeShare.loadChromosomeList();
 		else
-			genome.loadChromosomeList(conf.get("reference"));
+			genomeShare.loadChromosomeList(conf.get("reference"));
 		
 		userConfig = new Config(conf);
 		AnnotatorBuild annoBuild = new AnnotatorBuild(userConfig);
@@ -77,7 +77,7 @@ public class VariantAnnotationMapper extends Mapper<LongWritable, Text, NullWrit
 		VcfAnnotationContext vcfAnnoContext = new VcfAnnotationContext(variantContext);
 		
 		vcfAnnotator.annotate(vcfAnnoContext);
-//		dbAnno.annotate(vcfAnnoContext);
+		dbAnno.annotate(vcfAnnoContext);
 		
 		
 		if (conf.get("outputType").equals("txt")) {

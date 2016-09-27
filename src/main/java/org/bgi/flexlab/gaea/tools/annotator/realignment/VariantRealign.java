@@ -3,7 +3,6 @@ package org.bgi.flexlab.gaea.tools.annotator.realignment;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Genome;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Marker;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Variant;
-import org.bgi.flexlab.gaea.tools.annotator.sequence.GenomicSequences;
 import org.bgi.flexlab.gaea.tools.annotator.util.Gpr;
 
 /**
@@ -34,7 +33,6 @@ public class VariantRealign {
 	int maxBasesLeft, maxBasesRight; // Maximum number of bases we can add on each side before running out of sequence
 	String sequenceRef, sequenceAlt;
 	String refRealign, altRealign; // Ref and Alt after realignment
-	GenomicSequences genSeqs; // Provides sequences
 	Genome genome; // Reference genome
 	Variant variant;
 	Variant variantRealigned;
@@ -44,7 +42,6 @@ public class VariantRealign {
 
 	public VariantRealign(Variant variant) {
 		genome = variant.getGenome();
-		genSeqs = genome.getGenomicSequences();
 		this.variant = variant;
 	}
 
@@ -124,7 +121,7 @@ public class VariantRealign {
 	 */
 	boolean createRefSeq() {
 		Marker m = new Marker(variant.getChromosome(), variant.getStart() - basesAddedLeft, variant.getEnd() + basesAddedRight);
-		sequenceRef = genSeqs.querySequence(m);
+		sequenceRef = genome.querySequence(m);
 		return sequenceRef != null;
 	}
 
