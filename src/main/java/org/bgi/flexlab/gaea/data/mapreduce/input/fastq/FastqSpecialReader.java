@@ -63,17 +63,11 @@ public class FastqSpecialReader extends FastqBasicReader {
 				st[0] = st[0] + "/" + readFlag;
 				int index = st[0].lastIndexOf("/");
 				String tempkey = st[0].substring(1, index).trim();
-				String keyIndex = st[0].substring(index + 1);
-
-				if (sampleID == null || sampleID.equals("") || sampleID.equals("+")) {
-					key.set(">" + st[2]);
-					value.set(tempkey + "\t" + keyIndex + "\t" + st[1] + "\t"
-							+ st[3]);
-				} else {
-					key.set(">" + sampleID);
-					value.set(tempkey + "\t" + keyIndex + "\t" + st[1] + "\t"
-							+ st[3]);
-				}
+				if(sampleID != null && sampleID != "+")
+					st[2] = sampleID;
+				
+				key.set(tempkey);
+				value.set(st[0] + "\t" + st[1] + "\t" + st[2] + "\t" + st[3]);
 			} else {
 				LOG.warn("wrong fastq reads:blank line among fq file or end of file!");
 			}

@@ -1,16 +1,19 @@
-package org.bgi.flexlab.gaea.framework.mapreduce.FastqQualityControl;
+package org.bgi.flexlab.gaea.tools.mapreduce.FastqQualityControl;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
-import org.bgi.flexlab.gaea.framework.mapreduce.ToolsRunner;
-import org.bgi.flexlab.gaea.options.FastqQualityControlOptions;
+import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
+import org.bgi.flexlab.gaea.data.mapreduce.input.fastq.FastqInputFormat;
+import org.bgi.flexlab.gaea.framework.tools.mapreduce.PairEndAggregatorMapper;
+import org.bgi.flexlab.gaea.framework.tools.mapreduce.ToolsRunner;
 
 public class FastqQualityControl extends ToolsRunner {
 
 	public FastqQualityControl() {
-		this.toolsDescription = "";
+		this.toolsDescription = "Gaea fastq quality control\n"
+				+ "this a simple description";
 	}
 
 	@Override
@@ -24,8 +27,10 @@ public class FastqQualityControl extends ToolsRunner {
 		Job job = Job.getInstance();
 		job.setJobName("GaeaFastqQC");
 		job.setJarByClass(FastqQualityControl.class);
-		job.setMapperClass(FastqQualityControlMapper.class);
+		job.setMapperClass(PairEndAggregatorMapper.class);
 		job.setReducerClass(FastqQualityControlReducer.class);
+
+		job.setOutputFormatClass(TextOutputFormat.class);
 
 		job.setMapOutputKeyClass(Text.class);
 		job.setMapOutputValueClass(Text.class);

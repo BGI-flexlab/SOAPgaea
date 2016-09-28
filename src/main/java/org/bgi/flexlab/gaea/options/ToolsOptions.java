@@ -1,31 +1,24 @@
 package org.bgi.flexlab.gaea.options;
 
-import java.util.Properties;
+import java.util.HashMap;
 
-import org.bgi.flexlab.gaea.framework.mapreduce.ToolsRunner;
-
-public class ToolsOptions extends GaeaOptions{
+public class ToolsOptions extends GaeaOptions {
 	private final static String SOFTWARE_VERSION = "1.0";
-	
+
 	public void printHelpInfotmation() {
+		helpInfo.setOptPrefix("");
 		helpInfo.printHelp("tools list:", options);
 	}
-	
-	public ToolsOptions(Properties properties){
-		for(Object key : properties.keySet()){
-			String className = properties.getProperty((String)key);
-			try {
-				ToolsRunner tools = (ToolsRunner)(Class.forName(className).newInstance());
-				addOption((String)key, null, false, tools.getDescription());
-			} catch (InstantiationException | IllegalAccessException
-					| ClassNotFoundException e) {
-				e.printStackTrace();
-			}
+
+	public ToolsOptions(HashMap<String, String> toolsDescription) {
+		for (String className : toolsDescription.keySet()) {
+			String description = toolsDescription.get(className);
+			addOption(className, null, false, description);
 		}
-		FormatHelpInfo(null,SOFTWARE_VERSION);
+		FormatHelpInfo(null, SOFTWARE_VERSION);
 	}
 
 	@Override
-	public void parse(String[] args) {	
+	public void parse(String[] args) {
 	}
 }
