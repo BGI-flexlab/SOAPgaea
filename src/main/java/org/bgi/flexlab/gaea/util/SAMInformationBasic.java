@@ -1,6 +1,7 @@
 package org.bgi.flexlab.gaea.util;
 
-public class SAMInformationBasic extends FastqInformation {
+
+public abstract class SAMInformationBasic extends FastqInformation implements ParseSAMInterface{
 	/**
 	 * flag
 	 */
@@ -30,7 +31,61 @@ public class SAMInformationBasic extends FastqInformation {
 	 * cigar state
 	 */
 	protected CigarState cigarState;
+	
+	@Override
+	public boolean parseSAM(String samline) {
+		
+		String[] alignmentArray = ParseSAMBasic.splitSAM(samline);
+		
+		flag = ParseSAMBasic.parseFlag(alignmentArray);
+		
+		if(isUnmapped()) {
+			return false;
+		}
+		
+		chrName = ParseSAMBasic.parseChrName(alignmentArray);
+		
+		position = ParseSAMBasic.parsePosition(alignmentArray, true);
+		
+		if(position < 0) {
+			return false;
+		}
+		
+		mappingQual = ParseSAMBasic.parseMappingQuality(alignmentArray);
+		
+		cigarString = ParseSAMBasic.parseCigarString(alignmentArray);
+		
+		if(cigarString.equals("*")) {
+			return false;
+		}
+		
+		cigarState = new CigarState();
+		
+		cigarState.parseCigar(cigarString);
+		
+		int softClipStart = ParseSAMBasic.getStartSoftClipLength(cigarState.getCigar());
+		
+		int softClipEnd = ParseSAMBasic.getEndSoftClipLength(cigarState.getCigar());
+		
+		seq = ParseSAMBasic.parseSeq(alignmentArray, softClipStart, softClipEnd, false);
+		
+		qual = ParseSAMBasic.parseQual(alignmentArray, softClipStart, softClipEnd, false);
+		
+		parseOtherInfo(alignmentArray);
+		
+		return true;
+	}
 
+	protected abstract void parseOtherInfo(String[] aligmentArray);
+	
+	@Override
+	public boolean SAMFilter() {
+		if(isUnmapped() || cigarString.equals("*") || seq.length() > qual.length() || position < 0) {
+			return false;
+		}
+		return true;
+	}
+	
 	/**
 	 * flag booleans
 	 */
