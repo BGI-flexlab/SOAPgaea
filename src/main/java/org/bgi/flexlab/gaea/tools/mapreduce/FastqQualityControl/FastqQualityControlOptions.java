@@ -1,8 +1,9 @@
-package org.bgi.flexlab.gaea.options;
+package org.bgi.flexlab.gaea.tools.mapreduce.FastqQualityControl;
 
 import org.apache.commons.cli.ParseException;
 import org.apache.hadoop.conf.Configuration;
 import org.bgi.flexlab.gaea.data.mapreduce.options.HadoopOptions;
+import org.bgi.flexlab.gaea.options.GaeaOptions;
 
 public class FastqQualityControlOptions extends GaeaOptions implements
 		HadoopOptions {

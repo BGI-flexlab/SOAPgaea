@@ -1,4 +1,4 @@
-package org.bgi.flexlab.gaea.framework.mapreduce.FastqQualityControl;
+package org.bgi.flexlab.gaea.tools.mapreduce.FastqQualityControl;
 
 import java.io.IOException;
 

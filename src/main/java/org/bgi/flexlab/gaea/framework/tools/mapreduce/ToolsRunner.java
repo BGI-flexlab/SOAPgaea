@@ -1,4 +1,4 @@
-package org.bgi.flexlab.gaea.framework.mapreduce;
+package org.bgi.flexlab.gaea.framework.tools.mapreduce;
 
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.util.Tool;
