@@ -4,15 +4,14 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.Serializable;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.bgi.flexlab.gaea.tools.annotator.codons.CodonTable;
@@ -67,6 +66,8 @@ public class Config implements Serializable {
 	HashMap<String, TableInfo> dbInfo = null;
 	
 	CountByType warningsCounter = new CountByType();
+	
+	public Config(){}
 
 	public Config(Configuration conf) {
 		this.conf = conf;
@@ -93,17 +94,18 @@ public class Config implements Serializable {
 	 * @return true if success
 	 */
 	boolean loadProperties(String configFileName) {
+		properties = new Properties();
 		try {
 			Path confFilePath = new Path(configFileName);
+			System.out.println(configFileName);
 			FileSystem fs = confFilePath.getFileSystem(conf);
 			if(!fs.exists(confFilePath)) {
 				throw new RuntimeException(confFilePath.toString() + " don't exist.");
 			}
 			if(!fs.isFile(confFilePath)) {
-				throw new RuntimeException(confFilePath.toString() + " is not a file. GaeaSingleVcfHeader parser only support one vcf file.");
+				throw new RuntimeException(confFilePath.toString() + " is not a file.");
 			}
-			FSDataInputStream inputStream =  fs.open(confFilePath);
-			properties.load(inputStream);
+			properties.load(fs.open(confFilePath));
 			
 			if (!properties.isEmpty()) {
 				return true;
@@ -118,17 +120,15 @@ public class Config implements Serializable {
 	
 	boolean loadJson() {
 
-		URL url = Config.class.getClassLoader().getResource(DB_CONFIG_JSON);
-		String fileName = url.getPath();
 		
 		Gson gson = new Gson();
 		try {
-			Reader reader =  new InputStreamReader(Config.class.getResourceAsStream(fileName), "UTF-8");
+			Reader reader =  new InputStreamReader(Config.class.getClassLoader().getResourceAsStream(DB_CONFIG_JSON), "UTF-8");
 			dbInfo =  gson.fromJson(reader, new TypeToken<HashMap<String, TableInfo>>() {  
             }.getType());
 		} catch ( JsonSyntaxException | IOException e) {
 			dbInfo = null;
-			Timer.showStdErr("Read a wrong json config file:" + fileName);
+			Timer.showStdErr("Read a wrong json config file:" + DB_CONFIG_JSON);
 			e.printStackTrace();
 		}
 		
@@ -372,8 +372,13 @@ public class Config implements Serializable {
 		this.dbNameList = dbNameList;
 	}
 
-//	public static void main(String[] args) throws Exception {
-//		Config config = new Config();
-//		Config.testProp();
-//	}
+//	TEST
+	public static void main(String[] args) throws Exception {
+		Config config = new Config();
+		System.out.println(config.loadJson());
+		Set<String> keys = config.dbInfo.keySet();
+		for (String key : keys) {
+			System.out.println(key);
+		}
+	}
 }
