@@ -8,7 +8,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import org.bgi.flexlab.gaea.data.structure.vcf.codec.GaeaVCFCodec;
+import org.bgi.flexlab.gaea.data.structure.vcf.GaeaVCFCodec;
 import org.junit.Test;
 
 import htsjdk.variant.vcf.VCFHeader;

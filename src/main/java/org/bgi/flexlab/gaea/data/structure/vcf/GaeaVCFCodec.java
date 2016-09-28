@@ -1,4 +1,4 @@
-package org.bgi.flexlab.gaea.data.structure.vcf.codec;
+package org.bgi.flexlab.gaea.data.structure.vcf;
 
 import java.io.Serializable;
 import java.util.ArrayList;

@@ -1,4 +1,4 @@
-package org.bgi.flexlab.data.structure.positioninformation;
+package org.bgi.flexlab.gaea.data.structure.positioninformation;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -15,7 +15,7 @@ import junit.framework.Assert;
 
 public class PositionDepthTest {
 
-	
+	@Test
 	public void test() throws IOException {
 		BamQCPositionDepth depth = new BamQCPositionDepth(1000000, true, true, 8);
 		GenomeShare genome = new GenomeShare();
@@ -45,8 +45,4 @@ public class PositionDepthTest {
 		Assert.assertFalse("Pos 43897 is deletion base with no conversion:", depth.isDeletionBaseWithNoConver(43897));
 	}
 
-	public static void main(String[] args) throws IOException {
-		PositionDepthTest test = new PositionDepthTest();
-		test.test();
-	}
 }
