@@ -1,4 +1,4 @@
-package org.bgi.flexlab.data.structure.positioninformation;
+package org.bgi.flexlab.gaea.data.structure.positioninformation;
 
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;

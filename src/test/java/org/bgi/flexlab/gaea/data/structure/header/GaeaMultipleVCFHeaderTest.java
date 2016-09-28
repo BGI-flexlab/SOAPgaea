@@ -4,9 +4,6 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.bgi.flexlab.gaea.data.structure.header.GaeaMultipleVCFHeader;
 import org.junit.Before;
-import org.junit.Test;
-
-import junit.framework.Assert;
 
 public class GaeaMultipleVCFHeaderTest {
 	GaeaMultipleVCFHeader gmv;

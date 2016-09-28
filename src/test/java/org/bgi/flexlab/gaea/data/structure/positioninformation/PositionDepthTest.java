@@ -1,4 +1,4 @@
-package org.bgi.flexlab.data.structure.positioninformation;
+package org.bgi.flexlab.gaea.data.structure.positioninformation;
 
 import java.io.BufferedReader;
 import java.io.File;
