@@ -1,6 +1,5 @@
 package org.bgi.flexlab.gaea.tools.annotator.effect.factory;
 
-import java.io.BufferedReader;
 import java.util.List;
 
 import org.bgi.flexlab.gaea.tools.annotator.config.Config;
@@ -15,6 +14,7 @@ import org.bgi.flexlab.gaea.tools.annotator.interval.Marker;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Transcript;
 import org.bgi.flexlab.gaea.tools.annotator.util.Gpr;
 import org.bgi.flexlab.gaea.tools.annotator.util.MultivalueHashMap;
+import org.bgi.flexlab.gaea.util.FileIterator;
 
 /**
  * This class creates a SnpEffectPredictor from a TXT file dumped using UCSC table browser
@@ -121,8 +121,9 @@ public class SnpEffPredictorFactoryRefSeq extends SnpEffPredictorFactory {
 			if (fileName == null) fileName = Config.get().getGeneInfo();
 
 			if (verbose) System.out.print("Reading gene intervals file : '" + fileName + "'\n\t\t");
+			System.err.println("............. reading refseq............");
 			readRefSeqFile(); // Read gene info
-
+			System.err.println(".............compelte read refseq............");
 			beforeExonSequences(); // Some clean-up before readng exon sequences
 
 			// Read chromosome sequences and set exon sequences
@@ -183,15 +184,15 @@ public class SnpEffPredictorFactoryRefSeq extends SnpEffPredictorFactory {
 	 */
 	protected void readRefSeqFile() {
 		try {
+			FileIterator fileIterator = new FileIterator(fileName);
 			int count = 0;
-			BufferedReader reader = Gpr.reader(fileName);
-			if (reader == null) return; // Error
-
-			for (lineNum = 1; reader.ready(); lineNum++) {
-				line = reader.readLine();
+			System.err.println(fileName);
+			for (lineNum = 1; fileIterator.hasNext(); lineNum++) {
+				line = fileIterator.next().toString();
 
 				// Skip headers
-				if ((lineNum == 1) || line.startsWith("#")) continue;
+//				if ((lineNum == 1) || line.startsWith("#")) continue;
+				if (line.startsWith("#")) continue;
 
 				String fields[] = line.split("\t");
 
@@ -219,6 +220,7 @@ public class SnpEffPredictorFactoryRefSeq extends SnpEffPredictorFactory {
 					String cdsEndStat = fields[14];
 					String exonFrames = fields[15];
 
+					System.err.println("chromoName:"+chromoName);
 					//---
 					// Create
 					//----
@@ -264,7 +266,7 @@ public class SnpEffPredictorFactoryRefSeq extends SnpEffPredictorFactory {
 				}
 			}
 
-			reader.close();
+			fileIterator.close();
 		} catch (Exception e) {
 			Gpr.debug("Offending line (lineNum: " + lineNum + "): '" + line + "'");
 			throw new RuntimeException(e);

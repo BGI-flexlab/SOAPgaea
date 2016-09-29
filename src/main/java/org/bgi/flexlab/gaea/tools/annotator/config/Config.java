@@ -9,7 +9,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
-import java.util.Set;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -55,7 +54,6 @@ public class Config implements Serializable {
 	boolean hgvsShift = true; // Shift variants according to HGVS notation (towards the most 3prime possible coordinate)
 	boolean hgvsOneLetterAa = false; // Use HGVS 1 letter amino acid in HGVS notation?
 	boolean hgvsTrId = false; // Use HGVS transcript ID in HGVS notation?
-	String genomeVersion;
 	Properties properties;
 	Genome genome;
 	SnpEffectPredictor snpEffectPredictor;
@@ -87,6 +85,7 @@ public class Config implements Serializable {
 //		createCodonTables(genomeVersion, properties);  
 		loadJson();
 		parseProperties();
+		genome = new Genome(ref);
 	}
 
 	/**
@@ -208,6 +207,9 @@ public class Config implements Serializable {
 				}
 			}
 		}
+		
+
+		
 		return true;
 	}
 	
@@ -236,7 +238,7 @@ public class Config implements Serializable {
 	}
 
 	public String getGenomeVersion() {
-		return genomeVersion;
+		return ref;
 	}
 	
 	public void setHgvsOneLetterAA(boolean hgvsOneLetterAa) {
@@ -372,13 +374,4 @@ public class Config implements Serializable {
 		this.dbNameList = dbNameList;
 	}
 
-//	TEST
-	public static void main(String[] args) throws Exception {
-		Config config = new Config();
-		System.out.println(config.loadJson());
-		Set<String> keys = config.dbInfo.keySet();
-		for (String key : keys) {
-			System.out.println(key);
-		}
-	}
 }
