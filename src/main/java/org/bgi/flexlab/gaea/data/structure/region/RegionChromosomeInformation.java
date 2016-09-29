@@ -1,6 +1,6 @@
 package org.bgi.flexlab.gaea.data.structure.region;
 
-import org.bgi.flexlab.gaea.data.mapreduce.input.bed.SingleRegion.Regiondata;
+import org.bgi.flexlab.gaea.data.structure.region.SingleRegion.Regiondata;
 import org.bgi.flexlab.gaea.data.structure.region.statistic.BedSingleRegionStatistic;
 import org.bgi.flexlab.gaea.util.MathUtils;
 

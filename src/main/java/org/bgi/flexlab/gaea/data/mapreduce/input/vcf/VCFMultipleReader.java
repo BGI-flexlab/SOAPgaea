@@ -18,7 +18,7 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.apache.hadoop.mapreduce.lib.input.LineRecordReader;
 import org.apache.hadoop.util.LineReader;
-import org.bgi.flexlab.gaea.data.structure.header.GaeaMultipleVCFHeader;
+import org.bgi.flexlab.gaea.data.structure.header.MultipleVCFHeader;
 
 public class VCFMultipleReader extends RecordReader<IntWritable, Text> {
 	private static final Log LOG = LogFactory.getLog(LineRecordReader.class);
@@ -47,7 +47,7 @@ public class VCFMultipleReader extends RecordReader<IntWritable, Text> {
 		
 		Configuration job = context.getConfiguration();
 		
-		GaeaMultipleVCFHeader vcfHeader = new GaeaMultipleVCFHeader();
+		MultipleVCFHeader vcfHeader = new MultipleVCFHeader();
 		vcfHeader.loadVcfHeader(job.get("output"));
 		fileID = vcfHeader.getId(split.getPath().toString());
 

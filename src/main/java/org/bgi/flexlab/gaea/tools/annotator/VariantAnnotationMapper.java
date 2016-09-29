@@ -14,7 +14,7 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
-import org.bgi.flexlab.gaea.data.structure.header.GaeaSingleVCFHeader;
+import org.bgi.flexlab.gaea.data.structure.header.SingleVCFHeader;
 import org.bgi.flexlab.gaea.data.structure.reference.GenomeShare;
 import org.bgi.flexlab.gaea.tools.annotator.config.Config;
 import org.bgi.flexlab.gaea.tools.annotator.db.DBAnno;
@@ -52,7 +52,7 @@ public class VariantAnnotationMapper extends Mapper<LongWritable, Text, NullWrit
 		
 		Path inputPath = new Path(conf.get("inputFilePath"));
 		
-		GaeaSingleVCFHeader singleVcfHeader = new GaeaSingleVCFHeader();
+		SingleVCFHeader singleVcfHeader = new SingleVCFHeader();
 		singleVcfHeader.readHeaderFrom(inputPath, inputPath.getFileSystem(conf));
 		vcfHeader = singleVcfHeader.getHeader();
 		vcfVersion = singleVcfHeader.getVCFVersion(vcfHeader);
