@@ -2,14 +2,14 @@ package org.bgi.flexlab.gaea.data.structure.header;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
-import org.bgi.flexlab.gaea.data.structure.header.GaeaMultipleVCFHeader;
+import org.bgi.flexlab.gaea.data.structure.header.MultipleVCFHeader;
 import org.junit.Before;
 
-public class GaeaMultipleVCFHeaderTest {
-	GaeaMultipleVCFHeader gmv;
+public class MultipleVCFHeaderTest {
+	MultipleVCFHeader gmv;
 	@Before
 	public void setup(){
-		gmv = new GaeaMultipleVCFHeader();
+		gmv = new MultipleVCFHeader();
 	}
 
 //	@Test

@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.bgi.flexlab.gaea.data.mapreduce.input.bed.SingleRegion;
-import org.bgi.flexlab.gaea.data.mapreduce.input.bed.SingleRegion.Regiondata;
 import org.bgi.flexlab.gaea.data.structure.positioninformation.IntPositionInformation;
+import org.bgi.flexlab.gaea.data.structure.region.SingleRegion;
+import org.bgi.flexlab.gaea.data.structure.region.SingleRegion.Regiondata;
 import org.bgi.flexlab.gaea.data.structure.region.statistic.CNVSingleRegionStatistic;
 import org.bgi.flexlab.gaea.data.structure.region.statistic.SingleRegionStatistic;
 import org.bgi.flexlab.gaea.util.ChromosomeUtils;

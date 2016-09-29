@@ -4,20 +4,20 @@ import java.io.IOException;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
-import org.bgi.flexlab.gaea.data.structure.header.GaeaSingleVCFHeader;
+import org.bgi.flexlab.gaea.data.structure.header.SingleVCFHeader;
 import org.junit.Before;
 import org.junit.Test;
 
 import junit.framework.Assert;
 
-public class GaeaSingleVCFHeaderTest {
-	GaeaSingleVCFHeader gmv;
+public class SingleVCFHeaderTest {
+	SingleVCFHeader gmv;
 	String output;
 	Configuration conf;
 	Path inputPath;
 	@Before
 	public void setup(){
-		gmv = new GaeaSingleVCFHeader();
+		gmv = new SingleVCFHeader();
 		output = "testOutput2";
 		conf = new Configuration(false);
 		conf.set("fs.default.name", "file:///");

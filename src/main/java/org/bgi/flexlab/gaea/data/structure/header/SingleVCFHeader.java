@@ -22,7 +22,7 @@ import org.apache.hadoop.util.LineReader;
 import org.seqdoop.hadoop_bam.util.VCFHeaderReader;
 import org.seqdoop.hadoop_bam.util.WrapSeekable;
 
-public class GaeaSingleVCFHeader extends GaeaVCFHeader implements Serializable{
+public class SingleVCFHeader extends GaeaVCFHeader implements Serializable{
 	/**
 	 * serial id
 	 */
@@ -146,14 +146,14 @@ public class GaeaSingleVCFHeader extends GaeaVCFHeader implements Serializable{
 	
 	@Override 
 	public void copy(GaeaVCFHeader header) {
-		GaeaSingleVCFHeader singleHeader = (GaeaSingleVCFHeader) header;
+		SingleVCFHeader singleHeader = (SingleVCFHeader) header;
 		sampleNames = singleHeader.getSampleNames();
 		headerInfo = singleHeader.getHeaderInfo();
 	}
 	
 	@Override
 	public GaeaVCFHeader initializeHeader(){
-		return new GaeaSingleVCFHeader();
+		return new SingleVCFHeader();
 	}
 	
 	public List<String> getSampleNames() {

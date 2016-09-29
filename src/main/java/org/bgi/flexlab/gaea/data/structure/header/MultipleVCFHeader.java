@@ -15,7 +15,7 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
-public class GaeaMultipleVCFHeader extends  GaeaVCFHeader implements Serializable{
+public class MultipleVCFHeader extends  GaeaVCFHeader implements Serializable{
 	/**
 	 * serial ID
 	 */
@@ -29,7 +29,7 @@ public class GaeaMultipleVCFHeader extends  GaeaVCFHeader implements Serializabl
 	/**
 	 * ID to header
 	 */
-	private Map<Integer, GaeaSingleVCFHeader> ID2SignelVcfHeader = new ConcurrentHashMap<Integer, GaeaSingleVCFHeader>();
+	private Map<Integer, SingleVCFHeader> ID2SignelVcfHeader = new ConcurrentHashMap<Integer, SingleVCFHeader>();
 	
 	/**
 	 * global ID
@@ -107,7 +107,7 @@ public class GaeaMultipleVCFHeader extends  GaeaVCFHeader implements Serializabl
 	 * @throws IOException
 	 */
 	private void readVcfHeader(Path vcf, Configuration conf) throws IOException {
-		GaeaSingleVCFHeader singleVcfHeader = new GaeaSingleVCFHeader();
+		SingleVCFHeader singleVcfHeader = new SingleVCFHeader();
 		singleVcfHeader.parseHeader(vcf, null, conf);
 		ID2SignelVcfHeader.put(id, singleVcfHeader);
 		
@@ -179,7 +179,7 @@ public class GaeaMultipleVCFHeader extends  GaeaVCFHeader implements Serializabl
 	
 	@Override
 	public void copy(GaeaVCFHeader header){
-		GaeaMultipleVCFHeader multiHeader = (GaeaMultipleVCFHeader) header;
+		MultipleVCFHeader multiHeader = (MultipleVCFHeader) header;
 		fileName2ID = multiHeader.fileName2ID;
 		ID2SignelVcfHeader = multiHeader.ID2SignelVcfHeader;
 		id = multiHeader.id;
@@ -187,7 +187,7 @@ public class GaeaMultipleVCFHeader extends  GaeaVCFHeader implements Serializabl
 	
 	@Override
 	public GaeaVCFHeader initializeHeader(){
-		return new GaeaMultipleVCFHeader();
+		return new MultipleVCFHeader();
 	}
 	
 	public int getFileNum() {
@@ -198,7 +198,7 @@ public class GaeaMultipleVCFHeader extends  GaeaVCFHeader implements Serializabl
 		return fileName2ID;
 	}
 
-	public Map<Integer, GaeaSingleVCFHeader> getID2SignelVcfHeader() {
+	public Map<Integer, SingleVCFHeader> getID2SignelVcfHeader() {
 		return ID2SignelVcfHeader;
 	}
 }
