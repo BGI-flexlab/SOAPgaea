@@ -3,9 +3,9 @@ package org.bgi.flexlab.gaea.tools.mapreduce.FastqQualityControl;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.bgi.flexlab.gaea.data.mapreduce.input.fastq.FastqInputFormat;
+import org.bgi.flexlab.gaea.framework.tools.mapreduce.BioJob;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.PairEndAggregatorMapper;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.ToolsRunner;
 
@@ -21,10 +21,11 @@ public class FastqQualityControl extends ToolsRunner {
 		FastqQualityControlOptions option = new FastqQualityControlOptions();
 		option.parse(args);
 
-		Configuration conf = new Configuration();
+		BioJob job = BioJob.getInstance();
+		
+		Configuration conf = job.getConfiguration();
 		option.setHadoopConf(args, conf);
-
-		Job job = Job.getInstance();
+		
 		job.setJobName("GaeaFastqQC");
 		job.setJarByClass(FastqQualityControl.class);
 		job.setMapperClass(PairEndAggregatorMapper.class);
