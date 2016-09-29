@@ -1,8 +1,8 @@
 package org.bgi.flexlab.gaea.tools.annotator.interval;
 
 import org.bgi.flexlab.gaea.tools.annotator.effect.EffectType;
-import org.bgi.flexlab.gaea.tools.annotator.effect.VariantEffects;
 import org.bgi.flexlab.gaea.tools.annotator.effect.VariantEffect.EffectImpact;
+import org.bgi.flexlab.gaea.tools.annotator.effect.VariantEffects;
 
 /**
  * Protein interaction: An amino acid that is "in contact" with another amino acid

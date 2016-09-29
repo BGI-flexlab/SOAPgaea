@@ -5,15 +5,14 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
-
-import org.bgi.flexlab.gaea.tools.annotator.interval.Interval;
-import org.bgi.flexlab.gaea.tools.annotator.interval.Marker;
-import org.bgi.flexlab.gaea.tools.annotator.interval.Markers;
-
 import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
+
+import org.bgi.flexlab.gaea.tools.annotator.interval.Interval;
+import org.bgi.flexlab.gaea.tools.annotator.interval.Marker;
+import org.bgi.flexlab.gaea.tools.annotator.interval.Markers;
 
 /**
  * The Node class contains the interval tree information for one single node

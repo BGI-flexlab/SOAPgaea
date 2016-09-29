@@ -116,19 +116,18 @@ public class SnpEffPredictorFactoryRefSeq extends SnpEffPredictorFactory {
 
 	@Override
 	public SnpEffectPredictor create() {
+		verbose = true;
 		try {
 			// Read gene intervals from a file
 			if (fileName == null) fileName = Config.get().getGeneInfo();
 
 			if (verbose) System.out.print("Reading gene intervals file : '" + fileName + "'\n\t\t");
-			System.err.println("............. reading refseq............");
 			readRefSeqFile(); // Read gene info
-			System.err.println(".............compelte read refseq............");
 			beforeExonSequences(); // Some clean-up before readng exon sequences
 
 			// Read chromosome sequences and set exon sequences
-//			if (readSequences) readExonSequences();
-//			else if (createRandSequences) createRandSequences();
+			if (readSequences) readExonSequences();
+			else if (createRandSequences) createRandSequences();
 
 			finishUp(); // Perform adjustments
 
@@ -186,7 +185,6 @@ public class SnpEffPredictorFactoryRefSeq extends SnpEffPredictorFactory {
 		try {
 			FileIterator fileIterator = new FileIterator(fileName);
 			int count = 0;
-			System.err.println(fileName);
 			for (lineNum = 1; fileIterator.hasNext(); lineNum++) {
 				line = fileIterator.next().toString();
 
@@ -220,12 +218,13 @@ public class SnpEffPredictorFactoryRefSeq extends SnpEffPredictorFactory {
 					String cdsEndStat = fields[14];
 					String exonFrames = fields[15];
 
-					System.err.println("chromoName:"+chromoName);
 					//---
 					// Create
 					//----
-					Chromosome chromo = getOrCreateChromosome(chromoName);
-
+//					Chromosome chromo = getOrCreateChromosome(chromoName);
+					Chromosome chromo = genome.getChromosome(chromoName);
+					if (chromo==null) continue;
+										
 					// Create IDs
 					String trId = uniqueTrId(id);
 
