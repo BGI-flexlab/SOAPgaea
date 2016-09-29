@@ -1,4 +1,4 @@
-package org.bgi.flexlab.gaea.data.structure.positioninformation;
+package org.bgi.flexlab.gaea.data.structure.positioninformation.depth;
 
 import org.bgi.flexlab.gaea.data.structure.positioninformation.CalculateWindowInformationInterface;
 import org.bgi.flexlab.gaea.data.structure.positioninformation.CompoundInformation;
@@ -10,11 +10,15 @@ import org.bgi.flexlab.gaea.data.structure.positioninformation.depth.PositionDep
 import org.bgi.flexlab.gaea.data.structure.positioninformation.other.PositionDeletionBaseInformation;
 import org.bgi.flexlab.gaea.data.structure.positioninformation.other.PositionIndelInformation;
 import org.bgi.flexlab.gaea.data.structure.positioninformation.other.PositionMismatchInformation;
-import org.bgi.flexlab.gaea.data.structure.reads.BamQCReadInformation;
+import org.bgi.flexlab.gaea.data.structure.reads.ReadInformationForBamQC;
+import org.bgi.flexlab.gaea.data.structure.reads.ReadInformationForBamToDepth;
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
+//import org.bgi.flexlab.gaea.tools.bam.depth.Bam2Depth;
 
-public class BamQCPositionDepth implements CalculateWindowInformationInterface<BamQCReadInformation>{
+public class PositionDepth implements CalculateWindowInformationInterface<ReadInformationForBamQC>{
 	
+	private PositionDepthSamtools[] depths = null;
+
 	private PositionDepthNormal posDepth = null;
 	
 	private PositionDepthRemoveDuplication posRMDupDeepth = null;
@@ -29,15 +33,27 @@ public class BamQCPositionDepth implements CalculateWindowInformationInterface<B
 	
 	private PositionDeletionBaseInformation deletionBaseWithNOCover = null;
 	
-	public BamQCPositionDepth(int windowSize) {
-		posDepth = new PositionDepthNormal(windowSize);
-		isIndel = new PositionIndelInformation(windowSize);
-		isMismatch = new PositionMismatchInformation(windowSize);
-		deletionBaseWithNOCover = new PositionDeletionBaseInformation(windowSize);
+	public PositionDepth(int windowSize, boolean forBamqc) {
+		if(forBamqc){
+			posDepth = new PositionDepthNormal(windowSize);
+			isIndel = new PositionIndelInformation(windowSize);
+			isMismatch = new PositionMismatchInformation(windowSize);
+			deletionBaseWithNOCover = new PositionDeletionBaseInformation(windowSize);
+		} else {
+			throw new RuntimeException("To initailze for bam2depth, feed "
+					+ "the constructor with a sample number and remove the boolean parameter");
+		}
 	}
 	
-	public BamQCPositionDepth(int windowSize, boolean isDupDepth, boolean isGenderDepth, int laneSize) {
-		this(windowSize);
+	public PositionDepth(int sampleNum) {
+		depths = new PositionDepthSamtools[sampleNum];
+		for(int i = 0; i < depths.length; i++) {
+			depths[i] = new PositionDepthSamtools(100000);
+		}
+	}
+	
+	public PositionDepth(int windowSize, boolean isGenderDepth, int laneSize) {
+		this(windowSize, true);
 //		if(isDupDepth)
 		posRMDupDeepth = new PositionDepthRemoveDuplication(windowSize);
 		if(isGenderDepth) {
@@ -49,15 +65,15 @@ public class BamQCPositionDepth implements CalculateWindowInformationInterface<B
 	}
 	
 	/**
-	 * ��ʼ��posIndex
+	 * initialize index
 	 * @return
 	 */
 	@Override
-	public boolean add(CompoundInformation<BamQCReadInformation> winInfo) {
+	public boolean add(CompoundInformation<ReadInformationForBamQC> winInfo) {
 		if(winInfo.getReadInfo() == null) {
 			return false;
 		}
-		BamQCReadInformation readInfo = winInfo.getReadInfo();
+		ReadInformationForBamQC readInfo = winInfo.getReadInfo();
 		ChromosomeInformationShare chrInfo = winInfo.getChrInfo();
 		int winStart = winInfo.getWindowStart();
 		
@@ -67,7 +83,7 @@ public class BamQCPositionDepth implements CalculateWindowInformationInterface<B
 			}
 			int coord = readInfo.getCigarState().resolveCigar(j, readInfo.getPosition());
 			
-			CompoundInformation<BamQCReadInformation> posInfo = new CompoundInformation<BamQCReadInformation>(readInfo, chrInfo, winStart, j, coord);
+			CompoundInformation<ReadInformationForBamQC> posInfo = new CompoundInformation<ReadInformationForBamQC>(readInfo, chrInfo, winStart, j, coord);
 			isIndel.add(posInfo);
 			
 			if( coord < 0) {//deletion
@@ -92,6 +108,36 @@ public class BamQCPositionDepth implements CalculateWindowInformationInterface<B
 			}
 			if(cnvUsedDepth != null) {
 				cnvUsedDepth.add(posInfo);
+			}
+		}
+		return true;
+	}
+	
+	/**
+	 * initialize index
+	 * @return
+	 */
+	@SuppressWarnings("rawtypes")
+	public boolean add(int winStart, int sampleIndex, ReadInformationForBamToDepth readInfo) {
+		if(readInfo == null) {
+			return false;
+		}
+		
+		int readStart = readInfo.getPosition();
+		int readEnd = readInfo.getEnd();
+		for(int j = readStart; j <= readEnd; j++) {
+			if(j < winStart || j >= (winStart + 100000)) {
+				continue;
+			}
+			int coord = readInfo.getCigarState().resolveCigar(j, readStart);
+			
+			if( coord < 0) {//deletion
+				continue;
+			}
+
+			CompoundInformation posInfo = new CompoundInformation(readInfo, null, winStart, j, 0);
+			if(depths[sampleIndex] != null) {
+				depths[sampleIndex].add(posInfo);
 			}
 		}
 		return true;
@@ -143,5 +189,13 @@ public class BamQCPositionDepth implements CalculateWindowInformationInterface<B
 	
 	public boolean isDeletionBaseWithNoConver(int i) {
 		return deletionBaseWithNOCover.get(i);
+	}
+	
+	public int getPosDepthSamtools(int sampleIndex, int i) {
+		return depths[sampleIndex].get(i);
+	}
+	
+	public IntPositionInformation getSamtoolsPosDepth(int sampleIndex) {
+		return depths[sampleIndex];
 	}
 }
