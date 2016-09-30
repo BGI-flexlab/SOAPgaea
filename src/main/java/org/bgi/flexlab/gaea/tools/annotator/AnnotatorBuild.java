@@ -47,6 +47,8 @@ public class AnnotatorBuild implements Serializable{
 	
 	public AnnotatorBuild(Config config) {
 		this.config = config;
+		this.verbose = config.isVerbose();
+		this.debug = config.isDebug();
 	}
 	
 	/**
