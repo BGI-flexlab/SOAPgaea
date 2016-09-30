@@ -315,6 +315,89 @@ public abstract class SnpEffPredictorFactory {
 					ex.setSequence(sequence);
 				}
 	}
+	
+	/**
+	 * Read exon sequences
+	 */
+	protected void readExonSequences() {
+
+		for (String chr : genome.getChromosomeNames()) {
+			int chrLen = genome.getChromosomeLength(chr);
+			
+			chromoNamesReference.add(chr);
+//			if (verbose) System.out.println("\t\tReading sequence '" + chromo + "', length: " + seq.length());
+//			ChromosomeInformationShare chrInfo = genome.getChromosomeInfo(chr);
+			// Add sequences for each gene
+			int seqsAdded = 0, seqsIgnored = 0;
+
+			if (storeSequences) {
+				if (verbose) System.out.print("\t\tAdding genomic sequences to genes: ");
+//				TODO
+//				int count = genome.getGenomicSequences().addGeneSequences(chr, chrSeq);
+//				if (verbose) System.out.println("\tDone (" + count + " sequences added).");
+			}
+			
+			for (Gene gene : genome.getGenes()) {
+				if (gene.getChromosomeName().equalsIgnoreCase(chr)) { // Same chromosome? => go on
+					for (Transcript tr : gene) {
+						for (Exon exon : tr) {
+							int ssStart = exon.getStart();
+//							int ssEnd = exon.getEnd() + 1; // add 1 ? 需验证
+							int ssEnd = exon.getEnd(); // add 1 ? 需验证
+
+							String seq = null;
+							if ((ssStart >= 0) && (ssEnd <= chrLen)) {
+								// Regular coordinates
+								try {
+									seq = genome.querySequence(chr, ssStart, ssEnd).toUpperCase();
+								} catch (Throwable t) {
+									t.printStackTrace();
+									throw new RuntimeException("Error trying to add sequence to exon:\n\tChromosome sequence length: " + chrLen + "\n\tExon: " + exon);
+								}
+							} else if ((ssStart < 0) && (ssEnd > 0)) {
+								// Negative start coordinates? This is probably a circular genome
+								// Convert to 2 intervals:
+								//     i) Interval before zero: This gets mapped to the end of the chromosome
+								//     ii) Interval after zero: This are "normal" coordinates
+								// Then we concatenate both sequences
+								ssStart += chrLen;
+//								seq = chrSeq.substring(ssStart, chrLen) + chrSeq.substring(0, ssEnd + 1);
+								seq = genome.querySequence(chr, ssStart, chrLen) + genome.querySequence(chr, 0, ssEnd) ;
+							} else if ((ssStart >= 0) && (ssEnd >= chrLen)) {
+								// Coordinates outside chromosome length? This is probably a circular genome
+								// Convert to 2 intervals:
+								//     i) Interval before chr.end: This are "normal" coordinates
+								//     ii) Interval after chr.end: This gets mapped to the beginning of the chromosome
+								// Then we concatenate both sequences
+								ssEnd -= chrLen;
+								seq = genome.querySequence(chr, ssStart, chrLen) + genome.querySequence(chr, 0, ssEnd + 1);
+							} else {
+								warning("Ignoring exon outside chromosome range (chromo length: " + chrLen + "). Exon: " + exon);
+								seqsIgnored++;
+							}
+
+							if (seq != null) {
+								// Sanity check
+								if (seq.length() != exon.size()) warning("Exon sequence length does not match exon.size()\n" + exon);
+
+								// Reverse strand? => reverse complement of the sequence
+								if (exon.isStrandMinus()) seq = GprSeq.reverseWc(seq);
+								exon.setSequence(seq);
+								seqsAdded++;
+
+							}
+						}
+					}
+				}
+			}
+			if (verbose) System.out.println("\tDone (" + seqsAdded + " sequences added, " + seqsIgnored + " ignored).");
+			totalSeqsAdded += seqsAdded;
+			totalSeqsIgnored += seqsIgnored;
+		}
+		return;
+
+//		throw new RuntimeException("Cannot find reference sequence.");
+	}
 
 	/**
 	 * Consolidate transcripts:
@@ -475,7 +558,7 @@ public abstract class SnpEffPredictorFactory {
 		}
 
 		// Done
-		if (verbose) System.out.println("");
+		if (verbose) System.out.println("finishUp Done");
 	}
 
 	/**
@@ -531,10 +614,10 @@ public abstract class SnpEffPredictorFactory {
 		Chromosome chromo = genome.getChromosome(chromoName);
 
 		// Not found? => Create a new one
-		if (chromo == null) {
-			chromo = new Chromosome(genome, 0, 0, chromoName);
-			genome.add(chromo);
-		}
+//		if (chromo == null) {
+//			chromo = new Chromosome(genome, 0, 0, chromoName);
+//			genome.add(chromo);
+//		}
 
 		return chromo;
 	}
@@ -578,14 +661,6 @@ public abstract class SnpEffPredictorFactory {
 			for (Transcript tr : gene)
 				if (tr.rankExons()) mark(i++);
 	}
-
-//	/**
-//	 * Read exon sequences from a FASTA file
-//	 * @param fastaFile
-//	 * 
-//	 */
-//	protected void readExonSequences() {
-//	}
 
 	/**
 	 * Remove empty chromosomes

@@ -13,6 +13,7 @@ import java.util.Properties;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.bgi.flexlab.gaea.data.structure.reference.GenomeShare;
 import org.bgi.flexlab.gaea.tools.annotator.codons.CodonTable;
 import org.bgi.flexlab.gaea.tools.annotator.codons.CodonTables;
 import org.bgi.flexlab.gaea.tools.annotator.effect.SnpEffectPredictor;
@@ -56,6 +57,7 @@ public class Config implements Serializable {
 	boolean hgvsTrId = false; // Use HGVS transcript ID in HGVS notation?
 	Properties properties;
 	Genome genome;
+	GenomeShare genomeShare;
 	SnpEffectPredictor snpEffectPredictor;
 	private Configuration conf;
 	
@@ -73,6 +75,13 @@ public class Config implements Serializable {
 		configInstance = this;
 	}
 	
+	public Config(Configuration conf, GenomeShare genomeShare) {
+		this.conf = conf;
+		this.genomeShare = genomeShare;
+		init();
+		configInstance = this;
+	}
+	
 	private void init(){
 		treatAllAsProteinCoding = false;
 		onlyRegulation = false;
@@ -85,7 +94,7 @@ public class Config implements Serializable {
 //		createCodonTables(genomeVersion, properties);  
 		loadJson();
 		parseProperties();
-		genome = new Genome(ref);
+		genome = new Genome(ref,genomeShare);
 	}
 
 	/**

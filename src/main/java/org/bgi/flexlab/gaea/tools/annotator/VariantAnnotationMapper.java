@@ -45,7 +45,7 @@ public class VariantAnnotationMapper extends Mapper<LongWritable, Text, NullWrit
 		else
 			genomeShare.loadChromosomeList(conf.get("reference"));
 		
-		userConfig = new Config(conf);
+		userConfig = new Config(conf, genomeShare);
 		AnnotatorBuild annoBuild = new AnnotatorBuild(userConfig);
 		
 		userConfig.setSnpEffectPredictor(annoBuild.createSnpEffPredictor());

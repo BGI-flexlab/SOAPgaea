@@ -65,12 +65,13 @@ public class WindowsBasicMapper
 		return winNum;
 	}
 
-	protected void setKey(String chrName, int winNum, int pos) {
-		keyout.set(chrName, winNum, pos);
-	}
-
-	protected void setKey(String sample, String chrName, int winNum, int pos) {
-		keyout.set(sample, chrName, winNum, pos);
+	protected void setKey(SAMRecord sam, int winNum) {
+		if (multiSample) {
+			keyout.set(sam.getReadGroup().getSample(), sam.getReferenceName(),
+					winNum, sam.getAlignmentStart());
+		} else {
+			keyout.set(sam.getReferenceName(), winNum, sam.getAlignmentStart());
+		}
 	}
 
 	@Override
@@ -90,11 +91,7 @@ public class WindowsBasicMapper
 			if (i != 0 && winNums[i] == winNums[0]) {
 				continue;
 			}
-			if (isMultipleSample())
-				setKey(sam.getReadGroup().getSample(), chrName, winNums[i],
-						sam.getAlignmentStart());
-			else
-				setKey(chrName, winNums[i], sam.getAlignmentStart());
+			setKey(sam, winNums[i]);
 			context.write(keyout, value);
 		}
 	}

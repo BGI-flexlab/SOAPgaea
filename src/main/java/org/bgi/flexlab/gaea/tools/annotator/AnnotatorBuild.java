@@ -14,8 +14,6 @@ public class AnnotatorBuild implements Serializable{
 	
 	private static final long serialVersionUID = 8558515853505312687L;
 
-	boolean debug = false; // Debug mode?
-	boolean verbose = false; // Verbose
 	private Config config; 
 	Properties properties;
 	boolean storeAlignments; // Store alignments (used for some test cases)

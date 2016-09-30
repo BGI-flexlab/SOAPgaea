@@ -11,6 +11,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 
+import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
 import org.bgi.flexlab.gaea.data.structure.reference.GenomeShare;
 import org.bgi.flexlab.gaea.tools.annotator.effect.EffectType;
 import org.bgi.flexlab.gaea.tools.annotator.util.Gpr;
@@ -74,7 +75,7 @@ public class Genome extends Marker implements Serializable, Iterable<Chromosome>
 		genes = new Genes(this);
 		setGenomeId();
 	}
-
+	
 	public Genome(String version) {
 		super(null, 0, Integer.MAX_VALUE, false, version);
 		this.version = version;
@@ -82,6 +83,22 @@ public class Genome extends Marker implements Serializable, Iterable<Chromosome>
 		chromosomeNames = new ArrayList<String>();
 		chromosomes = new HashMap<String, Chromosome>();
 		genes = new Genes(this);
+		setGenomeId();
+	}
+
+	public Genome(String version, GenomeShare genomeShare) {
+		super(null, 0, Integer.MAX_VALUE, false, version);
+		this.version = version;
+		this.genomeShare = genomeShare;
+		type = EffectType.GENOME;
+		chromosomeNames = new ArrayList<String>();
+		chromosomes = new HashMap<String, Chromosome>();
+		genes = new Genes(this);
+		
+		for (String chr : genomeShare.getChromosomeInfoMap().keySet()) {
+			int len = genomeShare.getChromosomeInfo(chr).getLength();
+			add(new Chromosome(this, 0, len, chr));
+		}
 		setGenomeId();
 	}
 
@@ -155,6 +172,14 @@ public class Genome extends Marker implements Serializable, Iterable<Chromosome>
 
 	public Collection<Chromosome> getChromosomes() {
 		return chromosomes.values();
+	}
+	
+	public ChromosomeInformationShare getChromosomeInfo(String chromoName) {
+		return genomeShare.getChromosomeInfo(chromoName);
+	}
+	
+	public int getChromosomeLength(String chromoName) {
+		return genomeShare.getChromosomeInfo(chromoName).getLength();
 	}
 
 	/**
@@ -521,6 +546,13 @@ public class Genome extends Marker implements Serializable, Iterable<Chromosome>
 		if (marker.isStrandMinus()) seq = GprSeq.reverseWc(seq);
 		return seq;
 	}
-
+	
+	/**
+	 * Get sequence from start and end coordiantes
+	 */
+	public String querySequence(String chr, int start, int end) {
+		String seq = genomeShare.getChromosomeInfo(chr).getBaseSequence(start, end);
+		return seq;
+	}
 
 }

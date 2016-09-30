@@ -11,9 +11,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import org.bgi.flexlab.gaea.tools.annotator.effect.AnnoFormat;
-import org.bgi.flexlab.gaea.tools.annotator.effect.EffectType;
-import org.bgi.flexlab.gaea.tools.annotator.effect.VariantEffect;
 import org.bgi.flexlab.gaea.tools.annotator.effect.VariantEffect.FunctionalClass;
 import org.bgi.flexlab.gaea.tools.annotator.interval.BioType;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Custom;
