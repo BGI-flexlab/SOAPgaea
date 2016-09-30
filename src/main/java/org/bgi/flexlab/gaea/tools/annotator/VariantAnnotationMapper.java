@@ -49,6 +49,7 @@ public class VariantAnnotationMapper extends Mapper<LongWritable, Text, NullWrit
 		AnnotatorBuild annoBuild = new AnnotatorBuild(userConfig);
 		
 		userConfig.setSnpEffectPredictor(annoBuild.createSnpEffPredictor());
+		annoBuild.buildForest();
 		
 		Path inputPath = new Path(conf.get("inputFilePath"));
 		
@@ -76,7 +77,9 @@ public class VariantAnnotationMapper extends Mapper<LongWritable, Text, NullWrit
 		VariantContext variantContext = vcfCodec.decode(vcfLine);
 		VcfAnnotationContext vcfAnnoContext = new VcfAnnotationContext(variantContext);
 		
-		vcfAnnotator.annotate(vcfAnnoContext);
+		if(!vcfAnnotator.annotate(vcfAnnoContext)){
+			return;
+		}
 		dbAnno.annotate(vcfAnnoContext);
 		
 		
