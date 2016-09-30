@@ -1,6 +1,5 @@
 package org.bgi.flexlab.gaea.data.mapreduce.input.vcf;
 
-
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMReadGroupRecord;
 
@@ -19,7 +18,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.util.LineReader;
-import org.bgi.flexlab.gaea.format.bam.header.HDFSSAMFileHeader;
+import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamFileHeader;
 
 public class VCFSplit {
 
@@ -38,7 +37,7 @@ public class VCFSplit {
 	public VCFSplit(String output, Configuration conf) {
 		this.output=output;
 		try {
-			mFileHeader=HDFSSAMFileHeader.getHeader(conf, false);
+			mFileHeader=SamFileHeader.getHeader(conf);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
