@@ -1,9 +1,6 @@
 package org.bgi.flexlab.gaea.data.mapreduce.input.header;
 
 import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.io.StringWriter;
-import java.io.Writer;
 import java.util.ArrayList;
 
 import org.apache.hadoop.conf.Configuration;
@@ -17,7 +14,6 @@ import org.bgi.flexlab.gaea.exception.FileNotExistException;
 
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMFileReader;
-import htsjdk.samtools.SAMTextHeaderCodec;
 import htsjdk.samtools.SamFileHeaderMerger;
 
 public class SamFileHeader {
@@ -45,7 +41,7 @@ public class SamFileHeader {
 	}
 
 	@SuppressWarnings("deprecation")
-	private static SAMFileHeader getSAMHeader(FileSystem fs, Path file)
+	public static SAMFileHeader getSAMHeader(FileSystem fs, Path file)
 			throws IOException {
 		SAMFileReader samr = new SAMFileReader(fs.open(file));
 		SAMFileHeader header = samr.getFileHeader();
@@ -54,6 +50,7 @@ public class SamFileHeader {
 			throw new FileNotExistException.MissingHeaderException(
 					file.getName());
 		}
+
 		return header;
 	}
 
@@ -119,7 +116,7 @@ public class SamFileHeader {
 		return mergeHeader;
 	}
 
-	private static void writeHeader(Configuration conf, SAMFileHeader header,
+	protected static void writeHeader(Configuration conf, SAMFileHeader header,
 			Path output) {
 		Path rankSumTestObjPath = null;
 		FsAction[] v = FsAction.values();
@@ -141,25 +138,7 @@ public class SamFileHeader {
 				fs.setPermission(output, permission);
 			}
 
-			final Writer sw = new StringWriter();
-			new SAMTextHeaderCodec().encode(sw, header);
-
-			ObjectOutputStream ostream = null;
-			try {
-				if (fs.exists(rankSumTestObjPath)) {
-					fs.delete(rankSumTestObjPath);
-				}
-			} catch (IOException e1) {
-				e1.printStackTrace();
-			}
-			try {
-				ostream = new ObjectOutputStream(fs.create(rankSumTestObjPath));
-				ostream.writeUTF(sw.toString());
-				ostream.close();
-			} catch (IOException e) {
-				ostream = null;
-				e.printStackTrace();
-			}
+			SamFileHeaderText.writeHdfsHeader(header,rankSumTestObjPath,conf);
 		} catch (IOException e) {
 			e.printStackTrace();
 		} finally {
@@ -171,13 +150,19 @@ public class SamFileHeader {
 		}
 	}
 
+	public static SAMFileHeader getHeader(FileSystem fs, Path input)
+			throws IOException {
+		SAMFileReader samr = new SAMFileReader(fs.open(input));
+		SAMFileHeader header = samr.getFileHeader();
+		return header;
+	}
+
 	public static SAMFileHeader getHeader(Configuration conf) {
 		SAMFileHeader header = null;
 		try {
 			Path headerPath = new Path(conf.get("SAMFileHeader"));
-			FileSystem fs = headerPath.getFileSystem(conf);
-			SAMFileReader samr = new SAMFileReader(fs.open(headerPath));
-			header = samr.getFileHeader();
+			HdfsHeaderLineReader reader = new HdfsHeaderLineReader(headerPath,conf);
+			header = SamFileHeaderText.readHeader(reader);
 		} catch (IOException e) {
 			throw new RuntimeException(e.getMessage());
 		}
