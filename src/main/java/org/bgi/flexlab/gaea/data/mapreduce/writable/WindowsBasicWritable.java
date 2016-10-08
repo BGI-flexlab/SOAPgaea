@@ -36,6 +36,10 @@ public class WindowsBasicWritable implements
 		String[] win = windowsInfo.toString().split(":");
 		return win[win.length - 2];
 	}
+	
+	public String getWindowsInformation(){
+		return windowsInfo.toString();
+	}
 
 	public int getWindowsNumber() {
 		String[] win = windowsInfo.toString().split(":");

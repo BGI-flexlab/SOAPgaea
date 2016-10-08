@@ -17,6 +17,7 @@ import htsjdk.samtools.SAMFileReader;
 import htsjdk.samtools.SamFileHeaderMerger;
 
 public class SamFileHeader {
+	protected final static String BAM_HEADER_FILE_NAME = "SAMFileHeader";
 	protected final static SAMFileHeader.SortOrder SORT_ORDER = SAMFileHeader.SortOrder.coordinate;
 	protected static boolean MERGE_SEQUENCE_DICTIONARIES = true;
 	protected static SAMFileHeader.SortOrder headerMergerSortOrder;
@@ -125,8 +126,8 @@ public class SamFileHeader {
 		if (!output.getName().endsWith("/")) {
 			uri.append(System.getProperty("file.separator"));
 		}
-		uri.append("SAMFileHeader");
-		conf.set("SAMFileHeader", uri.toString());
+		uri.append(BAM_HEADER_FILE_NAME);
+		conf.set(BAM_HEADER_FILE_NAME, uri.toString());
 		rankSumTestObjPath = new Path(uri.toString());
 		FileSystem fs = null;
 		try {
@@ -160,7 +161,7 @@ public class SamFileHeader {
 	public static SAMFileHeader getHeader(Configuration conf) {
 		SAMFileHeader header = null;
 		try {
-			Path headerPath = new Path(conf.get("SAMFileHeader"));
+			Path headerPath = new Path(conf.get(BAM_HEADER_FILE_NAME));
 			HdfsHeaderLineReader reader = new HdfsHeaderLineReader(headerPath,conf);
 			header = SamFileHeaderText.readHeader(reader);
 		} catch (IOException e) {

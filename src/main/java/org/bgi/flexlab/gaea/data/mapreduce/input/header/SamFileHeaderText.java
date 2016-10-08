@@ -18,8 +18,6 @@ public class SamFileHeaderText {
 	public static SAMFileHeader readHeader(HdfsHeaderLineReader reader) {
 		SAMTextHeaderCodec codec = new SAMTextHeaderCodec();
 		SAMFileHeader mHeader = codec.decode(reader, null);
-		
-		System.out.println(reader.getLineNumber());
 		return mHeader;
 	}
 

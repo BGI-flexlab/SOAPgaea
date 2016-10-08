@@ -8,7 +8,9 @@ import java.io.IOException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.mapreduce.Mapper;
+import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamFileHeader;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.WindowsBasicWritable;
+import org.bgi.flexlab.gaea.exception.BamHeaderNullException;
 import org.seqdoop.hadoop_bam.SAMRecordWritable;
 
 public class WindowsBasicMapper
@@ -26,18 +28,6 @@ public class WindowsBasicMapper
 
 	protected WindowsBasicWritable keyout = new WindowsBasicWritable();
 
-	protected int getWindowsSize() {
-		return windowsSize;
-	}
-
-	protected int getWindowExtendSize() {
-		return windowsExtendSize;
-	}
-
-	protected boolean isMultipleSample() {
-		return multiSample;
-	}
-
 	@Override
 	protected void setup(Context context) throws IOException,
 			InterruptedException {
@@ -45,6 +35,12 @@ public class WindowsBasicMapper
 		windowsSize = conf.getInt(WINDOWS_SIZE, 10000);
 		windowsExtendSize = conf.getInt(WINDOWS_EXTEND_SIZE, 500);
 		multiSample = conf.getBoolean(MULTIPLE_SAMPLE, false);
+		
+		header = SamFileHeader.getHeader(conf);
+		
+		if(header == null){
+			throw new BamHeaderNullException("cann't read header from the file!");
+		}
 	}
 
 	protected boolean filter(SAMRecord sam) {
