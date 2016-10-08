@@ -4,7 +4,6 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
-import org.bgi.flexlab.gaea.data.mapreduce.input.fastq.FastqInputFormat;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.BioJob;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.PairEndAggregatorMapper;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.ToolsRunner;

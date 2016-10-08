@@ -13,6 +13,7 @@ import org.seqdoop.hadoop_bam.SAMRecordWritable;
 public class PairEndAggregatorMapper extends
 		Mapper<Writable, Writable, Text, Writable> {
 	protected Text keyout = new Text();
+	protected Writable valueout;
 	
 	protected void set(Writable keyin,Writable valuein){
 		if(keyin instanceof Text){
@@ -23,13 +24,14 @@ public class PairEndAggregatorMapper extends
 		}
 	}
 	
-	protected void getValue(Writable valuein,Writable valueout){
+	protected Writable getValue(Writable valuein){
+		return valuein;
 	}
 
 	protected void map(Writable key, Writable value, Context context)
 			throws IOException, InterruptedException {
 		set(key,value);
-		getValue(value,value);
-		context.write(keyout, value);
+		valueout = getValue(value);
+		context.write(keyout, valueout);
 	}
 }

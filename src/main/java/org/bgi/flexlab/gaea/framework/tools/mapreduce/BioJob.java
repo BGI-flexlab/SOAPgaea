@@ -5,6 +5,9 @@ import java.io.IOException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
+import org.bgi.flexlab.gaea.data.mapreduce.partitioner.WindowsBasicComparator;
+import org.bgi.flexlab.gaea.data.mapreduce.partitioner.WindowsBasicPartitioner;
+import org.bgi.flexlab.gaea.data.mapreduce.partitioner.WindowsBasicSort;
 
 public class BioJob extends Job {
 
@@ -26,6 +29,9 @@ public class BioJob extends Job {
 			int windowsSize) throws IllegalStateException {
 		conf.setInt(WindowsBasicMapper.WINDOWS_SIZE, windowsSize);
 		setMapperClass(cls);
+		setPartitionerClass(WindowsBasicPartitioner.class);
+		setGroupingComparatorClass(WindowsBasicComparator.class);
+		setSortComparatorClass(WindowsBasicSort.class);
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -33,10 +39,10 @@ public class BioJob extends Job {
 			int windowsSize, int windowsExtendSize)
 			throws IllegalStateException {
 		conf.setInt(WindowsBasicMapper.WINDOWS_EXTEND_SIZE, windowsExtendSize);
-		setWindowsBasicMapperClass(cls,windowsSize);
+		setWindowsBasicMapperClass(cls, windowsSize);
 	}
-	
-	public void setMultipleSample(){
+
+	public void setMultipleSample() {
 		conf.setBoolean(WindowsBasicMapper.MULTIPLE_SAMPLE, true);
 	}
 }
