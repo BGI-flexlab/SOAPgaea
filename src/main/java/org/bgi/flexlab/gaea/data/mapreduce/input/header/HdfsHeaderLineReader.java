@@ -48,6 +48,8 @@ public class HdfsHeaderLineReader implements LineReader{
 
 	@Override
 	public void close() {
+		if(lineReader == null)
+			return;
 		try {
 			lineReader.close();
 		} catch (IOException e) {

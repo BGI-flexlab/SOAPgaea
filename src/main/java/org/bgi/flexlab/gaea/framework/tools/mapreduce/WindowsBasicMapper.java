@@ -10,7 +10,7 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamFileHeader;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.WindowsBasicWritable;
-import org.bgi.flexlab.gaea.exception.BamHeaderNullException;
+import org.bgi.flexlab.gaea.exception.FileNotExistException;
 import org.seqdoop.hadoop_bam.SAMRecordWritable;
 
 public class WindowsBasicMapper
@@ -39,7 +39,8 @@ public class WindowsBasicMapper
 		header = SamFileHeader.getHeader(conf);
 		
 		if(header == null){
-			throw new BamHeaderNullException("cann't read header from the file!");
+			String[] filename=context.getInputSplit().toString().split("/|:");
+			throw new FileNotExistException.MissingHeaderException(filename[filename.length-2]);
 		}
 	}
 
