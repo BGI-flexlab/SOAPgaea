@@ -16,6 +16,9 @@ import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMFileReader;
 import htsjdk.samtools.SamFileHeaderMerger;
 
+/* *
+ * bam header io for hdfs
+ * */
 public class SamFileHeader {
 	protected final static String BAM_HEADER_FILE_NAME = "SAMFileHeader";
 	protected final static SAMFileHeader.SortOrder SORT_ORDER = SAMFileHeader.SortOrder.coordinate;
@@ -55,6 +58,9 @@ public class SamFileHeader {
 		return header;
 	}
 
+	/*
+	 * merge bam header for input directory
+	 * */
 	public static SAMFileHeader traversal(Path input, FileSystem fs,
 			Configuration conf) {
 		ArrayList<SAMFileHeader> mergeHeaders = new ArrayList<SAMFileHeader>();
