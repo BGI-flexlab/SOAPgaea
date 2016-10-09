@@ -1,6 +1,7 @@
 package org.bgi.flexlab.gaea.data.mapreduce.input.vcf;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -144,12 +145,7 @@ public class VCFMultipleReader extends RecordReader<IntWritable, Text> {
 	private void initPos(CompressionCodec codec, FSDataInputStream fileIn, Configuration job) throws IOException{
 		boolean skipFirstLine = false;
 		if (codec != null) {
-			if (null == this.recordDelimiterBytes) {
-				in = new LineReader(codec.createInputStream(fileIn), job);
-			} else {
-				in = new LineReader(codec.createInputStream(fileIn), job,
-						this.recordDelimiterBytes);
-			}
+			initLineReader(codec.createInputStream(fileIn), job);
 			end = Long.MAX_VALUE;
 		} else {
 			if (start != 0) {
@@ -157,11 +153,7 @@ public class VCFMultipleReader extends RecordReader<IntWritable, Text> {
 				--start;
 				fileIn.seek(start);
 			}
-			if (null == this.recordDelimiterBytes) {
-				in = new LineReader(fileIn, job);
-			} else {
-				in = new LineReader(fileIn, job, this.recordDelimiterBytes);
-			}
+			initLineReader(fileIn, job);
 		}
 		if (skipFirstLine) { // skip first line and re-establish "start".
 			start += in.readLine(new Text(), 0,
@@ -170,4 +162,12 @@ public class VCFMultipleReader extends RecordReader<IntWritable, Text> {
 		this.pos = start;
 	}
 	
+	private void initLineReader(InputStream is, Configuration job) throws IOException {
+		if (null == this.recordDelimiterBytes) {
+			in = new LineReader(is, job);
+		} else {
+			in = new LineReader(is, job,
+					this.recordDelimiterBytes);
+		}
+	}
 }
