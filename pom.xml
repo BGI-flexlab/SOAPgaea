@@ -1,22 +1,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<build>
-	   <plugins>
-	     <plugin>
-	       <groupId>org.apache.maven.plugins</groupId>
-	       <artifactId>maven-compiler-plugin</artifactId>
-	       <version>2.3.2</version>
-	       <configuration>
-	         <source>1.7</source>
-	         <target>1.7</target>
-	         <encoding>UTF-8</encoding>
-	         <showDeprecation>true</showDeprecation>
-	         <showWarnings>true</showWarnings>
-	       </configuration>
-	     </plugin>
-		</plugins>
-  	</build>
+
 	<groupId>org.bgi.flexlab</groupId>
 	<artifactId>gaea</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
@@ -44,13 +29,6 @@
 			<scope>system</scope>
 		</dependency>
 		<dependency>
-			<groupId>common-logging</groupId>
-			<artifactId>common-logging</artifactId>
-			<version>1.1.3</version>
-			<systemPath>${basedir}/src/lib/commons-logging-1.1.3.jar</systemPath>
-			<scope>system</scope>
-		</dependency>
-		<dependency>
 			<groupId>hadoop-bam</groupId>
 			<artifactId>hadoop-bam</artifactId>
 			<version>7.0</version>
@@ -58,26 +36,36 @@
 			<scope>system</scope>
 		</dependency>
 		<dependency>
-			<groupId>hadoop-common</groupId>
-			<artifactId>hadoop-common</artifactId>
-			<version>2.6.0-cdh5.6.0</version>
-			<systemPath>${basedir}/src/lib/hadoop-common-2.6.0-cdh5.6.0.jar</systemPath>
+			<groupId>cofoja</groupId>
+			<artifactId>cofoja</artifactId>
+			<version>1.0-r139</version>
 			<scope>system</scope>
+			<systemPath>${basedir}/src/lib/cofoja-1.0-r139.jar</systemPath>
 		</dependency>
 		<dependency>
-			<groupId>hadoop-hdfs</groupId>
-			<artifactId>hadoop-hdfs</artifactId>
-			<version>2.6.0-cdh5.6.0</version>
-			<systemPath>${basedir}/src/lib/hadoop-hdfs-2.6.0-cdh5.6.0.jar</systemPath>
+			<groupId>kryo</groupId>
+			<artifactId>kryo</artifactId>
+			<version>2.21</version>
 			<scope>system</scope>
+			<systemPath>${basedir}/src/lib/kryo-2.21.jar</systemPath>
+		</dependency>
+
+		<dependency>
+		    <groupId>org.apache.hadoop</groupId>
+		    <artifactId>hadoop-common</artifactId>
+		    <version>2.6.0-cdh5.6.0</version>
 		</dependency>
 		<dependency>
-			<groupId>hadoop-mapreduce</groupId>
-			<artifactId>hadoop-mapreduce</artifactId>
-			<version>2.6.0-cdh5.6.0</version>
-			<systemPath>${basedir}/src/lib/hadoop-mapreduce-client-core-2.6.0-cdh5.6.0.jar</systemPath>
-			<scope>system</scope>
+		    <groupId>org.apache.hadoop</groupId>
+		    <artifactId>hadoop-mapreduce-client-core</artifactId>
+		    <version>2.6.0-cdh5.6.0</version>
 		</dependency>
+		<dependency>
+		    <groupId>org.apache.hadoop</groupId>
+		    <artifactId>hadoop-hdfs</artifactId>
+		    <version>2.6.0-cdh5.6.0</version>
+		</dependency>
+		
 		<dependency>
 			<groupId>org.apache.hbase</groupId>
 			<artifactId>hbase-client</artifactId>
@@ -104,39 +92,24 @@
 			</exclusions>
 		</dependency>
 		<dependency>
-			<groupId>cofoja</groupId>
-			<artifactId>cofoja</artifactId>
-			<version>1.0-r139</version>
-			<scope>system</scope>
-			<systemPath>${basedir}/src/lib/cofoja-1.0-r139.jar</systemPath>
+	      <groupId>org.apache.commons</groupId>
+	      <artifactId>commons-math3</artifactId>
+	      <version>3.2</version>
+	    </dependency>
+		<dependency>
+		    <groupId>log4j</groupId>
+		    <artifactId>log4j</artifactId>
+		    <version>1.2.17</version>
 		</dependency>
 		<dependency>
-			<groupId>kryo</groupId>
-			<artifactId>kryo</artifactId>
-			<version>2.21</version>
-			<scope>system</scope>
-			<systemPath>${basedir}/src/lib/kryo-2.21.jar</systemPath>
+		    <groupId>commons-logging</groupId>
+		    <artifactId>commons-logging</artifactId>
+		    <version>1.1.3</version>
 		</dependency>
 		<dependency>
-			<groupId>commons-math3</groupId>
-			<artifactId>commons-math3</artifactId>
-			<version>3.2</version>
-			<scope>system</scope>
-			<systemPath>${basedir}/src/lib/commons-math3-3.2.jar</systemPath>
-		</dependency>
-		<dependency>
-			<groupId>log4j</groupId>
-			<artifactId>log4j</artifactId>
-			<version>1.2.17</version>
-			<scope>system</scope>
-			<systemPath>${basedir}/src/lib/log4j-1.2.17.jar</systemPath>
-		</dependency>
-		<dependency>
-			<groupId>commons-cli</groupId>
-			<artifactId>commons-cli</artifactId>
-			<version>1.2</version>
-			<scope>system</scope>
-			<systemPath>${basedir}/src/lib/commons-cli-1.2.jar</systemPath>
+		    <groupId>commons-cli</groupId>
+		    <artifactId>commons-cli</artifactId>
+		    <version>1.3.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.code.gson</groupId>
@@ -144,4 +117,30 @@
 			<version>2.6.2</version>
 		</dependency>
 	</dependencies>
+	
+    <repositories>
+        <repository>
+            <id>Cloudera</id>
+            <name>Cloudera Repository</name>
+            <url>https://repository.cloudera.com/content/repositories/releases/</url>
+        </repository>
+    </repositories>
+  
+  	<build>
+	   <plugins>
+	     <plugin>
+	       <groupId>org.apache.maven.plugins</groupId>
+	       <artifactId>maven-compiler-plugin</artifactId>
+	       <version>2.3.2</version>
+	       <configuration>
+	         <source>1.7</source>
+	         <target>1.7</target>
+	         <encoding>UTF-8</encoding>
+	         <showDeprecation>true</showDeprecation>
+	         <showWarnings>true</showWarnings>
+	       </configuration>
+	     </plugin>
+		</plugins>
+  	</build>
+  
 </project>
