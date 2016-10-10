@@ -10,6 +10,11 @@ import org.bgi.flexlab.gaea.data.structure.vcf.VCFFileWriter;
 import htsjdk.samtools.util.RuntimeEOFException;
 
 public class VCFHdfsWriter extends VCFFileWriter{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 4557833627590736290L;
+
 	public VCFHdfsWriter(String filePath, boolean doNotWriteGenotypes,
 			final boolean allowMissingFieldsInHeader, Configuration conf) throws IOException {
 		super(filePath, doNotWriteGenotypes, allowMissingFieldsInHeader, conf);
