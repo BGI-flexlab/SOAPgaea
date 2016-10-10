@@ -5,14 +5,15 @@ import java.io.IOException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
-import org.bgi.flexlab.gaea.data.mapreduce.partitioner.WindowsBasicComparator;
-import org.bgi.flexlab.gaea.data.mapreduce.partitioner.WindowsBasicPartitioner;
-import org.bgi.flexlab.gaea.data.mapreduce.partitioner.WindowsBasicSort;
+import org.bgi.flexlab.gaea.data.mapreduce.partitioner.WindowsBasedComparator;
+import org.bgi.flexlab.gaea.data.mapreduce.partitioner.WindowsBasedPartitioner;
+import org.bgi.flexlab.gaea.data.mapreduce.partitioner.WindowsBasedSort;
+import org.bgi.flexlab.gaea.data.structure.bam.SamRecordFilter;
 
 public class BioJob extends Job {
 
 	@SuppressWarnings("deprecation")
-	public BioJob(Configuration conf) throws IOException {
+	private BioJob(Configuration conf) throws IOException {
 		super(conf);
 	}
 
@@ -27,22 +28,40 @@ public class BioJob extends Job {
 	@SuppressWarnings("rawtypes")
 	public void setWindowsBasicMapperClass(Class<? extends Mapper> cls,
 			int windowsSize) throws IllegalStateException {
-		conf.setInt(WindowsBasicMapper.WINDOWS_SIZE, windowsSize);
+		conf.setInt(WindowsBasedMapper.WINDOWS_SIZE, windowsSize);
 		setMapperClass(cls);
-		setPartitionerClass(WindowsBasicPartitioner.class);
-		setGroupingComparatorClass(WindowsBasicComparator.class);
-		setSortComparatorClass(WindowsBasicSort.class);
+		setPartitionerClass(WindowsBasedPartitioner.class);
+		setGroupingComparatorClass(WindowsBasedComparator.class);
+		setSortComparatorClass(WindowsBasedSort.class);
 	}
 
 	@SuppressWarnings("rawtypes")
 	public void setWindowsBasicMapperClass(Class<? extends Mapper> cls,
 			int windowsSize, int windowsExtendSize)
 			throws IllegalStateException {
-		conf.setInt(WindowsBasicMapper.WINDOWS_EXTEND_SIZE, windowsExtendSize);
+		conf.setInt(WindowsBasedMapper.WINDOWS_EXTEND_SIZE, windowsExtendSize);
 		setWindowsBasicMapperClass(cls, windowsSize);
 	}
 
 	public void setMultipleSample() {
-		conf.setBoolean(WindowsBasicMapper.MULTIPLE_SAMPLE, true);
+		conf.setBoolean(WindowsBasedMapper.MULTIPLE_SAMPLE, true);
+	}
+
+	public void setFilterClass(Class<? extends SamRecordFilter> cls) {
+		conf.setClass(WindowsBasedMapper.SAM_RECORD_FILTER, cls,
+				SamRecordFilter.class);
+	}
+
+	public void setOutputKeyValue(Class<?> mapKeyClass, Class<?> mapValueClass,
+			Class<?> reduceKeyClass, Class<?> reduceValueClass) {
+		setMapOutputKeyClass(mapKeyClass);
+		setMapOutputValueClass(mapValueClass);
+		setOutputKeyClass(reduceKeyClass);
+		setOutputValueClass(reduceValueClass);
+	}
+
+	public void setOutputKeyValue(Class<?> keyClass, Class<?> valueClass) {
+		setOutputKeyClass(keyClass);
+		setOutputValueClass(valueClass);
 	}
 }

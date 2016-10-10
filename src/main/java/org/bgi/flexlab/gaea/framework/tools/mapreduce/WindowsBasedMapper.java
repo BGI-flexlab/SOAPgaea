@@ -9,24 +9,29 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamFileHeader;
-import org.bgi.flexlab.gaea.data.mapreduce.writable.WindowsBasicWritable;
+import org.bgi.flexlab.gaea.data.mapreduce.writable.WindowsBasedWritable;
+import org.bgi.flexlab.gaea.data.structure.bam.SamRecordFilter;
+import org.bgi.flexlab.gaea.data.structure.region.Region;
 import org.bgi.flexlab.gaea.exception.FileNotExistException;
 import org.seqdoop.hadoop_bam.SAMRecordWritable;
 
-public class WindowsBasicMapper
+public class WindowsBasedMapper
 		extends
-		Mapper<LongWritable, SAMRecordWritable, WindowsBasicWritable, SAMRecordWritable> {
+		Mapper<LongWritable, SAMRecordWritable, WindowsBasedWritable, SAMRecordWritable> {
 
 	public final static String WINDOWS_SIZE = "windows.size";
 	public final static String WINDOWS_EXTEND_SIZE = "windows.extend.size";
 	public final static String MULTIPLE_SAMPLE = "multiple.sample";
+	public final static String SAM_RECORD_FILTER = "sam.record.filter";
 
 	protected int windowsSize;
 	protected int windowsExtendSize;
 	protected boolean multiSample;
 	protected SAMFileHeader header = null;
 
-	protected WindowsBasicWritable keyout = new WindowsBasicWritable();
+	protected WindowsBasedWritable keyout = new WindowsBasedWritable();
+	private SamRecordFilter recordFilter = null;
+	private Region region = null;
 
 	@Override
 	protected void setup(Context context) throws IOException,
@@ -35,17 +40,30 @@ public class WindowsBasicMapper
 		windowsSize = conf.getInt(WINDOWS_SIZE, 10000);
 		windowsExtendSize = conf.getInt(WINDOWS_EXTEND_SIZE, 500);
 		multiSample = conf.getBoolean(MULTIPLE_SAMPLE, false);
-		
-		header = SamFileHeader.getHeader(conf);
-		
-		if(header == null){
-			String[] filename=context.getInputSplit().toString().split("/|:");
-			throw new FileNotExistException.MissingHeaderException(filename[filename.length-2]);
-		}
-	}
 
-	protected boolean filter(SAMRecord sam) {
-		return false;
+		header = SamFileHeader.getHeader(conf);
+
+		if (header == null) {
+			String[] filename = context.getInputSplit().toString().split("/|:");
+			throw new FileNotExistException.MissingHeaderException(
+					filename[filename.length - 2]);
+		}
+
+		String className = conf.get(SAM_RECORD_FILTER);
+		if (className == null) {
+			recordFilter = new SamRecordFilter.DefaultSamRecordFilter();
+		} else {
+			try {
+				recordFilter = (SamRecordFilter) (Class.forName(className)
+						.newInstance());
+			} catch (InstantiationException e) {
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				e.printStackTrace();
+			} catch (ClassNotFoundException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
 	protected int[] getExtendPosition(int start, int end, int length) {
@@ -76,7 +94,7 @@ public class WindowsBasicMapper
 			Context context) throws IOException, InterruptedException {
 		SAMRecord sam = value.get();
 		sam.setHeader(header);
-		if (filter(sam)) {
+		if (recordFilter.filter(sam)) {
 			return;
 		}
 

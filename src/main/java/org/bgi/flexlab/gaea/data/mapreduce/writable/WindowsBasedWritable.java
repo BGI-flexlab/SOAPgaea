@@ -8,8 +8,8 @@ import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.WritableComparable;
 
-public class WindowsBasicWritable implements
-		WritableComparable<WindowsBasicWritable> {
+public class WindowsBasedWritable implements
+		WritableComparable<WindowsBasedWritable> {
 	private Text windowsInfo = new Text();
 	private IntWritable position = new IntWritable();
 
@@ -68,8 +68,8 @@ public class WindowsBasicWritable implements
 
 	@Override
 	public boolean equals(Object other) {
-		if (other instanceof WindowsBasicWritable) {
-			WindowsBasicWritable tmp = (WindowsBasicWritable) other;
+		if (other instanceof WindowsBasedWritable) {
+			WindowsBasedWritable tmp = (WindowsBasedWritable) other;
 			return windowsInfo.toString().equals(tmp.windowsInfo.toString())
 					&& position.get() == (tmp.position.get());
 		}
@@ -77,7 +77,7 @@ public class WindowsBasicWritable implements
 	}
 
 	@Override
-	public int compareTo(WindowsBasicWritable tp) {
+	public int compareTo(WindowsBasedWritable tp) {
 		int cmp = windowsInfo.compareTo(tp.windowsInfo);
 		if (cmp != 0) {
 			return cmp;
