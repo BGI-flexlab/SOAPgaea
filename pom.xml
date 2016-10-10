@@ -22,32 +22,26 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>htsjdk</groupId>
+			<groupId>com.github.samtools</groupId>
 			<artifactId>htsjdk</artifactId>
 			<version>1.130</version>
+			<scope>system</scope>
 			<systemPath>${basedir}/src/lib/htsjdk-1.130.jar</systemPath>
-			<scope>system</scope>
 		</dependency>
 		<dependency>
-			<groupId>hadoop-bam</groupId>
+			<groupId>org.seqdoop</groupId>
 			<artifactId>hadoop-bam</artifactId>
-			<version>7.0</version>
-			<systemPath>${basedir}/src/lib/hadoop-bam.jar</systemPath>
-			<scope>system</scope>
+			<version>7.0.0</version>
 		</dependency>
 		<dependency>
-			<groupId>cofoja</groupId>
+			<groupId>com.google.java.contract</groupId>
 			<artifactId>cofoja</artifactId>
-			<version>1.0-r139</version>
-			<scope>system</scope>
-			<systemPath>${basedir}/src/lib/cofoja-1.0-r139.jar</systemPath>
+			<version>1.1-r150</version>
 		</dependency>
 		<dependency>
-			<groupId>kryo</groupId>
+			<groupId>com.esotericsoftware.kryo</groupId>
 			<artifactId>kryo</artifactId>
 			<version>2.21</version>
-			<scope>system</scope>
-			<systemPath>${basedir}/src/lib/kryo-2.21.jar</systemPath>
 		</dependency>
 
 		<dependency>
@@ -67,9 +61,9 @@
 		</dependency>
 		
 		<dependency>
-			<groupId>org.apache.hbase</groupId>
-			<artifactId>hbase-client</artifactId>
-			<version>1.0.0</version>
+    <groupId>org.apache.hbase</groupId>
+    <artifactId>hbase-client</artifactId>
+    <version>1.0.0-cdh5.6.0</version>
 			<exclusions>
 				<exclusion>
 					<artifactId>jdk.tools</artifactId>
