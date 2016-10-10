@@ -174,3 +174,4 @@ public abstract class SAMInformationBasic extends FastqInformation implements Pa
 		return cigarState;
 	}
 }
+
