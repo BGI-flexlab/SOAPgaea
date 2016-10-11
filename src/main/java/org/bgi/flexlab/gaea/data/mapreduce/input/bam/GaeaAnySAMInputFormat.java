@@ -26,6 +26,7 @@ public class GaeaAnySAMInputFormat extends
 		FileInputFormat<LongWritable, SAMRecordWritable> {
 
 	public static final String TRUST_EXTS_PROPERTY = "hadoopbam.anysam.trust-exts";
+	public static final String SAM_FORMAT_FOR_ALL_PATH = "samformat.allpath";
 
 	private final GaeaBamInputFormat bamIF = new GaeaBamInputFormat();
 	private final SAMInputFormat samIF = new SAMInputFormat();

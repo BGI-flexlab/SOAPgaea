@@ -14,19 +14,20 @@ public class DuplicationMapper extends PairEndAggregatorMapper{
 	
 	protected SAMFileHeader header = null;
 	protected CreateDuplicationKey dupKey = null;
-	protected DuplicationKeyWritable dupKeyWritable;
+	protected DuplicationKeyWritable dupKeyWritable = null;
 	
 	@Override
 	public void setup(Context context) {
 		Configuration conf = context.getConfiguration();
 		header = SamFileHeader.getHeader(conf);
 		dupKey = new CreateDuplicationKey(header);
+		dupKeyWritable = new DuplicationKeyWritable();
 	}
 	
 	protected Writable getKey(Writable keyin,Writable valuein){
 		if(valuein instanceof SAMRecordWritable){
 			SAMRecord sam = ((SAMRecordWritable)valuein).get();
-			dupKeyWritable = dupKey.getkey(sam);
+			dupKey.getKey(sam,dupKeyWritable);
 		}
 		return dupKeyWritable;
 	}

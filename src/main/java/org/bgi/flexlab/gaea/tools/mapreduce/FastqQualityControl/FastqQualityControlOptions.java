@@ -21,12 +21,12 @@ public class FastqQualityControlOptions extends GaeaOptions implements
 				"Q",
 				"qualitySystem",
 				true,
-				"Quality score schema\n0: NCBI/Sanger or Illumina 1.8 and later; "
+				"Quality score schema(default:1)\n0: NCBI/Sanger or Illumina 1.8 and later; "
 						+ " \n1: Illumina Pipeline 1.5 to 1.7;  \n2: Illumina Pipeline 1.3 and 1.4;  "
 						+ "\n3: Illumina Pipeline 1.2 and earlier");
 		addOption("C", "sanger", false, "change base quality to sanger");
 		addOption("q", "qualityRate", true, "low quality rate(default:0.5)");
-		addOption("t", "readType", true, "read name type.0->reads_xxx/1 1->reads_xx: 1:N:XX 2->reads_xx");
+		addOption("t", "readType", true, "read name type.(default:0)\n0: reads_xxx/1\n1: reads_xx: 1:N:XX\n2: reads_xx");
 		addOption("N", "NRate", true, "Maximum N rate(default:0.1)");
 		addOption("s", "trimStart", true,
 				"cut n bp of reads from start(default:0)");

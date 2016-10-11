@@ -5,10 +5,12 @@ import java.io.IOException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
+import org.bgi.flexlab.gaea.data.mapreduce.input.bam.GaeaAnySAMInputFormat;
 import org.bgi.flexlab.gaea.data.mapreduce.partitioner.WindowsBasedComparator;
 import org.bgi.flexlab.gaea.data.mapreduce.partitioner.WindowsBasedPartitioner;
 import org.bgi.flexlab.gaea.data.mapreduce.partitioner.WindowsBasedSort;
 import org.bgi.flexlab.gaea.data.structure.bam.SamRecordFilter;
+import org.seqdoop.hadoop_bam.SAMFormat;
 
 public class BioJob extends Job {
 
@@ -63,5 +65,10 @@ public class BioJob extends Job {
 	public void setOutputKeyValue(Class<?> keyClass, Class<?> valueClass) {
 		setOutputKeyClass(keyClass);
 		setOutputValueClass(valueClass);
+	}
+	
+	public void setAnySamInputFormat(SAMFormat fmt){
+		conf.set(GaeaAnySAMInputFormat.SAM_FORMAT_FOR_ALL_PATH, fmt.toString());
+		setInputFormatClass(GaeaAnySAMInputFormat.class);
 	}
 }
