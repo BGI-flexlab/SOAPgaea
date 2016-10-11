@@ -7,7 +7,6 @@ import htsjdk.samtools.FileTruncatedException;
 import htsjdk.samtools.SAMFileReader;
 import htsjdk.samtools.SAMFormatException;
 import htsjdk.samtools.seekablestream.SeekableStream;
-import htsjdk.samtools.util.BinaryCodec;
 import htsjdk.samtools.util.BlockCompressedInputStream;
 import htsjdk.samtools.util.RuntimeEOFException;
 
@@ -26,10 +25,6 @@ public class GaeaBamSplitGuesser {
 	private final BAMRecordCodec bamCodec;
 	private final ByteBuffer buf;
 	private final int referenceSequenceCount;
-	private static final byte BLOCKS_NEEDED_FOR_GUESS = 2;
-	private static final int BGZF_MAGIC = 67668767;
-	private static final int BGZF_MAGIC_SUB = 148290;
-	private static final int BGZF_SUB_SIZE = 6;
 	private static final int SHORTEST_POSSIBLE_BAM_RECORD = 39;
 
 	public GaeaBamSplitGuesser(SeekableStream ss) {

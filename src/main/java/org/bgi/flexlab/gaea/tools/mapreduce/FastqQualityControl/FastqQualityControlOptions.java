@@ -26,6 +26,7 @@ public class FastqQualityControlOptions extends GaeaOptions implements
 						+ "\n3: Illumina Pipeline 1.2 and earlier");
 		addOption("C", "sanger", false, "change base quality to sanger");
 		addOption("q", "qualityRate", true, "low quality rate(default:0.5)");
+		addOption("t", "readType", true, "read name type.0->reads_xxx/1 1->reads_xx: 1:N:XX 2->reads_xx");
 		addOption("N", "NRate", true, "Maximum N rate(default:0.1)");
 		addOption("s", "trimStart", true,
 				"cut n bp of reads from start(default:0)");
@@ -69,6 +70,7 @@ public class FastqQualityControlOptions extends GaeaOptions implements
 	private int minimum;
 	private int bias;
 	private int length_adaptor;
+	private int readType;
 
 	private boolean SEdata = false;
 	private boolean filterSE;
@@ -108,6 +110,7 @@ public class FastqQualityControlOptions extends GaeaOptions implements
 		minimum = getOptionIntValue("B", 30);
 		bias = getOptionIntValue("A", 1);
 		length_adaptor = getOptionIntValue("S", 10);
+		readType = getOptionIntValue("t",0);
 
 		qualTrim = getOptionBooleanValue("C", false);
 		dyncut = getOptionBooleanValue("D", false);
@@ -268,5 +271,9 @@ public class FastqQualityControlOptions extends GaeaOptions implements
 	public void getOptionsFromHadoopConf(Configuration conf) {
 		String[] args = conf.getStrings("args");
 		this.parse(args);
+	}
+	
+	public int getReadType(){
+		return readType;
 	}
 }

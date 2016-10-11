@@ -21,7 +21,8 @@ public class FastqRecordReader extends RecordReader<Text, Text> {
 
 	@Override
 	public void close() throws IOException {
-		reader.close();
+		if (reader != null)
+			reader.close();
 	}
 
 	@Override
@@ -44,8 +45,11 @@ public class FastqRecordReader extends RecordReader<Text, Text> {
 			throws IOException, InterruptedException {
 		Configuration configuration = context.getConfiguration();
 		int readNameType = configuration.getInt(READ_NAME_TYPE, 0);
-		byte[] recordDelimiter = configuration.get(
-				"textinputformat.record.delimiter").getBytes();
+		byte[] recordDelimiter = null;
+		if (configuration.get("textinputformat.record.delimiter") != null){
+			recordDelimiter = configuration.get(
+					"textinputformat.record.delimiter").getBytes();
+		}
 		if (readNameType == 0) {// read id format : reads_XX/1
 			reader = new FastqForwardSlashReader(configuration,
 					(FileSplit) split, recordDelimiter);
@@ -61,6 +65,10 @@ public class FastqRecordReader extends RecordReader<Text, Text> {
 
 	@Override
 	public boolean nextKeyValue() throws IOException, InterruptedException {
+		if(key == null)
+			key = new Text();
+		if(value == null)
+			value = new Text();
 		return reader.next(key, value);
 	}
 }

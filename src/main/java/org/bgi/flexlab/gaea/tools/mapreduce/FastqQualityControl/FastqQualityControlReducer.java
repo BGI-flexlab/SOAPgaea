@@ -15,6 +15,8 @@ public class FastqQualityControlReducer extends Reducer<Text,Text,NullWritable,T
 	
 	@Override
 	public void reduce(Text key, Iterable<Text> values,Context context) throws IOException, InterruptedException {
-		
+		for(Text tx : values){
+			context.write(NullWritable.get(), tx);
+		}
 	}
 }

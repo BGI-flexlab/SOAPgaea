@@ -11,17 +11,19 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.seqdoop.hadoop_bam.SAMRecordWritable;
 
 public class PairEndAggregatorMapper extends
-		Mapper<Writable, Writable, Text, Writable> {
-	protected Text keyout = new Text();
+		Mapper<Writable, Writable, Writable, Writable> {
+	protected Writable keyout ;
+	protected Text textKey = new Text();
 	protected Writable valueout;
 	
-	protected void set(Writable keyin,Writable valuein){
+	protected Writable getKey(Writable keyin,Writable valuein){
 		if(keyin instanceof Text){
-			keyout.set((Text)keyin);
+			textKey.set((Text)keyin);
 		}else if(keyin instanceof LongWritable){
 			SAMRecord sam = ((SAMRecordWritable)valuein).get();
-			keyout.set(sam.getReadName());
+			textKey.set(sam.getReadName());
 		}
+		return textKey;
 	}
 	
 	protected Writable getValue(Writable valuein){
@@ -30,7 +32,7 @@ public class PairEndAggregatorMapper extends
 
 	protected void map(Writable key, Writable value, Context context)
 			throws IOException, InterruptedException {
-		set(key,value);
+		keyout = getKey(key,value);
 		valueout = getValue(value);
 		context.write(keyout, valueout);
 	}

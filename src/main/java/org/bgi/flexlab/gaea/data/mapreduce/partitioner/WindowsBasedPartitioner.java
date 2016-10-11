@@ -1,12 +1,12 @@
 package org.bgi.flexlab.gaea.data.mapreduce.partitioner;
 
 import org.apache.hadoop.mapreduce.Partitioner;
-import org.bgi.flexlab.gaea.data.mapreduce.writable.WindowsBasicWritable;
+import org.bgi.flexlab.gaea.data.mapreduce.writable.WindowsBasedWritable;
 
-public class WindowsBasicPartitioner<T> extends Partitioner<WindowsBasicWritable, T> {
+public class WindowsBasedPartitioner<T> extends Partitioner<WindowsBasedWritable, T> {
 	
 	@Override
-	public int getPartition(WindowsBasicWritable key, T v, int numPartitioner) {
+	public int getPartition(WindowsBasedWritable key, T v, int numPartitioner) {
 		String windowsInfo = key.getWindowsInformation();
 		String[] array = windowsInfo.split(":");
 		int len = array.length;
