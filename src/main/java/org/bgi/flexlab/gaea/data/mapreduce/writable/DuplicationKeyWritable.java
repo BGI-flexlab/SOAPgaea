@@ -10,33 +10,35 @@ import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.WritableComparable;
 
-public class DuplicationKeyWritable implements WritableComparable<DuplicationKeyWritable>{
+public class DuplicationKeyWritable implements
+		WritableComparable<DuplicationKeyWritable> {
 	private Text LB;
 	private IntWritable chrIndex;
 	private IntWritable position;
 	private BooleanWritable forward;
-	
+
 	public DuplicationKeyWritable() {
 		LB = new Text();
 		chrIndex = new IntWritable();
 		position = new IntWritable();
 		forward = new BooleanWritable();
 	}
-	
-	public DuplicationKeyWritable(Text LB, IntWritable chrIndex, IntWritable position, BooleanWritable forward) {
+
+	public DuplicationKeyWritable(Text LB, IntWritable chrIndex, IntWritable position,
+			BooleanWritable forward) {
 		this.LB = LB;
 		this.chrIndex = chrIndex;
 		this.position = position;
 		this.forward = forward;
 	}
-	
-	public DuplicationKeyWritable(String LB, int chrIndex, int position, boolean forward) {
-		this.LB = new Text(LB);
-		this.chrIndex = new IntWritable(chrIndex);
-		this.position = new IntWritable(position);
-		this.forward = new BooleanWritable(forward);
+
+	public void set(String LB, int chrIndex, int position, boolean forward) {
+		this.LB.set(LB);
+		this.chrIndex.set(chrIndex);
+		this.position.set(position);
+		this.forward.set(forward);
 	}
-	
+
 	@Override
 	public void readFields(DataInput in) throws IOException {
 		LB.readFields(in);
@@ -58,37 +60,38 @@ public class DuplicationKeyWritable implements WritableComparable<DuplicationKey
 		int v1 = LB.compareTo(key.LB);
 		int v2 = chrIndex.compareTo(key.chrIndex);
 		int v3 = position.compareTo(key.position);
-		if(v1 != 0)
+		if (v1 != 0)
 			return v1;
-		if(v2 != 0)
+		if (v2 != 0)
 			return v2;
-		if(v3 != 0)
+		if (v3 != 0)
 			return v3;
-		if(forward.compareTo(key.forward) != 0) {
-			if(forward.get())
+		if (forward.compareTo(key.forward) != 0) {
+			if (forward.get())
 				return 1;
 			else
 				return -1;
 		}
 		return 0;
 	}
-	
+
 	@Override
 	public int hashCode() {
-		return new HashCodeBuilder().append(LB).append(chrIndex).append(position).append(forward).toHashCode();
+		return new HashCodeBuilder().append(LB).append(chrIndex)
+				.append(position).append(forward).toHashCode();
 	}
-	
+
 	@Override
 	public boolean equals(Object obj) {
-		if(!(obj instanceof DuplicationKeyWritable)) {
+		if (!(obj instanceof DuplicationKeyWritable)) {
 			return false;
-		} else if(obj == this)
+		} else if (obj == this)
 			return true;
-		
+
 		DuplicationKeyWritable key = (DuplicationKeyWritable) obj;
-		if(this.compareTo(key) == 0)
+		if (this.compareTo(key) == 0)
 			return true;
-		
+
 		return false;
 	}
 

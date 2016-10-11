@@ -157,13 +157,6 @@ public class SamFileHeader {
 		}
 	}
 
-	public static SAMFileHeader getHeader(FileSystem fs, Path input)
-			throws IOException {
-		SAMFileReader samr = new SAMFileReader(fs.open(input));
-		SAMFileHeader header = samr.getFileHeader();
-		return header;
-	}
-
 	public static SAMFileHeader getHeader(Configuration conf) {
 		SAMFileHeader header = null;
 		try {

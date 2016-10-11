@@ -16,7 +16,7 @@ import org.bgi.flexlab.gaea.framework.tools.mapreduce.ToolsRunner;
 public class FastqQualityControl extends ToolsRunner {
 
 	public FastqQualityControl() {
-		this.toolsDescription = "Gaea fastq quality control\n"
+		this.toolsDescription = "Fastq quality control\n"
 				+ "this a simple description";
 	}
 

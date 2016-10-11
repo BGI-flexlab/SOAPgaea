@@ -21,18 +21,16 @@ public class CreateDuplicationKey {
 	/**
 	 * get duplication key;
 	 */
-	public DuplicationKeyWritable getkey(SAMRecord sam) {
+	public void getKey(SAMRecord sam,DuplicationKeyWritable key) {
 		sam.setHeader(header);
 		sam.setDuplicateReadFlag(false);
-		DuplicationKeyWritable key;
 		LB = getLibrary(sam);
 					
 		//unmaped
 		if(sam.getReadUnmappedFlag()) {
 			chrIndex = -1;
 			position = RandomUtils.getRandomGenerator().nextInt()%100;
-			key = new DuplicationKeyWritable(LB, chrIndex, position, forward);
-			return key;
+			key.set(LB, chrIndex, position, forward);
 		}
 			
 		//SE && single-mapped
@@ -55,8 +53,7 @@ public class CreateDuplicationKey {
 			}
 		}
 		
-		key = new DuplicationKeyWritable(LB, chrIndex, position, forward);
-		return key;
+		key.set(LB, chrIndex, position, forward);
 	}
 	
 	/**

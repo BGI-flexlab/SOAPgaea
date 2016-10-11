@@ -8,10 +8,10 @@ import java.io.IOException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.mapreduce.Mapper;
+import org.bgi.flexlab.gaea.data.mapreduce.input.bed.RegionHdfsParser;
 import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamFileHeader;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.WindowsBasedWritable;
 import org.bgi.flexlab.gaea.data.structure.bam.SamRecordFilter;
-import org.bgi.flexlab.gaea.data.structure.region.Region;
 import org.bgi.flexlab.gaea.exception.FileNotExistException;
 import org.seqdoop.hadoop_bam.SAMRecordWritable;
 
@@ -23,6 +23,7 @@ public class WindowsBasedMapper
 	public final static String WINDOWS_EXTEND_SIZE = "windows.extend.size";
 	public final static String MULTIPLE_SAMPLE = "multiple.sample";
 	public final static String SAM_RECORD_FILTER = "sam.record.filter";
+	public final static String REFERENCE_REGION = "reference.region.bed";
 
 	protected int windowsSize;
 	protected int windowsExtendSize;
@@ -31,7 +32,7 @@ public class WindowsBasedMapper
 
 	protected WindowsBasedWritable keyout = new WindowsBasedWritable();
 	private SamRecordFilter recordFilter = null;
-	private Region region = null;
+	private RegionHdfsParser region = null;
 
 	@Override
 	protected void setup(Context context) throws IOException,
@@ -64,6 +65,11 @@ public class WindowsBasedMapper
 				e.printStackTrace();
 			}
 		}
+
+		if (conf.get(REFERENCE_REGION) != null) {
+			region = new RegionHdfsParser();
+			region.parseBedFileFromHDFS(conf.get(REFERENCE_REGION), false);
+		}
 	}
 
 	protected int[] getExtendPosition(int start, int end, int length) {
@@ -94,7 +100,7 @@ public class WindowsBasedMapper
 			Context context) throws IOException, InterruptedException {
 		SAMRecord sam = value.get();
 		sam.setHeader(header);
-		if (recordFilter.filter(sam)) {
+		if (recordFilter.filter(sam, region)) {
 			return;
 		}
 
