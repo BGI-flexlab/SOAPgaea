@@ -4,9 +4,9 @@
  */
 package org.bgi.flexlab.gaea.data.structure.reads;
 
+import org.bgi.flexlab.gaea.data.structure.bam.ParseSAMBasic;
+import org.bgi.flexlab.gaea.data.structure.bam.SAMInformationBasic;
 import org.bgi.flexlab.gaea.util.CigarState;
-import org.bgi.flexlab.gaea.util.ParseSAMBasic;
-import org.bgi.flexlab.gaea.util.ParseSAMInterface;
 
 
 /**

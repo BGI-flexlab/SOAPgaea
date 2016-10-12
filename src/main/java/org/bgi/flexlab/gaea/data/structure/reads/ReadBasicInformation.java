@@ -39,6 +39,10 @@ public class ReadBasicInformation {
 		return (int)getBaseQuality(position) - MINIMUM_BASE_QUALITY;
 	}
 
+	public byte getBinaryBase(int i) {
+		return (byte) ((readSequence.charAt(i) >> 1) & 0x07);
+	}
+	
 	public String getQualityString() {
 		return qualityString;
 	}

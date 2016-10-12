@@ -1,7 +1,7 @@
 package org.bgi.flexlab.gaea.data.structure.positioninformation;
 
+import org.bgi.flexlab.gaea.data.structure.bam.SAMInformationBasic;
 import org.bgi.flexlab.gaea.data.structure.reads.ReadInformationForBamQC;
-import org.bgi.flexlab.gaea.data.structure.reads.SAMInformationBasic;
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
 import org.bgi.flexlab.gaea.util.CigarState;
 import org.bgi.flexlab.gaea.util.SystemConfiguration;
@@ -85,7 +85,7 @@ public class CompoundInformation<T extends SAMInformationBasic> {
 		return refPosition - windowStart;
 	}
 	
-	public int getBinaryBase() {
+	public byte getBinaryBase() {
 		return readInfo.getBinaryBase(readPosition);
 	}
 	

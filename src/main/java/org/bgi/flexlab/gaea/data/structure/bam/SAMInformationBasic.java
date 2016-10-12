@@ -1,9 +1,7 @@
-package org.bgi.flexlab.gaea.data.structure.reads;
+package org.bgi.flexlab.gaea.data.structure.bam;
 
 import org.bgi.flexlab.gaea.data.structure.reads.ReadInformation;
 import org.bgi.flexlab.gaea.util.CigarState;
-import org.bgi.flexlab.gaea.util.ParseSAMBasic;
-import org.bgi.flexlab.gaea.util.ParseSAMInterface;
 import org.bgi.flexlab.gaea.util.SystemConfiguration;
 
 public abstract class SAMInformationBasic extends ReadInformation implements ParseSAMInterface{
