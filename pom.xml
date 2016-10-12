@@ -37,6 +37,10 @@
 					<artifactId>hadoop-core</artifactId>
 					<groupId>org.apache.hadoop</groupId>
 				</exclusion>
+				<exclusion>
+					<artifactId>htsjdk</artifactId>
+					<groupId>org.seqdoop</groupId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 		<dependency>
