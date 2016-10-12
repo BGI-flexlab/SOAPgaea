@@ -1,4 +1,4 @@
-package org.bgi.flexlab.gaea.tools.annotator.interval.codonChange;
+package org.bgi.flexlab.gaea.tools.annotator.interval.codonchange;
 
 import org.bgi.flexlab.gaea.tools.annotator.effect.EffectType;
 import org.bgi.flexlab.gaea.tools.annotator.effect.VariantEffect.EffectImpact;
