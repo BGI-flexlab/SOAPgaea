@@ -8,7 +8,7 @@ import org.bgi.flexlab.gaea.tools.annotator.effect.EffectType;
 import org.bgi.flexlab.gaea.tools.annotator.effect.VariantEffect.ErrorWarningType;
 import org.bgi.flexlab.gaea.tools.annotator.effect.VariantEffects;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Variant.VariantType;
-import org.bgi.flexlab.gaea.tools.annotator.interval.codonChange.CodonChange;
+import org.bgi.flexlab.gaea.tools.annotator.interval.codonchange.CodonChange;
 import org.bgi.flexlab.gaea.tools.annotator.util.Gpr;
 import org.bgi.flexlab.gaea.tools.annotator.util.GprSeq;
 

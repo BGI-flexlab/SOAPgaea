@@ -5,7 +5,7 @@ import org.bgi.flexlab.gaea.tools.annotator.interval.Marker;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Transcript;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Variant;
 import org.bgi.flexlab.gaea.tools.annotator.interval.VariantTranslocation;
-import org.bgi.flexlab.gaea.tools.annotator.interval.codonChange.CodonChange;
+import org.bgi.flexlab.gaea.tools.annotator.interval.codonchange.CodonChange;
 
 /**
  * Effect of a structural variant (fusion) affecting two genes
