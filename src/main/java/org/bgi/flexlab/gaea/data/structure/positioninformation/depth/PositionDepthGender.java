@@ -3,7 +3,7 @@ package org.bgi.flexlab.gaea.data.structure.positioninformation.depth;
 import org.bgi.flexlab.gaea.data.structure.positioninformation.CalculatePositionInforamtionInterface;
 import org.bgi.flexlab.gaea.data.structure.positioninformation.CompoundInformation;
 import org.bgi.flexlab.gaea.data.structure.positioninformation.IntPositionInformation;
-import org.bgi.flexlab.gaea.util.SAMInformationBasic;
+import org.bgi.flexlab.gaea.data.structure.reads.SAMInformationBasic;
 
 public class PositionDepthGender extends IntPositionInformation implements CalculatePositionInforamtionInterface<SAMInformationBasic>{
 

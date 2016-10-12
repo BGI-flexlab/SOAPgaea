@@ -3,8 +3,8 @@ package org.bgi.flexlab.gaea.data.structure.positioninformation.other;
 import org.bgi.flexlab.gaea.data.structure.positioninformation.BooleanPositionInformation;
 import org.bgi.flexlab.gaea.data.structure.positioninformation.CalculatePositionInforamtionInterface;
 import org.bgi.flexlab.gaea.data.structure.positioninformation.CompoundInformation;
+import org.bgi.flexlab.gaea.data.structure.reads.SAMInformationBasic;
 import org.bgi.flexlab.gaea.util.CigarState;
-import org.bgi.flexlab.gaea.util.SAMInformationBasic;
 import org.bgi.flexlab.gaea.util.SystemConfiguration;
 
 

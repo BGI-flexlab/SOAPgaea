@@ -7,7 +7,6 @@ package org.bgi.flexlab.gaea.data.structure.reads;
 import org.bgi.flexlab.gaea.util.CigarState;
 import org.bgi.flexlab.gaea.util.ParseSAMBasic;
 import org.bgi.flexlab.gaea.util.ParseSAMInterface;
-import org.bgi.flexlab.gaea.util.SAMInformationBasic;
 
 
 /**
@@ -67,7 +66,7 @@ public class ReadInformationForBamQC extends SAMInformationBasic {
 		
 		flag = Integer.parseInt(alignmentArray[0]);
 		
-		seq = alignmentArray[1];
+		readSequence = alignmentArray[1];
 		
 		insertSize = Integer.parseInt(alignmentArray[2]);
 		
@@ -92,7 +91,7 @@ public class ReadInformationForBamQC extends SAMInformationBasic {
 			rgIndex = Integer.parseInt(alignmentArray[8]);
 		}
 		if(alignmentArray.length >= 10) {
-			qual = alignmentArray[9];
+			qualityString = alignmentArray[9];
 		}
 		lenValue = ParseSAMBasic.parseCigar(position, cigarState);
 		return true;

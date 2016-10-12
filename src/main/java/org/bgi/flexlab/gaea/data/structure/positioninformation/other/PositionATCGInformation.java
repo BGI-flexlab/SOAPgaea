@@ -3,7 +3,7 @@ package org.bgi.flexlab.gaea.data.structure.positioninformation.other;
 import org.bgi.flexlab.gaea.data.structure.positioninformation.CalculatePositionInforamtionInterface;
 import org.bgi.flexlab.gaea.data.structure.positioninformation.CompoundInformation;
 import org.bgi.flexlab.gaea.data.structure.positioninformation.PositionInformationUtils;
-import org.bgi.flexlab.gaea.util.SAMInformationBasic;
+import org.bgi.flexlab.gaea.data.structure.reads.SAMInformationBasic;
 
 public class PositionATCGInformation extends PositionInformationUtils<ATCGCount> implements CalculatePositionInforamtionInterface<SAMInformationBasic>{
 	

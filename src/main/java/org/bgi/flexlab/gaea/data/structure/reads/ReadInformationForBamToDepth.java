@@ -2,7 +2,6 @@ package org.bgi.flexlab.gaea.data.structure.reads;
 
 import org.bgi.flexlab.gaea.util.CigarState;
 import org.bgi.flexlab.gaea.util.ParseSAMBasic;
-import org.bgi.flexlab.gaea.util.SAMInformationBasic;
 
 public class ReadInformationForBamToDepth extends SAMInformationBasic{
 	
@@ -23,7 +22,7 @@ public class ReadInformationForBamToDepth extends SAMInformationBasic{
 		
 		flag = Integer.parseInt(alignmentArray[0]);
 		
-		seq = alignmentArray[1];
+		readSequence = alignmentArray[1];
 				
 		position = Integer.parseInt(alignmentArray[2]);
 		
@@ -37,7 +36,7 @@ public class ReadInformationForBamToDepth extends SAMInformationBasic{
 		end = ParseSAMBasic.parseCigar(position, cigarState)[0];
 		
 		mappingQual = Short.parseShort(alignmentArray[4]);
-		qual = alignmentArray[5];
+		qualityString = alignmentArray[5];
 		
 		return true;
 	}

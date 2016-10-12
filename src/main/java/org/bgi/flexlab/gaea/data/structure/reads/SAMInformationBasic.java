@@ -1,7 +1,12 @@
-package org.bgi.flexlab.gaea.util;
+package org.bgi.flexlab.gaea.data.structure.reads;
 
+import org.bgi.flexlab.gaea.data.structure.reads.ReadInformation;
+import org.bgi.flexlab.gaea.util.CigarState;
+import org.bgi.flexlab.gaea.util.ParseSAMBasic;
+import org.bgi.flexlab.gaea.util.ParseSAMInterface;
+import org.bgi.flexlab.gaea.util.SystemConfiguration;
 
-public abstract class SAMInformationBasic extends FastqInformation implements ParseSAMInterface{
+public abstract class SAMInformationBasic extends ReadInformation implements ParseSAMInterface{
 	/**
 	 * flag
 	 */
@@ -67,9 +72,9 @@ public abstract class SAMInformationBasic extends FastqInformation implements Pa
 		
 		int softClipEnd = ParseSAMBasic.getEndSoftClipLength(cigarState.getCigar());
 		
-		seq = ParseSAMBasic.parseSeq(alignmentArray, softClipStart, softClipEnd, false);
+		readSequence = ParseSAMBasic.parseSeq(alignmentArray, softClipStart, softClipEnd, false);
 		
-		qual = ParseSAMBasic.parseQual(alignmentArray, softClipStart, softClipEnd, false);
+		qualityString = ParseSAMBasic.parseQual(alignmentArray, softClipStart, softClipEnd, false);
 		
 		parseOtherInfo(alignmentArray);
 		
@@ -80,7 +85,7 @@ public abstract class SAMInformationBasic extends FastqInformation implements Pa
 	
 	@Override
 	public boolean SAMFilter() {
-		if(isUnmapped() || cigarString.equals("*") || seq.length() > qual.length() || position < 0) {
+		if(isUnmapped() || cigarString.equals("*") || readSequence.length() > qualityString.length() || position < 0) {
 			return false;
 		}
 		return true;
