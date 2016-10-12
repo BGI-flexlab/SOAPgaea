@@ -4,10 +4,10 @@ import org.bgi.flexlab.gaea.util.CigarState;
 import org.bgi.flexlab.gaea.util.ParseSAMBasic;
 import org.bgi.flexlab.gaea.util.SAMInformationBasic;
 
-public class ReadInformationForBamToDepth extends SAMInformationBasic{
-	
+public class ReadInformationForBamToDepth extends SAMInformationBasic {
+
 	private int end;
-	
+
 	@Override
 	protected void parseOtherInfo(String[] alignmentArray) {
 		end = ParseSAMBasic.parseCigar(position, cigarState)[0];
@@ -20,28 +20,28 @@ public class ReadInformationForBamToDepth extends SAMInformationBasic{
 		}
 
 		String[] alignmentArray = value.split("\t");
-		
+
 		flag = Integer.parseInt(alignmentArray[0]);
-		
-		seq = alignmentArray[1];
-				
+
+		readSequence = alignmentArray[1];
+
 		position = Integer.parseInt(alignmentArray[2]);
-		
-		if(position < 0 ) {
+
+		if (position < 0) {
 			return false;
 		}
-		
+
 		cigarString = alignmentArray[3];
 		cigarState = new CigarState();
 		cigarState.parseCigar(cigarString);
 		end = ParseSAMBasic.parseCigar(position, cigarState)[0];
-		
+
 		mappingQual = Short.parseShort(alignmentArray[4]);
-		qual = alignmentArray[5];
-		
+		qualityString = alignmentArray[5];
+
 		return true;
 	}
-	
+
 	/**
 	 * @return the end
 	 */
@@ -50,7 +50,8 @@ public class ReadInformationForBamToDepth extends SAMInformationBasic{
 	}
 
 	/**
-	 * @param end the end to set
+	 * @param end
+	 *            the end to set
 	 */
 	public void setEnd(int end) {
 		this.end = end;
