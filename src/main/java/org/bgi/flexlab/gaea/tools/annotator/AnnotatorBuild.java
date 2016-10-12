@@ -15,40 +15,31 @@ import org.bgi.flexlab.gaea.tools.annotator.interval.Transcript;
 import org.bgi.flexlab.gaea.tools.annotator.interval.TranscriptSupportLevel;
 import org.bgi.flexlab.gaea.tools.annotator.util.Timer;
 
-public class AnnotatorBuild implements Serializable{
+class AnnotatorBuild implements Serializable{
 	
 	private static final long serialVersionUID = 8558515853505312687L;
 	
-	protected boolean debug; // Debug mode
-	protected boolean verbose; // Be verbose
-	protected boolean canonical = false; // Use only canonical transcripts
-	protected boolean strict = false; // Only use transcript that have been validated
+	private boolean debug; // Debug mode
+	private boolean verbose; // Be verbose
+	private boolean canonical = false; // Use only canonical transcripts
+	private boolean strict = false; // Only use transcript that have been validated
 	
-	protected boolean hgvs = true; // Use Hgvs notation
-	protected boolean hgvsOneLetterAa = false; // Use 1-letter AA codes in HGVS.p notation?
-	protected boolean hgvsShift = true; // Shift variants towards the 3-prime end of the transcript
-	protected boolean hgvsTrId = false; // Use full transcript version in HGVS notation?
+	private int spliceSiteSize = SpliceSite.CORE_SPLICE_SITE_SIZE; // Splice site size default: 2 bases (canonical splice site)
+	private int spliceRegionExonSize = SpliceSite.SPLICE_REGION_EXON_SIZE;
+	private int spliceRegionIntronMin = SpliceSite.SPLICE_REGION_INTRON_MIN;
+	private int spliceRegionIntronMax = SpliceSite.SPLICE_REGION_INTRON_MAX;
+	private int upDownStreamLength = SnpEffectPredictor.DEFAULT_UP_DOWN_LENGTH; // Upstream & downstream interval length
 	
-	protected int spliceSiteSize = SpliceSite.CORE_SPLICE_SITE_SIZE; // Splice site size default: 2 bases (canonical splice site)
-	protected int spliceRegionExonSize = SpliceSite.SPLICE_REGION_EXON_SIZE;
-	protected int spliceRegionIntronMin = SpliceSite.SPLICE_REGION_INTRON_MIN;
-	protected int spliceRegionIntronMax = SpliceSite.SPLICE_REGION_INTRON_MAX;
-	protected int upDownStreamLength = SnpEffectPredictor.DEFAULT_UP_DOWN_LENGTH; // Upstream & downstream interval length
+	private TranscriptSupportLevel maxTranscriptSupportLevel = null; // Filter by maximum Transcript Support Level (TSL)
+	private boolean onlyProtein = false; // Only use protein coding transcripts
 	
-	protected TranscriptSupportLevel maxTranscriptSupportLevel = null; // Filter by maximum Transcript Support Level (TSL)
-	protected boolean onlyProtein = false; // Only use protein coding transcripts
-	
-	private Config config; 
-	Properties properties;
-	boolean storeAlignments; // Store alignments (used for some test cases)
+	private Config config;
 	boolean storeSequences = false; // Store full sequences
 	
-	HashMap<String, TableInfo> dbInfo = null;
-	
-	public AnnotatorBuild(Config config) {
+	AnnotatorBuild(Config config) {
 		this.config = config;
-		this.verbose = config.isVerbose();
 		this.debug = config.isDebug();
+		this.verbose = config.isVerbose();
 	}
 	
 	/**
@@ -66,9 +57,6 @@ public class AnnotatorBuild implements Serializable{
 		factory.setVerbose(config.isVerbose());
 		factory.setDebug(config.isDebug());
 		factory.setStoreSequences(storeSequences);
-		
-		
-		
 		
 		return factory.create();
 	}

@@ -22,30 +22,26 @@ import org.bgi.flexlab.gaea.tools.annotator.effect.VcfAnnotationContext;
 import org.bgi.flexlab.gaea.tools.annotator.effect.VcfAnnotator;
 
 public class VariantAnnotationMapper extends Mapper<LongWritable, Text, NullWritable, Text> {
-	
-	private VCFHeader vcfHeader = null;
-	private VCFHeaderVersion vcfVersion = null;
+
 	private Text resultValue = new Text();
 	private VCFCodec vcfCodec = new VCFCodec();
 	private VcfAnnotator vcfAnnotator = null;
 	private DBAnno dbAnno = null;
-	private Config userConfig = null;
-	private static GenomeShare genomeShare;
-	Configuration conf;
+	private Configuration conf;
 	
 	
 	@Override
 	protected void setup(Context context)
 			throws IOException, InterruptedException {
 		conf = context.getConfiguration();
-		
-		genomeShare = new GenomeShare();
+
+		GenomeShare genomeShare = new GenomeShare();
 		if (conf.get("cacheref") != null)
 			genomeShare.loadChromosomeList();
 		else
 			genomeShare.loadChromosomeList(conf.get("reference"));
-		
-		userConfig = new Config(conf, genomeShare);
+
+		Config userConfig = new Config(conf, genomeShare);
 		AnnotatorBuild annoBuild = new AnnotatorBuild(userConfig);
 		
 		userConfig.setSnpEffectPredictor(annoBuild.createSnpEffPredictor());
@@ -55,13 +51,18 @@ public class VariantAnnotationMapper extends Mapper<LongWritable, Text, NullWrit
 		
 		SingleVCFHeader singleVcfHeader = new SingleVCFHeader();
 		singleVcfHeader.readHeaderFrom(inputPath, inputPath.getFileSystem(conf));
-		vcfHeader = singleVcfHeader.getHeader();
-		vcfVersion = singleVcfHeader.getVCFVersion(vcfHeader);
+		VCFHeader vcfHeader = singleVcfHeader.getHeader();
+		VCFHeaderVersion vcfVersion = singleVcfHeader.getVCFVersion(vcfHeader);
 		vcfCodec.setVCFHeader(vcfHeader, vcfVersion);
 		
 		vcfAnnotator = new VcfAnnotator(userConfig);
+		
+		//用于从数据库中查找信息
 		dbAnno = new DBAnno(userConfig);
-    	
+		
+		// 注释结果header信息
+		resultValue.set(userConfig.getHeader());
+		context.write(NullWritable.get(), resultValue);
 	}
 
 	@Override
@@ -80,7 +81,9 @@ public class VariantAnnotationMapper extends Mapper<LongWritable, Text, NullWrit
 		if(!vcfAnnotator.annotate(vcfAnnoContext)){
 			return;
 		}
-		dbAnno.annotate(vcfAnnoContext);
+		
+		
+//		dbAnno.annotate(vcfAnnoContext);
 		
 		
 		if (conf.get("outputType").equals("txt")) {
