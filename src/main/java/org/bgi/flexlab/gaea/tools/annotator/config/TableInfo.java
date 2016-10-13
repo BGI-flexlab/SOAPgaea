@@ -5,12 +5,12 @@ import java.util.HashMap;
 
 public class TableInfo implements Serializable {
 
-	public static enum DbType {
+	public enum DbType {
 		HBASE
 		, MYSQL
 	}
 	
-	public static enum QueryCondition {
+	public enum QueryCondition {
 		CHR_POS
 		, CHR_POS_END
 		, GENE

@@ -131,18 +131,4 @@ public class Parameter extends GaeaOptions implements Serializable {
 	public void setDebug(boolean debug) {
 		this.debug = debug;
 	}
-	
-	/**
-	 * 测试
-	 * 
-	 * @param args
-	 * @throws Exception
-	 */
-	public static void main(String[] args) throws Exception {
-		String[] arg = {  "-c", "config.xml" };
-		Parameter parameter = new Parameter();
-		parameter.parse(arg);
-//		System.out.println(parameter.toString());
-	}
-
 }

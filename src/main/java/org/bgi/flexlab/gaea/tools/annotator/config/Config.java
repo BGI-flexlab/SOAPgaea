@@ -37,42 +37,43 @@ public class Config implements Serializable {
 	public static final String KEY_GENE_INFO = "GeneInfo";
 	public static final String KEY_CODON_PREFIX = "codon.";
 	public static final String KEY_CODONTABLE_SUFIX = ".codonTable";
-	private static final String DB_CONFIG_JSON = "AnnotatorConfig.json";
+	public static final String DB_CONFIG_JSON = "AnnotatorConfig.json";
 	public static final String ANNO_FIELDS_SUFIX = ".fields";
 	public static int MAX_WARNING_COUNT = 20;
 	
 	private String  ref = null;
 	private String  geneInfo = null;
-	private String configFilePath = null;
-	
-	boolean debug = false; // Debug mode?
-	boolean verbose = false; // Verbose
-	boolean treatAllAsProteinCoding;
-	boolean onlyRegulation; // Only use regulation features
-	boolean errorOnMissingChromo; // Error if chromosome is missing
-	boolean errorChromoHit; // Error if chromosome is not hit in a query
-	boolean hgvs = true; // Use HGVS notation?
-	boolean hgvsShift = true; // Shift variants according to HGVS notation (towards the most 3prime possible coordinate)
-	boolean hgvsOneLetterAa = false; // Use HGVS 1 letter amino acid in HGVS notation?
-	boolean hgvsTrId = false; // Use HGVS transcript ID in HGVS notation?
-	Properties properties;
-	Genome genome;
-	GenomeShare genomeShare;
-	SnpEffectPredictor snpEffectPredictor;
-	private Configuration conf;
-	
+	private String configFilePath;
+
+	private boolean debug = false; // Debug mode?
+	private boolean verbose = false; // Verbose
+	private boolean treatAllAsProteinCoding;
+	private boolean onlyRegulation; // Only use regulation features
+	private boolean errorOnMissingChromo; // Error if chromosome is missing
+	private boolean errorChromoHit; // Error if chromosome is not hit in a query
+	private boolean hgvs = true; // Use HGVS notation?
+	private boolean hgvsShift = true; // Shift variants according to HGVS notation (towards the most 3prime possible coordinate)
+	private boolean hgvsOneLetterAa = false; // Use HGVS 1 letter amino acid in HGVS notation?
+	private boolean hgvsTrId = false; // Use HGVS transcript ID in HGVS notation?
+	private CountByType warningsCounter = new CountByType();
+	private HashMap<String, String[]> dbFieldsHashMap = null;
+	private HashMap<String, TableInfo> dbInfo = null;
 	private List<String> dbNameList;
-	HashMap<String, String[]> dbFieldsHashMap = null;
-	HashMap<String, TableInfo> dbInfo = null;
-	
-	CountByType warningsCounter = new CountByType();
-	
-	public Config(){}
+	private Properties properties;
+	private Genome genome;
+	private GenomeShare genomeShare;
+	private SnpEffectPredictor snpEffectPredictor;
+	private Configuration conf;
+
+	public Config(){
+		configFilePath = null;
+	}
 
 	public Config(Configuration conf) {
 		this.conf = conf;
 		init();
 		configInstance = this;
+		configFilePath = null;
 	}
 	
 	public Config(Configuration conf, GenomeShare genomeShare) {
@@ -80,6 +81,7 @@ public class Config implements Serializable {
 		this.genomeShare = genomeShare;
 		init();
 		configInstance = this;
+		configFilePath = null;
 	}
 	
 	private void init(){
@@ -128,7 +130,6 @@ public class Config implements Serializable {
 	
 	boolean loadJson() {
 
-		
 		Gson gson = new Gson();
 		try {
 			Reader reader =  new InputStreamReader(Config.class.getClassLoader().getResourceAsStream(DB_CONFIG_JSON), "UTF-8");
@@ -139,11 +140,8 @@ public class Config implements Serializable {
 			Timer.showStdErr("Read a wrong json config file:" + DB_CONFIG_JSON);
 			e.printStackTrace();
 		}
-		
-		if (dbInfo != null) {
-			return true;
-		}
-		return false;
+
+		return dbInfo != null;
 	}
 	
 	/**
@@ -202,8 +200,8 @@ public class Config implements Serializable {
 		ref = properties.getProperty(KEY_REFERENCE);
 		geneInfo = properties.getProperty(KEY_GENE_INFO);
 		
-		dbFieldsHashMap = new HashMap<String, String[]>();
-		dbNameList = new ArrayList<String>();
+		dbFieldsHashMap = new HashMap<>();
+		dbNameList = new ArrayList<>();
 		
 		//用户配置文件中注释字段的配置格式： dbSNP.fields = RS,DBSNP_CAF,DBSNP_COMMON,dbSNPBuildID
 		for (String key : keys) {
@@ -216,8 +214,6 @@ public class Config implements Serializable {
 				}
 			}
 		}
-		
-
 		
 		return true;
 	}
@@ -254,7 +250,7 @@ public class Config implements Serializable {
 		this.hgvsOneLetterAa = hgvsOneLetterAa;
 	}
 
-	public void setHgvsShift(boolean hgvsShift) {
+	public void setHgvsShift(boolean hgvsShift){
 		this.hgvsShift = hgvsShift;
 	}
 
@@ -381,6 +377,26 @@ public class Config implements Serializable {
 
 	public void setDbNameList(List<String> dbNameList) {
 		this.dbNameList = dbNameList;
+	}
+	
+	public String getHeader(){
+		StringBuilder sb = new StringBuilder();
+		sb.append("#CHROM");
+		sb.append("\t");
+		sb.append("POS");
+		sb.append("\t");
+		sb.append("REF");
+		sb.append("\t");
+		sb.append("ALT");
+		List<String> dbNameList = getDbNameList();
+		for (String dbName : dbNameList) {
+			String[] fields = getFieldsByDB(dbName);
+			for (String field : fields) {
+				sb.append("\t");
+				sb.append(field);       
+			}
+		}
+		return sb.toString();
 	}
 
 }
