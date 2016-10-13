@@ -46,8 +46,7 @@ public class DBAnno implements Serializable{
 		conditionMap.put(ConditionKey.POS, String.valueOf(variant.getStart()));
 		conditionMap.put(ConditionKey.END, String.valueOf(variant.getEnd()));
 		conditionMap.put(ConditionKey.ALT, String.valueOf(variant.getAlt()));
-		
-		
+				
 		HashMap<String, String[]> dbFieldsHashMap = config.getDbFieldsHashMap();
 		HashMap<String, TableInfo> dbInfo = config.getDbInfo();
 		for (String dbName : dbFieldsHashMap.keySet()) {

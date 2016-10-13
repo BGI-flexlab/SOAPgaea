@@ -416,8 +416,8 @@ public class Variant extends Marker {
 	 * TODO
 	 */
 	public Variant realignLeft() {
-		return null;
-//		GenomicSequences gs = getGenome().getGenomicSequences();
+		return this;
+//		String gs = getGenome().querySequence(this);
 //		if (gs == null) return this;
 //
 //		VariantRealign vr = new VariantRealign(this);

@@ -55,7 +55,9 @@ public class VariantEffects implements Iterable<VariantEffect> {
 	public void addEffectType(Variant variant, Marker marker, EffectType effectType) {
 		if (canAddType(variant, marker)) {
 			get().addEffect(effectType);
-		} else add(variant, marker, effectType, effectType.effectImpact(), "");
+		} else{
+			add(variant, marker, effectType, effectType.effectImpact(), "");
+		}
 	}
 
 	public void addErrorWarning(Variant variant, ErrorWarningType errwarn) {

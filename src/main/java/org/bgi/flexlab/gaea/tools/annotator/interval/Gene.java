@@ -484,6 +484,7 @@ public class Gene extends IntervalAndSubIntervals<Transcript> implements Seriali
 			// the 'leftmost' coordinate, so this re-alignment is only required for variants
 			// within transcripts on the positive strand.
 			if (!variant.isSnp() && Config.get().isHgvsShift() && isStrandPlus()) {
+				
 				// Get sequence information. Might have to load sequences from database
 				variant = variant.realignLeft();
 
@@ -500,10 +501,14 @@ public class Gene extends IntervalAndSubIntervals<Transcript> implements Seriali
 		boolean hitTranscript = false;
 		for (Transcript tr : this) {
 			// Apply sequence change to create new 'reference'?
-			if (variant.isNonRef()) {
-				Variant vref = ((VariantNonRef) variant).getVariantRef();
-				tr = tr.apply(vref); // TODO: We need to check on null transcript (e.g. huge deletion removing the whole transcript)
+			if (variant == null) {
+				continue;
 			}
+			
+//			if (variant.isNonRef()) {
+//				Variant vref = ((VariantNonRef) variant).getVariantRef();
+//				tr = tr.apply(vref); // TODO: We need to check on null transcript (e.g. huge deletion removing the whole transcript)
+//			}
 
 			// Calculate effects
 			hitTranscript |= tr.intersects(variant);
