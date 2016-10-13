@@ -1,9 +1,9 @@
 package org.bgi.flexlab.gaea.data.structure.positioninformation.depth;
 
+import org.bgi.flexlab.gaea.data.structure.bam.SAMInformationBasic;
 import org.bgi.flexlab.gaea.data.structure.positioninformation.CalculatePositionInforamtionInterface;
 import org.bgi.flexlab.gaea.data.structure.positioninformation.CompoundInformation;
 import org.bgi.flexlab.gaea.data.structure.positioninformation.IntPositionInformation;
-import org.bgi.flexlab.gaea.util.SAMInformationBasic;
 
 public class PositionDepthLimitMQ extends IntPositionInformation implements CalculatePositionInforamtionInterface<SAMInformationBasic>{
 	private short minMQ = 0;

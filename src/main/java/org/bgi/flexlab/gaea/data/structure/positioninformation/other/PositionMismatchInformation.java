@@ -1,9 +1,9 @@
 package org.bgi.flexlab.gaea.data.structure.positioninformation.other;
 
+import org.bgi.flexlab.gaea.data.structure.bam.SAMInformationBasic;
 import org.bgi.flexlab.gaea.data.structure.positioninformation.BooleanPositionInformation;
 import org.bgi.flexlab.gaea.data.structure.positioninformation.CalculatePositionInforamtionInterface;
 import org.bgi.flexlab.gaea.data.structure.positioninformation.CompoundInformation;
-import org.bgi.flexlab.gaea.util.SAMInformationBasic;
 
 public class PositionMismatchInformation extends BooleanPositionInformation implements CalculatePositionInforamtionInterface<SAMInformationBasic>{
 
