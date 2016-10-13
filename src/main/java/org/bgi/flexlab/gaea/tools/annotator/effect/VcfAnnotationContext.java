@@ -4,12 +4,10 @@ import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.VariantContext;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
+import org.bgi.flexlab.gaea.tools.annotator.config.Config;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Chromosome;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Genome;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Variant;
@@ -29,8 +27,7 @@ public class VcfAnnotationContext extends VariantContext{
 	
 	protected LinkedList<Variant> variants;
 	
-	private HashMap<String, AnnotationContext> annotationContexts;
-//	private HashMap<String, Variant> variantsMap;
+	private List<AnnotationContext> annotationContexts;
 	
 	public VcfAnnotationContext(VariantContext variantContext){
 		super(variantContext);
@@ -46,6 +43,8 @@ public class VcfAnnotationContext extends VariantContext{
 
 		// Create list of variants
 		variants = new LinkedList<Variant>();
+		
+		String refStr = this.getReference().getBaseString();
 
 		// Create one Variant for each ALT
 //		Chromosome chr = (Chromosome) parent;
@@ -53,7 +52,7 @@ public class VcfAnnotationContext extends VariantContext{
 
 		if (!this.isVariant()) {
 			// Not a variant?
-			List<Variant> vars = variants(chr, (int)start, this.getReference().toString(), null, "");
+			List<Variant> vars = variants(chr, (int)start, refStr, null, "");
 			String alt = ".";
 
 			// Add original 'ALT' field as genotype
@@ -64,7 +63,7 @@ public class VcfAnnotationContext extends VariantContext{
 		} else {
 			// At least one variant
 			String altStr = listToString(alts, ",");
-			List<Variant> vars = variants(chr, (int)start, this.getReference().toString(), altStr, "");
+			List<Variant> vars = variants(chr, (int)start, refStr, altStr, "");
 			variants.addAll(vars);
 		}
 	
@@ -163,7 +162,7 @@ public class VcfAnnotationContext extends VariantContext{
 	
 	
 	private void setAlts() {
-		alts = new ArrayList<String>();
+		alts = new ArrayList<>();
 		for (Allele allele : this.getAlleles()) {
 			if (allele.isNonReference()) {
 				alts.add(allele.toString());
@@ -179,47 +178,37 @@ public class VcfAnnotationContext extends VariantContext{
 		// TODO Auto-generated method stub
 		return null;
 	}
-	public String toAnnotationString() {
+	public String toAnnotationString(Config config) {
 		StringBuilder sb = new StringBuilder();
-		for (String alt : alts) {
+		for (AnnotationContext annoContext : annotationContexts) {
 			sb.append(this.contig);
 			sb.append("\t");
 			sb.append(this.start);
 			sb.append("\t");
-			sb.append(this.getReference());
+			sb.append(this.getReference().getBaseString());
 			sb.append("\t");
-			sb.append(alt);
-			sb.append("\t");
-			
-			AnnotationContext annoContext = getAnnotationContext(alt);
-			sb.append(annoContext.getGeneId());
-			sb.append("\t");
-			sb.append(annoContext.getGeneName());
-			sb.append("\t");
-			sb.append(annoContext.getHgvsDna());
-			sb.append("\t");
-			sb.append(annoContext.getHgvsProt());
-			sb.append("\t");
-			sb.append(annoContext.getEffectsStr());
-			sb.append("\t");
-			sb.append(annoContext.getFeatureId());
-			sb.append("\t");
-			sb.append(annoContext.getFeatureType());
-			sb.append("\t");
-			sb.append(annoContext.getExonId());
+			sb.append(annoContext.getAllele());
 			sb.append("\t");
 			
-			Map<String, Object> annoItems= annoContext.getAnnoItems();
-			Set<String> keys = annoItems.keySet();
-			for (String key : keys) {
-				sb.append(annoItems.get(key));
-				sb.append("\t");
+			List<String> dbNameList = config.getDbNameList();
+			for (String dbName : dbNameList) {
+				
+				String[] fields = config.getFieldsByDB(dbName);
+				
+				if (dbName.equalsIgnoreCase("GeneInfo")) {
+					for (String field : fields) {
+						sb.append("\t");
+						sb.append(annoContext.getFieldByName(field));    
+					}
+				}else {
+					for (String field : fields) {
+						sb.append("\t");
+						sb.append(annoContext.getAnnoItemAsString(field, "."));       
+					}
+				}
 			}
-			
 			sb.append("\n");
-			
 		}
-		// TODO Auto-generated method stub
 		return sb.toString();
 	}
 	
@@ -237,34 +226,26 @@ public class VcfAnnotationContext extends VariantContext{
 		return variants;
 	}
 
-	public HashMap<String, AnnotationContext> getAnnotationContexts() {
-		return annotationContexts;
+	public void setAnnotationContexts(List<AnnotationContext> annotationContexts) {
+		this.annotationContexts = annotationContexts;
 	}
 	
-	public AnnotationContext getAnnotationContext(String alt) {
-		return annotationContexts.get(alt);
-	}
-
-
-	public void setAnnotationContexts(HashMap<String, AnnotationContext> annotationContexts) {
-		this.annotationContexts = annotationContexts;
+	public List<AnnotationContext> getAnnotationContexts() {
+		return annotationContexts;
 	}
 	
 	public void add(){
 		
 	}
 
-
 	public Variant getVariant(String alt) {
 		for (Variant variant : variants) {
-			if(variant.getAlt() == alt){
+			if(variant.getAlt().equals(alt)){
 				return variant;
 			}
 		}
-		// TODO Auto-generated method stub
 		return null;
 	}
-	
 
 }
 
