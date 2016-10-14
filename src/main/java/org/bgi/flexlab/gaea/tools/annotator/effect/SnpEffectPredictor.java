@@ -101,10 +101,11 @@ public class SnpEffectPredictor implements Serializable {
 				intervalForest.add(chr);
 		}
 
+		//		 TODO 
 		// In a circular genome, a gene can have negative coordinates or crosses
 		// over chromosome end. These genes are mirrored to the opposite end of
 		// the chromosome so that they can be referenced by both circular coordinates.
-		genome.getGenes().createCircularGenes();
+		//		genome.getGenes().createCircularGenes();
 
 		// Add all genes to forest
 		for (Gene gene : genome.getGenes())
@@ -577,7 +578,8 @@ public class SnpEffectPredictor implements Serializable {
 		// into account all genes involved to calculate fusions)");
 		if (structuralVariant) {
 			if (variant.isBnd()) {
-				variantEffectBnd(variant, variantEffects, intersects);
+				System.err.println("Break-ends (rearrangement) variant can not annotated now!");
+//				variantEffectBnd(variant, variantEffects, intersects);
 				return variantEffects;
 			}
 
@@ -604,10 +606,12 @@ public class SnpEffectPredictor implements Serializable {
 			if (marker instanceof Chromosome) hitChromo = true; // Do we hit any chromosome?
 			else {
 				// Analyze all markers
-				if (variant.isNonRef()) marker.variantEffectNonRef(variant, variantEffects);
-				else marker.variantEffect(variant, variantEffects);
-				
-//				variantEffects.add(variant, marker, marker.getType(), "");
+				if (variant.isNonRef()) {
+					marker.variantEffectNonRef(variant, variantEffects);
+				}
+				else{
+					marker.variantEffect(variant, variantEffects);
+				}
 
 				// Do we have 'per gene' information?
 				if (intervalForestGene != null && marker instanceof Gene) //
@@ -616,7 +620,7 @@ public class SnpEffectPredictor implements Serializable {
 				hitSomething = true;
 			}
 		}
-
+		
 		// Any errors or intergenic (i.e. did not hit any gene)
 		if (!hitChromo) {
 			// Special case: Insertion right after chromosome's last base
@@ -634,6 +638,7 @@ public class SnpEffectPredictor implements Serializable {
 				variantEffects.add(variant, null, EffectType.INTERGENIC, "");
 			}
 		}
+		
 	}
 
 	/**
@@ -702,10 +707,10 @@ public class SnpEffectPredictor implements Serializable {
 		return added ? null : intersects;
 	}
 
-	/**
-	 * Calculate translocations variant effects 
-	 */
-	void variantEffectBnd(Variant variant, VariantEffects variantEffects, Markers intersects) {
+//	/**
+//	 * Calculate translocations variant effects 
+//	 */
+//	void variantEffectBnd(Variant variant, VariantEffects variantEffects, Markers intersects) {
 //		// Create a new variant effect for structural variants, add effect (if any)
 //		VariantEffectStructural veff = new VariantEffectStructural(variant, intersects);
 
@@ -748,7 +753,7 @@ public class SnpEffectPredictor implements Serializable {
 		//
 		//		// If variant effects were added, there is no need for further analysis
 		//		return added ? null : intersects;
-	}
+//	}
 
 	/**
 	 * Add large structural variant effects

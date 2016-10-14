@@ -1887,7 +1887,7 @@ public class Transcript extends IntervalAndSubIntervals<Exon> {
 			variantEffects.add(variant, this, EffectType.TRANSCRIPT, "");
 			return true;
 		}
-
+		
 		return exonAnnotated;
 	}
 

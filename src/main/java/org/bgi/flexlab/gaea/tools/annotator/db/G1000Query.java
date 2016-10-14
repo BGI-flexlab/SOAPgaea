@@ -4,7 +4,7 @@ import java.util.HashMap;
 
 import org.bgi.flexlab.gaea.tools.annotator.db.Condition.ConditionKey;
 
-public class G1000Query extends AbstractDbQuery {
+public class G1000Query extends AbstractDBQuery {
 
 	/**
 	 * 

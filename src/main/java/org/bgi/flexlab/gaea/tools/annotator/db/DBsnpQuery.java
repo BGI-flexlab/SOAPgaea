@@ -4,7 +4,7 @@ import java.util.HashMap;
 
 import org.bgi.flexlab.gaea.tools.annotator.db.Condition.ConditionKey;
 
-public class DBsnp extends AbstractDbQuery {
+public class DBsnpQuery extends AbstractDBQuery {
 
 	private static final long serialVersionUID = -9081062168317341102L;
 

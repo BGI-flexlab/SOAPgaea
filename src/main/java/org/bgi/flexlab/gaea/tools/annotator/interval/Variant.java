@@ -53,8 +53,32 @@ public class Variant extends Marker {
 	protected boolean imprecise = false; // Imprecise variant: coordinates are not exact (E.g. see section "Encoding Structural Variants in VCF" from VCF spec. 4.1)
 
 	/**
+	 * Create variant from ALT
+	 */
+	public static Variant create(Chromosome chromo, int start, String ref, String alt, String id) {
+
+		// No alt? It's an interval
+		if (alt == null) {
+			return new Variant(chromo, start, ref, null, id);
+		}
+
+		// Split alts
+		if (alt.indexOf('/') >= 0){
+			String[] alts = alt.split("/");
+
+			// Special case, two ALTs are the same
+			if (alts.length == 2 && alts[0].equals(alts[1])) {
+				return new Variant(chromo, start, ref, alts[0], id);
+			}
+		}
+		
+		return new Variant(chromo, start, ref, alt, id);
+	}
+	
+	/**
 	 * Create variants from ALT (which can be multiple values)
 	 */
+	@Deprecated
 	public static List<Variant> factory(Chromosome chromo, int start, String ref, String altStr, String id, boolean expand) {
 		LinkedList<Variant> list = new LinkedList<Variant>();
 
@@ -416,8 +440,8 @@ public class Variant extends Marker {
 	 * TODO
 	 */
 	public Variant realignLeft() {
-		return null;
-//		GenomicSequences gs = getGenome().getGenomicSequences();
+		return this;
+//		String gs = getGenome().querySequence(this);
 //		if (gs == null) return this;
 //
 //		VariantRealign vr = new VariantRealign(this);

@@ -1,11 +1,8 @@
 package org.bgi.flexlab.gaea.tools.annotator;
 
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Properties;
 
 import org.bgi.flexlab.gaea.tools.annotator.config.Config;
-import org.bgi.flexlab.gaea.tools.annotator.config.TableInfo;
 import org.bgi.flexlab.gaea.tools.annotator.effect.SnpEffectPredictor;
 import org.bgi.flexlab.gaea.tools.annotator.effect.factory.SnpEffPredictorFactory;
 import org.bgi.flexlab.gaea.tools.annotator.effect.factory.SnpEffPredictorFactoryRefSeq;

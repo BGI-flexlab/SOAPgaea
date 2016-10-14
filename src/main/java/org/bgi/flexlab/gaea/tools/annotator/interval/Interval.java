@@ -261,8 +261,8 @@ public class Interval implements Comparable<Interval>, Serializable, Cloneable {
 	public String toStr() {
 		return getClass().getSimpleName() //
 				+ "_" + getChromosomeName() //
-				+ ":" + (start + 1) //
-				+ "-" + (end + 1) //
+				+ ":" + start //
+				+ "-" + end //
 				;
 	}
 

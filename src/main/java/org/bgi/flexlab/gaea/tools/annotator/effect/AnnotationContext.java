@@ -85,13 +85,13 @@ public class AnnotationContext implements Serializable{
 
 	private static Map<String, Object> NO_VALUE = Collections.unmodifiableMap(new HashMap<String, Object>());
 	private Map<String, Object> annoItems = NO_VALUE;
-
-	public AnnotationContext(Map<String, Object> annoItems) {
-		init();
-		if ( annoItems != null && ! annoItems.isEmpty() ) {
-            this.annoItems = annoItems;
-        }
-	}
+//
+//	public AnnotationContext(Map<String, Object> annoItems) {
+//		init();
+//		if ( annoItems != null && ! annoItems.isEmpty() ) {
+//            this.annoItems = annoItems;
+//        }
+//	}
 
 	public AnnotationContext(VariantEffect variantEffect) {
 		this(variantEffect, true, false);
@@ -204,6 +204,7 @@ public class AnnotationContext implements Serializable{
     }
 
     public String getAnnoItemAsString(String key, String defaultValue) {
+    	System.err.println("getAnnoItemAsString:"+key);
         Object x = getAnnoItem(key);
         if ( x == null ) return defaultValue;
         if ( x instanceof String ) return (String)x;
@@ -355,6 +356,11 @@ public class AnnotationContext implements Serializable{
 		case "GENOTYPE":
 		case "GENOTYPE_NUMBER":
 			return genotype;
+			
+
+		case "EFFECT":
+		case "ANNOTATION":
+			return effectTypesStr;
 
 		case "IMPACT":
 			return impact != null ? impact.toString() : "";
@@ -382,9 +388,11 @@ public class AnnotationContext implements Serializable{
 			return (bioType == null ? "" : bioType.toString());
 
 		case "RANK":
+		case "EXON_RANK":
 			return Integer.toString(rank);
 
 		case "EXID":
+		case "EXON_ID":
 			return exonId;
 
 		case "RANK_MAX":

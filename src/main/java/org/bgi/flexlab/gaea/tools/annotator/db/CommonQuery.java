@@ -4,7 +4,7 @@ import java.util.HashMap;
 
 import org.bgi.flexlab.gaea.tools.annotator.db.Condition.ConditionKey;
 
-public class DbQuery extends AbstractDbQuery {
+public class CommonQuery extends AbstractDBQuery {
 
 	/**
 	 * 
@@ -12,7 +12,6 @@ public class DbQuery extends AbstractDbQuery {
 	private static final long serialVersionUID = 7515609026719464241L;
 
 
-	@Override
 	public boolean check(HashMap<ConditionKey, String> certainValue,
 			HashMap<String, String> resultMap) {
 		
