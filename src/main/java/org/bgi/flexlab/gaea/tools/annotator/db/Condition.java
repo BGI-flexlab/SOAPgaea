@@ -24,6 +24,7 @@ public class Condition implements Serializable{
 	}
 	
 	private static final long serialVersionUID = 5474372956720082769L;
+
 	
 	private String dbName = null;
 	private String tableName = null;
@@ -56,7 +57,7 @@ public class Condition implements Serializable{
 		this.tableInfo = tableInfo;
 		this.tableName = tableInfo.getTable();
 		this.conditionMap = conditionMap;
-		this.dbType = tableInfo.getDatabase();
+		this.dbType = tableInfo.getDatabaseType();
 	}
 
 
@@ -119,6 +120,10 @@ public class Condition implements Serializable{
 
 	public void setTableInfo(TableInfo tableInfo) {
 		this.tableInfo = tableInfo;
+	}
+	
+	public HashMap<String, String> getFields(){
+		return tableInfo.getFields();
 	}
 
 	public HashMap<ConditionKey, String> getConditionMap() {

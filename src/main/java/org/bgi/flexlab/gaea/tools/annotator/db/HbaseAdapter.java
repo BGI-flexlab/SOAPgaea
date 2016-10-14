@@ -2,6 +2,7 @@ package org.bgi.flexlab.gaea.tools.annotator.db;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Set;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
@@ -17,32 +18,21 @@ import org.apache.hadoop.hbase.util.Bytes;
  * @author huangzhibo
  *
  */
-public class HbaseAdapter implements DBAdapterInterface {
+public class HbaseAdapter implements DBAdapterInterface{
 	
 	static Configuration conf = null;
     static {
         conf = HBaseConfiguration.create();
-        conf.set("hbase.zookeeper.quorum", "localhost");
+//        conf.set("hbase.zookeeper.quorum", "localhost");
     }
     static Connection conn; 
     
-	@Override
-	public void connection(){
-		try {
-			conn = ConnectionFactory.createConnection(conf);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
+    @Override
+	public void connection(String dbName) throws IOException {
+		conn = ConnectionFactory.createConnection(conf);
 	}
 	
-	@Override
-	public void connection(String dbName) {
-		connection();
-	}
-
-	@Override
+    @Override
 	public void disconnection() throws IOException {
 			conn.close();
 	}
@@ -54,8 +44,8 @@ public class HbaseAdapter implements DBAdapterInterface {
      * 
      * @tableName 表名
      */
-	@Override
-	public HashMap<String, String> getResult(String stableName, String condition, String[] tags) {
+    @Override
+	public HashMap<String, String> getResult(String stableName, String condition, Set<String> tags) {
 		HashMap<String,String> resultMap = new HashMap<String,String>();
 		Result result = null;
 		try {
@@ -65,7 +55,6 @@ public class HbaseAdapter implements DBAdapterInterface {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
 		for (String key : tags) {
 			byte[] value = result.getValue(Bytes.toBytes("data"), Bytes.toBytes(key));
 			resultMap.put(key, value.toString());

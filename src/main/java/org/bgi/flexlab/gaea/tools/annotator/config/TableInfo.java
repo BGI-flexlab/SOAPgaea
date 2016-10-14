@@ -64,7 +64,7 @@ public class TableInfo implements Serializable {
 	}
 
 
-	public DbType getDatabase() {
+	public DbType getDatabaseType() {
 		return database;
 	}
 
@@ -72,7 +72,5 @@ public class TableInfo implements Serializable {
 	public String getQueryClassName() {
 		return queryClassName;
 	}
-
-
 
 }

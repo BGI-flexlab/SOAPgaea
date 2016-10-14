@@ -5,7 +5,7 @@ import java.util.HashMap;
 import org.bgi.flexlab.gaea.tools.annotator.db.Condition.ConditionKey;
 
 
-public class ExacQuery extends AbstractDbQuery {
+public class ExacQuery extends AbstractDBQuery {
 
 	private static final long serialVersionUID = -3033209267994263418L;
 	
