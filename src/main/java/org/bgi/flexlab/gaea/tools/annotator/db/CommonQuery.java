@@ -19,12 +19,13 @@ public class CommonQuery extends AbstractDBQuery {
 			String alt = resultMap.get("alt");
 			if(certainValue.get(ConditionKey.ALT).equalsIgnoreCase(alt)){
 				return true;
-			}
+			}else return false;
+			
 		}else if (resultMap.containsKey("ALT")) {
 			String alt = resultMap.get("ALT");
 			if(certainValue.get(ConditionKey.ALT).equalsIgnoreCase(alt)){
 				return true;
-			}
+			}else return false;
 			
 		}
 		return true;
