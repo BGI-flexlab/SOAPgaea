@@ -23,4 +23,9 @@ public class FastqQualityControlReducer extends Reducer<Text,Text,NullWritable,T
 			context.write(NullWritable.get(), tx);
 		}
 	}
+	
+	@Override
+	protected void cleanup(Context context) throws IOException, InterruptedException {
+		
+	}
 }
