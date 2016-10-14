@@ -51,9 +51,19 @@ public class GaeaAnySAMInputFormat extends
 		SAMFormat fmt = formatMap.get(path);
 		if (fmt != null || formatMap.containsKey(path))
 			return fmt;
-
+		
 		if (this.conf == null)
 			throw new IllegalStateException("Don't have a Configuration yet");
+		
+		if(conf.get(SAM_FORMAT_FOR_ALL_PATH) != null){
+			String format = conf.get(SAM_FORMAT_FOR_ALL_PATH);
+			if(format.equals("BAM"))
+				fmt = SAMFormat.BAM;
+			else
+				fmt = SAMFormat.SAM;
+			formatMap.put(path, fmt);
+			return fmt;
+		}
 
 		if (trustExts) {
 			final SAMFormat f = SAMFormat.inferFromFilePath(path);

@@ -57,11 +57,8 @@ public class WindowsBasedMapper
 			try {
 				recordFilter = (SamRecordFilter) (Class.forName(className)
 						.newInstance());
-			} catch (InstantiationException e) {
-				e.printStackTrace();
-			} catch (IllegalAccessException e) {
-				e.printStackTrace();
-			} catch (ClassNotFoundException e) {
+			} catch (InstantiationException | IllegalAccessException
+					| ClassNotFoundException e) {
 				e.printStackTrace();
 			}
 		}
@@ -95,12 +92,28 @@ public class WindowsBasedMapper
 		}
 	}
 
+	protected void setUnmappedKey(SAMRecord sam) {
+		if (multiSample) {
+			keyout.set(sam.getReadGroup().getSample(), "UNMAPPED", sam
+					.getReadName().hashCode(), sam.getReadName().hashCode());
+		} else {
+			keyout.set("UNMAPPED", sam.getReadName().hashCode(), sam
+					.getReadName().hashCode());
+		}
+	}
+
 	@Override
 	protected void map(LongWritable key, SAMRecordWritable value,
 			Context context) throws IOException, InterruptedException {
 		SAMRecord sam = value.get();
 		sam.setHeader(header);
 		if (recordFilter.filter(sam, region)) {
+			return;
+		}
+		
+		if(sam.getReadUnmappedFlag()){
+			setUnmappedKey(sam);
+			context.write(keyout, value);
 			return;
 		}
 

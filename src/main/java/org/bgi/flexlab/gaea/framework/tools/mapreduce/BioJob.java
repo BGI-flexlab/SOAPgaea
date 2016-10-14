@@ -49,6 +49,9 @@ public class BioJob extends Job {
 		conf.setBoolean(WindowsBasedMapper.MULTIPLE_SAMPLE, true);
 	}
 
+	/*
+	 * set windows based mapper filter
+	 * */
 	public void setFilterClass(Class<? extends SamRecordFilter> cls) {
 		conf.setClass(WindowsBasedMapper.SAM_RECORD_FILTER, cls,
 				SamRecordFilter.class);
@@ -67,6 +70,9 @@ public class BioJob extends Job {
 		setOutputValueClass(valueClass);
 	}
 	
+	/*
+	 * set sam or bam inputformat
+	 * */
 	public void setAnySamInputFormat(SAMFormat fmt){
 		conf.set(GaeaAnySAMInputFormat.SAM_FORMAT_FOR_ALL_PATH, fmt.toString());
 		setInputFormatClass(GaeaAnySAMInputFormat.class);

@@ -2,6 +2,7 @@ package org.bgi.flexlab.gaea.data.structure.reads;
 
 public class ReadInformationWithSampleID extends ReadInformation{
 	private String sampleID = "+";
+	private boolean firstRead = true;
 	
 	public ReadInformationWithSampleID(){
 		super();
@@ -9,6 +10,7 @@ public class ReadInformationWithSampleID extends ReadInformation{
 	
 	public ReadInformationWithSampleID(String readSequence,String qualityString,String readName){
 		super(readSequence,qualityString,readName);
+		setFlag(readName);
 	}
 	
 	public ReadInformationWithSampleID(String[] reads){
@@ -34,4 +36,20 @@ public class ReadInformationWithSampleID extends ReadInformation{
 	public void setReadQuality(String qual){
 		this.qualityString = qual;
 	}
+	
+	private void setFlag(String readName){
+		int index = readName.lastIndexOf("/");
+		if( index == -1 )
+			return;
+		if(!readName.substring(index).equals("1"))
+			firstRead = false;
+	}
+	
+	public boolean isFirstRead(){
+		return this.firstRead;
+	}
+	
+	public boolean equals(ReadInformationWithSampleID other){
+		return firstRead == other.isFirstRead();
+	} 
 }
