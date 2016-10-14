@@ -17,7 +17,7 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.bgi.flexlab.gaea.data.structure.header.SingleVCFHeader;
 import org.bgi.flexlab.gaea.data.structure.reference.GenomeShare;
 import org.bgi.flexlab.gaea.tools.annotator.config.Config;
-import org.bgi.flexlab.gaea.tools.annotator.db.DBAnno;
+import org.bgi.flexlab.gaea.tools.annotator.db.DBAnnotator;
 import org.bgi.flexlab.gaea.tools.annotator.effect.VcfAnnotationContext;
 import org.bgi.flexlab.gaea.tools.annotator.effect.VcfAnnotator;
 
@@ -25,8 +25,8 @@ public class VariantAnnotationMapper extends Mapper<LongWritable, Text, NullWrit
 
 	private Text resultValue = new Text();
 	private VCFCodec vcfCodec = new VCFCodec();
-	private VcfAnnotator vcfAnnotator = null;
-	private DBAnno dbAnno = null;
+	private VcfAnnotator vcfAnnotator;
+	private DBAnnotator dbAnnotator;
 	private Configuration conf;
 	
 	
@@ -58,7 +58,8 @@ public class VariantAnnotationMapper extends Mapper<LongWritable, Text, NullWrit
 		vcfAnnotator = new VcfAnnotator(userConfig);
 		
 		//用于从数据库中查找信息
-		dbAnno = new DBAnno(userConfig);
+		dbAnnotator = new DBAnnotator(userConfig);
+		dbAnnotator.connection();
 		
 		// 注释结果header信息
 		resultValue.set(userConfig.getHeader());
@@ -82,9 +83,7 @@ public class VariantAnnotationMapper extends Mapper<LongWritable, Text, NullWrit
 			return;
 		}
 		
-		
-//		dbAnno.annotate(vcfAnnoContext);
-		
+		dbAnnotator.annotate(vcfAnnoContext);
 		
 		if (conf.get("outputType").equals("txt")) {
 			List<String> annoLines = vcfAnnotator.convertAnnotationStrings(vcfAnnoContext);
@@ -96,5 +95,11 @@ public class VariantAnnotationMapper extends Mapper<LongWritable, Text, NullWrit
 //			TODO other output format
 		}
 		
+	}
+	
+	@Override
+	protected void cleanup(Context context)
+			throws IOException, InterruptedException {
+		dbAnnotator.disconnection();
 	}
 }

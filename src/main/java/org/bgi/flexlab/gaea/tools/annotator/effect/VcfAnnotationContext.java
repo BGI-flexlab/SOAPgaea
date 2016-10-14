@@ -32,54 +32,46 @@ public class VcfAnnotationContext extends VariantContext{
 	public VcfAnnotationContext(VariantContext variantContext){
 		super(variantContext);
 		setAlts();
+		variants = new LinkedList<Variant>();
 	}
-
 	
 	/**
 	 * Create a list of variants from this variantContext
 	 */
 	public List<Variant> variants(Genome genome) {
-		if (variants != null) return variants;
-
-		// Create list of variants
-		variants = new LinkedList<Variant>();
+		if (!variants.isEmpty()) return variants;
 		
 		String refStr = this.getReference().getBaseString();
 
 		// Create one Variant for each ALT
-//		Chromosome chr = (Chromosome) parent;
 		Chromosome chr = genome.getChromosome(this.getContig());
 
+		// interval 使用 0-base 方式建立，应使用start - 1创建variant对象
 		if (!this.isVariant()) {
 			// Not a variant?
-			List<Variant> vars = variants(chr, (int)start, refStr, null, "");
-			String alt = ".";
-
-			// Add original 'ALT' field as genotype
-			for (Variant variant : vars)
-				variant.setGenotype(alt);
-
-			variants.addAll(vars);
+			Variant variant = new Variant(chr, (int)start - 1, refStr, null, "");
+			variant.setGenotype(".");
+			variants.add(variant);
 		} else {
 			// At least one variant
-			String altStr = listToString(alts, ",");
-			List<Variant> vars = variants(chr, (int)start, refStr, altStr, "");
-			variants.addAll(vars);
+			for (String alt : alts) {
+				Variant variant = createVariant(chr, (int)start - 1, refStr, alt, "");
+				variants.add(variant);
+			}
 		}
-	
 		return variants;
 	}
 	
 	/**
 	 * Create a variant
 	 */
-	List<Variant> variants(Chromosome chromo, int start, String reference, String alt, String id) {
-		List<Variant> list = null;
+	Variant createVariant(Chromosome chromo, int start, String reference, String alt, String id) {
+		Variant variant = null;
 		if (alt != null) alt = alt.toUpperCase();
 
 		if (alt == null || alt.isEmpty() || alt.equals(reference)) {
 			// Non-variant
-			list = Variant.factory(chromo, start, reference, null, id, false);
+			variant = Variant.create(chromo, start, reference, null, id);
 		} else if (alt.charAt(0) == '<') {
 			// TODO Structural variants 
 			System.err.println("Cann't annotate Structural variants! ");
@@ -92,7 +84,7 @@ public class VcfAnnotationContext extends VariantContext{
 			if (reference.length() == 1) {
 				// SNPs
 				// 20     3 .         C      G       .   PASS  DP=100
-				list = Variant.factory(chromo, start, reference, alt, id, true);
+				variant = Variant.create(chromo, start, reference, alt, id);
 			} else {
 				// MNPs
 				// 20     3 .         TC     AT      .   PASS  DP=100
@@ -109,7 +101,7 @@ public class VcfAnnotationContext extends VariantContext{
 
 				String newRef = reference.substring(startDiff, endDiff + 1);
 				String newAlt = alt.substring(startDiff, endDiff + 1);
-				list = Variant.factory(chromo, start + startDiff, newRef, newAlt, id, true);
+				variant = Variant.create(chromo, start + startDiff, newRef, newAlt, id);
 			}
 		} else {
 			// Short Insertions, Deletions or Mixed Variants (substitutions)
@@ -125,7 +117,7 @@ public class VcfAnnotationContext extends VariantContext{
 				String ref = "";
 				String ch = align.getAlignment();
 				if (!ch.startsWith("-")) throw new RuntimeException("Deletion '" + ch + "' does not start with '-'. This should never happen!");
-				list = Variant.factory(chromo, start + startDiff, ref, ch, id, true);
+				variant = Variant.create(chromo, start + startDiff, ref, ch, id);
 				break;
 
 			case INS:
@@ -134,14 +126,14 @@ public class VcfAnnotationContext extends VariantContext{
 				ch = align.getAlignment();
 				ref = "";
 				if (!ch.startsWith("+")) throw new RuntimeException("Insertion '" + ch + "' does not start with '+'. This should never happen!");
-				list = Variant.factory(chromo, start + startDiff, ref, ch, id, true);
+				variant = Variant.create(chromo, start + startDiff, ref, ch, id);
 				break;
 
 			case MIXED:
 				// Case: Mixed variant (substitution)
 				reference = reference.substring(startDiff);
 				alt = alt.substring(startDiff);
-				list = Variant.factory(chromo, start + startDiff, reference, alt, id, true);
+				variant = Variant.create(chromo, start + startDiff, reference, alt, id);
 				break;
 
 			default:
@@ -153,13 +145,11 @@ public class VcfAnnotationContext extends VariantContext{
 		//---
 		// Add original 'ALT' field as genotype
 		//---
-		if (list == null) list = new LinkedList<>();
-		for (Variant variant : list)
-			variant.setGenotype(alt);
+		if (variant == null) return null;
+		variant.setGenotype(alt);
 
-		return list;
+		return variant;
 	}
-	
 	
 	private void setAlts() {
 		alts = new ArrayList<>();
@@ -187,7 +177,7 @@ public class VcfAnnotationContext extends VariantContext{
 			sb.append("\t");
 			sb.append(this.getReference().getBaseString());
 			sb.append("\t");
-			sb.append(annoContext.getAllele());
+			sb.append(annoContext.getFieldByName("ALLELE"));
 			sb.append("\t");
 			
 			List<String> dbNameList = config.getDbNameList();
@@ -212,16 +202,6 @@ public class VcfAnnotationContext extends VariantContext{
 		return sb.toString();
 	}
 	
-	private String listToString(List<String> list, String separator) { 
-		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < list.size()-1; i++) { 
-			sb.append(list.get(i));       
-			sb.append(separator);
-		}
-		sb.append(list.get(list.size()-1));
-		return sb.toString();
-	}
-
 	public LinkedList<Variant> getVariants(){
 		return variants;
 	}
@@ -233,20 +213,5 @@ public class VcfAnnotationContext extends VariantContext{
 	public List<AnnotationContext> getAnnotationContexts() {
 		return annotationContexts;
 	}
-	
-	public void add(){
-		
-	}
-
-	public Variant getVariant(String alt) {
-		for (Variant variant : variants) {
-			if(variant.getAlt().equals(alt)){
-				return variant;
-			}
-		}
-		return null;
-	}
-
 }
-
 

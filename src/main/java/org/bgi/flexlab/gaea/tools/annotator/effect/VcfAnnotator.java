@@ -71,6 +71,7 @@ public class VcfAnnotator implements Serializable{
 			sb.append("\t");
 			sb.append(vac.getReference().getBaseString());
 			sb.append("\t");
+//			sb.append(ac.getFieldByName("ALLELE"));
 			sb.append(ac.getAllele());
 			
 			List<String> dbNameList = config.getDbNameList();
@@ -87,8 +88,7 @@ public class VcfAnnotator implements Serializable{
 					for (String field : fields) {
 						sb.append("\t");
 //						System.err.println("getNumAnnoItems:"+annoContext.getNumAnnoItems());
-//						sb.append(annoContext.getAnnoItemAsString(field, "."));       
-						sb.append(".");
+						sb.append(ac.getAnnoItemAsString(field, ".")); 
 					}
 				}
 			}

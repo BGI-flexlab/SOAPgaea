@@ -1,14 +1,16 @@
 package org.bgi.flexlab.gaea.tools.annotator.db;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.Set;
 
 
-public class MysqlAdapter implements DBAdapterInterface {
+public class MysqlAdapter implements DBAdapterInterface{
 	
 	
 	private static final String USER="root";
@@ -31,24 +33,10 @@ public class MysqlAdapter implements DBAdapterInterface {
 	}
 	
 	@Override
-	public void connection() {
+	public void connection(String dbName) throws IOException {
 		try {
 			//1.加载驱动程序
 			Class.forName(driver);
-			//2.获得数据库的连接
-			setConn(DriverManager.getConnection(url, USER, PASSWORD));
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-	}
-	
-	public void connection(String dbName) {
-//		url = url
-		try {
-			//1.加载驱动程序
-			Class.forName("com.mysql.jdbc.Driver");
 			//2.获得数据库的连接
 			setConn(DriverManager.getConnection(url+dbName, USER, PASSWORD));
 		} catch (ClassNotFoundException e) {
@@ -56,6 +44,7 @@ public class MysqlAdapter implements DBAdapterInterface {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		
 	}
 
 	private void setConn(Connection connection) {
@@ -84,7 +73,7 @@ public class MysqlAdapter implements DBAdapterInterface {
 	}
 	
 	@Override
-	public HashMap<String, String> getResult(String stableName, String condition, String[] tags) {
+	public HashMap<String, String> getResult(String stableName, String condition, Set<String> tags) {
 		HashMap<String,String> resultMap = new HashMap<String,String>();
 		StringBuilder sb=new StringBuilder();
 		sb.append("select * from " + stableName + " ");

@@ -5,7 +5,7 @@
     "key":"id",
     "indexTable":"eps6500_index_chr_pos",
     "queryCondition":"CHR_POS",
-    "queryClassName":"EspQuery",
+    "queryClassName":"CommonQuery",
     "fields":{
       "ESP6500_AF":"af"
     }
@@ -16,11 +16,12 @@
     "key":"RSID",
     "indexTable":"dbSNP_index_chr_pos",
     "queryCondition":"CHR_POS",
+    "queryClassName":"DBsnpQuery",
     "fields":{
-      "RS":"RS",
-      "dbSNPBuildID":"dbSNPBuildID",
-      "DBSNP_CAF":"CAF",
-      "DBSNP_COMMON":"COMMON"
+      "RS":"INFO:RS",
+      "dbSNPBuildID":"INFO:dbSNPBuildID",
+      "DBSNP_CAF":"INFO:CAF",
+      "DBSNP_COMMON":"INFO:COMMON"
     }
   },
   "G1000":{
@@ -29,12 +30,13 @@
     "key":"id",
     "indexTable":"1000Genomes_index_chr_pos",
     "queryCondition":"CHR_POS",
+    "queryClassName":"G1000Query",
     "fields":{
-      "G1000_AF":"AF",
-      "G1000_ASN_AF":"ASN_AF",
-      "G1000_EUR_AF":"EUR_AF",
-      "G1000_AFR_AF":"AFR_AF",
-      "G1000_AMR_AF":"AMR_AF"
+      "G1000_AF":"info:AF",
+      "G1000_ASN_AF":"info:ASN_AF",
+      "G1000_EUR_AF":"info:EUR_AF",
+      "G1000_AFR_AF":"info:AFR_AF",
+      "G1000_AMR_AF":"info:AMR_AF"
     }
   },
   "EXAC":{
@@ -43,6 +45,7 @@
     "key":"id",
     "indexTable":"exac_index_chr_pos",
     "queryCondition":"CHR_POS",
+    "queryClassName":"CommonQuery",
     "fields":{
       "EXAC_AC":"ac",
       "EXAC_AF":"af"
@@ -54,6 +57,7 @@
     "key":"id",
     "indexTable":"gwasCatalog_index_chrom_chromStar_chromEnd",
     "queryCondition":"CHR_POS_END",
+    "queryClassName":"CommonQuery",
     "fields":{
       "GWAS_trait":"trait",
       "GWAS_title":"title",
@@ -71,6 +75,7 @@
     "key":"mim_id",
     "indexTable":"omim_genemap_index_gene_symbol",
     "queryCondition":"GENE",
+    "queryClassName":"CommonQuery",
     "fields":{
       "OMIM_gene_symbol":"gene_symbol",
       "OMIM_gene_status":"gene_status",
@@ -83,9 +88,10 @@
   "CLINVAR":{
     "database":"HBASE",
     "table":"clinvar_variant_summary",
-    "queryCondition":"CHR_POS_END",
     "key":"id",
     "indexTable":"clinvar_variant_summary_index_chr_start_stop",
+    "queryCondition":"CHR_POS_END",
+    "queryClassName":"CommonQuery",
     "fields":{
       "CLINVAR_name":"Name",
       "CLINVAR_Type":"Type",
@@ -95,13 +101,5 @@
       "CLINVAR_pHGVS":"pHGVS",
       "CLINVAR_loc":"Cytogenetic"
     }
-  },
-  "dbName1":{
-    "database":"MYSQL",
-    "table":"table1",
-    "queryCondition":"CHR_POS_END",
-    "key":"id",
-    "indexTable":"",
-    "fields":{}
   }
 }
