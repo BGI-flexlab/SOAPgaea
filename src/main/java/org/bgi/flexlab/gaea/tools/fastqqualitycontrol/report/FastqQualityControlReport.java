@@ -5,7 +5,7 @@ import org.bgi.flexlab.gaea.data.structure.reads.ReadBasicStatic;
 
 public class FastqQualityControlReport {
 	private final static int STATIC_COUNT = 24;
-	private final static int BASE_STATIC_COUNT = 14;
+	public final static int BASE_STATIC_COUNT = 14;
 	private final static int BASE_START_INDEX = BASE_STATIC_COUNT
 			- STATIC_COUNT;
 
@@ -37,15 +37,13 @@ public class FastqQualityControlReport {
 
 	private ArrayListLongWrap[][] BASE_BY_POSITON;
 
-	private FastqMultipleSample multiList;
 	private int sampleSize;
 	private boolean isMulti = true;
 
-	public FastqQualityControlReport(FastqMultipleSample list, boolean isMulti) {
-		this.multiList = list;
+	public FastqQualityControlReport(int ssize, boolean isMulti) {
 		this.isMulti = isMulti;
 
-		sampleSize = list.getSampleNumber();
+		sampleSize = ssize;
 		if (!isMulti)
 			sampleSize = 1;
 
@@ -108,6 +106,24 @@ public class FastqQualityControlReport {
 
 		for (int i = (BASE_STATIC_COUNT / 2); i < BASE_STATIC_COUNT; i++) {
 			statNumbers[sampleID][i+BASE_START_INDEX] += stat.getBasicBaseConunt(i);
+		}
+	}
+	
+	public void add(ReadBasicStatic stat,int sampleID,boolean isClean){
+		if(!isMulti){
+			sampleID = 0;
+		}
+		
+		int i;
+		for(i = 0 ; i < (BASE_STATIC_COUNT/2) ; i++){
+			BASE_BY_POSITON[sampleID][i].add(stat.getPositionInfo(i));
+		}
+		
+		if(isClean){
+			int start = BASE_STATIC_COUNT/2;
+			for(i = start ; i < BASE_STATIC_COUNT ; i++){
+				BASE_BY_POSITON[sampleID][i].add(stat.getPositionInfo(i-start));
+			}
 		}
 	}
 }

@@ -1,5 +1,7 @@
 package org.bgi.flexlab.gaea.data.structure.reads;
 
+import org.bgi.flexlab.gaea.tools.fastqqualitycontrol.report.ArrayListLongWrap;
+import org.bgi.flexlab.gaea.tools.fastqqualitycontrol.report.FastqQualityControlReport;
 import org.bgi.flexlab.gaea.tools.mapreduce.fastqqualitycontrol.FastqQualityControlOptions;
 import org.bgi.flexlab.gaea.util.BaseUtils;
 
@@ -8,22 +10,37 @@ public class ReadBasicStatic {
 	private short baseNumber;
 	private short lowQualityBaseNumber;
 	private FastqQualityControlOptions option;
+	private String sampleID = null;
+	private boolean sampleIDException = false;
 
 	private byte readCount;
 
 	private boolean[] lowQualityRead = new boolean[2];
 	private boolean[] tooManyNCounter = new boolean[2];
 	private boolean[] hasAdaptor = new boolean[2];
+	
+	private ArrayListLongWrap[] baseByPosition;
+	private final int SIZE = FastqQualityControlReport.BASE_STATIC_COUNT/2;
 
 	public ReadBasicStatic(FastqQualityControlOptions option) {
 		this.basicCounts = new short[7];
 		this.lowQualityBaseNumber = 0;
 		this.baseNumber = 0;
 		this.option = option;
+		this.baseByPosition = new ArrayListLongWrap[SIZE];
+	}
+	
+	private void setSampleID(String sID){
+		if(sampleID == null)
+			sampleID = sID;
+		else if(!sampleID.equals(sID)){
+			sampleIDException = true;
+		}
 	}
 
-	public void countBase(ReadBasicInformation read, int flag) {
+	public void countBase(ReadInformationWithSampleID read, int flag) {
 		this.readCount++;
+		setSampleID(read.getSampleID());
 		byte[] basic = read.getReadsSequence().getBytes();
 		byte[] quality = read.getQualityString().getBytes();
 
@@ -39,15 +56,18 @@ public class ReadBasicStatic {
 
 			if (posQuality >= 20) {
 				basicCounts[5]++;
+				baseByPosition[5].add(i, 1);
 			}
 			if (posQuality >= 30) {
 				basicCounts[6]++;
+				baseByPosition[6].add(i, 1);
 			}
 			if (posQuality < option.getLowQuality()) {
 				lowQual++;
 			}
 			int baseIndex = BaseUtils.getBinaryBase(basic[i]);
 			basicCounts[baseIndex]++;
+			baseByPosition[baseIndex].add(i, 1);
 
 			if (baseIndex == 4)
 				nCount++;
@@ -127,5 +147,17 @@ public class ReadBasicStatic {
 	
 	public int getLowQualityCounter(){
 		return getCounter(lowQualityRead);
+	}
+	
+	public boolean isSampleIDException(){
+		return sampleIDException;
+	}
+	
+	public String getSampleID(){
+		return this.sampleID;
+	}
+	
+	public ArrayListLongWrap getPositionInfo(int index){
+		return this.baseByPosition[index];
 	}
 }
