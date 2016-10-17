@@ -1,4 +1,4 @@
-package org.bgi.flexlab.gaea.util;
+package org.bgi.flexlab.gaea.data.structure.bam;
 
 public interface ParseSAMInterface {
 	public boolean parseSAM(String samline);
