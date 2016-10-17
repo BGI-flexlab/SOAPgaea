@@ -91,7 +91,7 @@
     "key":"id",
     "indexTable":"clinvar_variant_summary_index_chr_start_stop",
     "queryCondition":"CHR_POS_END",
-    "queryClassName":"CommonQuery",
+    "queryClassName":"ClinvarQuery",
     "fields":{
       "CLINVAR_name":"Name",
       "CLINVAR_Type":"Type",

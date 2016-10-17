@@ -73,10 +73,10 @@ public class MysqlAdapter implements DBAdapterInterface{
 	}
 	
 	@Override
-	public HashMap<String, String> getResult(String stableName, String condition, Set<String> tags) {
+	public HashMap<String, String> getResult(String tableName, String condition, Set<String> tags) {
 		HashMap<String,String> resultMap = new HashMap<String,String>();
 		StringBuilder sb=new StringBuilder();
-		sb.append("select * from " + stableName + " ");
+		sb.append("select * from " + tableName + " ");
 		sb.append(condition);
 		PreparedStatement ptmt = null;
 		ResultSet rs = null;
@@ -91,6 +91,13 @@ public class MysqlAdapter implements DBAdapterInterface{
 			e.printStackTrace();
 		}
 		return resultMap;
+	}
+	
+	@Override
+	public HashMap<String, String> getResult(String indexTable,
+			String conditionString) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 

@@ -51,5 +51,25 @@ public class ReadInformationWithSampleID extends ReadInformation{
 	
 	public boolean equals(ReadInformationWithSampleID other){
 		return firstRead == other.isFirstRead();
-	} 
+	}
+	
+	public String toString(int qualTrim){
+		StringBuilder fastq = new StringBuilder();
+		fastq.append(readName);
+		fastq.append("\n");
+		fastq.append(readSequence);
+		fastq.append("\n");
+		fastq.append(sampleID);
+		fastq.append("\n");
+		if (qualTrim != 0) {
+			byte[] qual = qualityString.getBytes();
+			for (int i = 0; i < qual.length; i++)
+				qual[i] -= qualTrim;
+			fastq.append(new String(qual));
+		} else {
+			fastq.append(qualityString);
+		}
+		fastq.append("\n");
+		return fastq.toString();
+	}
 }
