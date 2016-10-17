@@ -21,6 +21,7 @@ public class Condition implements Serializable{
 		, END
 		, ALT
 		, GENE
+		, ASSEMBLY
 	}
 	
 	private static final long serialVersionUID = 5474372956720082769L;
@@ -69,9 +70,9 @@ public class Condition implements Serializable{
 		String[] conKeys = tableInfo.getQueryCondition().split("_");
 		if(dbType == DbType.HBASE){
 			for (int i = 0; i < conKeys.length-1; i++) {
-				sb.append(conditionMap.get(conKeys[i])+'-');
+				sb.append(conditionMap.get(ConditionKey.valueOf(conKeys[i]))+'-');
 			}
-			sb.append(conKeys[conKeys.length-1]);
+			sb.append(conditionMap.get(ConditionKey.valueOf(conKeys[conKeys.length-1])));
 		}else {
 			sb.append("where ");
 			for (int i = 0; i < conKeys.length-1; i++) {
@@ -79,6 +80,7 @@ public class Condition implements Serializable{
 			}
 			sb.append(conKeys[conKeys.length-1] + " = " + conditionMap.get(conKeys[conKeys.length-1]));
 		}
+		conditionString = sb.toString();
 		return conditionString;
 	}
 

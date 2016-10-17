@@ -59,7 +59,12 @@ public class VariantAnnotationMapper extends Mapper<LongWritable, Text, NullWrit
 		
 		//用于从数据库中查找信息
 		dbAnnotator = new DBAnnotator(userConfig);
-		dbAnnotator.connection();
+		try {
+			dbAnnotator.connection();
+		} catch (InstantiationException | IllegalAccessException
+				| ClassNotFoundException e) {
+			e.printStackTrace();
+		}
 		
 		// 注释结果header信息
 		resultValue.set(userConfig.getHeader());

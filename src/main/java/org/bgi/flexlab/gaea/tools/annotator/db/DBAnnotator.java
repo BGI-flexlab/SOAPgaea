@@ -19,7 +19,6 @@ public class DBAnnotator implements Serializable{
 	private static HashMap<String, AbstractDBQuery> DbQueryMap = new HashMap<String, AbstractDBQuery>();
 	
 	private Config config;
-	private AbstractDBQuery dbQuery;
 	
 	
 	public DBAnnotator(Config config){
@@ -29,32 +28,34 @@ public class DBAnnotator implements Serializable{
 	public void annotate(VcfAnnotationContext vac) throws IOException {
 		LinkedHashMap<ConditionKey, String> conditionMap = new LinkedHashMap<ConditionKey, String>();
 		
-		conditionMap.put(ConditionKey.CHR, vac.getContig());
+		conditionMap.put(ConditionKey.CHR, vac.getChrome());
 		conditionMap.put(ConditionKey.POS, String.valueOf(vac.getStart()));
 
 		List<String> dbNameList = config.getDbNameList();
 		for (String dbName : dbNameList) {
 			List<AnnotationContext> list = vac.getAnnotationContexts();
 			TableInfo tableInfo = config.getDbInfo().get(dbName);
-			if(DbQueryMap.containsKey(dbName)){
-				dbQuery = DbQueryMap.get(dbName);
-			}else {
-				try{
-					dbQuery = (AbstractDBQuery)Class.forName("org.bgi.flexlab.gaea.annotator.db." + tableInfo.getQueryClassName()).newInstance();
-				}catch(Exception e){
+			AbstractDBQuery dbQuery = DbQueryMap.get(dbName);
+			if (dbQuery == null) {
+				System.err.println("dbQuery is null:"+ConditionKey.CHR + "-" + ConditionKey.POS);
+				try {
+					dbQuery = (AbstractDBQuery)Class.forName("org.bgi.flexlab.gaea.tools.annotator.db." + tableInfo.getQueryClassName()).newInstance();
+				} catch (InstantiationException | IllegalAccessException
+						| ClassNotFoundException e) {
+					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				DbQueryMap.put(dbName, dbQuery);
 			}
-				
+			
 			for (AnnotationContext annotationContext : list) {
+				conditionMap.put(ConditionKey.GENE, annotationContext.getGeneName());
 				conditionMap.put(ConditionKey.END, String.valueOf(vac.getStart() + annotationContext.getAllele().length() - 1));
 				conditionMap.put(ConditionKey.ALT, String.valueOf(annotationContext.getAllele()));
 					
 				String[] fields = config.getFieldsByDB(dbName);
 				Condition condition = new Condition(dbName,tableInfo,conditionMap);
 				HashMap<String,String> annoResults= dbQuery.query(condition, fields);
-				
+				if (annoResults == null || annoResults.isEmpty()) continue;
 				for (String field : fields) {
 					annotationContext.putAnnoItem(field, annoResults.get(field));
 				}
@@ -62,28 +63,34 @@ public class DBAnnotator implements Serializable{
 		}
 	}
 
-	public void connection() {
+	public void connection() throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException {
 		List<String> dbNameList = config.getDbNameList();
 		for (String dbName : dbNameList) {
+			if (dbName.equalsIgnoreCase("GeneInfo")) continue;
+			
 			TableInfo tableInfo = config.getDbInfo().get(dbName);
-			if(DbQueryMap.containsKey(dbName)){
-				dbQuery = DbQueryMap.get(dbName);
-			}else {
-				try{
-					dbQuery = (AbstractDBQuery)Class.forName("org.bgi.flexlab.gaea.annotator.db." + tableInfo.getQueryClassName()).newInstance();
-					dbQuery.connection(dbName, tableInfo.getDatabaseType());
-		        }catch(Exception e){
-		            e.printStackTrace();
-		        }
+			
+//			TODO test
+			System.err.println("QueryClassName:"+dbName+"-"+tableInfo.getQueryClassName());
+//			Class dbQueryClass = Class.forName("org.bgi.flexlab.gaea.tools.annotator.db." + tableInfo.getQueryClassName());
+//			AbstractDBQuery dbQuery = (AbstractDBQuery) dbQueryClass.newInstance();
+			AbstractDBQuery dbQuery = (AbstractDBQuery)Class.forName("org.bgi.flexlab.gaea.tools.annotator.db." + tableInfo.getQueryClassName()).newInstance();
+			dbQuery.connection(dbName, tableInfo.getDatabaseType());
+			if (dbQuery != null) {
+				System.err.println("dbQuery is null:"+ConditionKey.CHR + "-" + ConditionKey.POS);
 				DbQueryMap.put(dbName, dbQuery);
 			}
+			DbQueryMap.put(dbName, dbQuery);
 		}
 	}
 
 	public void disconnection() throws IOException {
 		Set<String> keys = DbQueryMap.keySet();
 		for (String key : keys) {
-			DbQueryMap.get(key).disconnection();
+			AbstractDBQuery dbQuery = DbQueryMap.get(key);
+			if (dbQuery != null) {
+				dbQuery.disconnection();
+			}
 		}
 	}
 

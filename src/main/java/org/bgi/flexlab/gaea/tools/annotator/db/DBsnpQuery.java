@@ -12,31 +12,26 @@ public class DBsnpQuery extends AbstractDBQuery {
 	@Override
 	public boolean check(HashMap<ConditionKey, String> certainValue,
 			HashMap<String, String> resultMap) {
-		String alt = resultMap.get("ALT");
-		if(certainValue.get(ConditionKey.ALT).equalsIgnoreCase(alt)){
-			return true;
-		}
-		return false;
+		return true;
 	}
 	
 	@Override
 	public HashMap<String, String> query(Condition condition , String[] fields)throws IOException{
 		HashMap<String, String> fieldMap = condition.getFields();
 		HashMap<String,String> resultMap = query(condition);
+		if (resultMap == null) return null;
 		HashMap<String,String> result = new HashMap<String, String>();
-		HashMap<String,String> subFieldHash = null;
 		
 		for (String field : fields) {
 			String dbField = fieldMap.get(field);
 			if (dbField.indexOf(':') >= 1) {
 				String[] kv= dbField.split(":");
-				String subFieldString = resultMap.getOrDefault(kv[0],".");
-				if (subFieldHash == null) 
-					subFieldHash = parseSubFieldHash(subFieldString);
+				String subFieldString = resultMap.get(kv[0]);
+				HashMap<String,String> subFieldHash = parseSubFieldHash(subFieldString);
 				
-				result.put(field, subFieldHash.getOrDefault(dbField, "."));
+				result.put(field, subFieldHash.get(kv[1]));
 			}else {
-				result.put(field, resultMap.getOrDefault(dbField, "."));
+				result.put(field, resultMap.get(dbField));
 			}
 			
 		}

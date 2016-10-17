@@ -22,6 +22,8 @@ public abstract class AbstractDBQuery implements Serializable {
 	
 	public HashMap<String, String> query(Condition condition) throws IOException
 	{
+		if(dbAdapter == null) return null;
+		
 		HashMap<String,String> resultMap;
 		if (condition.getTableInfo().getIndexTable().isEmpty()) {
 			resultMap = dbAdapter.getResult(condition.getTableName(), condition.getConditionString());
@@ -30,6 +32,15 @@ public abstract class AbstractDBQuery implements Serializable {
 			}
 		}else {
 			resultMap = dbAdapter.getResult(condition.getTableInfo().getIndexTable(), condition.getConditionString());
+//			TODO test
+			System.err.println("[START] print resultMap:");
+			for (String key : resultMap.keySet()) {
+				System.err.println("resultMap:"+key+"="+resultMap.get(key));
+			}
+			System.err.println("[END] print resultMap:");
+			if (resultMap.isEmpty()) {
+				return null;
+			}
 			String keyStr = resultMap.get(condition.getTableInfo().getKey());
 			String[] keys = keyStr.split(",");
 			for (String key : keys) {
@@ -53,11 +64,12 @@ public abstract class AbstractDBQuery implements Serializable {
 	public HashMap<String, String> query(Condition condition , String[] fields)throws IOException{
 		HashMap<String, String> fieldMap = condition.getFields();
 		HashMap<String,String> resultMap = query(condition);
+		if (resultMap == null) return null;
 		HashMap<String,String> result = new HashMap<String, String>();
 		
 		for (String field : fields) {
 			String dbField = fieldMap.get(field);
-			result.put(field, resultMap.getOrDefault(dbField, "."));
+			result.put(field, resultMap.get(dbField));
 		}
 		return result; 
 	}

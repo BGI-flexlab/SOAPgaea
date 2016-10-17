@@ -73,23 +73,19 @@ public class VcfAnnotator implements Serializable{
 			sb.append("\t");
 //			sb.append(ac.getFieldByName("ALLELE"));
 			sb.append(ac.getAllele());
+			String[] fields = config.getFieldsByDB(Config.KEY_GENE_INFO);
+			for (String field : fields) {
+				sb.append("\t");
+				sb.append(ac.getFieldByName(field));    
+			}
 			
 			List<String> dbNameList = config.getDbNameList();
 			for (String dbName : dbNameList) {
-				
-				String[] fields = config.getFieldsByDB(dbName);
-				
-				if (dbName.equalsIgnoreCase("GeneInfo")) {
-					for (String field : fields) {
-						sb.append("\t");
-						sb.append(ac.getFieldByName(field));    
-					}
-				}else {
-					for (String field : fields) {
-						sb.append("\t");
+				fields = config.getFieldsByDB(dbName);
+				for (String field : fields) {
+					sb.append("\t");
 //						System.err.println("getNumAnnoItems:"+annoContext.getNumAnnoItems());
-						sb.append(ac.getAnnoItemAsString(field, ".")); 
-					}
+					sb.append(ac.getAnnoItemAsString(field, ".")); 
 				}
 			}
 			annoStrings.add(sb.toString());
