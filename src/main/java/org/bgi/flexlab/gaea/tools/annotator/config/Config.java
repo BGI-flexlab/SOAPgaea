@@ -390,9 +390,14 @@ public class Config implements Serializable {
 		sb.append("REF");
 		sb.append("\t");
 		sb.append("ALT");
+		String[] fields = getFieldsByDB(Config.KEY_GENE_INFO);
+		for (String field : fields) {
+			sb.append("\t");
+			sb.append(field);    
+		}
 		List<String> dbNameList = getDbNameList();
 		for (String dbName : dbNameList) {
-			String[] fields = getFieldsByDB(dbName);
+			fields = getFieldsByDB(dbName);
 			for (String field : fields) {
 				sb.append("\t");
 				sb.append(field);       

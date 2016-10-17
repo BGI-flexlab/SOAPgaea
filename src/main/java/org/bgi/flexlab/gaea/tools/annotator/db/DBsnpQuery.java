@@ -12,7 +12,11 @@ public class DBsnpQuery extends AbstractDBQuery {
 	@Override
 	public boolean check(HashMap<ConditionKey, String> certainValue,
 			HashMap<String, String> resultMap) {
-		return true;
+		String alt = resultMap.get("ALT");
+		if(certainValue.get(ConditionKey.ALT).equalsIgnoreCase(alt)){
+			return true;
+		}
+		return false;
 	}
 	
 	@Override

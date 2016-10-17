@@ -2,7 +2,9 @@ package org.bgi.flexlab.gaea.tools.annotator.db;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import org.bgi.flexlab.gaea.tools.annotator.config.TableInfo.DbType;
 import org.bgi.flexlab.gaea.tools.annotator.db.Condition.ConditionKey;
@@ -15,38 +17,45 @@ import org.bgi.flexlab.gaea.tools.annotator.db.Condition.ConditionKey;
 public abstract class AbstractDBQuery implements Serializable {
 
 	private static final long serialVersionUID = -897843908487603204L;
+	private static HashMap<String, List<HashMap<String,String>>> results = new HashMap<String, List<HashMap<String,String>>>();
 	
 	private DBAdapterInterface dbAdapter = null;
 	
 	public AbstractDBQuery(){}
 	
-	public HashMap<String, String> query(Condition condition) throws IOException
-	{
+	public static void cleanResults() {
+		if (results.size()>500) {
+			results.clear();
+		}
+	}
+	
+	public HashMap<String, String> query(Condition condition) throws IOException {
 		if(dbAdapter == null) return null;
-		
+		List<HashMap<String,String>> resultMapList = new ArrayList<HashMap<String,String>>();
 		HashMap<String,String> resultMap;
+		
 		if (condition.getTableInfo().getIndexTable().isEmpty()) {
 			resultMap = dbAdapter.getResult(condition.getTableName(), condition.getConditionString());
 			if (check(condition.getConditionMap(),resultMap)) {
 				return resultMap;
 			}
 		}else {
-			resultMap = dbAdapter.getResult(condition.getTableInfo().getIndexTable(), condition.getConditionString());
-//			TODO test
-			System.err.println("[START] print resultMap:");
-			for (String key : resultMap.keySet()) {
-				System.err.println("resultMap:"+key+"="+resultMap.get(key));
+			String conditionHashKey = condition.getTableInfo().getIndexTable() + condition.getConditionString();
+			if (results.containsKey(conditionHashKey)) {
+				resultMapList = results.get(conditionHashKey);
+			}else{
+				resultMap = dbAdapter.getResult(condition.getTableInfo().getIndexTable(), condition.getConditionString());
+				if (resultMap ==null || resultMap.isEmpty()) return null;
+				String keyStr = resultMap.get(condition.getTableInfo().getKey());
+				String[] keys = keyStr.split(",");
+				for (String key : keys) {
+					resultMap = dbAdapter.getResult(condition.getTableInfo().getTable(), key);
+					resultMapList.add(resultMap);
+				}
 			}
-			System.err.println("[END] print resultMap:");
-			if (resultMap.isEmpty()) {
-				return null;
-			}
-			String keyStr = resultMap.get(condition.getTableInfo().getKey());
-			String[] keys = keyStr.split(",");
-			for (String key : keys) {
-				resultMap = dbAdapter.getResult(condition.getTableInfo().getTable(), key);
-				if(	check(condition.getConditionMap(), resultMap)){
-					return resultMap;
+			for (HashMap<String,String> resultHash : resultMapList) {
+				if(	check(condition.getConditionMap(), resultHash)){
+					return resultHash;
 				}
 			}
 		}

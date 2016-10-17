@@ -14,6 +14,7 @@ public class ClinvarQuery extends AbstractDBQuery {
 			HashMap<String, String> resultMap) {
 		String alt = resultMap.get("AlternateAllele");
 		String ref = getAssemblyType(Config.get().getRef());
+		
 		if (resultMap.get("Assembly").equals(ref) && 
 				certainValue.get(ConditionKey.ALT).equalsIgnoreCase(alt)){
 			return true;

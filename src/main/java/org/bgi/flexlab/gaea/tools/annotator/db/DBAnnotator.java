@@ -36,16 +36,6 @@ public class DBAnnotator implements Serializable{
 			List<AnnotationContext> list = vac.getAnnotationContexts();
 			TableInfo tableInfo = config.getDbInfo().get(dbName);
 			AbstractDBQuery dbQuery = DbQueryMap.get(dbName);
-			if (dbQuery == null) {
-				System.err.println("dbQuery is null:"+ConditionKey.CHR + "-" + ConditionKey.POS);
-				try {
-					dbQuery = (AbstractDBQuery)Class.forName("org.bgi.flexlab.gaea.tools.annotator.db." + tableInfo.getQueryClassName()).newInstance();
-				} catch (InstantiationException | IllegalAccessException
-						| ClassNotFoundException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
 			
 			for (AnnotationContext annotationContext : list) {
 				conditionMap.put(ConditionKey.GENE, annotationContext.getGeneName());
@@ -66,20 +56,9 @@ public class DBAnnotator implements Serializable{
 	public void connection() throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException {
 		List<String> dbNameList = config.getDbNameList();
 		for (String dbName : dbNameList) {
-			if (dbName.equalsIgnoreCase("GeneInfo")) continue;
-			
 			TableInfo tableInfo = config.getDbInfo().get(dbName);
-			
-//			TODO test
-			System.err.println("QueryClassName:"+dbName+"-"+tableInfo.getQueryClassName());
-//			Class dbQueryClass = Class.forName("org.bgi.flexlab.gaea.tools.annotator.db." + tableInfo.getQueryClassName());
-//			AbstractDBQuery dbQuery = (AbstractDBQuery) dbQueryClass.newInstance();
 			AbstractDBQuery dbQuery = (AbstractDBQuery)Class.forName("org.bgi.flexlab.gaea.tools.annotator.db." + tableInfo.getQueryClassName()).newInstance();
 			dbQuery.connection(dbName, tableInfo.getDatabaseType());
-			if (dbQuery != null) {
-				System.err.println("dbQuery is null:"+ConditionKey.CHR + "-" + ConditionKey.POS);
-				DbQueryMap.put(dbName, dbQuery);
-			}
 			DbQueryMap.put(dbName, dbQuery);
 		}
 	}
