@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import org.bgi.flexlab.gaea.data.mapreduce.input.fastq.FastqMultipleSample;
 import org.bgi.flexlab.gaea.data.structure.reads.ReadBasicStatic;
 import org.bgi.flexlab.gaea.data.structure.reads.ReadInformationWithSampleID;
-import org.bgi.flexlab.gaea.tools.fastqqualitycontrol.report.FastqQualityControlReport;
+import org.bgi.flexlab.gaea.data.structure.reads.report.FastqQualityControlReport;
 import org.bgi.flexlab.gaea.tools.mapreduce.fastqqualitycontrol.FastqQualityControlOptions;
 
 public class FastqQualityControlFilter {

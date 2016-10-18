@@ -1,4 +1,4 @@
-package org.bgi.flexlab.gaea.tools.fastqqualitycontrol.report;
+package org.bgi.flexlab.gaea.data.structure.reads.report;
 
 import java.util.ArrayList;
 

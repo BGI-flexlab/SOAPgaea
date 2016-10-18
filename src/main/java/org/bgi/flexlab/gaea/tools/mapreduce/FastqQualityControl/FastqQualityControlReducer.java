@@ -8,8 +8,8 @@ import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
+import org.bgi.flexlab.gaea.data.structure.reads.report.FastqQualityControlReport;
 import org.bgi.flexlab.gaea.tools.fastqqualitycontrol.FastqQualityControlFilter;
-import org.bgi.flexlab.gaea.tools.fastqqualitycontrol.report.FastqQualityControlReport;
 
 public class FastqQualityControlReducer extends Reducer<Text,Text,NullWritable,Text>{
 	private FastqQualityControlOptions option;

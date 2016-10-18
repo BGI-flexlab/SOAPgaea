@@ -15,10 +15,10 @@ import org.bgi.flexlab.gaea.data.mapreduce.input.fastq.FastqInputFormat;
 import org.bgi.flexlab.gaea.data.mapreduce.input.fastq.FastqMultipleSample;
 import org.bgi.flexlab.gaea.data.mapreduce.input.fastq.FastqRecordReader;
 import org.bgi.flexlab.gaea.data.mapreduce.input.fastq.FastqSample;
+import org.bgi.flexlab.gaea.data.structure.reads.report.FastqQualityControlReporterIO;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.BioJob;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.PairEndAggregatorMapper;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.ToolsRunner;
-import org.bgi.flexlab.gaea.tools.fastqqualitycontrol.report.FastqQualityControlReporterIO;
 
 public class FastqQualityControl extends ToolsRunner {
 
