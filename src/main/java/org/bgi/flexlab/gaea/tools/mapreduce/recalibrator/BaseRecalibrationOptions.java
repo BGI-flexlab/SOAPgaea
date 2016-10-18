@@ -11,6 +11,9 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.bgi.flexlab.gaea.data.mapreduce.options.HadoopOptions;
 import org.bgi.flexlab.gaea.options.GaeaOptions;
+import org.bgi.flexlab.gaea.tools.baserecalibration.QualityUtils;
+import org.bgi.flexlab.gaea.tools.baserecalibration.RecalibrationUtils;
+import org.bgi.flexlab.gaea.tools.baserecalibration.report.ReportTable;
 
 public class BaseRecalibrationOptions extends GaeaOptions implements HadoopOptions {
 	private final static String SOFTWARE_NAME = "BaseRecalibration";
@@ -58,9 +61,9 @@ public class BaseRecalibrationOptions extends GaeaOptions implements HadoopOptio
 
 	public boolean DO_NOT_USE_STANDARD_COVARIATES = false;
 
-	public RecalUtils.SOLID_RECAL_MODE SOLID_RECAL_MODE = RecalUtils.SOLID_RECAL_MODE.SET_Q_ZERO;
+	public RecalibrationUtils.SOLID_RECAL_MODE SOLID_RECAL_MODE = RecalibrationUtils.SOLID_RECAL_MODE.SET_Q_ZERO;
 
-	public RecalUtils.SOLID_NOCALL_STRATEGY SOLID_NOCALL_STRATEGY = RecalUtils.SOLID_NOCALL_STRATEGY.THROW_EXCEPTION;
+	public RecalibrationUtils.SOLID_NOCALL_STRATEGY SOLID_NOCALL_STRATEGY = RecalibrationUtils.SOLID_NOCALL_STRATEGY.THROW_EXCEPTION;
 
 	public int MISMATCHES_CONTEXT_SIZE;
 
@@ -179,11 +182,9 @@ public class BaseRecalibrationOptions extends GaeaOptions implements HadoopOptio
 		
 		DO_NOT_USE_STANDARD_COVARIATES = getOptionBooleanValue("N", false);
 		
-		SOLID_RECAL_MODE = getOptionValue("P", null) == null ? RecalUtils.SOLID_RECAL_MODE.SET_Q_ZERO 
-				: setSOLID_RECAL_MODE(getOptionValue("p", null));
+		setSOLID_RECAL_MODE(getOptionValue("P", null));
 		
-		SOLID_NOCALL_STRATEGY = getOptionValue("P", null) == null ? RecalUtils.SOLID_NOCALL_STRATEGY.THROW_EXCEPTION 
-				: setSOLID_NOCALL_STRATEGY(getOptionValue("s", null));
+		setSOLID_NOCALL_STRATEGY(getOptionValue("s", null));
 		
 		TYPE = getOptionValue("T", "ALL");
 		
@@ -196,52 +197,52 @@ public class BaseRecalibrationOptions extends GaeaOptions implements HadoopOptio
 		ReportTable argumentsTable = new ReportTable("Arguments",
 				"Recalibration argument collection values used in this run", 2);
 		argumentsTable.addColumn("Argument");
-		argumentsTable.addColumn(RecalUtils.ARGUMENT_VALUE_COLUMN_NAME);
+		argumentsTable.addColumn(RecalibrationUtils.ARGUMENT_VALUE_COLUMN_NAME);
 		argumentsTable.addRowID("covariate", true);
-		argumentsTable.set("covariate", RecalUtils.ARGUMENT_VALUE_COLUMN_NAME,
+		argumentsTable.set("covariate", RecalibrationUtils.ARGUMENT_VALUE_COLUMN_NAME,
 				covariateNames);
 		argumentsTable.addRowID("no_standard_covs", true);
 		argumentsTable.set("no_standard_covs",
-				RecalUtils.ARGUMENT_VALUE_COLUMN_NAME,
+				RecalibrationUtils.ARGUMENT_VALUE_COLUMN_NAME,
 				DO_NOT_USE_STANDARD_COVARIATES);
 		argumentsTable.addRowID("run_without_dbsnp", true);
 		argumentsTable.addRowID("solid_recal_mode", true);
 		argumentsTable.set("solid_recal_mode",
-				RecalUtils.ARGUMENT_VALUE_COLUMN_NAME, SOLID_RECAL_MODE);
+				RecalibrationUtils.ARGUMENT_VALUE_COLUMN_NAME, SOLID_RECAL_MODE);
 		argumentsTable.addRowID("solid_nocall_strategy", true);
 		argumentsTable.set("solid_nocall_strategy",
-				RecalUtils.ARGUMENT_VALUE_COLUMN_NAME, SOLID_NOCALL_STRATEGY);
+				RecalibrationUtils.ARGUMENT_VALUE_COLUMN_NAME, SOLID_NOCALL_STRATEGY);
 		argumentsTable.addRowID("mismatches_context_size", true);
 		argumentsTable.set("mismatches_context_size",
-				RecalUtils.ARGUMENT_VALUE_COLUMN_NAME, MISMATCHES_CONTEXT_SIZE);
+				RecalibrationUtils.ARGUMENT_VALUE_COLUMN_NAME, MISMATCHES_CONTEXT_SIZE);
 		argumentsTable.addRowID("indels_context_size", true);
 		argumentsTable.set("indels_context_size",
-				RecalUtils.ARGUMENT_VALUE_COLUMN_NAME, INDELS_CONTEXT_SIZE);
+				RecalibrationUtils.ARGUMENT_VALUE_COLUMN_NAME, INDELS_CONTEXT_SIZE);
 		argumentsTable.addRowID("mismatches_default_quality", true);
 		argumentsTable.set("mismatches_default_quality",
-				RecalUtils.ARGUMENT_VALUE_COLUMN_NAME,
+				RecalibrationUtils.ARGUMENT_VALUE_COLUMN_NAME,
 				MISMATCHES_DEFAULT_QUALITY);
 		argumentsTable.addRowID("insertions_default_quality", true);
 		argumentsTable.set("insertions_default_quality",
-				RecalUtils.ARGUMENT_VALUE_COLUMN_NAME,
+				RecalibrationUtils.ARGUMENT_VALUE_COLUMN_NAME,
 				INSERTIONS_DEFAULT_QUALITY);
 		argumentsTable.addRowID("low_quality_tail", true);
 		argumentsTable.set("low_quality_tail",
-				RecalUtils.ARGUMENT_VALUE_COLUMN_NAME, LOW_QUAL_TAIL);
+				RecalibrationUtils.ARGUMENT_VALUE_COLUMN_NAME, LOW_QUAL_TAIL);
 		argumentsTable.addRowID("default_platform", true);
 		argumentsTable.set("default_platform",
-				RecalUtils.ARGUMENT_VALUE_COLUMN_NAME, DEFAULT_PLATFORM);
+				RecalibrationUtils.ARGUMENT_VALUE_COLUMN_NAME, DEFAULT_PLATFORM);
 		argumentsTable.addRowID("force_platform", true);
 		argumentsTable.set("force_platform",
-				RecalUtils.ARGUMENT_VALUE_COLUMN_NAME, FORCE_PLATFORM);
+				RecalibrationUtils.ARGUMENT_VALUE_COLUMN_NAME, FORCE_PLATFORM);
 		argumentsTable.addRowID("quantizing_levels", true);
 		argumentsTable.set("quantizing_levels",
-				RecalUtils.ARGUMENT_VALUE_COLUMN_NAME, QUANTIZING_LEVELS);
+				RecalibrationUtils.ARGUMENT_VALUE_COLUMN_NAME, QUANTIZING_LEVELS);
 		argumentsTable.addRowID("keep_intermediate_files", true);
 		argumentsTable.set("keep_intermediate_files",
-				RecalUtils.ARGUMENT_VALUE_COLUMN_NAME, KEEP_INTERMEDIATE_FILES);
+				RecalibrationUtils.ARGUMENT_VALUE_COLUMN_NAME, KEEP_INTERMEDIATE_FILES);
 		argumentsTable.addRowID("no_plots", true);
-		argumentsTable.set("no_plots", RecalUtils.ARGUMENT_VALUE_COLUMN_NAME,
+		argumentsTable.set("no_plots", RecalibrationUtils.ARGUMENT_VALUE_COLUMN_NAME,
 				NO_PLOTS);
 		argumentsTable.addRowID("recalibration_report", true);
 		// argumentsTable.set("recalibration_report",
@@ -249,7 +250,7 @@ public class BaseRecalibrationOptions extends GaeaOptions implements HadoopOptio
 		// "null" : recalibrationReport.getAbsolutePath());
 		argumentsTable.addRowID("binary_tag_name", true);
 		argumentsTable.set("binary_tag_name",
-				RecalUtils.ARGUMENT_VALUE_COLUMN_NAME,
+				RecalibrationUtils.ARGUMENT_VALUE_COLUMN_NAME,
 				BINARY_TAG_NAME == null ? "null" : BINARY_TAG_NAME);
 		return argumentsTable;
 	}
@@ -270,22 +271,28 @@ public class BaseRecalibrationOptions extends GaeaOptions implements HadoopOptio
 		return inputType;
 	}
 
-	public RecalUtils.SOLID_RECAL_MODE getSOLID_RECAL_MODE() {
+	public RecalibrationUtils.SOLID_RECAL_MODE getSOLID_RECAL_MODE() {
 		return SOLID_RECAL_MODE;
 	}
 
-	public void setSOLID_RECAL_MODE(String sOLID_RECAL_MODE) {
-		SOLID_RECAL_MODE = RecalUtils.SOLID_RECAL_MODE
-				.recalModeFromString(sOLID_RECAL_MODE);
+	public void setSOLID_RECAL_MODE(String optionValue) {
+		if(optionValue == null)
+			SOLID_RECAL_MODE = RecalibrationUtils.SOLID_RECAL_MODE.SET_Q_ZERO;
+		else
+			SOLID_RECAL_MODE = RecalibrationUtils.SOLID_RECAL_MODE
+				.recalModeFromString(optionValue);
 	}
 
-	public RecalUtils.SOLID_NOCALL_STRATEGY getSOLID_NOCALL_STRATEGY() {
+	public RecalibrationUtils.SOLID_NOCALL_STRATEGY getSOLID_NOCALL_STRATEGY() {
 		return SOLID_NOCALL_STRATEGY;
 	}
 
-	public void setSOLID_NOCALL_STRATEGY(String sOLID_NOCALL_STRATEGY) {
-		SOLID_NOCALL_STRATEGY = RecalUtils.SOLID_NOCALL_STRATEGY
-				.nocallStrategyFromString(sOLID_NOCALL_STRATEGY);
+	public void setSOLID_NOCALL_STRATEGY(String optionValue) {
+		if(optionValue == null)
+			SOLID_NOCALL_STRATEGY = RecalibrationUtils.SOLID_NOCALL_STRATEGY.THROW_EXCEPTION;
+		else 
+			SOLID_NOCALL_STRATEGY = RecalibrationUtils.SOLID_NOCALL_STRATEGY
+				.nocallStrategyFromString(optionValue);
 	}
 
 	public int getReducerNumber() {
