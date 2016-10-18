@@ -85,13 +85,6 @@ public class AnnotationContext implements Serializable{
 
 	private static Map<String, Object> NO_VALUE = Collections.unmodifiableMap(new HashMap<String, Object>());
 	private Map<String, Object> annoItems = NO_VALUE;
-//
-//	public AnnotationContext(Map<String, Object> annoItems) {
-//		init();
-//		if ( annoItems != null && ! annoItems.isEmpty() ) {
-//            this.annoItems = annoItems;
-//        }
-//	}
 
 	public AnnotationContext(VariantEffect variantEffect) {
 		this(variantEffect, true, false);
@@ -204,7 +197,6 @@ public class AnnotationContext implements Serializable{
     }
 
     public String getAnnoItemAsString(String key, String defaultValue) {
-    	System.err.println("getAnnoItemAsString:"+key);
         Object x = getAnnoItem(key);
         if ( x == null ) return defaultValue;
         if ( x instanceof String ) return (String)x;

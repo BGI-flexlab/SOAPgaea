@@ -21,45 +21,26 @@ public class Condition implements Serializable{
 		, END
 		, ALT
 		, GENE
+		, ASSEMBLY
 	}
 	
 	private static final long serialVersionUID = 5474372956720082769L;
-
 	
 	private String dbName = null;
 	private String tableName = null;
-//	private String indexTableName = null;
 	private String conditionString = null;
-	private String family = "data";
 	private DbType dbType = null;
 	private TableInfo tableInfo = null;
 	
 	private LinkedHashMap<ConditionKey, String> conditionMap = null;
 	
-	public static String config = null;
-	
-	public Condition(String tableName){
-		setTableName(tableName);
-	}
-	
-	public Condition(String dbName, String tableName){
-		setDbName(dbName);
-		setTableName(tableName);
-	}
-	
-	public Condition(String dbName, TableInfo tableInfo){
-		setDbName(dbName);
-		this.tableInfo = tableInfo;
-	}
-	
 	public Condition(String dbName, TableInfo tableInfo, LinkedHashMap<ConditionKey, String>conditionMap){
 		setDbName(dbName);
+		this.conditionMap = conditionMap;
 		this.tableInfo = tableInfo;
 		this.tableName = tableInfo.getTable();
-		this.conditionMap = conditionMap;
 		this.dbType = tableInfo.getDatabaseType();
 	}
-
 
 	/**
 	 * condition string type
@@ -69,9 +50,9 @@ public class Condition implements Serializable{
 		String[] conKeys = tableInfo.getQueryCondition().split("_");
 		if(dbType == DbType.HBASE){
 			for (int i = 0; i < conKeys.length-1; i++) {
-				sb.append(conditionMap.get(conKeys[i])+'-');
+				sb.append(conditionMap.get(ConditionKey.valueOf(conKeys[i]))+'-');
 			}
-			sb.append(conKeys[conKeys.length-1]);
+			sb.append(conditionMap.get(ConditionKey.valueOf(conKeys[conKeys.length-1])));
 		}else {
 			sb.append("where ");
 			for (int i = 0; i < conKeys.length-1; i++) {
@@ -79,6 +60,7 @@ public class Condition implements Serializable{
 			}
 			sb.append(conKeys[conKeys.length-1] + " = " + conditionMap.get(conKeys[conKeys.length-1]));
 		}
+		conditionString = sb.toString();
 		return conditionString;
 	}
 
@@ -96,14 +78,6 @@ public class Condition implements Serializable{
 
 	public void setTableName(String tableName) {
 		this.tableName = tableName;
-	}
-
-	public String getFamily() {
-		return family;
-	}
-
-	public void setFamily(String family) {
-		this.family = family;
 	}
 
 	public DbType getDbType() {

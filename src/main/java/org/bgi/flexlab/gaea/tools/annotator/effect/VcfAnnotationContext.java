@@ -213,5 +213,12 @@ public class VcfAnnotationContext extends VariantContext{
 	public List<AnnotationContext> getAnnotationContexts() {
 		return annotationContexts;
 	}
+	
+	public String getChrome(){
+		if(!getContig().startsWith("chr")){
+			return "chr"+getContig();
+		}
+		return getContig();
+	}
 }
 

@@ -210,7 +210,9 @@ public class Config implements Serializable {
 				String[] fields = properties.getProperty(key).split(",");
 				if (fields != null && fields.length != 0) {
 					dbFieldsHashMap.put(dbName, fields);
-					dbNameList.add(dbName);
+					if (!key.startsWith(KEY_GENE_INFO)) {
+						dbNameList.add(dbName);
+					}
 				}
 			}
 		}
@@ -388,9 +390,14 @@ public class Config implements Serializable {
 		sb.append("REF");
 		sb.append("\t");
 		sb.append("ALT");
+		String[] fields = getFieldsByDB(Config.KEY_GENE_INFO);
+		for (String field : fields) {
+			sb.append("\t");
+			sb.append(field);    
+		}
 		List<String> dbNameList = getDbNameList();
 		for (String dbName : dbNameList) {
-			String[] fields = getFieldsByDB(dbName);
+			fields = getFieldsByDB(dbName);
 			for (String field : fields) {
 				sb.append("\t");
 				sb.append(field);       
