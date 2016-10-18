@@ -10,15 +10,20 @@ public class FastqQualityControlReport {
 	public final static int BASE_STATIC_COUNT = 14;
 	public final static int BASE_START_INDEX = STATIC_COUNT - BASE_STATIC_COUNT;
 
-	//{
-	//	TOTAL_READS_NUM(0), CLEAN_TOTAL_READS_NUM(1), ADAPTER_READS_NUM(2), TOO_MANY_N_READS_NUM(
-	//			3), TOO_MANY_LOW_QUAL_READS_NUM(4), Adapter_FILTER_DUE_TO_PE(5), tooManyN_FILTER_DUE_TO_PE(
-	//			6), lowQual_FILTER_DUE_TO_PE(7), RAW_TOTAL_BASE_NUM(8), CLEAN_TOTAL_BASE_NUM(
-	//			9), RAW_A_BASE_NUM(10), RAW_C_BASE_NUM(11), RAW_T_BASE_NUM(12), RAW_G_BASE_NUM(
-	//			13), RAW_N_BASE_NUM(14), RAW_Q20_NUM(15), RAW_Q30_NUM(16), CLEAN_A_BASE_NUM(
-	//			17), CLEAN_C_BASE_NUM(18), CLEAN_T_BASE_NUM(19), CLEAN_G_BASE_NUM(
-	//			20), CLEAN_N_BASE_NUM(21), CLEAN_Q20_NUM(22), CLEAN_Q30_NUM(23);
-	//}
+	// {
+	// TOTAL_READS_NUM(0), CLEAN_TOTAL_READS_NUM(1), ADAPTER_READS_NUM(2),
+	// TOO_MANY_N_READS_NUM(
+	// 3), TOO_MANY_LOW_QUAL_READS_NUM(4), Adapter_FILTER_DUE_TO_PE(5),
+	// tooManyN_FILTER_DUE_TO_PE(
+	// 6), lowQual_FILTER_DUE_TO_PE(7), RAW_TOTAL_BASE_NUM(8),
+	// CLEAN_TOTAL_BASE_NUM(
+	// 9), RAW_A_BASE_NUM(10), RAW_C_BASE_NUM(11), RAW_T_BASE_NUM(12),
+	// RAW_G_BASE_NUM(
+	// 13), RAW_N_BASE_NUM(14), RAW_Q20_NUM(15), RAW_Q30_NUM(16),
+	// CLEAN_A_BASE_NUM(
+	// 17), CLEAN_C_BASE_NUM(18), CLEAN_T_BASE_NUM(19), CLEAN_G_BASE_NUM(
+	// 20), CLEAN_N_BASE_NUM(21), CLEAN_Q20_NUM(22), CLEAN_Q30_NUM(23);
+	// }
 
 	private long[][] statNumbers;
 
@@ -88,7 +93,8 @@ public class FastqQualityControlReport {
 		}
 	}
 
-	public void countBaseByPosition(ReadBasicStatic stat, int sampleID, boolean isClean) {
+	public void countBaseByPosition(ReadBasicStatic stat, int sampleID,
+			boolean isClean) {
 		if (!isMulti) {
 			sampleID = 0;
 		}
@@ -207,7 +213,6 @@ public class FastqQualityControlReport {
 				* (statNumbers[sampleID][0] - statNumbers[sampleID][1])
 				/ (double) statNumbers[sampleID][0]));
 		outString.append("%");
-
 		outString.append("\n\nRaw Reads Information:\n");
 		outString.append("Total base Number: ");
 		outString.append(statNumbers[sampleID][8]);

@@ -32,7 +32,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
-import org.bgi.flexlab.gaea.data.structure.header.UpdateSamHeader;
+import org.bgi.flexlab.gaea.data.structure.header.SamFileHeader;
 import org.seqdoop.hadoop_bam.SAMRecordWritable;
 
 public class GaeaKeyIgnoringCramRecordWriter<K> extends
@@ -169,7 +169,7 @@ public class GaeaKeyIgnoringCramRecordWriter<K> extends
 
 	private void initializeHeader(SAMFileHeader header, String sample)
 			throws IOException {
-		SAMFileHeader newHeader = UpdateSamHeader.createHeaderFromSampleName(
+		SAMFileHeader newHeader = SamFileHeader.createHeaderFromSampleName(
 				header, sample);
 
 		samFileHeader = newHeader;

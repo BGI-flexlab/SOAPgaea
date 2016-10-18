@@ -18,7 +18,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.util.LineReader;
-import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamFileHeader;
+import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamHdfsFileHeader;
 
 public class VCFSplit {
 
@@ -37,7 +37,7 @@ public class VCFSplit {
 	public VCFSplit(String output, Configuration conf) {
 		this.output=output;
 		try {
-			mFileHeader=SamFileHeader.getHeader(conf);
+			mFileHeader=SamHdfsFileHeader.getHeader(conf);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

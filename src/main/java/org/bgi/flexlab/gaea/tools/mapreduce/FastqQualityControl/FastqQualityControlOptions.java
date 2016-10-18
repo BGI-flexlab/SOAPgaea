@@ -119,7 +119,7 @@ public class FastqQualityControlOptions extends GaeaOptions implements
 
 		qualTrim = getOptionBooleanValue("C", false);
 		dyncut = getOptionBooleanValue("D", false);
-		multiStatis = getOptionBooleanValue("M", false);
+		multiStatis = getOptionBooleanValue("M", true);
 		qualFreq = getOptionBooleanValue("q", false);
 		ignoredfastq1 = getOptionBooleanValue("5", false);
 		ignoredfastq2 = getOptionBooleanValue("6", false);

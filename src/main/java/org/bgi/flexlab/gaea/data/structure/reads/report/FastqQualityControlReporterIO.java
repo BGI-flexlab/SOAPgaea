@@ -50,18 +50,15 @@ public class FastqQualityControlReporterIO {
 		FSDataInputStream FSinput = fs.open(path);
 
 		LineReader lineReader = new LineReader(FSinput, conf);
-		System.out.println("path:"+path.toString());
 		Text line = new Text();
 		int sampleID = 0, i,cnt;
 		while ((lineReader.readLine(line)) != 0) {
-			System.out.println("sample:"+line.toString());
 			sampleID = report.addCount(line.toString());
 			if(report.isPartitionNull())
 				continue;
 
 			for (i = 0; i < FastqQualityControlReport.BASE_STATIC_COUNT; i++) {
 				cnt = lineReader.readLine(line);
-				System.out.println("position:"+line.toString());
 				if(cnt == 0)
 					continue;
 				report.addBaseByPosition(sampleID, i, line.toString());
@@ -101,7 +98,7 @@ public class FastqQualityControlReporterIO {
 		for (int i = 0; i < filelist.length; i++) {
 			if (!filelist[i].isDirectory()) {
 				readFromHdfs(filelist[i].getPath(), conf, report);
-				//fs.delete(filelist[i].getPath(), false);
+				fs.delete(filelist[i].getPath(), false);
 			}
 		}
 
@@ -112,10 +109,12 @@ public class FastqQualityControlReporterIO {
 			String graphFileName;
 			if (sample != null && isMulti) {
 				String fileName = sample.getFileNameForId(i);
+				System.out.println("fileName:"+fileName);
 				reportFileName = outputDir + "/" + fileName
 						+ ".filter.report.txt";
 				graphFileName = outputDir + "/" + fileName + ".graph.data.txt";
 			} else {
+				System.out.println("unexcept case");
 				reportFileName = outputDir + "/filter.report.txt";
 				graphFileName = outputDir + "/graph.data.txt";
 			}

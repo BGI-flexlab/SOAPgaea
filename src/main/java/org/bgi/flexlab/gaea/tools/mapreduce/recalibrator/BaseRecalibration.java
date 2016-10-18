@@ -10,7 +10,7 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.bgi.flexlab.gaea.GaeaRecalibrator.combinar.CombinarTable;
 import org.bgi.flexlab.gaea.GaeaRefernce.CacheReference;
-import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamFileHeader;
+import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamHdfsFileHeader;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.WindowsBasedWritable;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.BioJob;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.ToolsRunner;
@@ -60,7 +60,7 @@ public class BaseRecalibration extends ToolsRunner{
 		Configuration conf = job.getConfiguration();
 		options.setHadoopConf(args, conf);
 		
-		mFileHeader = SamFileHeader.traversal(options.getInput(), options.getInput().getFileSystem(conf), conf);
+		mFileHeader = SamHdfsFileHeader.traversal(options.getInput(), options.getInput().getFileSystem(conf), conf);
 		
 		if(options.getKnowSite()!=null) {
 			for(String site:options.getKnowSite()) {
