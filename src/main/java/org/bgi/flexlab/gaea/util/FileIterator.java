@@ -10,37 +10,40 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.util.LineReader;
 
 public class FileIterator {
-	private  Configuration conf=new Configuration();
+	private Configuration conf = new Configuration();
 	private FileSystem fs;
-	private LineReader reader=null;
-	private Text value=null;
+	private LineReader reader = null;
+	private Text value = null;
 	private Path path;
+
 	public FileIterator(String file) throws IOException {
-		this.path=new Path(file);
+		this.path = new Path(file);
 		read();
 	}
+
 	public FileIterator(Path p) throws IOException {
-		this.path=p;
+		this.path = p;
 		read();
 	}
+
 	@SuppressWarnings("deprecation")
 	private void read() throws IOException {
-		fs=getFileSystem(path, conf);
+		fs = getFileSystem(path, conf);
 		FSDataInputStream in;
-		if(fs.getLength(path)==0)
+		if (fs.getLength(path) == 0)
 			return;
 		in = fs.open(path);
-		reader = new LineReader(in, conf);	
+		reader = new LineReader(in, conf);
 	}
-	public boolean hasNext() 
-	{
-		if(value!=null)
+
+	public boolean hasNext() {
+		if (value != null)
 			return true;
-		if(reader==null)
+		if (reader == null)
 			return false;
-		value=new Text();
+		value = new Text();
 		try {
-			if(reader.readLine(value) > 0 && value.getLength() != 0) {
+			if (reader.readLine(value) > 0 && value.getLength() != 0) {
 				return true;
 			}
 		} catch (IOException e) {
@@ -48,33 +51,31 @@ public class FileIterator {
 		}
 		return false;
 	}
-	public Text next()
-	{
-		if(value==null) {
+
+	public Text next() {
+		if (value == null) {
 			hasNext();
 		}
-		Text current=value;
-		value=null;
+		Text current = value;
+		value = null;
 		return current;
 	}
-	
-	 private static  FileSystem getFileSystem(Path path,Configuration conf) {
-	  		FileSystem fs=null;
-	  		try {
-				fs=path.getFileSystem(conf);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-	 		return fs;
+
+	private static FileSystem getFileSystem(Path path, Configuration conf) {
+		FileSystem fs = null;
+		try {
+			fs = path.getFileSystem(conf);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return fs;
 	}
-	 
+
 	public void close() {
-		if(reader!=null) {
+		if (reader != null) {
 			try {
 				reader.close();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}

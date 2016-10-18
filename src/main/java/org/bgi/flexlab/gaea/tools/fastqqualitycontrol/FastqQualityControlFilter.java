@@ -18,7 +18,7 @@ public class FastqQualityControlFilter {
 
 	public FastqQualityControlFilter(FastqQualityControlOptions option) {
 		this.option = option;
-		if(option.isQualityTrim())
+		if (option.isQualityTrim())
 			qualTrimNum = option.getQuality() - 33;
 		adpFilter = new AdaptorDynamicFilter(option);
 
@@ -34,14 +34,15 @@ public class FastqQualityControlFilter {
 			}
 			sampleSize = multiSampleList.getSampleNumber();
 		}
-		report = new FastqQualityControlReport(sampleSize,option.isMultiStatis());
+		report = new FastqQualityControlReport(sampleSize,
+				option.isMultiStatis());
 	}
 
 	public boolean isDynamicCutted() {
 		return dycut;
 	}
 
-	public ArrayList<ReadInformationWithSampleID> parseFastq(
+	public ArrayList<ReadInformationWithSampleID> parseLine(
 			ReadBasicStatic stat, ArrayList<String> values) {
 		ArrayList<ReadInformationWithSampleID> list = new ArrayList<ReadInformationWithSampleID>();
 
@@ -52,8 +53,11 @@ public class FastqQualityControlFilter {
 			} else {
 				ReadInformationWithSampleID fqInfo = new ReadInformationWithSampleID(
 						readLine);
+				if (option.getTrimStart() != 0 || option.getTrimEnd() != 0) {
+					fqInfo.trim(option.getTrimStart(), option.getTrimEnd());
+				}
 				int index = readLine[0].lastIndexOf("/");
-				String tempkey = readLine[0].substring(index).trim();
+				String tempkey = readLine[0].substring(index + 1).trim();
 				stat.countBase(fqInfo, Integer.parseInt(tempkey) - 1);
 				list.add(fqInfo);
 			}
@@ -76,9 +80,8 @@ public class FastqQualityControlFilter {
 		}
 
 		if (stat.isSampleIDException())
-			throw new RuntimeException(
-					"pair read has difference sample id.\n"
-							+ list.get(0).getReadName());
+			throw new RuntimeException("pair read has difference sample id.\n"
+					+ list.get(0).getReadName());
 
 		if (list.size() > 1) {
 			if (list.get(0).equals(list.get(1))) {
@@ -93,26 +96,31 @@ public class FastqQualityControlFilter {
 	public String qualityControlFilter(ArrayList<String> values) {
 		ReadBasicStatic stat = new ReadBasicStatic(option);
 		StringBuilder consensusSeq = new StringBuilder();
-		ArrayList<ReadInformationWithSampleID> list = parseFastq(stat, values);
+		ArrayList<ReadInformationWithSampleID> list = parseLine(stat, values);
 
 		if (isBadReads(stat, list))
 			return null;
-		
+
 		int sampleID = 0;
-		if(!stat.getSampleID().equals("+"))
+		if (!stat.getSampleID().equals("+"))
 			sampleID = Integer.parseInt(stat.getSampleID());
 
-		for (ReadInformationWithSampleID read : list) {
-			report.countRawReadInfo(stat, sampleID);
+		report.countRawReadInfo(stat, sampleID);
 
-			if(stat.getProblemReadsNum() == 0){
-				report.countCleanReadInfo(stat, sampleID);
-			}
-			consensusSeq.append(read.toString(qualTrimNum));
-		}
-		
 		boolean isClean = stat.getProblemReadsNum() == 0 ? true : false;
-		report.add(stat, sampleID, isClean);
+		report.countBaseByPosition(stat, sampleID, isClean);
+		if (isClean) {
+			report.countCleanReadInfo(stat, sampleID);
+			int cnt = 0;
+			for (ReadInformationWithSampleID read : list) {
+				cnt++;
+
+				consensusSeq.append(read.toString(qualTrimNum));
+				if (cnt != list.size())
+					consensusSeq.append("\n");
+			}
+		}else
+			return null;
 
 		return consensusSeq.toString();
 	}
@@ -128,5 +136,9 @@ public class FastqQualityControlFilter {
 			dyFilterReads = reads;
 
 		return qualityControlFilter(dyFilterReads);
+	}
+
+	public FastqQualityControlReport getReport() {
+		return this.report;
 	}
 }

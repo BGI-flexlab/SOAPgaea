@@ -27,14 +27,13 @@ public class ArrayListLongWrap {
 
 	public String toString() {
 		if (data.size() == 0)
-			return "\n";
+			return "";
 		StringBuilder sb = new StringBuilder();
 		sb.append(data.get(0));
 		for (int i = 1; i < data.size(); i++) {
 			sb.append("\t");
 			sb.append(data.get(i));
 		}
-		sb.append("\n");
 
 		return sb.toString();
 	}
