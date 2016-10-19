@@ -1,8 +1,8 @@
 package org.bgi.flexlab.gaea.data.structure.reads;
 
-import org.bgi.flexlab.gaea.data.structure.reads.report.ArrayListLongWrap;
 import org.bgi.flexlab.gaea.data.structure.reads.report.FastqQualityControlReport;
 import org.bgi.flexlab.gaea.tools.mapreduce.fastqqualitycontrol.FastqQualityControlOptions;
+import org.bgi.flexlab.gaea.util.ArrayListLongWrap;
 import org.bgi.flexlab.gaea.util.BaseUtils;
 
 public class ReadBasicStatic {

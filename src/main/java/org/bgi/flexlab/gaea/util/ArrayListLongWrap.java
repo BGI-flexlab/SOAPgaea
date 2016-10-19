@@ -1,4 +1,4 @@
-package org.bgi.flexlab.gaea.data.structure.reads.report;
+package org.bgi.flexlab.gaea.util;
 
 import java.util.ArrayList;
 

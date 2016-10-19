@@ -136,8 +136,8 @@ public class SamHdfsFileHeader extends SamFileHeader{
 			} else {
 				fs.setPermission(output, permission);
 			}
-
-			SamFileHeaderText.writeHdfsHeader(header,rankSumTestObjPath,conf);
+			
+			SamFileHeaderCodec.writeHeader(header,fs.create(rankSumTestObjPath));
 		} catch (IOException e) {
 			e.printStackTrace();
 		} finally {
@@ -154,7 +154,7 @@ public class SamHdfsFileHeader extends SamFileHeader{
 		try {
 			Path headerPath = new Path(conf.get(BAM_HEADER_FILE_NAME));
 			HdfsHeaderLineReader reader = new HdfsHeaderLineReader(headerPath,conf);
-			header = SamFileHeaderText.readHeader(reader);
+			header = SamFileHeaderCodec.readHeader(reader);
 		} catch (IOException e) {
 			throw new RuntimeException(e.getMessage());
 		}

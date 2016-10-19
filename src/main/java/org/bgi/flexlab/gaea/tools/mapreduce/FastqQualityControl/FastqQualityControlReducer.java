@@ -34,10 +34,15 @@ public class FastqQualityControlReducer extends Reducer<Text,Text,NullWritable,T
 		}
 		
 		String filterResult = filter.filter(valueList);
+		if(filter.isDynamicCutted()){
+			context.getCounter("Filter counts","dynamic cutted PE reads").increment(1);
+		}
 		
 		if(filterResult != null){
 			outValue.set(filterResult);
 			context.write(NullWritable.get(), outValue);
+		}else{
+			context.getCounter("Filter counts","nomal quality control cutted PE reads").increment(1);
 		}
 		valueList.clear();
 	}

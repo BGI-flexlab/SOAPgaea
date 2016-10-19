@@ -109,12 +109,10 @@ public class FastqQualityControlReporterIO {
 			String graphFileName;
 			if (sample != null && isMulti) {
 				String fileName = sample.getFileNameForId(i);
-				System.out.println("fileName:"+fileName);
 				reportFileName = outputDir + "/" + fileName
 						+ ".filter.report.txt";
 				graphFileName = outputDir + "/" + fileName + ".graph.data.txt";
 			} else {
-				System.out.println("unexcept case");
 				reportFileName = outputDir + "/filter.report.txt";
 				graphFileName = outputDir + "/graph.data.txt";
 			}
