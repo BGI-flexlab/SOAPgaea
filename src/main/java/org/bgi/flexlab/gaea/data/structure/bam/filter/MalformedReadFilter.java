@@ -9,13 +9,8 @@ import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMSequenceRecord;
 
 public class MalformedReadFilter extends ReadsFilter {
-	boolean filterMismatchingBaseAndQuals = false;
 
-	public void setHeader(SAMFileHeader mFileHeader) {
-		this.mFileHeader = mFileHeader;
-	}
-
-	private static boolean checkHasReadGroup(SAMRecord read) {
+	protected boolean checkHasReadGroup(SAMRecord read) {
 		if (read.getReadGroup() == null)
 			throw new UserException.ReadMissingReadGroup(read);
 		return true;
@@ -29,7 +24,7 @@ public class MalformedReadFilter extends ReadsFilter {
 	 *            The read to validate.
 	 * @return true if read start is valid, false otherwise.
 	 */
-	private static boolean checkInvalidAlignmentStart(SAMRecord read) {
+	protected boolean checkInvalidAlignmentStart(SAMRecord read) {
 		// read is not flagged as 'unmapped', but alignment start is
 		// NO_ALIGNMENT_START
 		if (!read.getReadUnmappedFlag()
@@ -48,7 +43,7 @@ public class MalformedReadFilter extends ReadsFilter {
 	 *            The read to validate.
 	 * @return true if read end is valid, false otherwise.
 	 */
-	private static boolean checkInvalidAlignmentEnd(SAMRecord read) {
+	protected boolean checkInvalidAlignmentEnd(SAMRecord read) {
 		// Alignment aligns to negative number of bases in the reference.
 		if (!read.getReadUnmappedFlag() && read.getAlignmentEnd() != -1
 				&& (read.getAlignmentEnd() - read.getAlignmentStart() + 1) < 0)
@@ -66,7 +61,7 @@ public class MalformedReadFilter extends ReadsFilter {
 	 *            The read to verify.
 	 * @return true if alignment agrees with header, false othrewise.
 	 */
-	private static boolean checkAlignmentDisagreesWithHeader(
+	protected boolean checkAlignmentDisagreesWithHeader(
 			SAMFileHeader header, SAMRecord read) {
 		// Read is aligned to nonexistent contig
 		if (read.getReferenceIndex() == GaeaSamRecord.NO_ALIGNMENT_REFERENCE_INDEX
@@ -88,7 +83,7 @@ public class MalformedReadFilter extends ReadsFilter {
 	 *            The read to validate.
 	 * @return true if cigar agrees with alignment, false otherwise.
 	 */
-	private static boolean checkCigarDisagreesWithAlignment(SAMRecord read) {
+	protected boolean checkCigarDisagreesWithAlignment(SAMRecord read) {
 		// Read has a valid alignment start, but the CIGAR string is empty
 		if (!read.getReadUnmappedFlag() && read.getAlignmentStart() != -1
 				&& read.getAlignmentStart() != GaeaSamRecord.NO_ALIGNMENT_START
@@ -104,7 +99,7 @@ public class MalformedReadFilter extends ReadsFilter {
 	 *            the read to validate
 	 * @return true if they have the same number. False otherwise.
 	 */
-	private static boolean checkMismatchingBasesAndQuals(SAMRecord read,
+	protected boolean checkMismatchingBasesAndQuals(SAMRecord read,
 			boolean filterMismatchingBaseAndQuals) {
 		boolean result;
 		if (read.getReadLength() == read.getBaseQualities().length)
@@ -129,7 +124,7 @@ public class MalformedReadFilter extends ReadsFilter {
 				|| !checkAlignmentDisagreesWithHeader(this.mFileHeader, sam)
 				|| !checkHasReadGroup(sam)
 				|| !checkMismatchingBasesAndQuals(sam,
-						filterMismatchingBaseAndQuals)
+						false)
 				|| !checkCigarDisagreesWithAlignment(sam);
 	}
 }
