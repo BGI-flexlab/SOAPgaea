@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.bgi.flexlab.gaea.util.FileIterator;
-import org.bgi.flexlab.gaea.util.HdfsFileManager;
 
 
 public class SingleRegion {

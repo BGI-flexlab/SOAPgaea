@@ -4,7 +4,6 @@ import java.io.IOException;
 
 import org.bgi.flexlab.gaea.data.structure.region.BasicRegion;
 import org.bgi.flexlab.gaea.util.FileIterator;
-import org.bgi.flexlab.gaea.util.HdfsFileManager;
 
 public class RegionHdfsParser extends BasicRegion{
 	

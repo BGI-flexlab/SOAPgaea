@@ -8,7 +8,8 @@ import java.util.HashSet;
 import java.util.List;
 
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
-import org.bgi.flexlab.gaea.data.structure.vcf.index.VCFIndexCreator2;
+import org.bgi.flexlab.gaea.data.structure.vcf.index.Index;
+import org.bgi.flexlab.gaea.data.structure.vcf.index.VCFIndexCreator;
 import org.bgi.flexlab.gaea.data.structure.vcf.index.VCFLoader;
 import org.bgi.flexlab.gaea.util.Window;
 
@@ -24,7 +25,7 @@ public class VariantDataTracker {
 		POS;
 	}
 	
-	private String file;
+	private String name;
 	private String type;
 	private Window window;
 	private VCFLoader loader = null;;
@@ -38,7 +39,7 @@ public class VariantDataTracker {
 	};
 	
 	public VariantDataTracker(String source,String type ,Style s) {
-		this.file=source;
+		this.name=source;
 		this.type=type;
 		this.bound=true;
 		this.style=s;
@@ -58,7 +59,7 @@ public class VariantDataTracker {
 	}
 	
 	public void setSource(String source,String type) throws IOException {
-		this.file=source;
+		this.name=source;
 		this.type=type;
 		initializeLoader();
 		initializeData();
@@ -72,10 +73,15 @@ public class VariantDataTracker {
 	
 	private void initializeLoader() {
 		if(loader==null) {
-			VCFIndexCreator2 creator = new VCFIndexCreator2();
+			VCFIndexCreator creator = new VCFIndexCreator();
+			int size = 200;
+			//creator.initialize(name, creator.defaultBinSize());
+			creator.initialize(name, size);
+			@SuppressWarnings("rawtypes")
+			Index idx;
 			try {
-				htsjdk.tribble.index.Index idx = creator.createIndex(file);
-				loader = new VCFLoader(file, idx);
+				idx = creator.finalizeIndex();
+				loader = new VCFLoader(name, idx);
 				loader.loadHeader();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
@@ -171,7 +177,7 @@ public class VariantDataTracker {
 	}
 	
 	public String getName() {
-		return file;
+		return name;
 	}
 
 	public String getType() {

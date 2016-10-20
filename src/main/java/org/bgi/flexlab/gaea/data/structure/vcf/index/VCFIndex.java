@@ -11,6 +11,12 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.util.LineReader;
 
+import htsjdk.tribble.index.tabix.TabixFormat;
+import htsjdk.tribble.index.tabix.TabixIndex;
+import htsjdk.tribble.index.tabix.TabixIndexCreator;
+import htsjdk.variant.variantcontext.VariantContext;
+import htsjdk.variant.vcf.VCFCodec;
+
 
 
 public class VCFIndex implements Index<VCFIndexHeader, IndexReferenceDictionary, VCFBlock> {
@@ -110,7 +116,7 @@ public class VCFIndex implements Index<VCFIndexHeader, IndexReferenceDictionary,
 		for(Integer key:blocks.keySet())
 		{
 			for(VCFBlock block:blocks.get(key))
-			block.write(stream);
+				block.write(stream);
 		}
 	}
 
@@ -145,6 +151,7 @@ public class VCFIndex implements Index<VCFIndexHeader, IndexReferenceDictionary,
 		long position=0;
 		VCFBlock block=null;
 		headerIndex.setMaxBlockSize(blockSize);
+		VCFCodec codec = new VCFCodec();
 		try {
 			LineReader lineReader = new LineReader(stream, conf);
 			Text line=new Text();
@@ -172,8 +179,7 @@ public class VCFIndex implements Index<VCFIndexHeader, IndexReferenceDictionary,
                 		block.setStart(info.pos);
                 		block.setBlockSize(block.getBlockSize()+1);
                 	}else{
-                		if(block.getChr()!=dictionary.get(info.chr)||block.getBlockSize()==blockSize)
-                		{
+                		if(block.getChr()!=dictionary.get(info.chr)||block.getBlockSize()==blockSize) {
                 			block.setEnd(preInfo.end);
                 			blocks.get(block.getChr()).add(block);
                 			//new block
