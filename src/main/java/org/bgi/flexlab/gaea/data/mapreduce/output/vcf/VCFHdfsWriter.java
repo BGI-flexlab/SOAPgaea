@@ -3,8 +3,6 @@ package org.bgi.flexlab.gaea.data.mapreduce.output.vcf;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.bgi.flexlab.gaea.data.structure.vcf.VCFFileWriter;
 import org.bgi.flexlab.gaea.util.HdfsFileManager;

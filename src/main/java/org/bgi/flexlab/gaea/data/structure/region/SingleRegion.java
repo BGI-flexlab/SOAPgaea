@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.bgi.flexlab.gaea.util.FileIterator;
 import org.bgi.flexlab.gaea.util.HdfsFileManager;
 
 
@@ -24,7 +25,7 @@ public class SingleRegion {
 		Arrays.fill(chrInterval, 0);
 		
 		System.err.println("extend size:" + extendSize);
-		HdfsFileManager it = new HdfsFileManager(regionsFilePath);
+		FileIterator it = new FileIterator(regionsFilePath);
 		while(it.hasNext()) {
 			String line=it.next().toString().trim();
 			if(line.equals("") || line == null || line.startsWith("#")) {
