@@ -73,7 +73,7 @@ public class BaseRecalibration extends ToolsRunner{
 		options.setHadoopConf(args, conf);
 		
 		mFileHeader = SamHdfsFileHeader.loadHeader(options.getInput(), conf, new Path(options.getOutputPath()));
-		BaseRecalibrationFilter filter = new BaseRecalibrationFilter();
+		SamRecordFilter filter = new BaseRecalibrationFilter();
 		conf.set(WindowsBasedMapper.SAM_RECORD_FILTER, filter.getClass().getName());
 		createIndex();
 	
