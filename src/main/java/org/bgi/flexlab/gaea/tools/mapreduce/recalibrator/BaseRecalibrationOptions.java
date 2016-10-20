@@ -14,6 +14,7 @@ import org.bgi.flexlab.gaea.options.GaeaOptions;
 import org.bgi.flexlab.gaea.tools.baserecalibration.QualityUtils;
 import org.bgi.flexlab.gaea.tools.baserecalibration.RecalibrationUtils;
 import org.bgi.flexlab.gaea.tools.baserecalibration.report.ReportTable;
+import org.bgi.flexlab.gaea.util.HdfsFileManager;
 
 public class BaseRecalibrationOptions extends GaeaOptions implements HadoopOptions {
 	private final static String SOFTWARE_NAME = "BaseRecalibration";
@@ -26,7 +27,7 @@ public class BaseRecalibrationOptions extends GaeaOptions implements HadoopOptio
 		addOption("T", "programType", true, "program type.[ALL|BR|CM].BR:run base recalibration in "
 				+ "hadoop.CM:combinar the hadoop result  as one table.(default:ALL)");
 		addOption("r", "reference", true, "reference", true);
-		addOption("k", "knownSites", true, "know  variant site,for example dbsnp!", true);
+		addOption("k", "knownSites", true, "know  variant site,for example dbsnp!");
 		addOption("b", "bintag", true, "the binary tag covariate name if using it");
 		addOption("d", "defaultPlatform", true, "If a read has no platform then default to the provided String."
 				+ " Valid options are illumina, 454, and solid.");
@@ -312,12 +313,12 @@ public class BaseRecalibrationOptions extends GaeaOptions implements HadoopOptio
 		return new Path(input);
 	}
 
-	public Path getTempOutput() {
+	public String getTempOutput() {
 		if (this.output.endsWith("/"))
 			this.tempPath = this.output + "temp";
 		else
 			this.tempPath = this.output + "/temp";
-		return new Path(tempPath);
+		return this.tempPath;
 	}
 
 	public String getOutputPath() {
@@ -342,13 +343,7 @@ public class BaseRecalibrationOptions extends GaeaOptions implements HadoopOptio
 	
 	private void traversalInputPath(Path path) {
 		Configuration conf = new Configuration();
-		FileSystem fs = null;
-		try {
-			fs = path.getFileSystem(conf);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		FileSystem fs = HdfsFileManager.getFileSystem(path, conf);
 		try {
 			if (!fs.exists(path)) {
 				System.err

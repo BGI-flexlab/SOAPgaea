@@ -3,12 +3,12 @@ package org.bgi.flexlab.gaea.data.mapreduce.input.bed;
 import java.io.IOException;
 
 import org.bgi.flexlab.gaea.data.structure.region.BasicRegion;
-import org.bgi.flexlab.gaea.util.FileIterator;
+import org.bgi.flexlab.gaea.util.HdfsFileManager;
 
 public class RegionHdfsParser extends BasicRegion{
 	
 	public void parseBedFileFromHDFS(String bedFilePath, boolean isWithFlank) throws IOException {
-		FileIterator it = new FileIterator(bedFilePath);
+		HdfsFileManager it = new HdfsFileManager(bedFilePath);
 		while(it.hasNext()) {
 			parseBedRegion(it, isWithFlank);
 		}
@@ -16,7 +16,7 @@ public class RegionHdfsParser extends BasicRegion{
 		//System.err.println("region size:" + regionSize);
 	}
 	
-	protected void parseBedRegion(FileIterator it, boolean isWithFlank) {
+	protected void parseBedRegion(HdfsFileManager it, boolean isWithFlank) {
 		String line=it.next().toString().trim();
 		String[] splitArray = line.split("\\s+");
 		if(line.equals("") || line == null) {

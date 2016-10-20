@@ -4,9 +4,6 @@
  */
 package org.bgi.flexlab.gaea.util;
 
-import java.util.MissingResourceException;
-import java.util.ResourceBundle;
-
 public class SystemConfiguration {
 	/**
 	 * BAM flags
