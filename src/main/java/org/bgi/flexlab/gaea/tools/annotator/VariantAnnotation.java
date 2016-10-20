@@ -6,7 +6,6 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.bgi.flexlab.gaea.data.structure.reference.GenomeShare;
@@ -59,7 +58,11 @@ public class VariantAnnotation extends Configured implements Tool{
 		job.setMapperClass(VariantAnnotationMapper.class);
 		job.setOutputKeyClass(NullWritable.class);
 		job.setOutputValueClass(Text.class);
-		FileInputFormat.addInputPath(job, new Path(parameter.getInputFilePath()));
+		job.setInputFormatClass(MNLineInputFormat.class);
+		
+		MNLineInputFormat.addInputPath(job, new Path(parameter.getInputFilePath()));
+		MNLineInputFormat.setMinNumLinesToSplit(job,1000); //按行处理的最小单位
+		MNLineInputFormat.setMapperNum(job, parameter.getMapperNum()); 
 		FileOutputFormat.setOutputPath(job, new Path(parameter.getOutputPath()));
 		if (job.waitForCompletion(true)) {
 //     TODO	 
