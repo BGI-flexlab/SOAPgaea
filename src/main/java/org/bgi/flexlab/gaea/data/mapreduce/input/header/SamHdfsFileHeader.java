@@ -150,6 +150,9 @@ public class SamHdfsFileHeader extends SamFileHeader{
 	}
 
 	public static SAMFileHeader getHeader(Configuration conf) {
+		if(conf.get(BAM_HEADER_FILE_NAME) == null)
+			return null;
+		
 		SAMFileHeader header = null;
 		try {
 			Path headerPath = new Path(conf.get(BAM_HEADER_FILE_NAME));
