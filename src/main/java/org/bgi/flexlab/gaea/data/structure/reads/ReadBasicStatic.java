@@ -1,8 +1,8 @@
 package org.bgi.flexlab.gaea.data.structure.reads;
 
-import org.bgi.flexlab.gaea.tools.fastqqualitycontrol.report.ArrayListLongWrap;
-import org.bgi.flexlab.gaea.tools.fastqqualitycontrol.report.FastqQualityControlReport;
+import org.bgi.flexlab.gaea.data.structure.reads.report.FastqQualityControlReport;
 import org.bgi.flexlab.gaea.tools.mapreduce.fastqqualitycontrol.FastqQualityControlOptions;
+import org.bgi.flexlab.gaea.util.ArrayListLongWrap;
 import org.bgi.flexlab.gaea.util.BaseUtils;
 
 public class ReadBasicStatic {
@@ -28,6 +28,9 @@ public class ReadBasicStatic {
 		this.baseNumber = 0;
 		this.option = option;
 		this.baseByPosition = new ArrayListLongWrap[SIZE];
+		
+		for(int i=0;i<SIZE;i++)
+			baseByPosition[i] = new ArrayListLongWrap();
 	}
 	
 	private void setSampleID(String sID){
@@ -81,11 +84,11 @@ public class ReadBasicStatic {
 		if(hasAdaptor[flag])
 			return;
 
-		if (((double) ((double) nCount / length)) > option.getNRate()) {
+		if (((double) ((double) nCount / length)) >= option.getNRate()) {
 			tooManyNCounter[flag] = true;
 			return;
 		}
-		if (((double) lowQual / length) > option.getQualityRate()) {
+		if (((double) lowQual / length) >= option.getQualityRate()) {
 			lowQualityRead[flag] = true;
 			return;
 		}
@@ -93,13 +96,13 @@ public class ReadBasicStatic {
 
 	public void addReads(ReadBasicStatic basicStatic) {
 		for (int i = 0; i < basicCounts.length; i++) {
-			basicCounts[i] += basicStatic.getBasicBaseConunt(i);
+			basicCounts[i] += basicStatic.getBasicBaseCount(i);
 		}
 
 		lowQualityBaseNumber += basicStatic.getLowQualityNumber();
 	}
 
-	public short getBasicBaseConunt(int index) {
+	public short getBasicBaseCount(int index) {
 		return basicCounts[index];
 	}
 
@@ -118,7 +121,7 @@ public class ReadBasicStatic {
 	public int getProblemReadsNum() {
 		int problemReadsNum = 0;
 
-		for (int i = 0; i < 1; i++) {
+		for (int i = 0; i < 2; i++) {
 			if (hasAdaptor[i] || tooManyNCounter[i] || lowQualityRead[i])
 				problemReadsNum++;
 		}
@@ -131,9 +134,10 @@ public class ReadBasicStatic {
 	
 	public int getCounter(boolean[] array){
 		int cnt = 0;
-		for(int i = 0 ; i < 2 ;i++)
+		for(int i = 0 ; i < 2 ;i++){
 			if(array[i])
 				cnt++;
+		}
 		return cnt;
 	}
 	

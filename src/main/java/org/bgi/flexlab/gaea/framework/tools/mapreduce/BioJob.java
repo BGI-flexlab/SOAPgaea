@@ -9,7 +9,7 @@ import org.bgi.flexlab.gaea.data.mapreduce.input.bam.GaeaAnySAMInputFormat;
 import org.bgi.flexlab.gaea.data.mapreduce.partitioner.WindowsBasedComparator;
 import org.bgi.flexlab.gaea.data.mapreduce.partitioner.WindowsBasedPartitioner;
 import org.bgi.flexlab.gaea.data.mapreduce.partitioner.WindowsBasedSort;
-import org.bgi.flexlab.gaea.data.structure.bam.SamRecordFilter;
+import org.bgi.flexlab.gaea.data.structure.bam.filter.SamRecordFilter;
 import org.seqdoop.hadoop_bam.SAMFormat;
 
 public class BioJob extends Job {

@@ -9,9 +9,9 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.bgi.flexlab.gaea.data.mapreduce.input.bed.RegionHdfsParser;
-import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamFileHeader;
+import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamHdfsFileHeader;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.WindowsBasedWritable;
-import org.bgi.flexlab.gaea.data.structure.bam.SamRecordFilter;
+import org.bgi.flexlab.gaea.data.structure.bam.filter.SamRecordFilter;
 import org.bgi.flexlab.gaea.exception.FileNotExistException;
 import org.seqdoop.hadoop_bam.SAMRecordWritable;
 
@@ -42,7 +42,7 @@ public class WindowsBasedMapper
 		windowsExtendSize = conf.getInt(WINDOWS_EXTEND_SIZE, 500);
 		multiSample = conf.getBoolean(MULTIPLE_SAMPLE, false);
 
-		header = SamFileHeader.getHeader(conf);
+		header = SamHdfsFileHeader.getHeader(conf);
 
 		if (header == null) {
 			String[] filename = context.getInputSplit().toString().split("/|:");

@@ -12,8 +12,8 @@ public class FastqQualityControlOptions extends GaeaOptions implements
 	private final static int LENGTH_QUALITY = 64;
 
 	public FastqQualityControlOptions() {
-		addOption("1", "in1fq", true, "the first fastq", true);
-		addOption("2", "in2fq", true, "the second fastq", true);
+		addOption("1", "in1fq", true, "the first fastq");
+		addOption("2", "in2fq", true, "the second fastq");
 		addOption("3", "adapter1", true, "the first adapter list file");
 		addOption("4", "adapter2", true, "the second adapter list file");
 		addOption("l", "lowQuality", true, "low quality value (default:5)");
@@ -90,6 +90,11 @@ public class FastqQualityControlOptions extends GaeaOptions implements
 			printHelpInfotmation(SOFTWARE_NAME);
 			System.exit(1);
 		}
+		
+		if(!options.hasOption("1") && !options.hasOption("m")){
+			System.err.println("must set -1 or -m");
+			System.exit(1);
+		}
 
 		input1Fastq = getOptionValue("1", null);
 		input2Fastq = getOptionValue("2", null);
@@ -114,7 +119,7 @@ public class FastqQualityControlOptions extends GaeaOptions implements
 
 		qualTrim = getOptionBooleanValue("C", false);
 		dyncut = getOptionBooleanValue("D", false);
-		multiStatis = getOptionBooleanValue("M", false);
+		multiStatis = getOptionBooleanValue("M", true);
 		qualFreq = getOptionBooleanValue("q", false);
 		ignoredfastq1 = getOptionBooleanValue("5", false);
 		ignoredfastq2 = getOptionBooleanValue("6", false);

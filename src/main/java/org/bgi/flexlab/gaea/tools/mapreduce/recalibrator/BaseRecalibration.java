@@ -10,14 +10,15 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
-import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamFileHeader;
+import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamHdfsFileHeader;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.WindowsBasedWritable;
-import org.bgi.flexlab.gaea.data.structure.bam.SamRecordFilter;
+import org.bgi.flexlab.gaea.data.structure.bam.filter.SamRecordFilter;
 import org.bgi.flexlab.gaea.data.structure.vcf.index.Index;
 import org.bgi.flexlab.gaea.data.structure.vcf.index.VCFIndexCreator;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.BioJob;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.ToolsRunner;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.WindowsBasedMapper;
+import org.bgi.flexlab.gaea.tools.baserecalibration.BaseRecalibrationFilter;
 import org.bgi.flexlab.gaea.tools.baserecalibration.RecalibrationUtils;
 import org.bgi.flexlab.gaea.tools.baserecalibration.covariates.Covariate;
 import org.bgi.flexlab.gaea.tools.mapreduce.recalibrator.basequalityscorerecalibration.BaseRecalibrationReducer;
@@ -71,8 +72,8 @@ public class BaseRecalibration extends ToolsRunner{
 		Configuration conf = job.getConfiguration();
 		options.setHadoopConf(args, conf);
 		
-		mFileHeader = SamFileHeader.loadHeader(options.getInput(), conf, new Path(options.getOutputPath()));
-		SamRecordFilter filter = new BaseRecalibrationFilter(mFileHeader);
+		mFileHeader = SamHdfsFileHeader.loadHeader(options.getInput(), conf, new Path(options.getOutputPath()));
+		BaseRecalibrationFilter filter = new BaseRecalibrationFilter();
 		conf.set(WindowsBasedMapper.SAM_RECORD_FILTER, filter.getClass().getName());
 		createIndex();
 	

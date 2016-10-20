@@ -10,6 +10,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PathFilter;
 import org.apache.hadoop.fs.permission.FsAction;
 import org.apache.hadoop.fs.permission.FsPermission;
+import org.bgi.flexlab.gaea.data.structure.header.SamFileHeader;
 import org.bgi.flexlab.gaea.exception.FileNotExistException;
 
 import htsjdk.samtools.SAMFileHeader;
@@ -19,7 +20,7 @@ import htsjdk.samtools.SamFileHeaderMerger;
 /* *
  * bam header io for hdfs
  * */
-public class SamFileHeader {
+public class SamHdfsFileHeader extends SamFileHeader{
 	protected final static String BAM_HEADER_FILE_NAME = "SAMFileHeader";
 	protected final static SAMFileHeader.SortOrder SORT_ORDER = SAMFileHeader.SortOrder.coordinate;
 	protected static boolean MERGE_SEQUENCE_DICTIONARIES = true;
@@ -33,15 +34,6 @@ public class SamFileHeader {
 				return false;
 			return true;
 		}
-	}
-
-	private static boolean contains(SAMFileHeader header,
-			ArrayList<SAMFileHeader> list) {
-		for (SAMFileHeader that : list) {
-			if (header.equals(that))
-				return true;
-		}
-		return false;
 	}
 
 	@SuppressWarnings("deprecation")
@@ -144,8 +136,8 @@ public class SamFileHeader {
 			} else {
 				fs.setPermission(output, permission);
 			}
-
-			SamFileHeaderText.writeHdfsHeader(header,rankSumTestObjPath,conf);
+			
+			SamFileHeaderCodec.writeHeader(header,fs.create(rankSumTestObjPath));
 		} catch (IOException e) {
 			e.printStackTrace();
 		} finally {
@@ -158,11 +150,14 @@ public class SamFileHeader {
 	}
 
 	public static SAMFileHeader getHeader(Configuration conf) {
+		if(conf.get(BAM_HEADER_FILE_NAME) == null)
+			return null;
+		
 		SAMFileHeader header = null;
 		try {
 			Path headerPath = new Path(conf.get(BAM_HEADER_FILE_NAME));
 			HdfsHeaderLineReader reader = new HdfsHeaderLineReader(headerPath,conf);
-			header = SamFileHeaderText.readHeader(reader);
+			header = SamFileHeaderCodec.readHeader(reader);
 		} catch (IOException e) {
 			throw new RuntimeException(e.getMessage());
 		}

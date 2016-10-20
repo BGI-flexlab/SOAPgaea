@@ -1,15 +1,10 @@
-package org.bgi.flexlab.gaea.data.structure.bam;
+package org.bgi.flexlab.gaea.data.structure.bam.filter;
 
-import htsjdk.samtools.SAMFileHeader;
+import org.bgi.flexlab.gaea.data.structure.region.Region;
+
 import htsjdk.samtools.SAMRecord;
 
-public abstract class ReadsFilter implements SamRecordFilter {
-
-	private SAMFileHeader mFileHeader = null;
-	
-	public ReadsFilter(SAMFileHeader mFileHeader) {
-		this.mFileHeader=mFileHeader;
-	}
+public class ReadsFilter implements SamRecordFilter {
 
 	public boolean filterUnmappedReads(SAMRecord read) {
 		return read.getReadUnmappedFlag() || read.getAlignmentStart() == SAMRecord.NO_ALIGNMENT_START;
@@ -34,12 +29,15 @@ public abstract class ReadsFilter implements SamRecordFilter {
 	public boolean FailsVendorQualityCheckFilter(SAMRecord read) {
 		 return read.getReadFailsVendorQualityCheckFlag();
 	}
-	
-	public boolean MalformedReadFilter(SAMRecord read)
-	{
-		MalformedReadFilter mal=new MalformedReadFilter();
-		mal.initialize(mFileHeader);
-		return mal.filterOut(read);
+
+	@Override
+	public boolean filter(SAMRecord sam, Region region) {
+		// TODO Auto-generated method stub
+		return filterDuplicateRead(sam) 
+				|| filterMappingQualityUnavailable(sam)
+				|| filterMappingQualityZero(sam)
+				|| filterNotPrimaryAlignment(sam)
+				|| filterUnmappedReads(sam)
+				|| FailsVendorQualityCheckFilter(sam);
 	}
-	
 }

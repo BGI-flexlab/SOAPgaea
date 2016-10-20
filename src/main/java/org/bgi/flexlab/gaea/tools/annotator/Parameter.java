@@ -14,6 +14,8 @@ public class Parameter extends GaeaOptions implements Serializable {
 
 	private static final long serialVersionUID = -322870818035327827L;
 	
+	public static final int DEFAULT_LINE_LONGTH = 200;
+	
 	private String configFile = null; //用户配置文件
 	private String outputType = null; //输出格式 txt,vcf
 	private String outputPath = null; 
@@ -26,6 +28,8 @@ public class Parameter extends GaeaOptions implements Serializable {
 	
 	private boolean verbose = false;
 	private boolean debug = false;
+
+	private int mapperNum;
 
 	public Parameter(){}
 	
@@ -41,6 +45,7 @@ public class Parameter extends GaeaOptions implements Serializable {
 		addOption("c", "config",     true,  "config file.", true);
 		addOption("r", "reference",  true,  "indexed reference sequence file list [null]", true);
 		addOption("T", "outputType", true,  "output file foramt[txt, vcf].");
+		addOption("m", "mapperNum", true,  "mapper number.");
 		addOption(null,"verbose",    false, "display verbose information.");
 		addOption(null,"debug",      false, "for debug.");
 		addOption("h", "help",       false, "help information.");
@@ -63,6 +68,7 @@ public class Parameter extends GaeaOptions implements Serializable {
 		configFile = cmdLine.getOptionValue("config");
 		referenceSequencePath = cmdLine.getOptionValue("reference","");
 		outputType = getOptionValue("outputType", "txt");
+		setMapperNum(getOptionIntValue("mapperNum", 10));
 		verbose = getOptionBooleanValue("verbose", false);
 		debug = getOptionBooleanValue("debug", false);
 	}
@@ -130,5 +136,13 @@ public class Parameter extends GaeaOptions implements Serializable {
 
 	public void setDebug(boolean debug) {
 		this.debug = debug;
+	}
+
+	public int getMapperNum() {
+		return mapperNum;
+	}
+
+	public void setMapperNum(int mapperNum) {
+		this.mapperNum = mapperNum;
 	}
 }

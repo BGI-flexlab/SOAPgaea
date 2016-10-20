@@ -51,8 +51,8 @@ class AnnotatorBuild implements Serializable{
 		factory = new SnpEffPredictorFactoryRefSeq(config);
 
 		// Create SnpEffPredictors
-		factory.setVerbose(config.isVerbose());
-		factory.setDebug(config.isDebug());
+		factory.setVerbose(verbose);
+		factory.setDebug(debug);
 		factory.setStoreSequences(storeSequences);
 		
 		return factory.create();

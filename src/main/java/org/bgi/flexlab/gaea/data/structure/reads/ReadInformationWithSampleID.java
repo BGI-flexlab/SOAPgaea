@@ -41,7 +41,7 @@ public class ReadInformationWithSampleID extends ReadInformation{
 		int index = readName.lastIndexOf("/");
 		if( index == -1 )
 			return;
-		if(!readName.substring(index).equals("1"))
+		if(!readName.substring(index+1).equals("1"))
 			firstRead = false;
 	}
 	
@@ -69,7 +69,6 @@ public class ReadInformationWithSampleID extends ReadInformation{
 		} else {
 			fastq.append(qualityString);
 		}
-		fastq.append("\n");
 		return fastq.toString();
 	}
 }

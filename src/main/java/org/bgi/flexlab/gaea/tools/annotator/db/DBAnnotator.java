@@ -57,7 +57,13 @@ public class DBAnnotator implements Serializable{
 		List<String> dbNameList = config.getDbNameList();
 		for (String dbName : dbNameList) {
 			TableInfo tableInfo = config.getDbInfo().get(dbName);
-			AbstractDBQuery dbQuery = (AbstractDBQuery)Class.forName("org.bgi.flexlab.gaea.tools.annotator.db." + tableInfo.getQueryClassName()).newInstance();
+			String queryClassName = "CommonQuery";
+			if (tableInfo.getQueryClassName() != null) {
+				queryClassName = tableInfo.getQueryClassName();
+			}else {
+				System.err.println("queryClassName is null, use CommonQuery.class defaultly. This maybe a bug! dbName:" +dbName);
+			}
+			AbstractDBQuery dbQuery = (AbstractDBQuery)Class.forName("org.bgi.flexlab.gaea.tools.annotator.db." + queryClassName).newInstance();
 			dbQuery.connection(dbName, tableInfo.getDatabaseType());
 			DbQueryMap.put(dbName, dbQuery);
 		}

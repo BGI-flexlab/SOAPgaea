@@ -43,7 +43,8 @@ public abstract class AbstractDBQuery implements Serializable {
 			String conditionHashKey = condition.getTableInfo().getIndexTable() + condition.getConditionString();
 			if (results.containsKey(conditionHashKey)) {
 				resultMapList = results.get(conditionHashKey);
-			}else{
+			}else if(condition.getConditionString() != null && !condition.getConditionString().isEmpty()) {
+					
 				resultMap = dbAdapter.getResult(condition.getTableInfo().getIndexTable(), condition.getConditionString());
 				if (resultMap ==null || resultMap.isEmpty()) return null;
 				String keyStr = resultMap.get(condition.getTableInfo().getKey());

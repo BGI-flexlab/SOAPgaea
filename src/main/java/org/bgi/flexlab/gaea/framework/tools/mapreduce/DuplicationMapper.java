@@ -5,7 +5,7 @@ import htsjdk.samtools.SAMRecord;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Writable;
-import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamFileHeader;
+import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamHdfsFileHeader;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.CreateDuplicationKey;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.DuplicationKeyWritable;
 import org.seqdoop.hadoop_bam.SAMRecordWritable;
@@ -19,7 +19,7 @@ public class DuplicationMapper extends PairEndAggregatorMapper{
 	@Override
 	public void setup(Context context) {
 		Configuration conf = context.getConfiguration();
-		header = SamFileHeader.getHeader(conf);
+		header = SamHdfsFileHeader.getHeader(conf);
 		dupKey = new CreateDuplicationKey(header);
 		dupKeyWritable = new DuplicationKeyWritable();
 	}

@@ -46,7 +46,6 @@ public class HbaseAdapter implements DBAdapterInterface{
     @Override
 	public HashMap<String, String> getResult(String tableName, String rowKey) throws IOException {
 		HashMap<String,String> resultMap = new HashMap<String,String>();
-		
 		Get get = new Get(Bytes.toBytes(rowKey));
 		get.addFamily(Bytes.toBytes(DEFAULT_COLUMN_FAMILY));
 		Table table = conn.getTable(TableName.valueOf(tableName));

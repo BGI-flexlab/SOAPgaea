@@ -1,4 +1,4 @@
-package org.bgi.flexlab.gaea.data.structure.bam;
+package org.bgi.flexlab.gaea.data.structure.bam.filter;
 
 import org.bgi.flexlab.gaea.data.structure.region.Region;
 

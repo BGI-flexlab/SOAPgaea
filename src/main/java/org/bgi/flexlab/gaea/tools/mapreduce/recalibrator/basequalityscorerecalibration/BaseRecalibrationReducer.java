@@ -7,7 +7,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
-import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamFileHeader;
+import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamHdfsFileHeader;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.WindowsBasedWritable;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.context.AlignmentContext;
@@ -69,7 +69,7 @@ public class BaseRecalibrationReducer extends Reducer<WindowsBasedWritable, SAMR
 			genome.loadChromosomeList(options.getReferenceSequencePath());
 		else
 			genome.loadChromosomeList();
-		mFileHeader = SamFileHeader.getHeader(job);
+		mFileHeader = SamHdfsFileHeader.getHeader(job);
 		
 		genomeLocParser = new GenomeLocationParser(mFileHeader.getSequenceDictionary());
 		

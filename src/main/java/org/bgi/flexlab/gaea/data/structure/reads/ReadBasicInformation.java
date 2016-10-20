@@ -14,7 +14,7 @@ public class ReadBasicInformation {
 		this.readSequence = readSequence;
 		this.qualityString = qualityString;
 	}
-	
+
 	public void setMinimumBaseQuality(int minimumBaseQuality) {
 		MINIMUM_BASE_QUALITY = minimumBaseQuality;
 	}
@@ -34,24 +34,37 @@ public class ReadBasicInformation {
 	public char getBaseQuality(int position) {
 		return qualityString.charAt(position);
 	}
-	
-	public int getBaseQualityValue(int position){
-		return (int)getBaseQuality(position) - MINIMUM_BASE_QUALITY;
+
+	public int getBaseQualityValue(int position) {
+		return (int) getBaseQuality(position) - MINIMUM_BASE_QUALITY;
 	}
 
 	public byte getBinaryBase(int i) {
 		return (byte) ((readSequence.charAt(i) >> 1) & 0x07);
 	}
-	
+
 	public String getQualityString() {
 		return qualityString;
 	}
-	
-	public String getQualityValue(){
+
+	public String getQualityValue() {
 		StringBuilder sb = new StringBuilder();
-		for(int i=0 ;i<qualityString.length();i++){
+		for (int i = 0; i < qualityString.length(); i++) {
 			sb.append(getBaseQualityValue(i));
 		}
 		return sb.toString();
+	}
+
+	public void trim(int leftTrim, int rightTrim) {
+		int length = getReadLength();
+		if (leftTrim > 0 || rightTrim > 0) {
+			if (leftTrim + rightTrim >= length)
+				throw new RuntimeException(
+						"Trim length is bigger than reads length!");
+			
+			length -= rightTrim;
+			readSequence = readSequence.substring(leftTrim, length);
+			qualityString = qualityString.substring(leftTrim, length);
+		}
 	}
 }
