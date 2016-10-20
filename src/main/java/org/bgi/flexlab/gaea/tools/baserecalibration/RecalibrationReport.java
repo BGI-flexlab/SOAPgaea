@@ -84,7 +84,7 @@ public class RecalibrationReport {
     /**
      * Counts the number of unique read groups in the table
      *
-     * @param reportTable            the GATKReport table containing data for this table
+     * @param reportTable the report table containing data for this table
      * @return the number of unique read groups
      */
     private int countReadGroups(final ReportTable reportTable) {
@@ -139,7 +139,7 @@ public class RecalibrationReport {
     /**
      * Compiles the list of keys for the Covariates table and uses the shared parsing utility to produce the actual table
      *
-     * @param reportTable            the GATKReport table containing data for this table
+     * @param reportTable            the report table containing data for this table
      * @param recalibrationTables    the recalibration tables
 \     */
     private void parseAllCovariatesTable(final ReportTable reportTable, final RecalibrationTables recalibrationTables) {
@@ -164,7 +164,7 @@ public class RecalibrationReport {
     /**
      *
      * Compiles the list of keys for the QualityScore table and uses the shared parsing utility to produce the actual table
-     * @param reportTable            the GATKReport table containing data for this table
+     * @param reportTable            the report table containing data for this table
      * @param qualTable               the map representing this table
      */
     private void parseQualityScoreTable(final ReportTable reportTable, final NestedIntegerArray<RecalibrationDatum> qualTable) {
@@ -183,7 +183,7 @@ public class RecalibrationReport {
     /**
      * Compiles the list of keys for the ReadGroup table and uses the shared parsing utility to produce the actual table
      *
-     * @param reportTable            the GATKReport table containing data for this table
+     * @param reportTable            the report table containing data for this table
      * @param rgTable                the map representing this table
      */
     private void parseReadGroupTable(final ReportTable reportTable, final NestedIntegerArray<RecalibrationDatum> rgTable) {
@@ -213,9 +213,9 @@ public class RecalibrationReport {
     }
 
     /**
-     * Parses the quantization table from the GATK Report and turns it into a map of original => quantized quality scores
+     * Parses the quantization table from the rport and turns it into a map of original => quantized quality scores
      *
-     * @param table the GATKReportTable containing the quantization mappings
+     * @param table the reportTable containing the quantization mappings
      * @return an ArrayList with the quantization mappings from 0 to MAX_QUAL_SCORE
      */
     private QuantizationInformation initializeQuantizationTable(ReportTable table) {
@@ -234,9 +234,9 @@ public class RecalibrationReport {
     }
 
     /**
-     * Parses the arguments table from the GATK Report and creates a RAC object with the proper initialization values
+     * Parses the arguments table from the report and creates a RAC object with the proper initialization values
      *
-     * @param table the GATKReportTable containing the arguments and its corresponding values
+     * @param table the reportTable containing the arguments and its corresponding values
      * @return a RAC object properly initialized with all the objects in the table
      */
     private BaseRecalibrationOptions initializeArgumentCollectionTable(ReportTable table) {

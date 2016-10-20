@@ -1,7 +1,5 @@
 package org.bgi.flexlab.gaea.data.structure.bam;
 
-import org.bgi.flexlab.gaea.data.structure.region.Region;
-
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMRecord;
 
