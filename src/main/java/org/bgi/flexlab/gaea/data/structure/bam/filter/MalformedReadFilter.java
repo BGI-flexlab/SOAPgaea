@@ -8,7 +8,7 @@ import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMSequenceRecord;
 
-public class MalformedReadFilter extends ReadsFilter {
+public class MalformedReadFilter implements SamRecordFilter {
 
 	protected boolean checkHasReadGroup(SAMRecord read) {
 		if (read.getReadGroup() == null)
@@ -121,7 +121,7 @@ public class MalformedReadFilter extends ReadsFilter {
 	public boolean filter(SAMRecord sam, Region region) {
 		return !checkInvalidAlignmentStart(sam)
 				|| !checkInvalidAlignmentEnd(sam)
-				|| !checkAlignmentDisagreesWithHeader(this.mFileHeader, sam)
+				|| !checkAlignmentDisagreesWithHeader(sam.getHeader(), sam)
 				|| !checkHasReadGroup(sam)
 				|| !checkMismatchingBasesAndQuals(sam,
 						false)

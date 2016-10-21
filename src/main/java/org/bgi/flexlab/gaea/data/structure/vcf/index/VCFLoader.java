@@ -6,12 +6,12 @@ import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.util.LineReader;
 import org.bgi.flexlab.gaea.data.structure.vcf.GaeaVCFCodec;
 import org.bgi.flexlab.gaea.util.ChromosomeUtils;
+import org.bgi.flexlab.gaea.util.HdfsFileManager;
 
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFHeader;
@@ -26,11 +26,6 @@ public class VCFLoader  {
 	private Configuration conf =new Configuration();
 	private GaeaVCFCodec codec=new GaeaVCFCodec();
 	private VCFHeader header=null;
-	private FileSystem getFileSystem(String path) throws IOException {
-		Path p=new Path(path);
-		FileSystem fs=p.getFileSystem(conf);
-		return fs;
-	}
 	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public VCFLoader(String vcfFile,Index idx) {
@@ -46,9 +41,7 @@ public class VCFLoader  {
 		ArrayList<String> headerLine=new ArrayList<String>();
 		Text line=new Text();
 		String tempString=null;
-		FileSystem fs = getFileSystem(path);
-		Path vcfpath=new Path(path);
-		FSDataInputStream fsInputStream = fs.open(vcfpath);
+		FSDataInputStream fsInputStream = HdfsFileManager.getInputStream(new Path(path), conf);
 		LineReader lineReader = new LineReader(fsInputStream, conf);
 		while(lineReader.readLine(line)>0){
 			tempString = line.toString();
@@ -80,9 +73,7 @@ public class VCFLoader  {
 		long seekPos = blocks.get(0).getPosition();
 		Text line = new Text();
 		String tempString = null;
-		FileSystem fs = getFileSystem(path);
-		Path vcfpath = new Path(path);
-		FSDataInputStream fsInputStream = fs.open(vcfpath);
+		FSDataInputStream fsInputStream = HdfsFileManager.getInputStream(new Path(path), conf);
 		fsInputStream.seek(seekPos);
 		LineReader lineReader = new LineReader(fsInputStream, conf);
 		while(lineReader.readLine(line)>0) {

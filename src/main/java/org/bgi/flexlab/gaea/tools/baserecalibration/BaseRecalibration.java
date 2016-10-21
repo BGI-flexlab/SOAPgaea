@@ -35,9 +35,9 @@ public class BaseRecalibration {
     }
 
     /**
-     * Constructor using a GATK Report file
+     * Constructor using a report file
      * 
-     * @param RECAL_FILE         a GATK Report file containing the recalibration information
+     * @param RECAL_FILE         a report file containing the recalibration information
      * @param quantizationLevels number of bins to quantize the quality scores
      * @param disableIndelQuals  if true, do not emit base indel qualities
      * @param preserveQLessThan  preserve quality scores less than this value

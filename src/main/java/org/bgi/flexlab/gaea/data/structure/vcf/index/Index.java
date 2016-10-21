@@ -21,12 +21,11 @@ public interface Index<H,D,B> {
 	
 	public void create(InputStream file);
 	
-	public enum INDEX
-	{
+	public enum INDEX {
 		SEEK,SIZE,TREE;
 	}
-	public enum TYPE
-	{
+	
+	public enum TYPE {
 		H,B,D;
 	}
 	

@@ -6,6 +6,7 @@ import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.bgi.flexlab.gaea.util.HdfsFileManager;
 
 
 
@@ -33,7 +34,7 @@ public class VCFIndexCreator implements IndexCreator {
 		}
 		VCFIndex idx=new VCFIndex();
 		idx.initialize(conf, blockSize);
-		FileSystem fs=FileSystem(VCFFile);
+		FileSystem fs = HdfsFileManager.getFileSystem(new Path(VCFFile), conf);
 		Path idxpath=new Path(idxPath);
 		if(fs.exists(idxpath)) {
 			FSDataInputStream fsInputStream = fs.open(idxpath);
@@ -53,7 +54,7 @@ public class VCFIndexCreator implements IndexCreator {
 	}
 	
 	public void deleteIndex() throws IOException {
-		FileSystem fs = FileSystem(VCFFile);
+		FileSystem fs = HdfsFileManager.getFileSystem(new Path(VCFFile), conf);
 		Path idxpath = new Path(idxPath);
 		if(fs.exists(idxpath)) {
 			fs.delete(idxpath, false);
@@ -76,14 +77,6 @@ public class VCFIndexCreator implements IndexCreator {
 	private String vcfIndexPath()
 	{
 		return VCFFile+".gaeaidx";
-	}
-	
-	private FileSystem FileSystem(String path) throws IOException
-	{
-		FileSystem fs = null;
-		Path p = new Path(path);
-		fs = p.getFileSystem(conf);
-		return fs;
 	}
 	
 }
