@@ -24,6 +24,7 @@ public class WindowsBasedMapper
 	public final static String MULTIPLE_SAMPLE = "multiple.sample";
 	public final static String SAM_RECORD_FILTER = "sam.record.filter";
 	public final static String REFERENCE_REGION = "reference.region.bed";
+	public final static String UNMAPPED_REFERENCE_NAME = "UNMAPPED";
 
 	protected int windowsSize;
 	protected int windowsExtendSize;
@@ -94,10 +95,10 @@ public class WindowsBasedMapper
 
 	protected void setUnmappedKey(SAMRecord sam) {
 		if (multiSample) {
-			keyout.set(sam.getReadGroup().getSample(), "UNMAPPED", sam
+			keyout.set(sam.getReadGroup().getSample(), UNMAPPED_REFERENCE_NAME, sam
 					.getReadName().hashCode(), sam.getReadName().hashCode());
 		} else {
-			keyout.set("UNMAPPED", sam.getReadName().hashCode(), sam
+			keyout.set(UNMAPPED_REFERENCE_NAME, sam.getReadName().hashCode(), sam
 					.getReadName().hashCode());
 		}
 	}
