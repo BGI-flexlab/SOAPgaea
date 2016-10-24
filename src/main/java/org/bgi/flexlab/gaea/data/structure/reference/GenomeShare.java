@@ -8,13 +8,10 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.filecache.DistributedCache;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -34,83 +31,10 @@ public class GenomeShare {
 	 */
 	private Map<String, ChromosomeInformationShare> chromosomeInfoMap = new ConcurrentHashMap<String, ChromosomeInformationShare>();	
 	
-	/**
-	 * boolean for distribute reference
-	 */
-	private  boolean isdistributeRef = false;
-	
-	/**
-	 * distribute cache reference
-	 * @param chrList
-	 * @param conf
-	 * @return
-	 * @throws IOException
-	 * @throws URISyntaxException
-	 */
-	public static boolean distributeCacheReference(String chrList, Configuration conf) throws IOException, URISyntaxException {
-		DistributedCache.createSymlink(conf);
-		DistributedCache.addCacheFile(new URI(chrList+ "#" + "refList"), conf);
-		
-		Path refPath = new Path(chrList);
-		FileSystem fs = refPath.getFileSystem(conf);
-		FSDataInputStream refin = fs.open(refPath);
-		LineReader in = new LineReader(refin);
-		Text line = new Text();
-		
-		String chrFile = "";
-		String[] chrs = new String[3];
-		while((in.readLine(line)) != 0){
-			chrFile = line.toString();
-			chrs = chrFile.split("\t");
-			File fileTest = new File(chrs[1]);
-			if(fileTest.isFile()) {
-				chrs[1] = "file://" + chrs[1];
-			}
-			DistributedCache.addCacheFile(new URI(chrs[1] + "#" + chrs[0] + "ref"), conf);
-		}
-		in.close();
-		refin.close();
-		System.out.println("> Distributed cached reference done.");
-		return true;
-	}
-	
-	/**
-	 * do distribute
-	 * @param chrList
-	 * @param dbSNPList
-	 * @throws IOException
-	 * @throws URISyntaxException
-	 */
-	public static void GenomeDistributeCache(String chrList, String dbSNPList) throws IOException, URISyntaxException {
-		Configuration conf = new Configuration();
-		
-		//分布式缓存ref
-        if(distributeCacheReference(chrList, conf)) {
-        	conf.setBoolean("cacheref", true);
-        } else {
-        	System.err.println("Error distribute cache reference!");
-        	System.exit(1);
-        }
-	}
-	
 	public boolean loadGenome(String refList, String dbsnpList) {
 		try {
 			loadChromosomeList(refList);
 		} catch (Exception e) {
-			return false;
-		}
-		return true;
-	}
-	
-	public boolean loadGenome(Configuration conf) {
-		isdistributeRef = conf.getBoolean("cacheref", false);
-		if(!isdistributeRef)
-			return false;
-		
-		try {
-			loadChromosomeList();
-		} catch (Exception e) {
-			// TODO: handle exception
 			return false;
 		}
 		return true;
