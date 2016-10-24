@@ -1,13 +1,13 @@
 package org.bgi.flexlab.gaea.data.structure.pileup;
 
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
+import org.bgi.flexlab.gaea.data.structure.pileup.manager.PileupCigarState;
 import org.bgi.flexlab.gaea.exception.MalformedReadException;
 import org.bgi.flexlab.gaea.exception.UserException.PileupException;
 import org.bgi.flexlab.gaea.util.BaseUtils;
 import org.bgi.flexlab.gaea.util.MathUtils;
 
 import com.google.java.contract.Ensures;
-import com.google.java.contract.Requires;
 
 public class PileupElement implements Comparable<PileupElement> {
 	public static final byte DELETION_BASE = BaseUtils.D;
@@ -66,6 +66,15 @@ public class PileupElement implements Comparable<PileupElement> {
 				isBeforeInsertion, isAfterInsertion, isNextToSoftClip, null, -1);
 	}
 
+	public PileupElement(final GaeaSamRecord read, final int offset,
+			final PileupCigarState state, final String nextEventBases,
+			final int nextEventLength) {
+		this(read, offset, state.isDeletion(), state.isBeforeDeletion(), state
+				.isAfterDeletion(), state.isBeforeInsertion(), state
+				.isAfterInsertion(), state.isNextToSoftClip(), nextEventBases,
+				nextEventLength);
+	}
+
 	public boolean isDeletion() {
 		return isDeletion;
 	}
@@ -119,8 +128,8 @@ public class PileupElement implements Comparable<PileupElement> {
 	public int getBaseIndex() {
 		return getBaseIndex(offset);
 	}
-	
-	public boolean getReadNegativeStrandFlag(){
+
+	public boolean getReadNegativeStrandFlag() {
 		return getRead().getReadNegativeStrandFlag();
 	}
 
@@ -144,8 +153,8 @@ public class PileupElement implements Comparable<PileupElement> {
 	}
 
 	/**
-	 * actual sequence of inserted bases, or a null if the event is a
-	 *         deletion or if there is no event in the associated read.
+	 * actual sequence of inserted bases, or a null if the event is a deletion
+	 * or if there is no event in the associated read.
 	 */
 	public String getEventBases() {
 		return eventBases;

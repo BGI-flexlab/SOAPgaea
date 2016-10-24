@@ -1,4 +1,4 @@
-package org.bgi.flexlab.gaea.util;
+package org.bgi.flexlab.gaea.data.structure.pileup.manager;
 
 import htsjdk.samtools.CigarElement;
 import htsjdk.samtools.CigarOperator;
@@ -14,9 +14,9 @@ import org.bgi.flexlab.gaea.data.structure.context.AlignmentContext;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
 import org.bgi.flexlab.gaea.data.structure.pileup.PileupElement;
 import org.bgi.flexlab.gaea.data.structure.pileup.PileupImpl;
-import org.bgi.flexlab.gaea.data.structure.pileup.manager.SamRecordState;
+import org.bgi.flexlab.gaea.util.ReadUtils;
 
-public class PileupStateUtils {
+public class PileupToContext {
 	public int getDownsamplingExtent() {
 		return 0;
 	}
@@ -46,45 +46,42 @@ public class PileupStateUtils {
 		int size = 0; // number of elements in this sample's pileup
 		int nDeletions = 0; // number of deletions in this sample's pileup
 		int nMQ0Reads = 0; // number of MQ0 reads in this sample's pileup
-							// (warning: current implementation includes N
-							// bases that are MQ0)
 		for (SamRecordState state : readStates) {
 			// state object with the read/offset informatio
 			final GaeaSamRecord read = state.getRead(); // the actual read
 
-			final CigarOperator op = state.getCurrentCigarOperator(); // current cigar operator
-			final CigarElement nextElement = state.peekForwardOnGenome(); // next cigar element
-			final CigarElement lastElement = state.peekBackwardOnGenome(); // last cigar element
+			final CigarOperator op = state.getCurrentCigarElement().getOperator(); 
+			final CigarElement nextElement = state.getNextCigarElement(); 
+			final CigarElement lastElement = state.getLastCigarElement(); 
 
 			final boolean isSingleElementCigar = nextElement == lastElement;
-			final CigarOperator nextOp = nextElement.getOperator(); // next cigar operator
-			final CigarOperator lastOp = lastElement.getOperator(); // last cigar operator
+			final CigarOperator nextOp = nextElement.getOperator(); 
+			final CigarOperator lastOp = lastElement.getOperator();
 
-			int readOffset = state.getReadOffset(); // the base offset on this read
+			int readOffset = state.getReadOffset(); // the base offset on this
+													// read
 
-			final boolean isBeforeDeletion = nextOp == CigarOperator.DELETION;
-			final boolean isAfterDeletion = lastOp == CigarOperator.DELETION;
-			final boolean isBeforeInsertion = nextOp == CigarOperator.INSERTION;
-			final boolean isAfterInsertion = lastOp == CigarOperator.INSERTION
-					&& !isSingleElementCigar;
+			PileupCigarState cigarState = new PileupCigarState(nextOp, lastOp,
+					isSingleElementCigar);
+
 			final boolean isNextToSoftClip = nextOp == CigarOperator.S
 					|| (state.getGenomeOffset() == 0 && read.getSoftStart() != read
 							.getAlignmentStart());
+
+			cigarState.setNextToSoftClip(isNextToSoftClip);
 
 			int nextElementLength = nextElement.getLength();
 			if (op == CigarOperator.N) // N's are never added to any pileup
 				continue;
 
 			if (op == CigarOperator.D) {
-				pile.add(new PileupElement(read, readOffset, true,
-						isBeforeDeletion, isAfterDeletion, isBeforeInsertion,
-						isAfterInsertion, isNextToSoftClip, null,
+				cigarState.setDeletion(true);
+				pile.add(new PileupElement(read, readOffset, cigarState, null,
 						nextOp == CigarOperator.D ? nextElementLength : -1));
 				size++;
 				nDeletions++;
 				if (read.getMappingQuality() == 0)
 					nMQ0Reads++;
-				// }
 			} else {
 				if (!filterBaseInRead(read, location.getStart())) {
 					String insertedBaseString = null;
@@ -94,7 +91,7 @@ public class PileupStateUtils {
 						// someone please implement a better fix for
 						// the single element insertion CIGAR!
 						if (isSingleElementCigar)
-							readOffset -= (nextElement.getLength() - 1); // LIBS has passed over the insertion bases!
+							readOffset -= (nextElement.getLength() - 1); 
 
 						insertedBaseString = new String(Arrays.copyOfRange(
 								read.getReadBases(),
@@ -103,20 +100,17 @@ public class PileupStateUtils {
 										+ nextElement.getLength()));
 					}
 
-					pile.add(new PileupElement(read, readOffset, false,
-							isBeforeDeletion, isAfterDeletion,
-							isBeforeInsertion, isAfterInsertion,
-							isNextToSoftClip, insertedBaseString,
-							nextElementLength));
+					cigarState.setDeletion(false);
+					pile.add(new PileupElement(read, readOffset, cigarState,
+							insertedBaseString, nextElementLength));
 					size++;
 					if (read.getMappingQuality() == 0)
 						nMQ0Reads++;
 				}
 			}
-		}// end ? for (SamRecordState state : readStates) 
-		nextAlignmentContext = new AlignmentContext(location,
-				new PileupImpl(location, pile, size, nDeletions,
-						nMQ0Reads), hasBeenSampled);
+		}// end ? for (SamRecordState state : readStates)
+		nextAlignmentContext = new AlignmentContext(location, new PileupImpl(
+				location, pile, size, nDeletions, nMQ0Reads), hasBeenSampled);
 		updateReadStates(readStates);
 		return nextAlignmentContext;
 	}

@@ -28,10 +28,6 @@ public class MultipleSamplesPileupElementIterator<PE extends PileupElement>
 	}
 
 	public PE next() {
-		// PeekableIterator<PE> currentIterator = sampleIterators.remove();
-		// PE current = currentIterator.next();
-		// if (currentIterator.hasNext())
-		// sampleIterators.add(currentIterator);
 		PeekableIterator<PE> currentIterator = sampleIterators.peek();
 		PE current = currentIterator.next();
 		if (!currentIterator.hasNext())

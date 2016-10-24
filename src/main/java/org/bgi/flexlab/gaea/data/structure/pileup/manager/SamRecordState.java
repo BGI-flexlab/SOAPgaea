@@ -3,135 +3,120 @@ package org.bgi.flexlab.gaea.data.structure.pileup.manager;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocationParser;
-import org.bgi.flexlab.gaea.exception.MalformedReadException;
+import org.bgi.flexlab.gaea.exception.BadCigarException;
 
 import htsjdk.samtools.Cigar;
 import htsjdk.samtools.CigarElement;
 import htsjdk.samtools.CigarOperator;
 
 public class SamRecordState {
-	GaeaSamRecord read = null;
-	int readOffset = -1; // how far are we offset from the start of the read
-							// bases?
-	int genomeOffset = -1; // how far are we offset from the alignment start on
-							// the genome?
+	private int cigarElementOffset = 0;
+	private int readOffset = -1;
+	private int genomeOffset = -1;
+	private int cigarElementsNumbers = -1;
+	private int cigarOffset = -1;
 
-	Cigar cigar = null;
-	int cigarOffset = -1;
-	CigarElement curElement = null;
-	int nCigarElements = 0;
+	private Cigar cigar = null;
+	private CigarElement currentCigarElement = null;
 
-	int cigarElementCounter = -1; // how far are we into a single cigarElement
+	private GaeaSamRecord read = null;
 
 	public SamRecordState(GaeaSamRecord read) {
 		this.read = read;
 		cigar = read.getCigar();
-		nCigarElements = cigar.numCigarElements();
+		cigarElementsNumbers = cigar.numCigarElements();
+		
+		if(isBadCigar()){
+			throw new BadCigarException(
+					"read starts or ends with deletion. Cigar: "
+							+ read.getCigarString() + ".");
+		}
 	}
 
-	public GaeaSamRecord getRead() {
-		return read;
+	private boolean isBadCigar() {
+		CigarOperator firstOp = cigar.getCigarElement(0).getOperator();
+		CigarOperator lastOp = cigar.getCigarElement(cigarElementsNumbers - 1)
+				.getOperator();
+		
+		if(firstOp == CigarOperator.D || lastOp == CigarOperator.D)
+			return true;
+		return false;
 	}
 
-	/**
-	 * What is our current offset in the read's bases that aligns us with the
-	 * reference genome?
-	 */
 	public int getReadOffset() {
 		return readOffset;
 	}
 
-	/**
-	 * What is the current offset w.r.t. the alignment state that aligns us to
-	 * the readOffset?
-	 */
 	public int getGenomeOffset() {
 		return genomeOffset;
 	}
+	
+	public GaeaSamRecord getRead(){
+		return read;
+	}
 
 	public int getGenomePosition() {
-		return read.getAlignmentStart() + getGenomeOffset();
+		return read.getAlignmentStart() + genomeOffset;
 	}
 
-	public GenomeLocation getLocation(GenomeLocationParser genomeLocParser) {
-		return genomeLocParser.createGenomeLoc(read.getReferenceName(),
-				getGenomePosition());
+	public CigarElement getNextCigarElement() {
+		boolean currElementAllPass = (cigarElementOffset + 1) > currentCigarElement
+				.getLength() && cigarOffset + 1 < cigarElementsNumbers;
+		return currElementAllPass ? cigar.getCigarElement(cigarOffset + 1)
+				: currentCigarElement;
 	}
 
-	public CigarOperator getCurrentCigarOperator() {
-		return curElement.getOperator();
+	public CigarElement getLastCigarElement() {
+		boolean atBeginOfElement = (cigarElementOffset - 1 == 0)
+				&& (cigarOffset - 1 > 0);
+		return atBeginOfElement ? cigar.getCigarElement(cigarOffset - 1)
+				: currentCigarElement;
+	}
+
+	public CigarElement getCurrentCigarElement() {
+		return currentCigarElement;
 	}
 
 	public String toString() {
-		return String.format("%s ro=%d go=%d co=%d cec=%d %s",
-				read.getReadName(), readOffset, genomeOffset, cigarOffset,
-				cigarElementCounter, curElement);
+		return String.format("ro=%d go=%d co=%d cec", readOffset, genomeOffset,
+				cigarOffset);
 	}
 
 	public boolean hasNext() {
 		return readOffset + 1 == read.getReadLength() ? false : true;
 	}
-
-	public CigarElement peekForwardOnGenome() {
-		return (cigarElementCounter + 1 > curElement.getLength()
-				&& cigarOffset + 1 < nCigarElements ? cigar
-				.getCigarElement(cigarOffset + 1) : curElement);
+	
+	public GenomeLocation getLocation(GenomeLocationParser genomeLocParser){
+		return genomeLocParser.createGenomeLoc(read.getReferenceName(), getGenomePosition());
 	}
 
-	public CigarElement peekBackwardOnGenome() {
-		return (cigarElementCounter - 1 == 0 && cigarOffset - 1 > 0 ? cigar
-				.getCigarElement(cigarOffset - 1) : curElement);
-	}
-
-	/**/
 	public CigarOperator stepForwardOnGenome() {
-		if (curElement == null
-				|| ++cigarElementCounter > curElement.getLength()) {
+		if (currentCigarElement == null
+				|| ++cigarElementOffset > currentCigarElement.getLength()) {
 			cigarOffset++;
-			if (cigarOffset < nCigarElements) {
-				curElement = cigar.getCigarElement(cigarOffset);
-				cigarElementCounter = 0;
+			if (cigarOffset < cigarElementsNumbers) {
+				currentCigarElement = cigar.getCigarElement(cigarOffset);
+				cigarElementOffset = 0;
 				return stepForwardOnGenome();
 			} else {
-				if (curElement != null
-						&& curElement.getOperator() == CigarOperator.D)
-					throw new MalformedReadException(
-							"read ends with deletion. Cigar: "
-									+ read.getCigarString()
-									+ ". Although the SAM spec technically permits such reads, this is often indicative of malformed files. If you are sure you want to use this file, re-run your analysis with the extra option: -rf BadCigar",
-							read);
-
 				genomeOffset++;
-
 				return null;
 			}
 		}
 
 		boolean done = false;
-		switch (curElement.getOperator()) {
+		switch (currentCigarElement.getOperator()) {
 		case H: // ignore hard clips
 		case P: // ignore pads
-			cigarElementCounter = curElement.getLength();
+			cigarElementOffset = currentCigarElement.getLength();
 			break;
 		case I: // insertion w.r.t. the reference
 		case S: // soft clip
-			cigarElementCounter = curElement.getLength();
-			readOffset += curElement.getLength();
+			cigarElementOffset = currentCigarElement.getLength();
+			readOffset += currentCigarElement.getLength();
 			break;
-		case D: // deletion w.r.t. the reference
-			if (readOffset < 0) // we don't want reads starting with deletion,
-								// this is a malformed cigar string
-				throw new MalformedReadException(
-						"read starts with deletion. Cigar: "
-								+ read.getCigarString()
-								+ ". Although the SAM spec technically permits such reads, this is often indicative of malformed files. If you are sure you want to use this file, re-run your analysis with the extra option: -rf BadCigar",
-						read);
-			// should be the same as N case
-			genomeOffset++;
-			done = true;
-			break;
-		case N: // reference skip (looks and gets processed just like a
-				// "deletion", just different logical meaning)
+		case N: 
+		case D: // reference skip 
 			genomeOffset++;
 			done = true;
 			break;
@@ -143,11 +128,11 @@ public class SamRecordState {
 			done = true;
 			break;
 		default:
-			throw new IllegalStateException(
+			throw new BadCigarException(
 					"Case statement didn't deal with cigar op: "
-							+ curElement.getOperator());
+							+ currentCigarElement.getOperator());
 		}
 
-		return done ? curElement.getOperator() : stepForwardOnGenome();
+		return done ? currentCigarElement.getOperator() : stepForwardOnGenome();
 	}
 }
