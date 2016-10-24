@@ -14,8 +14,6 @@ public class Parameter extends GaeaOptions implements Serializable {
 
 	private static final long serialVersionUID = -322870818035327827L;
 	
-	public static final int DEFAULT_LINE_LONGTH = 200;
-	
 	private String configFile = null; //用户配置文件
 	private String outputType = null; //输出格式 txt,vcf
 	private String outputPath = null; 

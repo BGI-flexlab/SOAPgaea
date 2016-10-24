@@ -116,7 +116,6 @@ public class SnpEffPredictorFactoryRefSeq extends SnpEffPredictorFactory {
 
 	@Override
 	public SnpEffectPredictor create() {
-		verbose = true;
 		try {
 			// Read gene intervals from a file
 			if (fileName == null) fileName = Config.get().getGeneInfo();
@@ -136,7 +135,7 @@ public class SnpEffPredictorFactoryRefSeq extends SnpEffPredictorFactory {
 			if (verbose) e.printStackTrace();
 			throw new RuntimeException("Error reading file '" + fileName + "'\n" + e);
 		}
-
+		snpEffectPredictor.setDebug(debug);
 		return snpEffectPredictor;
 	}
 

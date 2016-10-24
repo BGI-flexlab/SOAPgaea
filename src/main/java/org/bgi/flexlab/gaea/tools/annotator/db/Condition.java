@@ -4,8 +4,9 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 
-import org.bgi.flexlab.gaea.tools.annotator.config.TableInfo;
-import org.bgi.flexlab.gaea.tools.annotator.config.TableInfo.DbType;
+import org.bgi.flexlab.gaea.tools.annotator.config.DatabaseInfo;
+import org.bgi.flexlab.gaea.tools.annotator.config.DatabaseInfo.DbType;
+import org.bgi.flexlab.gaea.tools.annotator.config.RefTableInfo;
 
 /**
  * @author huangzhibo
@@ -17,8 +18,10 @@ public class Condition implements Serializable{
 	
 	public static enum ConditionKey {
 		CHR
+		, START  //0-base, POS - 1
 		, POS
-		, END
+		, END0   //0-base
+		, END  //1-base , some database use this , example: HGMD
 		, ALT
 		, GENE
 		, ASSEMBLY
@@ -26,20 +29,20 @@ public class Condition implements Serializable{
 	
 	private static final long serialVersionUID = 5474372956720082769L;
 	
-	private String dbName = null;
-	private String tableName = null;
 	private String conditionString = null;
-	private DbType dbType = null;
-	private TableInfo tableInfo = null;
+	private String dbName;
+	private DbType dbType;
+	private DatabaseInfo tableInfo;
+	private RefTableInfo refTable;
 	
 	private LinkedHashMap<ConditionKey, String> conditionMap = null;
 	
-	public Condition(String dbName, TableInfo tableInfo, LinkedHashMap<ConditionKey, String>conditionMap){
+	public Condition(String dbName, DatabaseInfo tableInfo, LinkedHashMap<ConditionKey, String>conditionMap){
 		setDbName(dbName);
 		this.conditionMap = conditionMap;
 		this.tableInfo = tableInfo;
-		this.tableName = tableInfo.getTable();
-		this.dbType = tableInfo.getDatabaseType();
+		this.setRefTable(tableInfo.getRefTable(conditionMap.get(ConditionKey.ASSEMBLY)));
+		this.dbType = tableInfo.getDatabase();
 	}
 
 	/**
@@ -72,14 +75,6 @@ public class Condition implements Serializable{
 		this.dbName = dbName;
 	}
 
-	public String getTableName() {
-		return tableName;
-	}
-
-	public void setTableName(String tableName) {
-		this.tableName = tableName;
-	}
-
 	public DbType getDbType() {
 		return dbType;
 	}
@@ -88,11 +83,11 @@ public class Condition implements Serializable{
 		this.dbType = dbType;
 	}
 
-	public TableInfo getTableInfo() {
+	public DatabaseInfo getTableInfo() {
 		return tableInfo;
 	}
 
-	public void setTableInfo(TableInfo tableInfo) {
+	public void setTableInfo(DatabaseInfo tableInfo) {
 		this.tableInfo = tableInfo;
 	}
 	
@@ -102,6 +97,14 @@ public class Condition implements Serializable{
 
 	public HashMap<ConditionKey, String> getConditionMap() {
 		return conditionMap;
+	}
+
+	public RefTableInfo getRefTable() {
+		return refTable;
+	}
+
+	public void setRefTable(RefTableInfo refTable) {
+		this.refTable = refTable;
 	}
 	
 }

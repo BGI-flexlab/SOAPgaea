@@ -130,7 +130,7 @@ public enum EffectType {
 		for (EffectType efftype : EffectType.values()) {
 			String so = efftype.toSequenceOntology(variant);
 
-			for (String soSingle : so.split(AnnoFormat.EFFECT_TYPE_SEPARATOR_SPLIT))
+			for (String soSingle : so.split(AnnotationContext.EFFECT_TYPE_SEPARATOR_SPLIT))
 				if (!so2efftype.containsKey(soSingle)) so2efftype.put(soSingle, efftype);
 		}
 	}
@@ -509,7 +509,7 @@ public enum EffectType {
 			return "stop_retained_variant";
 
 		case SYNONYMOUS_START:
-			return "initiator_codon_variant" + AnnoFormat.EFFECT_TYPE_SEPARATOR + "non_canonical_start_codon";
+			return "initiator_codon_variant" + AnnotationContext.EFFECT_TYPE_SEPARATOR + "non_canonical_start_codon";
 
 		case TRANSCRIPT:
 			return "non_coding_transcript_variant";
@@ -530,13 +530,13 @@ public enum EffectType {
 			return "3_prime_UTR_variant";
 
 		case UTR_3_DELETED:
-			return "3_prime_UTR_truncation" + AnnoFormat.EFFECT_TYPE_SEPARATOR + "exon_loss_variant";
+			return "3_prime_UTR_truncation" + AnnotationContext.EFFECT_TYPE_SEPARATOR + "exon_loss_variant";
 
 		case UTR_5_PRIME:
 			return "5_prime_UTR_variant";
 
 		case UTR_5_DELETED:
-			return "5_prime_UTR_truncation" + AnnoFormat.EFFECT_TYPE_SEPARATOR + "exon_loss_variant";
+			return "5_prime_UTR_truncation" + AnnotationContext.EFFECT_TYPE_SEPARATOR + "exon_loss_variant";
 
 		case CUSTOM:
 			return "custom";

@@ -28,37 +28,44 @@ public class VariantAnnotationMapper extends Mapper<LongWritable, Text, NullWrit
 	private VcfAnnotator vcfAnnotator;
 	private DBAnnotator dbAnnotator;
 	private Configuration conf;
-	
+	long mapTime = 0; 
+	long mapCount = 0;
 	
 	@Override
 	protected void setup(Context context)
 			throws IOException, InterruptedException {
 		long setupStart = System.currentTimeMillis();
 		conf = context.getConfiguration();
-
-		GenomeShare genomeShare = new GenomeShare();
-		if (conf.get("cacheref") != null)
-			genomeShare.loadChromosomeList();
-		else
-			genomeShare.loadChromosomeList(conf.get("reference"));
-
-		Config userConfig = new Config(conf, genomeShare);
-		AnnotatorBuild annoBuild = new AnnotatorBuild(userConfig);
 		
+		System.err.println();
+		long start = System.currentTimeMillis();
+		GenomeShare genomeShare = new GenomeShare();
+		genomeShare.loadChromosomeList(conf.get("reference"));
+		System.err.println("genomeShare耗时：" + (System.currentTimeMillis()-start)+"毫秒");
+		
+		Config userConfig = new Config(conf, genomeShare);
+		userConfig.setVerbose(conf.getBoolean(conf.get("verbose"), false));
+		userConfig.setDebug(conf.getBoolean(conf.get("debug"), false));
+		
+		start = System.currentTimeMillis();
+		AnnotatorBuild annoBuild = new AnnotatorBuild(userConfig);
 		userConfig.setSnpEffectPredictor(annoBuild.createSnpEffPredictor());
 		annoBuild.buildForest();
+		System.err.println("build SnpEffectPredictor耗时：" + (System.currentTimeMillis()-start)+"毫秒");
 		
 		Path inputPath = new Path(conf.get("inputFilePath"));
 		
+		start = System.currentTimeMillis();
 		SingleVCFHeader singleVcfHeader = new SingleVCFHeader();
 		singleVcfHeader.readHeaderFrom(inputPath, inputPath.getFileSystem(conf));
 		VCFHeader vcfHeader = singleVcfHeader.getHeader();
 		VCFHeaderVersion vcfVersion = singleVcfHeader.getVCFVersion(vcfHeader);
 		vcfCodec.setVCFHeader(vcfHeader, vcfVersion);
+		System.err.println("getVCFHeader耗时：" + (System.currentTimeMillis()-start)+"毫秒");
 		
 		vcfAnnotator = new VcfAnnotator(userConfig);
 		
-		long start = System.currentTimeMillis();
+		start = System.currentTimeMillis();
 		//用于从数据库中查找信息
 		dbAnnotator = new DBAnnotator(userConfig);
 		try {
@@ -79,11 +86,8 @@ public class VariantAnnotationMapper extends Mapper<LongWritable, Text, NullWrit
 	protected void map(LongWritable key, Text value, Context context)
 			throws IOException, InterruptedException {
 		
-		
 		String vcfLine = value.toString();
-		if (vcfLine.startsWith("#")) {
-			return;
-		}
+		if (vcfLine.startsWith("#")) return;
 		
 		VariantContext variantContext = vcfCodec.decode(vcfLine);
 		VcfAnnotationContext vcfAnnoContext = new VcfAnnotationContext(variantContext);
@@ -92,18 +96,16 @@ public class VariantAnnotationMapper extends Mapper<LongWritable, Text, NullWrit
 		}
 //		System.err.println("vcfAnnotator耗时：" + (System.currentTimeMillis()-start)+"毫秒");
 		
-//		start = System.currentTimeMillis();
+		long start = System.currentTimeMillis();
 		dbAnnotator.annotate(vcfAnnoContext);
+		mapTime += System.currentTimeMillis()-start;
+		mapCount++;
 //		System.err.println("dbAnnotator耗时：" + (System.currentTimeMillis()-start)+"毫秒");
 		
-		if (conf.get("outputType").equals("txt")) {
-			List<String> annoLines = vcfAnnotator.convertAnnotationStrings(vcfAnnoContext);
-			for (String annoLine : annoLines) {
-				resultValue.set(annoLine);
-				context.write(NullWritable.get(), resultValue);
-			}
-		}else {
-//			TODO other output format
+		List<String> annoLines = vcfAnnotator.convertAnnotationStrings(vcfAnnoContext);
+		for (String annoLine : annoLines) {
+			resultValue.set(annoLine);
+			context.write(NullWritable.get(), resultValue);
 		}
 		
 	}
@@ -112,5 +114,6 @@ public class VariantAnnotationMapper extends Mapper<LongWritable, Text, NullWrit
 	protected void cleanup(Context context)
 			throws IOException, InterruptedException {
 		dbAnnotator.disconnection();
+		System.err.println("dbAnnotator平均耗时(mapTime/mapCount)：" +mapTime+"/"+mapCount+" = "+(mapTime/mapCount)+"毫秒");
 	}
 }

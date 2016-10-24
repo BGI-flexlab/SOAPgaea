@@ -129,11 +129,11 @@ public class VariantEffect implements Cloneable, Comparable<VariantEffect> {
 
 		if (errwarn.isError()) {
 			if (error.indexOf(errwarn.toString()) < 0) { // Add only once
-				error += (error.isEmpty() ? "" : AnnoFormat.EFFECT_TYPE_SEPARATOR) + errwarn;
+				error += (error.isEmpty() ? "" : AnnotationContext.EFFECT_TYPE_SEPARATOR) + errwarn;
 			}
 		} else {
 			if (warning.indexOf(errwarn.toString()) < 0) { // Add only once
-				warning += (warning.isEmpty() ? "" : AnnoFormat.EFFECT_TYPE_SEPARATOR) + errwarn;
+				warning += (warning.isEmpty() ? "" : AnnotationContext.EFFECT_TYPE_SEPARATOR) + errwarn;
 			}
 		}
 	}
@@ -433,7 +433,7 @@ public class VariantEffect implements Cloneable, Comparable<VariantEffect> {
 
 			// Make sure we don't add the same effect twice
 			if (added == null || added.add(eff)) {
-				if (sb.length() > 0) sb.append(AnnoFormat.EFFECT_TYPE_SEPARATOR);
+				if (sb.length() > 0) sb.append(AnnotationContext.EFFECT_TYPE_SEPARATOR);
 				sb.append(eff);
 			}
 

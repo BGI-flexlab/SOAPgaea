@@ -30,7 +30,9 @@ import org.bgi.flexlab.gaea.tools.annotator.interval.Variant;
 public class AnnotationContext implements Serializable{
 
 	private static final long serialVersionUID = 5318310164237536996L;
-
+	
+	public static final String EFFECT_TYPE_SEPARATOR = "&";
+	public static final String EFFECT_TYPE_SEPARATOR_SPLIT = "\\&";
 
 	public static boolean debug = false;
 	
@@ -286,7 +288,7 @@ public class AnnotationContext implements Serializable{
 	public String getEffectsStr() {
 		StringBuilder sb = new StringBuilder();
 		for (EffectType et : effectTypes) {
-			if (sb.length() > 0) sb.append(AnnoFormat.EFFECT_TYPE_SEPARATOR);
+			if (sb.length() > 0) sb.append(EFFECT_TYPE_SEPARATOR);
 			sb.append(et);
 		}
 		return sb.toString();
@@ -295,7 +297,7 @@ public class AnnotationContext implements Serializable{
 	public String getEffectsStrSo() {
 		StringBuilder sb = new StringBuilder();
 		for (EffectType et : effectTypes) {
-			if (sb.length() > 0) sb.append(AnnoFormat.EFFECT_TYPE_SEPARATOR);
+			if (sb.length() > 0) sb.append(EFFECT_TYPE_SEPARATOR);
 			sb.append(et.toSequenceOntology(null));
 		}
 		return sb.toString();
@@ -558,12 +560,12 @@ public class AnnotationContext implements Serializable{
 		if (marker != null) {
 			if (marker instanceof Custom) {
 				// Custom
-				featureType = marker.getType() + AnnoFormat.EFFECT_TYPE_SEPARATOR + ((Custom) marker).getLabel();
+				featureType = marker.getType() + EFFECT_TYPE_SEPARATOR + ((Custom) marker).getLabel();
 				featureId = marker.getId();
 			} else if (marker instanceof Regulation) {
 				// Regulation includes cell type
 				Regulation reg = (Regulation) marker;
-				featureType = reg.getType() + AnnoFormat.EFFECT_TYPE_SEPARATOR + reg.getName() + ":" + reg.getCellType();
+				featureType = reg.getType() + EFFECT_TYPE_SEPARATOR + reg.getName() + ":" + reg.getCellType();
 				featureId = marker.getId();
 			} else if (marker instanceof ProteinStructuralInteractionLocus) {
 				featureType = "interaction";
@@ -663,7 +665,7 @@ public class AnnotationContext implements Serializable{
 
 			// Add warnings
 			if (!variantEffect.getWarning().isEmpty()) {
-				if (err.length() > 0) err.append(AnnoFormat.EFFECT_TYPE_SEPARATOR);
+				if (err.length() > 0) err.append(EFFECT_TYPE_SEPARATOR);
 				err.append(variantEffect.getWarning());
 			}
 
@@ -741,7 +743,7 @@ public class AnnotationContext implements Serializable{
 		for (Gene g : genes) {
 			geneNames.append(sep + g.getGeneName());
 			geneIds.append(sep + g.getId());
-			if (sep.isEmpty()) sep = AnnoFormat.EFFECT_TYPE_SEPARATOR;
+			if (sep.isEmpty()) sep = EFFECT_TYPE_SEPARATOR;
 		}
 
 		geneName = geneNames.toString();
