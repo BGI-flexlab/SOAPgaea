@@ -18,12 +18,8 @@ public class ReadsFilter implements SamRecordFilter {
 		return read.getDuplicateReadFlag();
 	}
 	
-	public boolean filterMappingQualityZero(SAMRecord read) {
-		return (read.getMappingQuality() == 0);
-	}
-	
-	public boolean filterMappingQualityUnavailable(SAMRecord read) {
-		return (read.getMappingQuality() == 255);
+	public boolean filterMappingQualityUnavailable(SAMRecord read,int unavailableQuality) {
+		return (read.getMappingQuality() == unavailableQuality);
 	}
 	
 	public boolean FailsVendorQualityCheckFilter(SAMRecord read) {
@@ -32,10 +28,9 @@ public class ReadsFilter implements SamRecordFilter {
 
 	@Override
 	public boolean filter(SAMRecord sam, Region region) {
-		// TODO Auto-generated method stub
 		return filterDuplicateRead(sam) 
-				|| filterMappingQualityUnavailable(sam)
-				|| filterMappingQualityZero(sam)
+				|| filterMappingQualityUnavailable(sam,0)
+				|| filterMappingQualityUnavailable(sam,255)
 				|| filterNotPrimaryAlignment(sam)
 				|| filterUnmappedReads(sam)
 				|| FailsVendorQualityCheckFilter(sam);

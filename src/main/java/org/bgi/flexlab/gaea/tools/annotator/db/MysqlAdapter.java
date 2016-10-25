@@ -20,15 +20,7 @@ public class MysqlAdapter implements DBAdapterInterface{
 	private static String url=null;
 	private static Connection conn=null;
 	
-	MysqlAdapter(){
-		
-	}
 	MysqlAdapter(String url){
-		MysqlAdapter.url = url;
-	}
-	
-	MysqlAdapter(String driver, String url){
-		MysqlAdapter.setDriver(driver);
 		MysqlAdapter.url = url;
 	}
 	

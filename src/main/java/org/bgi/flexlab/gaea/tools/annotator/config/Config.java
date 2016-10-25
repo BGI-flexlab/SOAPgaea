@@ -57,7 +57,7 @@ public class Config implements Serializable {
 	private boolean hgvsTrId = false; // Use HGVS transcript ID in HGVS notation?
 	private CountByType warningsCounter = new CountByType();
 	private HashMap<String, String[]> dbFieldsHashMap = null;
-	private HashMap<String, TableInfo> dbInfo = null;
+	private DatabaseJson databaseJson;
 	private List<String> dbNameList;
 	private Properties properties;
 	private Genome genome;
@@ -107,7 +107,6 @@ public class Config implements Serializable {
 		properties = new Properties();
 		try {
 			Path confFilePath = new Path(configFileName);
-			System.out.println(configFileName);
 			FileSystem fs = confFilePath.getFileSystem(conf);
 			if(!fs.exists(confFilePath)) {
 				throw new RuntimeException(confFilePath.toString() + " don't exist.");
@@ -128,20 +127,22 @@ public class Config implements Serializable {
 		return false;
 	}
 	
+	/**
+	 * load database info json
+	 * @return
+	 */
 	boolean loadJson() {
 
 		Gson gson = new Gson();
 		try {
 			Reader reader =  new InputStreamReader(Config.class.getClassLoader().getResourceAsStream(DB_CONFIG_JSON), "UTF-8");
-			dbInfo =  gson.fromJson(reader, new TypeToken<HashMap<String, TableInfo>>() {  
-            }.getType());
+			databaseJson = gson.fromJson(reader, new TypeToken<DatabaseJson>(){}.getType());
 		} catch ( JsonSyntaxException | IOException e) {
-			dbInfo = null;
+			databaseJson = null;
 			Timer.showStdErr("Read a wrong json config file:" + DB_CONFIG_JSON);
 			e.printStackTrace();
 		}
-
-		return dbInfo != null;
+		return databaseJson != null;
 	}
 	
 	/**
@@ -224,10 +225,6 @@ public class Config implements Serializable {
 		return dbFieldsHashMap;
 	}
 	
-	public HashMap<String, TableInfo> getDbInfo() {
-		return dbInfo;
-	}
-	
 	public String[] getFieldsByDB(String dbName){
 		return dbFieldsHashMap.get(dbName);
 	}
@@ -278,6 +275,10 @@ public class Config implements Serializable {
 
 	public void setVerbose(boolean verbose) {
 		this.verbose = verbose;
+	}
+	
+	public void setDebug(boolean debug) {
+		this.debug = debug;
 	}
 	
 //	/**
@@ -358,7 +359,19 @@ public class Config implements Serializable {
 	}
 
 	public String getRef() {
-		return ref;
+		switch(ref){
+		
+			case "hg19":
+			case "GRCh37":
+				   return "GRCh37";
+				   
+			case "hg20":
+			case "hg38":
+			case "GRCh38":
+				return "GRCh38";
+			default:
+					throw new RuntimeException("ref '" + ref + "' not found.");
+		}
 	}
 
 	public void setRef(String ref) {
@@ -379,6 +392,10 @@ public class Config implements Serializable {
 
 	public void setDbNameList(List<String> dbNameList) {
 		this.dbNameList = dbNameList;
+	}
+
+	public DatabaseJson getDatabaseJson() {
+		return databaseJson;
 	}
 	
 	public String getHeader(){
@@ -404,6 +421,13 @@ public class Config implements Serializable {
 			}
 		}
 		return sb.toString();
+	}
+	
+	public static void main(String[] args) throws Exception {
+		Config config = new Config();
+		config.loadJson();
+		System.err.println(config.databaseJson.getDatabaseInfo("HGMD").getQueryClassName());
+		System.err.println("Good");
 	}
 
 }

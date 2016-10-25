@@ -63,8 +63,6 @@ public abstract class SnpEffPredictorFactory {
 	public SnpEffPredictorFactory(Config config, int inOffset) {
 		this.config = config;
 		this.inOffset = inOffset;
-		this.verbose = config.isVerbose();
-		this.debug = config.isDebug();
 
 		genome = config.getGenome();
 		snpEffectPredictor = new SnpEffectPredictor(config.getGenome());

@@ -25,7 +25,6 @@ public class VariantAnnotation extends Configured implements Tool{
 		this.parameter=parameter;
 	}
 	
-	
 	/**
 	 * 利用Parameter对象初始化Configuration对象
 	 * 
@@ -48,9 +47,6 @@ public class VariantAnnotation extends Configured implements Tool{
 		Configuration conf = new Configuration();
 		parameter = new Parameter(arg0);
 		setConfiguration(conf, parameter);
-		
-		if(parameter.isCachedRef())
-			GenomeShare.distributeCacheReference(parameter.getReferenceSequencePath(), conf);
 		
 		Job job = Job.getInstance(conf, "GaeaAnnotator");
 		job.setNumReduceTasks(0);

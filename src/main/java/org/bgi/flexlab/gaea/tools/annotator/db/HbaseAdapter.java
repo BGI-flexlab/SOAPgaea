@@ -26,12 +26,13 @@ public class HbaseAdapter implements DBAdapterInterface{
 	public static final String DEFAULT_COLUMN_FAMILY = "data";
 	
 	static Configuration conf = null;
-    static {
-        conf = HBaseConfiguration.create();
-        conf.addResource(new Path("/etc/hbase/conf/hbase-site.xml"));
-        conf.addResource(new Path("/etc/hbase/conf/core-site.xml"));
-    }
     static Connection conn; 
+    
+    public HbaseAdapter(String confDir){
+    	conf = HBaseConfiguration.create();
+    	conf.addResource(new Path(confDir + "/hbase-site.xml"));
+    	conf.addResource(new Path(confDir + "/core-site.xml"));
+    }
     
     @Override
 	public void connection(String dbName) throws IOException {

@@ -8,7 +8,6 @@ import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.context.AlignmentContext;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocationParser;
-import org.bgi.flexlab.gaea.util.PileupStateUtils;
 
 public class PileupState {
 	/**
@@ -36,14 +35,14 @@ public class PileupState {
 	 */
 	GenomeLocationParser genomeLocParser = null;
 
-	private PileupStateUtils readsUtil = null;
+	private PileupToContext readsUtil = null;
 
 	public PileupState(ArrayList<GaeaSamRecord> records,
 			GenomeLocationParser genomeLocParser) {
 		this.records = new LinkedList<GaeaSamRecord>(records);
 		readStates = new LinkedList<SamRecordState>();
 		this.genomeLocParser = genomeLocParser;
-		readsUtil = new PileupStateUtils();
+		readsUtil = new PileupToContext();
 	}
 
 	public boolean hasNext() {

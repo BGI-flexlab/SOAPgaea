@@ -1,0 +1,123 @@
+package org.bgi.flexlab.gaea.tools.mapreduce.realigner;
+
+import org.apache.commons.cli.ParseException;
+import org.apache.hadoop.conf.Configuration;
+import org.bgi.flexlab.gaea.data.mapreduce.options.HadoopOptions;
+import org.bgi.flexlab.gaea.options.GaeaOptions;
+import org.seqdoop.hadoop_bam.SAMFormat;
+
+public class RealignerOptions extends GaeaOptions implements HadoopOptions{
+	
+	private final static String SOFTWARE_NAME = "Realigner";
+	private final static String SOFTWARE_VERSION = "1.0";
+	
+	private int winSize;
+	private int reducerNumbers;
+	private int maxReadsAtWindows;
+	
+	private String knowVariant;
+	private String input;
+	private String output;
+	private String reference;
+	
+	private boolean samFormat;
+	private boolean multiSample;
+	
+	public RealignerOptions(){
+		addOption("i", "input", true, "input directory", true);
+		addOption("o", "output", true, "output directory", true);
+		addOption("r", "reference", true, "reference index(generation by GaeaIndex) file path", true);
+		addOption("w","windows",true,"window size for calculating entropy or SNP clusters[10000]");
+		addOption("n","reducer",true,"reducer numbers[30]");
+		addOption("k","knowSite",true,"known snp/indel file,the format is VCF4");
+		addOption("M","multiSample",false,"mutiple sample realignment[false]");
+		addOption("s","samformat",false,"input file is sam format");
+		addOption("m","maxReadsAtWindows",true,"max reads numbers at on windows[1000000]");
+		
+		FormatHelpInfo(SOFTWARE_NAME, SOFTWARE_VERSION);
+	}
+
+	@Override
+	public void setHadoopConf(String[] args, Configuration conf) {
+		conf.setStrings("args", args);
+	}
+
+	@Override
+	public void getOptionsFromHadoopConf(Configuration conf) {
+		String[] args = conf.getStrings("args");
+		this.parse(args);
+	}
+
+	@Override
+	public void parse(String[] args) {
+		try {
+			cmdLine = parser.parse(options, args);
+		} catch (ParseException e) {
+			System.err.println(e.getMessage());
+			printHelpInfotmation(SOFTWARE_NAME);
+			System.exit(1);
+		}
+		
+		input = getOptionValue("i",null);
+		output = getOptionValue("o",null);
+		reference = getOptionValue("r",null);
+		knowVariant = getOptionValue("k",null);
+		
+		winSize = getOptionIntValue("w",10000);
+		reducerNumbers = getOptionIntValue("n",30);
+		maxReadsAtWindows = getOptionIntValue("m",1000000);
+		
+		samFormat = getOptionBooleanValue("s",false);
+		multiSample = getOptionBooleanValue("M",false);
+		
+		if(output != null && !output.endsWith("/")){
+			output += "/";
+		}
+	}
+
+	public boolean isMultiSample(){
+		return multiSample;
+	}
+	
+	public SAMFormat getInputFormat(){
+		if(samFormat)
+			return SAMFormat.SAM;
+		return SAMFormat.BAM;
+	}
+	
+	public int getWindowsSize(){
+		return winSize;
+	}
+	
+	public int getReducerNumber(){
+		return reducerNumbers;
+	}
+	
+	public int getMaxReadsAtWindows(){
+		return this.maxReadsAtWindows;
+	}
+	
+	public String getReference(){
+		return reference;
+	}
+	
+	public String getKnowVariant(){
+		return knowVariant;
+	}
+	
+	public String getRealignerInput(){
+		return input;
+	}
+	
+	public String getRealignerOutput(){
+		return output+"realigner";
+	}
+	
+	public String getFixmateInput(){
+		return output+"realigner";
+	}
+	
+	public String getFixmateOutput(){
+		return output+"fixmate";
+	}
+}

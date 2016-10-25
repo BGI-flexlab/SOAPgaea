@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import org.bgi.flexlab.gaea.tools.annotator.config.TableInfo.DbType;
+import org.bgi.flexlab.gaea.tools.annotator.config.DatabaseInfo.DbType;
 import org.bgi.flexlab.gaea.tools.annotator.db.Condition.ConditionKey;
 
 /**
@@ -34,23 +34,23 @@ public abstract class AbstractDBQuery implements Serializable {
 		List<HashMap<String,String>> resultMapList = new ArrayList<HashMap<String,String>>();
 		HashMap<String,String> resultMap;
 		
-		if (condition.getTableInfo().getIndexTable().isEmpty()) {
-			resultMap = dbAdapter.getResult(condition.getTableName(), condition.getConditionString());
+		if (condition.getRefTable().getIndexTable().isEmpty()) {
+			resultMap = dbAdapter.getResult(condition.getRefTable().getTable(), condition.getConditionString());
 			if (check(condition.getConditionMap(),resultMap)) {
 				return resultMap;
 			}
 		}else {
-			String conditionHashKey = condition.getTableInfo().getIndexTable() + condition.getConditionString();
+			String conditionHashKey = condition.getRefTable().getIndexTable() + condition.getConditionString();
 			if (results.containsKey(conditionHashKey)) {
 				resultMapList = results.get(conditionHashKey);
 			}else if(condition.getConditionString() != null && !condition.getConditionString().isEmpty()) {
 					
-				resultMap = dbAdapter.getResult(condition.getTableInfo().getIndexTable(), condition.getConditionString());
+				resultMap = dbAdapter.getResult(condition.getRefTable().getIndexTable(), condition.getConditionString());
 				if (resultMap ==null || resultMap.isEmpty()) return null;
-				String keyStr = resultMap.get(condition.getTableInfo().getKey());
+				String keyStr = resultMap.get(condition.getRefTable().getKey());
 				String[] keys = keyStr.split(",");
 				for (String key : keys) {
-					resultMap = dbAdapter.getResult(condition.getTableInfo().getTable(), key);
+					resultMap = dbAdapter.getResult(condition.getRefTable().getTable(), key);
 					resultMapList.add(resultMap);
 				}
 			}
@@ -96,8 +96,8 @@ public abstract class AbstractDBQuery implements Serializable {
 		dbAdapter.disconnection();
 	}
 
-	public void connection(String dbName, DbType dbType) throws IOException {
-		dbAdapter = DBAdapterFactory.createDbAdapter(dbType);
+	public void connection(String dbName, DbType dbType, String connInfo) throws IOException{
+		dbAdapter = DBAdapterFactory.createDbAdapter(dbType, connInfo);
 		dbAdapter.connection(dbName);
 	}
 	
