@@ -20,6 +20,8 @@ public class Realigner extends ToolsRunner{
 		job.setJobName("GaeaRealigner");
 		
 		Configuration conf = job.getConfiguration();
+		option.setHadoopConf(args, conf);
+		
 		return job.waitForCompletion(true) ? 0 : 1;
 	}
 

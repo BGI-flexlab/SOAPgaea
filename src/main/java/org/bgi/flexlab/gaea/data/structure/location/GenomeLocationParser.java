@@ -395,7 +395,7 @@ public class GenomeLocationParser {
 	 * create a new genome loc, given the contig name, and a single position.
 	 * Must be on the reference
 	 */
-	public GenomeLocation createGenomeLoc(final String contig, final int pos) {
+	public GenomeLocation createGenomeLocation(final String contig, final int pos) {
 		return createGenomeLocation(contig, getContigIndex(contig), pos, pos);
 	}
 

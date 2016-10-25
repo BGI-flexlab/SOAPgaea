@@ -1,40 +1,34 @@
-package org.bgi.flexlab.gaea.data.structure.context;
+package org.bgi.flexlab.gaea.data.structure.pileup;
 
 import java.util.List;
 
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
-import org.bgi.flexlab.gaea.data.structure.pileup.Pileup;
 import org.bgi.flexlab.gaea.exception.UserException;
 
-public class AlignmentContext {
+public class PileupContext {
 	protected GenomeLocation location = null;
 	protected Pileup basePileup = null;
 	protected boolean hasPileupBeenDownsampled;
-
-	/**
-	 * The number of bases we've skipped over in the reference since the last
-	 * map invocation.
-	 */
 	private long skippedBases = 0;
 
-	public AlignmentContext(GenomeLocation loc, Pileup basePileup) {
-		this(loc, basePileup, 0, false);
+	public PileupContext(GenomeLocation location, Pileup basePileup) {
+		this(location, basePileup, 0, false);
 	}
 
-	public AlignmentContext(GenomeLocation loc, Pileup basePileup,
+	public PileupContext(GenomeLocation location, Pileup basePileup,
 			boolean hasPileupBeenDownsampled) {
-		this(loc, basePileup, 0, hasPileupBeenDownsampled);
+		this(location, basePileup, 0, hasPileupBeenDownsampled);
 	}
 
-	public AlignmentContext(GenomeLocation loc, Pileup basePileup,
+	public PileupContext(GenomeLocation location, Pileup basePileup,
 			long skippedBases) {
-		this(loc, basePileup, skippedBases, false);
+		this(location, basePileup, skippedBases, false);
 	}
 
-	public AlignmentContext(GenomeLocation loc, Pileup basePileup,
+	public PileupContext(GenomeLocation location, Pileup basePileup,
 			long skippedBases, boolean hasPileupBeenDownsampled) {
-		if (loc == null)
+		if (location == null)
 			throw new UserException.PileupException(
 					"BUG: GenomeLocation in Alignment context is null");
 		if (basePileup == null)
@@ -44,7 +38,7 @@ public class AlignmentContext {
 			throw new UserException.PileupException(
 					"BUG: skippedBases is -1 in Alignment context");
 
-		this.location = loc;
+		this.location = location;
 		this.basePileup = basePileup;
 		this.skippedBases = skippedBases;
 		this.hasPileupBeenDownsampled = hasPileupBeenDownsampled;
