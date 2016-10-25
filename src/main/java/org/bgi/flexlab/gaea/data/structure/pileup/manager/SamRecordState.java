@@ -87,7 +87,7 @@ public class SamRecordState {
 	}
 	
 	public GenomeLocation getLocation(GenomeLocationParser genomeLocParser){
-		return genomeLocParser.createGenomeLoc(read.getReferenceName(), getGenomePosition());
+		return genomeLocParser.createGenomeLocation(read.getReferenceName(), getGenomePosition());
 	}
 
 	public CigarOperator stepForwardOnGenome() {

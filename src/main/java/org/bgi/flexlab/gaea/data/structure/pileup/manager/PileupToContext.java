@@ -10,8 +10,8 @@ import java.util.List;
 import java.util.Queue;
 
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
-import org.bgi.flexlab.gaea.data.structure.context.AlignmentContext;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
+import org.bgi.flexlab.gaea.data.structure.pileup.PileupContext;
 import org.bgi.flexlab.gaea.data.structure.pileup.PileupElement;
 import org.bgi.flexlab.gaea.data.structure.pileup.PileupImpl;
 import org.bgi.flexlab.gaea.util.ReadUtils;
@@ -36,9 +36,9 @@ public class PileupToContext {
 		}
 	}
 
-	public AlignmentContext lazyLoadNextAlignmentContext(
+	public PileupContext lazyLoadNextAlignmentContext(
 			Queue<SamRecordState> readStates, GenomeLocation location) {
-		AlignmentContext nextAlignmentContext = null;
+		PileupContext nextAlignmentContext = null;
 		boolean hasBeenSampled = false;
 		final List<PileupElement> pile = new ArrayList<PileupElement>(
 				readStates.size());
@@ -109,7 +109,7 @@ public class PileupToContext {
 				}
 			}
 		}// end ? for (SamRecordState state : readStates)
-		nextAlignmentContext = new AlignmentContext(location, new PileupImpl(
+		nextAlignmentContext = new PileupContext(location, new PileupImpl(
 				location, pile, size, nDeletions, nMQ0Reads), hasBeenSampled);
 		updateReadStates(readStates);
 		return nextAlignmentContext;

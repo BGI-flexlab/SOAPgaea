@@ -3,6 +3,7 @@ package org.bgi.flexlab.gaea.tools.mapreduce.recalibrator.basequalityscorerecali
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
@@ -10,8 +11,8 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamHdfsFileHeader;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.WindowsBasedWritable;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
-import org.bgi.flexlab.gaea.data.structure.context.AlignmentContext;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocationParser;
+import org.bgi.flexlab.gaea.data.structure.pileup.PileupContext;
 import org.bgi.flexlab.gaea.data.structure.pileup.manager.PileupState;
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
 import org.bgi.flexlab.gaea.data.structure.reference.GenomeShare;
@@ -90,7 +91,7 @@ public class BaseRecalibrationReducer extends Reducer<WindowsBasedWritable, SAMR
 			return;
 		}
 		PileupState manager=new PileupState(records, genomeLocParser);
-		AlignmentContext locus=null;
+		PileupContext locus=null;
 		while (manager.hasNext()) {
 			 locus=manager.next();
 			 if(locus.getPosition()<start)

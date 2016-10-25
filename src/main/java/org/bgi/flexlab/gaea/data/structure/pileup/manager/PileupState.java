@@ -5,9 +5,9 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
-import org.bgi.flexlab.gaea.data.structure.context.AlignmentContext;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocationParser;
+import org.bgi.flexlab.gaea.data.structure.pileup.PileupContext;
 
 public class PileupState {
 	/**
@@ -18,7 +18,7 @@ public class PileupState {
 	/**
 	 * alignment context for pileup
 	 */
-	AlignmentContext nextAlignmentContext = null;
+	PileupContext nextAlignmentContext = null;
 
 	/**
 	 * read state
@@ -35,14 +35,14 @@ public class PileupState {
 	 */
 	GenomeLocationParser genomeLocParser = null;
 
-	private PileupToContext readsUtil = null;
+	private PileupToContext pileup2Context = null;
 
 	public PileupState(ArrayList<GaeaSamRecord> records,
 			GenomeLocationParser genomeLocParser) {
 		this.records = new LinkedList<GaeaSamRecord>(records);
 		readStates = new LinkedList<SamRecordState>();
 		this.genomeLocParser = genomeLocParser;
-		readsUtil = new PileupToContext();
+		pileup2Context = new PileupToContext();
 	}
 
 	public boolean hasNext() {
@@ -55,15 +55,15 @@ public class PileupState {
 				&& (!readStates.isEmpty() || !records.isEmpty())) {
 			collectPendingReads();
 
-			nextAlignmentContext = readsUtil.lazyLoadNextAlignmentContext(
+			nextAlignmentContext = pileup2Context.lazyLoadNextAlignmentContext(
 					readStates, location);
 		} else {
 			nextAlignmentContext = null;
 		}
 	}
 
-	public AlignmentContext next() {
-		AlignmentContext currentAlignmentContext = nextAlignmentContext;
+	public PileupContext next() {
+		PileupContext currentAlignmentContext = nextAlignmentContext;
 		nextAlignmentContext = null;
 		return currentAlignmentContext;
 	}

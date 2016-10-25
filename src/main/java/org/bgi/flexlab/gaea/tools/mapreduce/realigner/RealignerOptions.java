@@ -14,6 +14,8 @@ public class RealignerOptions extends GaeaOptions implements HadoopOptions{
 	private int winSize;
 	private int reducerNumbers;
 	private int maxReadsAtWindows;
+	private int extendSize;
+	private int snpWindowSize;
 	
 	private String knowVariant;
 	private String input;
@@ -27,7 +29,9 @@ public class RealignerOptions extends GaeaOptions implements HadoopOptions{
 		addOption("i", "input", true, "input directory", true);
 		addOption("o", "output", true, "output directory", true);
 		addOption("r", "reference", true, "reference index(generation by GaeaIndex) file path", true);
-		addOption("w","windows",true,"window size for calculating entropy or SNP clusters[10000]");
+		addOption("W","window",true,"window size for calculating entropy or SNP clusters[10]");
+		addOption("w","keyWindow",true,"window size for key[10000]");
+		addOption("e","windowExtendSize",true,"window extend size[500]");
 		addOption("n","reducer",true,"reducer numbers[30]");
 		addOption("k","knowSite",true,"known snp/indel file,the format is VCF4");
 		addOption("M","multiSample",false,"mutiple sample realignment[false]");
@@ -66,6 +70,8 @@ public class RealignerOptions extends GaeaOptions implements HadoopOptions{
 		winSize = getOptionIntValue("w",10000);
 		reducerNumbers = getOptionIntValue("n",30);
 		maxReadsAtWindows = getOptionIntValue("m",1000000);
+		extendSize = getOptionIntValue("e",500);
+		snpWindowSize = getOptionIntValue("W",10);
 		
 		samFormat = getOptionBooleanValue("s",false);
 		multiSample = getOptionBooleanValue("M",false);
@@ -119,5 +125,13 @@ public class RealignerOptions extends GaeaOptions implements HadoopOptions{
 	
 	public String getFixmateOutput(){
 		return output+"fixmate";
+	}
+	
+	public int getExtendSize(){
+		return this.extendSize;
+	}
+	
+	public int getSNPWindowSize(){
+		return this.snpWindowSize;
 	}
 }

@@ -12,8 +12,11 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamHdfsFileHeader;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.WindowsBasedWritable;
 import org.bgi.flexlab.gaea.data.structure.bam.filter.QualityControlFilter;
+import org.bgi.flexlab.gaea.data.structure.reference.GenomeShare;
+import org.bgi.flexlab.gaea.data.structure.vcf.index.VCFLoader;
 import org.bgi.flexlab.gaea.exception.MissingHeaderException;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.WindowsBasedMapper;
+import org.bgi.flexlab.gaea.tools.realigner.RealignerEngine;
 import org.bgi.flexlab.gaea.util.Window;
 import org.seqdoop.hadoop_bam.SAMRecordWritable;
 
@@ -25,6 +28,13 @@ public class RealignerReducer
 	private SAMRecordWritable outputValue = new SAMRecordWritable();
 	private QualityControlFilter filter = new QualityControlFilter();
 
+	private ArrayList<SAMRecord> records = new ArrayList<SAMRecord>();
+	private ArrayList<SAMRecord> filteredRecords = new ArrayList<SAMRecord>();
+
+	private GenomeShare genomeShare = null;
+	private VCFLoader loader = null;
+	private RealignerEngine engine = null;
+
 	@Override
 	protected void setup(Context context) throws IOException {
 		Configuration conf = context.getConfiguration();
@@ -34,6 +44,14 @@ public class RealignerReducer
 		if (mHeader == null) {
 			throw new MissingHeaderException("Realigner");
 		}
+
+		genomeShare = new GenomeShare();
+		genomeShare.loadChromosomeList(option.getReference());
+		
+		loader = new VCFLoader(option.getKnowVariant());
+		loader.loadHeader();
+		
+		engine = new RealignerEngine(option,genomeShare,loader,mHeader);
 	}
 
 	private boolean unmappedWindows(WindowsBasedWritable key) {
@@ -51,19 +69,13 @@ public class RealignerReducer
 				key.getChromosomeName()).getSequenceLength() ? (winNum + 1)
 				* winSize - 1 : mHeader.getSequence(key.getChromosomeName())
 				.getSequenceLength();
-				
-		return new Window(key.getChromosomeName(),start,stop);
+
+		return new Window(key.getChromosomeName(), start, stop);
 	}
 
-	@Override
-	public void reduce(WindowsBasedWritable key,
-			Iterable<SAMRecordWritable> values, Context context)
-			throws IOException, InterruptedException {
-		ArrayList<SAMRecord> records = new ArrayList<SAMRecord>();
-		ArrayList<SAMRecord> filteredRecords = new ArrayList<SAMRecord>();
-
-		boolean unmapped = unmappedWindows(key);
-
+	private int getSamRecords(Iterable<SAMRecordWritable> values,
+			ArrayList<SAMRecord> records, ArrayList<SAMRecord> filteredRecords,
+			boolean unmapped, Context context) {
 		int windowsReadsCounter = 0;
 		for (SAMRecordWritable samWritable : values) {
 			SAMRecord sam = samWritable.get();
@@ -71,7 +83,13 @@ public class RealignerReducer
 			windowsReadsCounter++;
 
 			if (windowsReadsCounter > option.getMaxReadsAtWindows() || unmapped) {
-				context.write(NullWritable.get(), samWritable);
+				try {
+					context.write(NullWritable.get(), samWritable);
+				} catch (IOException e) {
+					e.printStackTrace();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
 				continue;
 			}
 
@@ -80,16 +98,34 @@ public class RealignerReducer
 			if (!filter.filter(sam, null))
 				filteredRecords.add(sam);
 		}
+		return windowsReadsCounter;
+	}
+
+	private void clear() {
+		records.clear();
+		filteredRecords.clear();
+	}
+
+	@Override
+	public void reduce(WindowsBasedWritable key,
+			Iterable<SAMRecordWritable> values, Context context)
+			throws IOException, InterruptedException {
+
+		boolean unmapped = unmappedWindows(key);
+
+		int windowsReadsCounter = getSamRecords(values, records,
+				filteredRecords, unmapped, context);
 
 		if (windowsReadsCounter > option.getMaxReadsAtWindows() || unmapped) {
 			for (SAMRecord sam : records) {
 				outputValue.set(sam);
 				context.write(NullWritable.get(), outputValue);
 			}
-			records.clear();
-			return;
+		} else {
+			Window win = setWindows(key);
+			engine.set(win, records, filteredRecords);
+			engine.reduce();
 		}
-
-		Window win = setWindows(key);
+		clear();
 	}
 }
