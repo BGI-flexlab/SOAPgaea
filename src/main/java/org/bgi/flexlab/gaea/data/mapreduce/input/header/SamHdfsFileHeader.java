@@ -139,12 +139,12 @@ public class SamHdfsFileHeader extends SamFileHeader{
 			
 			SamFileHeaderCodec.writeHeader(header,fs.create(rankSumTestObjPath));
 		} catch (IOException e) {
-			e.printStackTrace();
+			throw new RuntimeException(e.toString());
 		} finally {
 			try {
 				fs.close();
 			} catch (IOException ioe) {
-				System.out.println(ioe.getMessage());
+				throw new RuntimeException(ioe.toString());
 			}
 		}
 	}
