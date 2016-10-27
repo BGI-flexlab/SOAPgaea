@@ -8,6 +8,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -16,6 +18,7 @@ import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.util.LineReader;
 import org.bgi.flexlab.gaea.util.ChromosomeUtils;
 
@@ -26,10 +29,62 @@ import org.bgi.flexlab.gaea.util.ChromosomeUtils;
  */
 public class GenomeShare {
 	
+	public static final String DISTRIBUTE_CACHE_FLAG = "distribute.cache.flag";
+	
 	/**
 	 * 染色体信息Map
 	 */
-	private Map<String, ChromosomeInformationShare> chromosomeInfoMap = new ConcurrentHashMap<String, ChromosomeInformationShare>();	
+	private Map<String, ChromosomeInformationShare> chromosomeInfoMap = new ConcurrentHashMap<String, ChromosomeInformationShare>();
+	
+	public static boolean distributeCache(String chrList,Job job) throws IOException, URISyntaxException{
+		job.addCacheFile(new URI(chrList+ "#" + "refList"));
+		
+		Configuration conf = job.getConfiguration();
+		Path refPath = new Path(chrList);
+		FileSystem fs = refPath.getFileSystem(conf);
+		FSDataInputStream refin = fs.open(refPath);
+		LineReader in = new LineReader(refin);
+		Text line = new Text();
+		
+		String chrFile = "";
+		String[] chrs = new String[3];
+		while((in.readLine(line)) != 0){
+			chrFile = line.toString();
+			chrs = chrFile.split("\t");
+			File fileTest = new File(chrs[1]);
+			if(fileTest.isFile()) {
+				chrs[1] = "file://" + chrs[1];
+			}
+			job.addCacheFile(new URI(chrs[1] + "#" + chrs[0] + "ref"));
+		}
+		in.close();
+		refin.close();
+		System.out.println("> Distributed cached reference done.");
+		return true;
+	}
+	
+	public static void distributeCacheReference(String chrList,Job job){
+		try {
+			if(distributeCache(chrList,job)){
+				job.getConfiguration().setBoolean(DISTRIBUTE_CACHE_FLAG, true);
+			}
+		} catch (IOException | URISyntaxException e) {
+			throw new RuntimeException(e.toString());
+		}
+	}
+	
+	public boolean loadGenome(Configuration conf) {
+		boolean isDistributeRef = conf.getBoolean(DISTRIBUTE_CACHE_FLAG, false);
+		if(!isDistributeRef)
+			return false;
+		
+		try {
+			loadChromosomeList();
+		} catch (Exception e) {
+			throw new RuntimeException(e.toString());
+		}
+		return true;
+	}
 	
 	public boolean loadGenome(String refList, String dbsnpList) {
 		try {
@@ -60,11 +115,8 @@ public class GenomeShare {
 			chrs = chrFile.split("\t");
 			// insert chr
 			if(!addChromosome(chrs[0])) {
-				StringBuilder errorDescription = new StringBuilder();
-				errorDescription.append("map Chromosome ");
-				errorDescription.append(chrs[1]);
-				errorDescription.append(" Failed.");
-				System.err.println(errorDescription.toString());
+				in.close();
+				throw new RuntimeException("map Chromosome "+chrs[1]+" Failed.");
 			}
 			if (chromosomeInfoMap.containsKey(chrs[0])) {
 				// map chr and get length
@@ -74,7 +126,6 @@ public class GenomeShare {
 			}
 		}
 		in.close();
-		refin.close();
 	}
 	
 	/**
@@ -91,11 +142,8 @@ public class GenomeShare {
 			System.err.println(line);
 			// insert chr
 			if(!addChromosome(chrs[0])) {
-				StringBuilder errorDescription = new StringBuilder();
-				errorDescription.append("map Chromosome ");
-				errorDescription.append(chrs[1]);
-				errorDescription.append(" Failed.");
-				System.err.println(errorDescription.toString());
+				br.close();
+				throw new RuntimeException("map Chromosome "+chrs[1]+" Failed.");
 			}
 			if (chromosomeInfoMap.containsKey(chrs[0])) {
 				// map chr and get length
@@ -128,11 +176,8 @@ public class GenomeShare {
 			
 			// insert chr
 			if(!addChromosome(chrs[0])) {
-				StringBuilder errorDescription = new StringBuilder();
-				errorDescription.append("map Chromosome ");
-				errorDescription.append(chrs[1]);
-				errorDescription.append(" Failed.");
-				System.err.println(errorDescription.toString());
+				in.close();
+				throw new RuntimeException("map Chromosome "+chrs[1]+" Failed.");
 			}
 			if (chromosomeInfoMap.containsKey(chrs[0])) {
 				// map chr and get length
@@ -141,7 +186,6 @@ public class GenomeShare {
 			}
 		}
 		in.close();
-		refin.close();
 	}
 	
 	/**

@@ -16,6 +16,8 @@ public class RealignerOptions extends GaeaOptions implements HadoopOptions{
 	private int maxReadsAtWindows;
 	private int extendSize;
 	private int snpWindowSize;
+	private int minReadsAtPileup;
+	private int maxIntervalSize;
 	
 	private String knowVariant;
 	private String input;
@@ -25,18 +27,23 @@ public class RealignerOptions extends GaeaOptions implements HadoopOptions{
 	private boolean samFormat;
 	private boolean multiSample;
 	
+	private double mismatchThreshold = 0.0;
+	
 	public RealignerOptions(){
 		addOption("i", "input", true, "input directory", true);
 		addOption("o", "output", true, "output directory", true);
 		addOption("r", "reference", true, "reference index(generation by GaeaIndex) file path", true);
-		addOption("W","window",true,"window size for calculating entropy or SNP clusters[10]");
-		addOption("w","keyWindow",true,"window size for key[10000]");
-		addOption("e","windowExtendSize",true,"window extend size[500]");
-		addOption("n","reducer",true,"reducer numbers[30]");
-		addOption("k","knowSite",true,"known snp/indel file,the format is VCF4");
-		addOption("M","multiSample",false,"mutiple sample realignment[false]");
-		addOption("s","samformat",false,"input file is sam format");
-		addOption("m","maxReadsAtWindows",true,"max reads numbers at on windows[1000000]");
+		addOption("W", "window", true, "window size for calculating entropy or SNP clusters[10]");
+		addOption("w", "keyWindow", true, "window size for key[10000]");
+		addOption("e", "windowExtendSize", true, "window extend size[500]");
+		addOption("n", "reducer", true, "reducer numbers[30]");
+		addOption("k", "knowSite", true, "known snp/indel file,the format is VCF4");
+		addOption("M", "multiSample", false, "mutiple sample realignment[false]");
+		addOption("s", "samformat", false, "input file is sam format");
+		addOption("m", "maxReadsAtWindows", true, "max reads numbers at on windows[1000000]");
+		addOption("M", "mismatch", true, "fraction of base qualities needing to mismatch for a position to have high entropy[0]");
+		addOption("l", "minReads", true, "minimum reads at a locus to enable using the entropy calculation[4].");
+		addOption("L", "intervalLength", true, "max interval length[500].");
 		
 		FormatHelpInfo(SOFTWARE_NAME, SOFTWARE_VERSION);
 	}
@@ -72,6 +79,10 @@ public class RealignerOptions extends GaeaOptions implements HadoopOptions{
 		maxReadsAtWindows = getOptionIntValue("m",1000000);
 		extendSize = getOptionIntValue("e",500);
 		snpWindowSize = getOptionIntValue("W",10);
+		minReadsAtPileup = getOptionIntValue("l",4);
+		maxIntervalSize = getOptionIntValue("L",500);
+		
+		mismatchThreshold = getOptionDoubleValue("M",0);
 		
 		samFormat = getOptionBooleanValue("s",false);
 		multiSample = getOptionBooleanValue("M",false);
@@ -133,5 +144,17 @@ public class RealignerOptions extends GaeaOptions implements HadoopOptions{
 	
 	public int getSNPWindowSize(){
 		return this.snpWindowSize;
+	}
+	
+	public double getMismatchThreshold(){
+		return mismatchThreshold;
+	}
+	
+	public int getMinReads(){
+		return minReadsAtPileup;
+	}
+	
+	public int getMaxInterval(){
+		return maxIntervalSize;
 	}
 }

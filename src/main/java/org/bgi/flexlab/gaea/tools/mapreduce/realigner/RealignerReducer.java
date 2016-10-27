@@ -11,6 +11,7 @@ import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamHdfsFileHeader;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.WindowsBasedWritable;
+import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.bam.filter.QualityControlFilter;
 import org.bgi.flexlab.gaea.data.structure.reference.GenomeShare;
 import org.bgi.flexlab.gaea.data.structure.vcf.index.VCFLoader;
@@ -28,8 +29,8 @@ public class RealignerReducer
 	private SAMRecordWritable outputValue = new SAMRecordWritable();
 	private QualityControlFilter filter = new QualityControlFilter();
 
-	private ArrayList<SAMRecord> records = new ArrayList<SAMRecord>();
-	private ArrayList<SAMRecord> filteredRecords = new ArrayList<SAMRecord>();
+	private ArrayList<GaeaSamRecord> records = new ArrayList<GaeaSamRecord>();
+	private ArrayList<GaeaSamRecord> filteredRecords = new ArrayList<GaeaSamRecord>();
 
 	private GenomeShare genomeShare = null;
 	private VCFLoader loader = null;
@@ -74,21 +75,20 @@ public class RealignerReducer
 	}
 
 	private int getSamRecords(Iterable<SAMRecordWritable> values,
-			ArrayList<SAMRecord> records, ArrayList<SAMRecord> filteredRecords,
+			ArrayList<GaeaSamRecord> records, ArrayList<GaeaSamRecord> filteredRecords,
 			boolean unmapped, Context context) {
 		int windowsReadsCounter = 0;
 		for (SAMRecordWritable samWritable : values) {
-			SAMRecord sam = samWritable.get();
-			sam.setHeader(mHeader);
+			GaeaSamRecord sam = new GaeaSamRecord(mHeader,samWritable.get());
 			windowsReadsCounter++;
 
 			if (windowsReadsCounter > option.getMaxReadsAtWindows() || unmapped) {
 				try {
 					context.write(NullWritable.get(), samWritable);
 				} catch (IOException e) {
-					e.printStackTrace();
+					throw new RuntimeException(e.toString());
 				} catch (InterruptedException e) {
-					e.printStackTrace();
+					throw new RuntimeException(e.toString());
 				}
 				continue;
 			}

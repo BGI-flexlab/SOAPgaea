@@ -4,11 +4,15 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Random;
+import java.util.TreeSet;
 
 import org.bgi.flexlab.gaea.exception.UserException;
 
-public class GenomeLocation implements Comparable<GenomeLocation>, Serializable {
+public class GenomeLocation implements Comparable<GenomeLocation>,
+		Comparator<GenomeLocation>, Serializable {
 	private static final long serialVersionUID = -1554058939692084601L;
 
 	protected final int contigIndex;
@@ -82,8 +86,8 @@ public class GenomeLocation implements Comparable<GenomeLocation>, Serializable 
 		else if (throughEndOfContig() || getStart() == getStop())
 			return String.format("%s:%d", getContig(), getStart());
 		else
-			return String
-					.format("%s:%d-%d", getContig(), getStart(), getStop());
+			return String.format("%s:%d-%d", getContigIndex(), getStart(),
+					getStop());
 	}
 
 	private boolean throughEndOfContig() {
@@ -347,34 +351,6 @@ public class GenomeLocation implements Comparable<GenomeLocation>, Serializable 
 		return -1;
 	}
 
-	public int compareTo(GenomeLocation that) {
-		int result = 0;
-
-		if (this == that) {
-			result = 0;
-		} 
-		else if (GenomeLocation.isUnmapped(this)){
-			result = 1;
-		}
-		else if (GenomeLocation.isUnmapped(that)){
-			result = -1;
-		}
-		else {
-			final int cmpContig = compareContigs(that);
-
-			if (cmpContig != 0) {
-				result = cmpContig;
-			} else {
-				if (this.getStart() < that.getStart())
-					result = -1;
-				if (this.getStart() > that.getStart())
-					result = 1;
-			}
-		}
-
-		return result;
-	}
-
 	public boolean endsAt(GenomeLocation that) {
 		return (this.compareContigs(that) == 0)
 				&& (this.getStop() == that.getStop());
@@ -406,5 +382,32 @@ public class GenomeLocation implements Comparable<GenomeLocation>, Serializable 
 	public long sizeOfOverlap(final GenomeLocation that) {
 		return (this.overlaps(that) ? Math.min(getStop(), that.getStop())
 				- Math.max(getStart(), that.getStart()) + 1L : 0L);
+	}
+
+	@Override
+	public int compare(GenomeLocation g1, GenomeLocation g2) {
+		int cmp = g1.getContigIndex() - g2.getContigIndex();
+		if (cmp == 0) {
+			cmp = g1.getStart() - g2.getStart();
+			if (cmp == 0) {
+				cmp = g1.getStop() - g2.getStop();
+			}
+		}
+		return cmp;
+	}
+
+	@Override
+	public int compareTo(GenomeLocation that) {
+		int result = 0;
+		if (this == that) {
+			result = 0;
+		} else if (GenomeLocation.isUnmapped(this)) {
+			result = 1;
+		} else if (GenomeLocation.isUnmapped(that)) {
+			result = -1;
+		} else {
+			result = compare(this, that);
+		}
+		return result;
 	}
 }
