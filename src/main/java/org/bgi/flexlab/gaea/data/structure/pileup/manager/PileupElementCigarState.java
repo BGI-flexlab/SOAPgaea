@@ -2,7 +2,7 @@ package org.bgi.flexlab.gaea.data.structure.pileup.manager;
 
 import htsjdk.samtools.CigarOperator;
 
-public class PileupCigarState {
+public class PileupElementCigarState {
 	private boolean deletion;
 	private boolean beforeDeletion;
 	private boolean afterDeletion;
@@ -10,7 +10,7 @@ public class PileupCigarState {
 	private boolean afterInsertion;
 	private boolean nextToSoftClip;
 
-	public PileupCigarState(CigarOperator nextOp, CigarOperator lastOp,
+	public PileupElementCigarState(CigarOperator nextOp, CigarOperator lastOp,
 			boolean isSingle) {
 		beforeDeletion = nextOp == CigarOperator.DELETION;
 		afterDeletion = lastOp == CigarOperator.DELETION;

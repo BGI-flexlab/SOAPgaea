@@ -10,7 +10,7 @@ import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer.Context;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
-import org.bgi.flexlab.gaea.data.structure.pileup.PileupContext;
+import org.bgi.flexlab.gaea.data.structure.pileup.Pileup;
 import org.bgi.flexlab.gaea.data.structure.pileup.PileupElement;
 import org.bgi.flexlab.gaea.data.structure.vcf.VariantDataTracker;
 import org.bgi.flexlab.gaea.data.structure.vcf.VariantDataTracker.Style;
@@ -73,9 +73,9 @@ public class BaseRecalibrator {
 		minimumQToUse = RAC.PRESERVE_QSCORES_LESS_THAN;
 	}
 
-	public void map(byte refBase, PileupContext context) {
+	public void map(byte refBase, Pileup context) {
 		if (!knownSite(context)) { // Only analyze sites not present in the provided known sites
-			for (final PileupElement p : context.getBasePileup()) {
+			for (final PileupElement p : context) {
 				final GaeaSamRecord read = p.getRead();
 				final int offset = p.getOffset();
 				if (readHasBeenSkipped(read) || isLowQualityBase(read, offset)
@@ -163,7 +163,7 @@ public class BaseRecalibrator {
 		}
 	}
 	
-	private boolean knownSite(PileupContext context) {
+	private boolean knownSite(Pileup context) {
 		if (knowSite != null) {
 			for (VariantDataTracker site : knowSite) {
 				if (site.getValue(context.getLocation()))

@@ -6,26 +6,26 @@ import java.util.Map;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
 
-public class PileupImpl extends AbstractPileup<PileupImpl, PileupElement> {
-	public PileupImpl(GenomeLocation location) {
+public class PileupInstance extends AbstractPileup<PileupInstance, PileupElement> {
+	public PileupInstance(GenomeLocation location) {
 		super(location);
 	}
 
-	public PileupImpl(GenomeLocation location, List<GaeaSamRecord> reads,
+	public PileupInstance(GenomeLocation location, List<GaeaSamRecord> reads,
 			List<Integer> offsets) {
 		super(location, reads, offsets);
 	}
 
-	public PileupImpl(GenomeLocation location, List<GaeaSamRecord> reads, int offset) {
+	public PileupInstance(GenomeLocation location, List<GaeaSamRecord> reads, int offset) {
 		super(location, reads, offset);
 	}
 
-	public PileupImpl(GenomeLocation location, List<PileupElement> pileupElements) {
+	public PileupInstance(GenomeLocation location, List<PileupElement> pileupElements) {
 		super(location, pileupElements);
 	}
 
-	public PileupImpl(GenomeLocation location,
-			Map<String, PileupImpl> pileupElementsBySample) {
+	public PileupInstance(GenomeLocation location,
+			Map<String, PileupInstance> pileupElementsBySample) {
 		super(location, pileupElementsBySample);
 	}
 
@@ -33,20 +33,20 @@ public class PileupImpl extends AbstractPileup<PileupImpl, PileupElement> {
 	 * Optimization of above constructor where all of the cached data is
 	 * provided
 	 */
-	public PileupImpl(GenomeLocation location, List<PileupElement> pileup, int size,
+	public PileupInstance(GenomeLocation location, List<PileupElement> pileup, int size,
 			int nDeletions, int nMQ0Reads) {
 		super(location, pileup, size, nDeletions, nMQ0Reads);
 	}
 
-	protected PileupImpl(GenomeLocation location,
+	protected PileupInstance(GenomeLocation location,
 			PileupElementTracker<PileupElement> tracker) {
 		super(location, tracker);
 	}
 
 	@Override
-	protected PileupImpl createNewPileup(GenomeLocation location,
+	protected PileupInstance createNewPileup(GenomeLocation location,
 			PileupElementTracker<PileupElement> tracker) {
-		return new PileupImpl(location, tracker);
+		return new PileupInstance(location, tracker);
 	}
 
 	@Override

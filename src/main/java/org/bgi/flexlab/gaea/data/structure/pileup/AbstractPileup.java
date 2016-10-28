@@ -509,6 +509,7 @@ public abstract class AbstractPileup<AP extends AbstractPileup<AP, PE>, PE exten
 		return counts;
 	}
 	
+	@Override
 	public GenomeLocation getLocation() {
 		return location;
 	}
@@ -622,5 +623,9 @@ public abstract class AbstractPileup<AP extends AbstractPileup<AP, PE>, PE exten
 	@Override
 	public FragmentCollection<PileupElement> toFragments() {
 		return FragmentUtils.create(this);
+	}
+	
+	public boolean hasReads(){
+		return size > 0 ;
 	}
 }

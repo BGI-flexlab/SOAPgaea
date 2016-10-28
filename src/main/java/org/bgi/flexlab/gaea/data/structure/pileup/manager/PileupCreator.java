@@ -11,12 +11,12 @@ import java.util.Queue;
 
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
-import org.bgi.flexlab.gaea.data.structure.pileup.PileupContext;
+import org.bgi.flexlab.gaea.data.structure.pileup.Pileup;
 import org.bgi.flexlab.gaea.data.structure.pileup.PileupElement;
-import org.bgi.flexlab.gaea.data.structure.pileup.PileupImpl;
+import org.bgi.flexlab.gaea.data.structure.pileup.PileupInstance;
 import org.bgi.flexlab.gaea.util.ReadUtils;
 
-public class PileupToContext {
+public class PileupCreator {
 	public int getDownsamplingExtent() {
 		return 0;
 	}
@@ -35,14 +35,12 @@ public class PileupToContext {
 			}
 		}
 	}
-
-	public PileupContext lazyLoadNextAlignmentContext(
+	
+	public Pileup lazyLoadNextPileup(
 			Queue<SamRecordState> readStates, GenomeLocation location) {
-		PileupContext nextAlignmentContext = null;
-		boolean hasBeenSampled = false;
+		Pileup nextPileup = null;
 		final List<PileupElement> pile = new ArrayList<PileupElement>(
 				readStates.size());
-		hasBeenSampled |= location.getStart() <= getDownsamplingExtent();
 		int size = 0; // number of elements in this sample's pileup
 		int nDeletions = 0; // number of deletions in this sample's pileup
 		int nMQ0Reads = 0; // number of MQ0 reads in this sample's pileup
@@ -61,7 +59,7 @@ public class PileupToContext {
 			int readOffset = state.getReadOffset(); // the base offset on this
 													// read
 
-			PileupCigarState cigarState = new PileupCigarState(nextOp, lastOp,
+			PileupElementCigarState cigarState = new PileupElementCigarState(nextOp, lastOp,
 					isSingleElementCigar);
 
 			final boolean isNextToSoftClip = nextOp == CigarOperator.S
@@ -108,10 +106,10 @@ public class PileupToContext {
 						nMQ0Reads++;
 				}
 			}
-		}// end ? for (SamRecordState state : readStates)
-		nextAlignmentContext = new PileupContext(location, new PileupImpl(
-				location, pile, size, nDeletions, nMQ0Reads), hasBeenSampled);
+		}
+		nextPileup = new PileupInstance(
+				location, pile, size, nDeletions, nMQ0Reads);
 		updateReadStates(readStates);
-		return nextAlignmentContext;
+		return nextPileup;
 	}
 }
