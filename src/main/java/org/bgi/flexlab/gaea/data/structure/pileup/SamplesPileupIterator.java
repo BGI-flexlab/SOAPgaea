@@ -6,11 +6,11 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.PriorityQueue;
 
-public class MultipleSamplesPileupElementIterator<PE extends PileupElement>
+public class SamplesPileupIterator<PE extends PileupElement>
 		implements Iterator<PE> {
 	private final PriorityQueue<PeekableIterator<PE>> sampleIterators;
 
-	public MultipleSamplesPileupElementIterator(
+	public SamplesPileupIterator(
 			SamplePileupElementTracker<PE> tracker) {
 		sampleIterators = new PriorityQueue<PeekableIterator<PE>>(Math.max(1,
 				tracker.sampleSize()), new PileupElementIteratorComparator());

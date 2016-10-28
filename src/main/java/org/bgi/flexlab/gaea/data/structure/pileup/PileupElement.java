@@ -1,7 +1,7 @@
 package org.bgi.flexlab.gaea.data.structure.pileup;
 
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
-import org.bgi.flexlab.gaea.data.structure.pileup.manager.PileupCigarState;
+import org.bgi.flexlab.gaea.data.structure.pileup.manager.PileupElementCigarState;
 import org.bgi.flexlab.gaea.exception.MalformedReadException;
 import org.bgi.flexlab.gaea.exception.UserException.PileupException;
 import org.bgi.flexlab.gaea.util.BaseUtils;
@@ -12,10 +12,6 @@ import com.google.java.contract.Ensures;
 public class PileupElement implements Comparable<PileupElement> {
 	public static final byte DELETION_BASE = BaseUtils.D;
 	public static final byte DELETION_QUAL = (byte) 16;
-	public static final byte A_FOLLOWED_BY_INSERTION_BASE = (byte) 87;
-	public static final byte C_FOLLOWED_BY_INSERTION_BASE = (byte) 88;
-	public static final byte T_FOLLOWED_BY_INSERTION_BASE = (byte) 89;
-	public static final byte G_FOLLOWED_BY_INSERTION_BASE = (byte) 90;
 
 	protected final GaeaSamRecord read; // the read this base belongs to
 	protected final int offset; // the offset in the bases array for this base
@@ -67,7 +63,7 @@ public class PileupElement implements Comparable<PileupElement> {
 	}
 
 	public PileupElement(final GaeaSamRecord read, final int offset,
-			final PileupCigarState state, final String nextEventBases,
+			final PileupElementCigarState state, final String nextEventBases,
 			final int nextEventLength) {
 		this(read, offset, state.isDeletion(), state.isBeforeDeletion(), state
 				.isAfterDeletion(), state.isBeforeInsertion(), state

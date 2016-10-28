@@ -12,7 +12,7 @@ import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamHdfsFileHeader;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.WindowsBasedWritable;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocationParser;
-import org.bgi.flexlab.gaea.data.structure.pileup.PileupContext;
+import org.bgi.flexlab.gaea.data.structure.pileup.Pileup;
 import org.bgi.flexlab.gaea.data.structure.pileup.manager.PileupState;
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
 import org.bgi.flexlab.gaea.data.structure.reference.GenomeShare;
@@ -91,14 +91,14 @@ public class BaseRecalibrationReducer extends Reducer<WindowsBasedWritable, SAMR
 			return;
 		}
 		PileupState manager=new PileupState(records, genomeLocParser);
-		PileupContext locus=null;
+		Pileup locus=null;
 		while (manager.hasNext()) {
 			 locus=manager.next();
-			 if(locus.getPosition()<start)
+			 if(locus.getLocation().getStart()<start)
 				 continue;
-			 if(locus.getPosition()>stop)
+			 if(locus.getLocation().getStart()>stop)
 				 break;
-			br.map((byte)chrInfo.getBase((int)locus.getPosition()-1), locus);
+			br.map((byte)chrInfo.getBase((int)locus.getLocation().getStart()-1), locus);
 		}
 	}
 	

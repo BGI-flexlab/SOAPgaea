@@ -81,7 +81,7 @@ class SamplePileupElementTracker<PE extends PileupElement> extends
 	}
 
 	public Iterator<PE> iterator() {
-		return new MultipleSamplesPileupElementIterator<PE>(this);
+		return new SamplesPileupIterator<PE>(this);
 	}
 
 	public int sampleSize() {

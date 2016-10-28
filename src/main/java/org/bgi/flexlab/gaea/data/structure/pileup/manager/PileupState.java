@@ -7,69 +7,46 @@ import java.util.Queue;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocationParser;
-import org.bgi.flexlab.gaea.data.structure.pileup.PileupContext;
+import org.bgi.flexlab.gaea.data.structure.pileup.Pileup;
 
 public class PileupState {
-	/**
-	 * samrecord list
-	 */
 	private Queue<GaeaSamRecord> records = null;
-
-	/**
-	 * alignment context for pileup
-	 */
-	PileupContext nextAlignmentContext = null;
-
-	/**
-	 * read state
-	 */
-	Queue<SamRecordState> readStates = null;
-	/**
-	 * 
-	 * Location
-	 */
+	private Pileup nextPileup = null;
+	private Queue<SamRecordState> samRecordStates = null;
 	private GenomeLocation location = null;
-
-	/**
-	 * GenomicParse
-	 */
-	GenomeLocationParser genomeLocParser = null;
-
-	private PileupToContext pileup2Context = null;
+	private GenomeLocationParser genomeLocParser = null;
+	private PileupCreator creator = null;
 
 	public PileupState(ArrayList<GaeaSamRecord> records,
 			GenomeLocationParser genomeLocParser) {
 		this.records = new LinkedList<GaeaSamRecord>(records);
-		readStates = new LinkedList<SamRecordState>();
+		samRecordStates = new LinkedList<SamRecordState>();
 		this.genomeLocParser = genomeLocParser;
-		pileup2Context = new PileupToContext();
+		creator = new PileupCreator();
 	}
 
 	public boolean hasNext() {
 		lazyLoadNextAlignmentContext();
-		return (nextAlignmentContext != null);
+		return (nextPileup != null);
 	}
 
 	private void lazyLoadNextAlignmentContext() {
-		if (nextAlignmentContext == null
-				&& (!readStates.isEmpty() || !records.isEmpty())) {
+		nextPileup = null;
+		if (nextPileup == null
+				&& (!samRecordStates.isEmpty() || !records.isEmpty())) {
 			collectPendingReads();
-
-			nextAlignmentContext = pileup2Context.lazyLoadNextAlignmentContext(
-					readStates, location);
+			nextPileup = creator.lazyLoadNextPileup(samRecordStates, location);
 		} else {
-			nextAlignmentContext = null;
+			nextPileup = null;
 		}
 	}
 
-	public PileupContext next() {
-		PileupContext currentAlignmentContext = nextAlignmentContext;
-		nextAlignmentContext = null;
-		return currentAlignmentContext;
+	public Pileup next() {
+		return nextPileup;
 	}
 
 	public void collectPendingReads() {
-		if (readStates.size() == 0) {
+		if (samRecordStates.size() == 0) {
 			int firstContigIndex = records.peek().getReferenceIndex();
 			int firstAlignmentStart = records.peek().getAlignmentStart();
 			while (!records.isEmpty()
@@ -98,11 +75,11 @@ public class PileupState {
 		}
 		SamRecordState state = new SamRecordState(record);
 		state.stepForwardOnGenome();
-		readStates.add(state);
+		samRecordStates.add(state);
 	}
 
 	private GenomeLocation getLocation() {
-		return readStates.isEmpty() ? null : readStates.peek().getLocation(
-				genomeLocParser);
+		return samRecordStates.isEmpty() ? null : samRecordStates.peek()
+				.getLocation(genomeLocParser);
 	}
 }

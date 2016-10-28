@@ -78,7 +78,7 @@ public class SamRecordState {
 	}
 
 	public String toString() {
-		return String.format("ro=%d go=%d co=%d cec", readOffset, genomeOffset,
+		return String.format("read offset=%d genome offset=%d cigar offset=%d", readOffset, genomeOffset,
 				cigarOffset);
 	}
 

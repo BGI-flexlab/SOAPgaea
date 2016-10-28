@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
+import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
 import org.bgi.flexlab.gaea.data.structure.pileup.filter.PileupElementFilter;
 import org.bgi.flexlab.gaea.util.FragmentCollection;
 
@@ -115,4 +116,9 @@ public interface Pileup extends Iterable<PileupElement>{
      * Converts this pileup into a FragmentCollection (see FragmentUtils for documentation)
      */
     public FragmentCollection<PileupElement> toFragments();
+    
+    /**/
+    public boolean hasReads();
+    
+    public GenomeLocation getLocation();
 }

@@ -9,7 +9,6 @@ import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocationParser;
 import org.bgi.flexlab.gaea.data.structure.pileup.Pileup;
-import org.bgi.flexlab.gaea.data.structure.pileup.PileupContext;
 import org.bgi.flexlab.gaea.data.structure.pileup.PileupElement;
 import org.bgi.flexlab.gaea.data.structure.pileup.manager.PileupState;
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
@@ -39,14 +38,13 @@ public class IdentifyRegionsCreator {
 		maxIntervalSize = option.getMaxInterval();
 	}
 
-	public Event getEvent(VariantState state, PileupContext context) {
+	public Event getEvent(VariantState state, Pileup pileup) {
 		boolean hasIndel = state.isIndel();
 		boolean hasInsertion = state.isInsertion();
 		boolean hasSNP = state.isSNP();
 		int furthestPosition = state.getFurthestPosition();
 
-		GenomeLocation location = context.getLocation();
-		Pileup pileup = context.getBasePileup();
+		GenomeLocation location = pileup.getLocation();
 		byte refBase = chr.getBinaryBase(location.getStart() - 1);
 
 		boolean lookForMismatchEntropy = option.getMismatchThreshold() > 0
@@ -131,16 +129,16 @@ public class IdentifyRegionsCreator {
 	public void regionCreator() {
 		EventPair pair = new EventPair(null, null);
 		PileupState pState = new PileupState(records, parser);
-		PileupContext context = null;
+		Pileup pileup = null;
 		while (pState.hasNext()) {
-			context = pState.next();
+			pileup = pState.next();
 			VariantState state = new VariantState();
-			state.filterVariant(knowIndels, context.getPosition());
-			pair = setEventPair(pair, getEvent(state, context));
+			state.filterVariant(knowIndels, pileup.getLocation().getStart());
+			pair = setEventPair(pair, getEvent(state, pileup));
 		}
 		
 		pState = null;
-		context = null;
+		pileup = null;
 		
 		setIntervals(pair);
 	}
