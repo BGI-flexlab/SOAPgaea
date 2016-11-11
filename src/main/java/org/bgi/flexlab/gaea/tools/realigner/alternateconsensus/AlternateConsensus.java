@@ -1,4 +1,4 @@
-package org.bgi.flexlab.gaea.tools.realigner.consensus;
+package org.bgi.flexlab.gaea.tools.realigner.alternateconsensus;
 
 import htsjdk.samtools.Cigar;
 
@@ -44,6 +44,10 @@ public class AlternateConsensus {
     	return this.readIndexes;
     }
     
+    public void add(Pair<Integer,Integer> pair){
+    	this.readIndexes.add(pair);
+    }
+    
     public int getPositionOnReference(){
     	return this.positionOnReference;
     }
@@ -52,7 +56,15 @@ public class AlternateConsensus {
     	return this.mismatchSum;
     }
     
+    public void addMismatch(int score){
+    	this.mismatchSum += score;
+    }
+    
     public Cigar getCigar(){
     	return this.cigar;
+    }
+    
+    public void clear(){
+    	this.readIndexes.clear();
     }
 }

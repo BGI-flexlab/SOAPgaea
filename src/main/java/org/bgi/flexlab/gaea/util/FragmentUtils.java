@@ -49,7 +49,6 @@ public class FragmentUtils {
 	 * the T objects whose underlying reads either overlap (or not) with their
 	 * mate pairs.
 	 */
-	@SuppressWarnings("unchecked")
 	private final static <T> FragmentCollection<T> create(
 			Iterable<T> readContainingObjects, int nElements,
 			ReadGetter<T> getter) {

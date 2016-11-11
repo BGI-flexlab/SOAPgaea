@@ -25,7 +25,7 @@ public class IndelRealigner {
 
 	public IndelRealigner(SAMFileHeader mHeader,
 			ArrayList<VariantContext> vatiants, Window win,
-			ChromosomeInformationShare chrInfo,RealignerOptions option) {
+			ChromosomeInformationShare chrInfo, RealignerOptions option) {
 		this.parser = new GenomeLocationParser(mHeader.getSequenceDictionary());
 		this.variants = variants;
 		filter = new VariantRegionFilter();
@@ -66,11 +66,11 @@ public class IndelRealigner {
 
 	public void traversals(ArrayList<GaeaSamRecord> records) {
 		updateWindowByInterval();
-		
+
 		ArrayList<VariantContext> filtered = null;
-		for(GaeaSamRecord sam : records){
+		for (GaeaSamRecord sam : records) {
 			filtered = filterKnowIndels(sam);
-			
+
 		}
 	}
 }

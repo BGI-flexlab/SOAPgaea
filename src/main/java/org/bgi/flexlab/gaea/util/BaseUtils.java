@@ -14,8 +14,8 @@ public class BaseUtils {
 	public final static byte[] BASES = { A, C, T, G };
 	public final static byte[] EXTENDED_BASES = { A, C, T, G, N, D };
 
-	private static byte[] complementBaseTable = {2, 3, 0, 1};
-	
+	private static byte[] complementBaseTable = { 2, 3, 0, 1 };
+
 	public enum Base {
 		A('A', 0), C('C', 1), T('T', 2), G('G', 3);
 
@@ -57,7 +57,7 @@ public class BaseUtils {
 		Arrays.fill(baseIndexMap, -1);
 		baseIndexMap['A'] = 0;
 		baseIndexMap['a'] = 0;
-		baseIndexMap['*'] = 0; 
+		baseIndexMap['*'] = 0;
 		baseIndexMap['C'] = 1;
 		baseIndexMap['c'] = 1;
 		baseIndexMap['T'] = 2;
@@ -105,25 +105,27 @@ public class BaseUtils {
 	public static boolean isTransversion(byte base1, byte base2) {
 		return !isTransition(base1, base2);
 	}
+
 	/**
 	 * A->T or C->G is complement
+	 * 
 	 * @param base
 	 * @return
 	 */
 	public static byte getComplementBase(byte base) {
 		return complementBaseTable[base];
 	}
-	
+
 	public static byte getBinaryBase(byte charBase) {
 		byte base;
-		if(charBase== 'N' || charBase == 'n') {
+		if (charBase == 'N' || charBase == 'n') {
 			base = 4;
 		} else {
-			base = (byte) ((charBase >> 1) &0x03);
+			base = (byte) ((charBase >> 1) & 0x03);
 		}
 		return base;
 	}
-	
+
 	static public boolean basesAreEqual(byte base1, byte base2) {
 		return simpleBaseToBaseIndex(base1) == simpleBaseToBaseIndex(base2);
 	}
@@ -223,6 +225,14 @@ public class BaseUtils {
 
 	static public boolean isRegularBase(final byte base) {
 		return simpleBaseToBaseIndex(base) != -1;
+	}
+
+	static public boolean isRegularAndNotEqualBase(final byte readBase,
+			final byte refBase) {
+		if (isRegularBase(readBase) && isRegularBase(refBase)
+				&& (readBase != refBase))
+			return true;
+		return false;
 	}
 
 	static public boolean isAllRegularBases(final byte[] bases) {
@@ -350,7 +360,7 @@ public class BaseUtils {
 	 */
 	static public byte[] convertToUpperCase(final byte[] bases) {
 		for (int i = 0; i < bases.length; i++) {
-			if ((char) bases[i] >= 'a'){
+			if ((char) bases[i] >= 'a') {
 				bases[i] = toUpperCaseBase(bases[i]);
 			}
 		}

@@ -1,10 +1,7 @@
 package org.bgi.flexlab.gaea.data.structure.bam;
 
-import java.util.ArrayList;
-
 import htsjdk.samtools.Cigar;
 import htsjdk.samtools.CigarElement;
-import htsjdk.samtools.CigarOperator;
 
 public class GaeaAlignedSamRecord {
 	public static final String ORIGINAL_CIGAR_TAG = "OC";
@@ -16,7 +13,7 @@ public class GaeaAlignedSamRecord {
 	private Cigar newCigar = null;
 	private int newStart = -1;
 	private int mismatchScore = 0;
-	private long alignerMismatchScore = 0;
+	private int alignerMismatchScore = 0;
 	private boolean ignoredOriginTag = false;
 
 	public GaeaAlignedSamRecord(GaeaSamRecord read) {
@@ -32,32 +29,6 @@ public class GaeaAlignedSamRecord {
 	public GaeaAlignedSamRecord(GaeaSamRecord read, int max_allow, boolean noTag) {
 		this(read, max_allow);
 		this.ignoredOriginTag = noTag;
-	}
-
-	public static boolean isClipOperator(CigarOperator op) {
-		return op == CigarOperator.S || op == CigarOperator.H
-				|| op == CigarOperator.P;
-	}
-
-	public static Cigar reclipCigar(Cigar cigar, GaeaSamRecord read) {
-		ArrayList<CigarElement> elements = new ArrayList<CigarElement>();
-		int n = read.getCigar().numCigarElements();
-		int i;
-		for (i = 0; i < n; i++) {
-			CigarOperator op = read.getCigar().getCigarElement(i).getOperator();
-			if (isClipOperator(op))
-				elements.add(read.getCigar().getCigarElement(i));
-		}
-
-		elements.addAll(cigar.getCigarElements());
-
-		for (++i; i < n; i++) {
-			CigarOperator op = read.getCigar().getCigarElement(i).getOperator();
-			if (isClipOperator(op))
-				elements.add(read.getCigar().getCigarElement(i));
-		}
-
-		return new Cigar(elements);
 	}
 
 	public void setMismatchScore(int score) {
@@ -82,7 +53,7 @@ public class GaeaAlignedSamRecord {
 		}
 
 		if (reclip && getReadBases().length < read.getReadLength()) {
-			cigar = reclipCigar(cigar, read);
+			cigar = GaeaCigar.reclipCigar(cigar, read);
 		}
 
 		if (cigar.equals(read.getCigar())) {
@@ -127,9 +98,8 @@ public class GaeaAlignedSamRecord {
 	}
 
 	private void getUnclippedInformation() {
-		int length = read.getReadLength();
-		readBases = new byte[length];
-		baseQualities = new byte[length];
+		readBases = new byte[read.getReadLength()];
+		baseQualities = new byte[read.getReadLength()];
 
 		int startIndex = 0, baseCount = 0;
 
@@ -183,7 +153,11 @@ public class GaeaAlignedSamRecord {
 		return this.mismatchScore;
 	}
 
-	public long getAlignerMismatchScore() {
+	public int getAlignerMismatchScore() {
 		return this.alignerMismatchScore;
+	}
+
+	public int getReadLength() {
+		return getReadBases().length;
 	}
 }

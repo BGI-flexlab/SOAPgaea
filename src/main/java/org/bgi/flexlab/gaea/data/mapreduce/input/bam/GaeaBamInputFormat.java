@@ -42,10 +42,11 @@ public class GaeaBamInputFormat extends
 		return getSplits(super.getSplits(job), job.getConfiguration());
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public List<InputSplit> getSplits(List<InputSplit> splits, Configuration cfg)
 			throws IOException {
 		Collections.sort(splits, new Comparator() {
+			@SuppressWarnings("unused")
 			public int compare(InputSplit a, InputSplit b) {
 				FileSplit fa = (FileSplit) a;
 				FileSplit fb = (FileSplit) b;

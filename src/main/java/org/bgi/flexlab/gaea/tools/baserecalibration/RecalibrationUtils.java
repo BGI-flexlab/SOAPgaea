@@ -4,7 +4,6 @@ package org.bgi.flexlab.gaea.tools.baserecalibration;
 import htsjdk.samtools.SAMReadGroupRecord;
 import htsjdk.samtools.SAMRecord;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -15,9 +14,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
 import org.apache.log4j.Logger;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.exception.UserException;
@@ -130,9 +126,11 @@ public class RecalibrationUtils {
         return new Pair<ArrayList<Covariate>, ArrayList<Covariate>>(requiredCovariates, optionalCovariates);
     }
 
-    private static List<Class<? extends Covariate>> initConvariate()
+    @SuppressWarnings("rawtypes")
+	private static List<Class<? extends Covariate>> initConvariate()
     {
-    	List<Class<? extends Covariate>> covariates=new ArrayList();
+    	@SuppressWarnings("unchecked")
+		List<Class<? extends Covariate>> covariates=new ArrayList();
     	covariates.add(ContextCovariate.class);
     	covariates.add(CycleCovariate.class);
     	covariates.add(QualityScoreCovariate.class);
@@ -140,17 +138,21 @@ public class RecalibrationUtils {
     	return covariates;
     }
     
-    private static List<Class<? extends RequiredCovariate>> initRequiredCovariate()
+    @SuppressWarnings("rawtypes")
+	private static List<Class<? extends RequiredCovariate>> initRequiredCovariate()
     {
-    	List<Class<? extends RequiredCovariate>> require =new ArrayList();
+    	@SuppressWarnings("unchecked")
+		List<Class<? extends RequiredCovariate>> require =new ArrayList();
     	require.add(QualityScoreCovariate.class);
     	require.add(ReadGroupCovariate.class);
     	return require;
     }
     
-    private static List<Class<? extends StandardCovariate>> initStandardCovariate()
+    @SuppressWarnings("rawtypes")
+	private static List<Class<? extends StandardCovariate>> initStandardCovariate()
     {
-    	List<Class<? extends StandardCovariate>> standard=new ArrayList();
+    	@SuppressWarnings("unchecked")
+		List<Class<? extends StandardCovariate>> standard=new ArrayList();
     	standard.add(ContextCovariate.class);
     	standard.add(CycleCovariate.class);
     	return standard;
@@ -206,7 +208,8 @@ public class RecalibrationUtils {
         }
     }
 
-    public static String classInterfaces(final Class covClass) {
+    @SuppressWarnings("rawtypes")
+	public static String classInterfaces(final Class covClass) {
         final List<String> interfaces = new ArrayList<String>();
         for ( final Class interfaceClass : covClass.getInterfaces() )
             interfaces.add(interfaceClass.getSimpleName());
@@ -396,7 +399,11 @@ public class RecalibrationUtils {
 		}
     }
 
-    private static Pair<OutputStream, String> initializeRecalibrationPlot(String filename) {
+    /*
+     * unused remove ? 
+     * @weipeng 
+     * */
+    /*private static Pair<OutputStream, String> initializeRecalibrationPlot(String filename) {
          OutputStream deltaTableStream = null;
         final String deltaTableFileName = filename + ".csv";
         try {
@@ -426,7 +433,7 @@ public class RecalibrationUtils {
 			// TODO: handle exception
 		}
 		return fs;
- 	}
+ 	}*/
 
     /**
      * Section of code shared between the two recalibration walkers which uses the command line arguments to adjust attributes of the read such as quals or platform string

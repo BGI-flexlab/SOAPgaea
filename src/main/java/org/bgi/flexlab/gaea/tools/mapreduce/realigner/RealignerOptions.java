@@ -29,6 +29,25 @@ public class RealignerOptions extends GaeaOptions implements HadoopOptions{
 	
 	private double mismatchThreshold = 0.0;
 	
+	public enum AlternateConsensusModel {
+		/**
+		 * generate alternate consensus model
+		 */
+		
+		/**
+		 * uses known indels only.
+		 */
+		KNOWNS_ONLY,
+		/**
+		 * uses know indels and the reads.
+		 */
+		READS,
+		/**
+		 * uses know indels and the reads and 'Smith-Waterman'.
+		 */
+		SW
+	}
+	
 	public RealignerOptions(){
 		addOption("i", "input", true, "input directory", true);
 		addOption("o", "output", true, "output directory", true);
