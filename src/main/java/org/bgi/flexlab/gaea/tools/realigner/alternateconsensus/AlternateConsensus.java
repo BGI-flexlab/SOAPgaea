@@ -64,6 +64,10 @@ public class AlternateConsensus {
     	return this.cigar;
     }
     
+    public void setCigar(Cigar cigar){
+    	this.cigar = cigar;
+    }
+    
     public void clear(){
     	this.readIndexes.clear();
     }

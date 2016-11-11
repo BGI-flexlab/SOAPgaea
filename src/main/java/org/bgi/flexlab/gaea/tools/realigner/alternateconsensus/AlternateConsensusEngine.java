@@ -2,6 +2,7 @@ package org.bgi.flexlab.gaea.tools.realigner.alternateconsensus;
 
 import htsjdk.samtools.Cigar;
 import htsjdk.samtools.CigarElement;
+import htsjdk.samtools.CigarOperator;
 import htsjdk.variant.variantcontext.VariantContext;
 
 import java.util.ArrayList;
@@ -9,7 +10,6 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaAlignedSamRecord;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaCigar;
@@ -30,32 +30,12 @@ public class AlternateConsensusEngine {
 		model = AlternateConsensusModel.READS;
 	}
 
-	public AlternateConsensusEngine(AlternateConsensusModel model,double threshold,double cleanThreshold) {
+	public AlternateConsensusEngine(AlternateConsensusModel model,
+			double threshold, double cleanThreshold) {
 		consensusBin = new AlternateConsensusBin();
 		this.model = model;
 		this.mismatchThreshold = threshold;
 		this.mismatchColumnCleanedFraction = cleanThreshold;
-	}
-
-	public void consensusForKnowIndels(
-			final ArrayList<VariantContext> knowIndels,
-			final int leftmostIndex, final byte[] reference) {
-		for (VariantContext variant : knowIndels) {
-			if (variant == null || variant.isComplexIndel()
-					|| !variant.isIndel())
-				continue;
-			byte[] indelStr;
-			if (variant.isSimpleInsertion()) {
-				byte[] indel = variant.getAlternateAllele(0).getBases();
-				indelStr = new byte[indel.length - 1];
-				System.arraycopy(indel, 1, indelStr, 0, indel.length - 1);
-			} else {
-				indelStr = new byte[variant.getReference().length() - 1];
-				Arrays.fill(indelStr, (byte) '-');
-			}
-			consensusBin.addAlternateConsensus(variant.getStart()
-					- leftmostIndex + 1, reference, variant, indelStr);
-		}
 	}
 
 	public int mismatchQualitySumIgnoreCigar(GaeaAlignedSamRecord read,
@@ -87,12 +67,32 @@ public class AlternateConsensusEngine {
 
 		return mismatchQualitySum;
 	}
+	
+	public void consensusByKnowIndels(
+			final ArrayList<VariantContext> knowIndels,
+			final int leftmostIndex, final byte[] reference) {
+		for (VariantContext variant : knowIndels) {
+			if (variant == null || variant.isComplexIndel()
+					|| !variant.isIndel())
+				continue;
+			byte[] indelStr;
+			if (variant.isSimpleInsertion()) {
+				byte[] indel = variant.getAlternateAllele(0).getBases();
+				indelStr = new byte[indel.length - 1];
+				System.arraycopy(indel, 1, indelStr, 0, indel.length - 1);
+			} else {
+				indelStr = new byte[variant.getReference().length() - 1];
+				Arrays.fill(indelStr, (byte) '-');
+			}
+			consensusBin.addAlternateConsensus(variant.getStart()
+					- leftmostIndex + 1, reference, variant, indelStr);
+		}
+	}
 
-	public long consensusForReads(final List<GaeaSamRecord> reads,
-			final ArrayList<GaeaSamRecord> refReadsToPopulate,
-			final ArrayList<GaeaAlignedSamRecord> altReadsToPopulate,
-			final LinkedList<GaeaAlignedSamRecord> altAlignmentsToTest,
-			final Set<AlternateConsensus> altConsenses,
+	public long consensusByReads(final List<GaeaSamRecord> reads,
+			final ArrayList<GaeaSamRecord> perfectlyReads,
+			final ArrayList<GaeaAlignedSamRecord> altReads,
+			final LinkedList<GaeaAlignedSamRecord> SWReads,
 			final int leftmostIndex, final byte[] reference) {
 		long totalRawMismatchSum = 0L;
 
@@ -100,7 +100,7 @@ public class AlternateConsensusEngine {
 			if (read.getCigar() == null)
 				continue;
 			if (read.getCigar().numCigarElements() == 0) {
-				refReadsToPopulate.add(read);
+				perfectlyReads.add(read);
 				continue;
 			}
 
@@ -123,7 +123,7 @@ public class AlternateConsensusEngine {
 					reference, startOnRef, Integer.MAX_VALUE);
 
 			if (rawMismatchScore != 0) {
-				altReadsToPopulate.add(alignedRead);
+				altReads.add(alignedRead);
 
 				if (!read.getDuplicateReadFlag())
 					totalRawMismatchSum += rawMismatchScore;
@@ -137,21 +137,26 @@ public class AlternateConsensusEngine {
 					consensusBin.addAlternateConsensus(reference, startOnRef,
 							alignedRead.getReadBases(), alignedRead.getCigar());
 				} else {
-					altAlignmentsToTest.add(alignedRead);
+					SWReads.add(alignedRead);
 				}
 			} else {
-				refReadsToPopulate.add(read);
+				perfectlyReads.add(read);
 			}
 		}
 
 		return totalRawMismatchSum;
 	}
+	
+	// sw function is interface
+	public void consensusBySmithWaterman(){
+		if(model != AlternateConsensusModel.SW)
+			return;
+	}
 
 	public AlternateConsensus findBestAlternateConsensus(
-			Set<AlternateConsensus> consensus,
 			ArrayList<GaeaAlignedSamRecord> reads, int leftMostIndex) {
 		AlternateConsensus bestConsensus = null;
-		Iterator<AlternateConsensus> iter = consensus.iterator();
+		Iterator<AlternateConsensus> iter = consensusBin.get().iterator();
 
 		while (iter.hasNext()) {
 			AlternateConsensus currentConsensus = iter.next();
@@ -190,7 +195,122 @@ public class AlternateConsensusEngine {
 		return bestConsensus;
 	}
 
-	public boolean lookForEntropy(ArrayList<GaeaAlignedSamRecord> reads,
+	private boolean badCigar(Cigar cigar) {
+		CigarOperator op1 = cigar.getCigarElement(0).getOperator();
+		CigarOperator op2 = cigar.getCigarElement(1).getOperator();
+
+		if (op1 == CigarOperator.I) {
+			if (op2 != CigarOperator.M)
+				return true;
+		} else if (op1 != CigarOperator.M) {
+			return true;
+		} else {
+			if (op2 != CigarOperator.D && op2 != CigarOperator.I)
+				return true;
+		}
+		return false;
+	}
+
+	public boolean needRealignment(ArrayList<GaeaAlignedSamRecord> reads,
+			byte[] ref, int leftMostIndex) {
+		if (model != AlternateConsensusModel.KNOWNS_ONLY
+				&& lookForEntropy(reads, ref, leftMostIndex))
+			return true;
+		return false;
+	}
+
+	public boolean updateRead(final Cigar consensusCigar, final int posOnRef,
+			final int posOnConsensus, final GaeaAlignedSamRecord alignedRead,
+			final int leftMostIndex) {
+		Cigar newCigar = new Cigar();
+
+		if (consensusCigar.getCigarElements().size() == 1) {
+			alignedRead.setNewStart(leftMostIndex + posOnConsensus);
+			newCigar.add(new CigarElement(alignedRead.getReadLength(),
+					CigarOperator.M));
+			alignedRead.setCigar(newCigar);
+			return true;
+		}
+
+		if (badCigar(consensusCigar))
+			return false;
+
+		CigarElement altCigarElement1 = consensusCigar.getCigarElement(0);
+		CigarElement altCigarElement2 = consensusCigar.getCigarElement(1);
+
+		int matchBlockLength = 0;
+
+		CigarElement indelCE = null;
+		if (altCigarElement1.getOperator() == CigarOperator.I) {
+			indelCE = altCigarElement1;
+		} else {
+			if (altCigarElement2.getOperator() == CigarOperator.I
+					|| altCigarElement2.getOperator() == CigarOperator.D) {
+				indelCE = altCigarElement2;
+			}
+			matchBlockLength = altCigarElement1.getLength();
+		}
+
+		int endOfMatchBlock = posOnRef + matchBlockLength;
+		boolean sawAlignmentStart = false;
+
+		if (posOnConsensus < endOfMatchBlock) {
+			alignedRead.setNewStart(leftMostIndex + posOnConsensus);
+			sawAlignmentStart = true;
+
+			if (posOnConsensus + alignedRead.getReadLength() <= endOfMatchBlock) {
+				alignedRead.setCigar(null);
+				return true;
+			}
+			newCigar.add(new CigarElement(endOfMatchBlock - posOnConsensus,
+					CigarOperator.M));
+		}
+
+		if (indelCE.getOperator() == CigarOperator.I) {
+			if (posOnConsensus + alignedRead.getReadLength() < endOfMatchBlock
+					+ indelCE.getLength()) {
+				int partialInsertionLength = posOnConsensus
+						+ alignedRead.getReadLength() - endOfMatchBlock;
+				if (!sawAlignmentStart)
+					partialInsertionLength = alignedRead.getReadLength();
+				newCigar.add(new CigarElement(partialInsertionLength,
+						CigarOperator.I));
+				alignedRead.setCigar(newCigar);
+				return true;
+			}
+
+			if (!sawAlignmentStart
+					&& posOnConsensus < endOfMatchBlock + indelCE.getLength()) {
+				alignedRead.setNewStart(leftMostIndex + endOfMatchBlock);
+				newCigar.add(new CigarElement(indelCE.getLength()
+						- (posOnConsensus - endOfMatchBlock), CigarOperator.I));
+				sawAlignmentStart = true;
+			} else if (sawAlignmentStart) {
+				newCigar.add(indelCE);
+			}
+		} else if (indelCE.getOperator() == CigarOperator.D) {
+			if (sawAlignmentStart)
+				newCigar.add(indelCE);
+		}
+
+		if (!sawAlignmentStart) {
+			alignedRead.setCigar(null);
+			return true;
+		}
+
+		int readRemaining = alignedRead.getReadLength();
+		for (CigarElement ce : newCigar.getCigarElements()) {
+			if (ce.getOperator() != CigarOperator.D)
+				readRemaining -= ce.getLength();
+		}
+		if (readRemaining > 0)
+			newCigar.add(new CigarElement(readRemaining, CigarOperator.M));
+		alignedRead.setCigar(newCigar);
+
+		return true;
+	}
+
+	private boolean lookForEntropy(ArrayList<GaeaAlignedSamRecord> reads,
 			byte[] ref, int leftMostIndex) {
 		int refLength = ref.length;
 		long[] rawMismatchQuality = new long[refLength];
@@ -242,10 +362,10 @@ public class AlternateConsensusEngine {
 				}
 			}
 		}
-		
+
 		int rawColumns = 0, cleanedColumns = 0;
 		for (int i = 0; i < refLength; i++) {
-			if(rawMismatchQuality[i] == cleanMismatchQuality[i])
+			if (rawMismatchQuality[i] == cleanMismatchQuality[i])
 				continue;
 			if (rawMismatchQuality[i] > cleanMismatchQuality[i]
 					* mismatchThreshold) {
