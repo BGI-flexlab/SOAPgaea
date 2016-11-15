@@ -481,7 +481,6 @@ public abstract class AbstractPileup<AP extends AbstractPileup<AP, PE>, PE exten
 	/**
 	 * Get counts of A, C, G, T in order
 	 */
-	@SuppressWarnings("deprecation")
 	@Override
 	public int[] getBaseCounts() {
 		int[] counts = new int[4];

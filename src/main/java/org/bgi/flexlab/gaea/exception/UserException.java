@@ -3,6 +3,7 @@ package org.bgi.flexlab.gaea.exception;
 import java.io.File;
 
 
+
 import htsjdk.samtools.SAMRecord;
 
 public class UserException extends RuntimeException {
@@ -14,10 +15,6 @@ public class UserException extends RuntimeException {
 
 	public UserException(String msg, Throwable e) {
 		super(msg, e);
-	}
-
-	private UserException(Throwable e) {
-		super("", e);
 	}
 
 	protected static String getMessage(Throwable t) {

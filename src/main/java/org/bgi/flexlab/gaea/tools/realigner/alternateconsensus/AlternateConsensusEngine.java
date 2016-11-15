@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.TreeSet;
 
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaAlignedSamRecord;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaCigar;
@@ -69,7 +70,7 @@ public class AlternateConsensusEngine {
 	}
 	
 	public void consensusByKnowIndels(
-			final ArrayList<VariantContext> knowIndels,
+			final TreeSet<VariantContext> knowIndels,
 			final int leftmostIndex, final byte[] reference) {
 		for (VariantContext variant : knowIndels) {
 			if (variant == null || variant.isComplexIndel()
@@ -132,7 +133,7 @@ public class AlternateConsensusEngine {
 						.mismatchQualityCount(alignedRead, reference,
 								startOnRef));
 
-				if (model != AlternateConsensusModel.KNOWNS_ONLY
+				if (model != AlternateConsensusModel.DBSNP
 						&& numBlocks == 2) {
 					consensusBin.addAlternateConsensus(reference, startOnRef,
 							alignedRead.getReadBases(), alignedRead.getCigar());
@@ -213,7 +214,7 @@ public class AlternateConsensusEngine {
 
 	public boolean needRealignment(ArrayList<GaeaAlignedSamRecord> reads,
 			byte[] ref, int leftMostIndex) {
-		if (model != AlternateConsensusModel.KNOWNS_ONLY
+		if (model != AlternateConsensusModel.DBSNP
 				&& lookForEntropy(reads, ref, leftMostIndex))
 			return true;
 		return false;

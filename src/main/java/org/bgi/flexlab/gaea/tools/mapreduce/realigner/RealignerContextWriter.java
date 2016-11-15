@@ -10,14 +10,17 @@ import org.seqdoop.hadoop_bam.SAMRecordWritable;
 
 public class RealignerContextWriter extends RealignerWriter{
 
+	@SuppressWarnings("rawtypes")
 	private Context context = null;
 	private SAMRecordWritable value = null;
 	
+	@SuppressWarnings("rawtypes")
 	public RealignerContextWriter(Context context){
 		this.context = context;
 		this.value = new SAMRecordWritable();
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Override
 	public void write(GaeaSamRecord read) {
 		value.set(read);
@@ -30,6 +33,5 @@ public class RealignerContextWriter extends RealignerWriter{
 
 	@Override
 	public void close() {
-		
 	}
 }

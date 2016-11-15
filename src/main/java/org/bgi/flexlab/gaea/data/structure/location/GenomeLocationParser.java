@@ -368,7 +368,7 @@ public class GenomeLocationParser {
 	}
 
 	public GenomeLocation createGenomeLocation(final Feature feature) {
-		return createGenomeLocation(feature.getChr(), feature.getStart(),
+		return createGenomeLocation(feature.getContig(), feature.getStart(),
 				feature.getEnd());
 	}
 
@@ -382,9 +382,9 @@ public class GenomeLocationParser {
 			boolean includeSymbolicEndIfPossible) {
 		if (includeSymbolicEndIfPossible && vc.isSymbolic()) {
 			int end = vc.getAttributeAsInt(VCFConstants.END_KEY, vc.getEnd());
-			return createGenomeLocation(vc.getChr(), vc.getStart(), end);
+			return createGenomeLocation(vc.getContig(), vc.getStart(), end);
 		} else
-			return createGenomeLocation(vc.getChr(), vc.getStart(), vc.getEnd());
+			return createGenomeLocation(vc.getContig(), vc.getStart(), vc.getEnd());
 	}
 
 	public GenomeLocation createGenomeLocation(final VariantContext vc) {

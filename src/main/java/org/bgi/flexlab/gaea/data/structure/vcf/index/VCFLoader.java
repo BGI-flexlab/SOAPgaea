@@ -74,6 +74,10 @@ public class VCFLoader {
 			return null;
 		if (!idx.containsChromosome(chr))
 			return null;
+		
+		if(header == null)
+			loadHeader();
+		
 		List<VCFBlock> blocks = idx.getBlock(chr, start, end);
 		if (blocks == null)
 			return null;
@@ -90,7 +94,7 @@ public class VCFLoader {
 			tempString = line.toString().trim();
 			VariantContext var = codec.decode(tempString);
 			if (ChromosomeUtils.formatChrName(chr).equals(
-					ChromosomeUtils.formatChrName(var.getChr()))) {
+					ChromosomeUtils.formatChrName(var.getContig()))) {
 				if (var.getStart() < start) {
 					continue;
 				} else if (var.getStart() >= start && var.getEnd() <= end) {

@@ -26,18 +26,22 @@ public class RealignerEngine {
 	private SAMFileHeader mHeader = null;
 	private VariantRegionFilter indelFilter = null;
 	private IndelRealigner indelRealigner = null;
+	private RealignerWriter writer = null;
 
 	public RealignerEngine(RealignerOptions option, GenomeShare genomeShare,
-			VCFLoader loader, SAMFileHeader mHeader) {
+			VCFLoader loader, SAMFileHeader mHeader,RealignerWriter writer) {
 		this.option = option;
 		this.genomeShare = genomeShare;
 		this.loader = loader;
 		this.mHeader = mHeader;
+		this.writer = writer;
 	}
 
 	public void set(Window win, ArrayList<GaeaSamRecord> records,
 			ArrayList<GaeaSamRecord> filterRecords) {
 		this.win = win;
+		if(win == null)
+			throw new RuntimeException("window is null");
 		this.records = records;
 		this.filterRecords = filterRecords;
 		indelFilter = new VariantRegionFilter();
@@ -69,6 +73,6 @@ public class RealignerEngine {
 		filterRecords.clear();
 
 		indelRealigner.setIntervals(intervals);
-		indelRealigner.traversals(records);
+		indelRealigner.traversals(records,writer);
 	}
 }

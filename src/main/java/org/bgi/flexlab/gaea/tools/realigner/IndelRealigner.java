@@ -2,17 +2,21 @@ package org.bgi.flexlab.gaea.tools.realigner;
 
 import htsjdk.samtools.Cigar;
 import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMTag;
 import htsjdk.samtools.util.SequenceUtil;
 import htsjdk.variant.variantcontext.VariantContext;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.TreeSet;
 
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaAlignedSamRecord;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecordBin;
+import org.bgi.flexlab.gaea.data.structure.bam.filter.RealignerFilter;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocationParser;
 import org.bgi.flexlab.gaea.data.structure.location.RealignerIntervalFilter;
@@ -26,6 +30,7 @@ import org.bgi.flexlab.gaea.util.Window;
 import org.bgi.flexlab.gaea.variant.filter.VariantRegionFilter;
 
 public class IndelRealigner {
+	private static int MAX_READS = 20000;
 	private ArrayList<GenomeLocation> intervals = null;
 	private ArrayList<VariantContext> variants = null;
 	private ChromosomeInformationShare chrInfo = null;
@@ -35,19 +40,38 @@ public class IndelRealigner {
 	private RealignerOptions option = null;
 	private AlternateConsensusEngine consensusEngine = null;
 	private GenomeLocation currentLocation = null;
+	private Iterator<GenomeLocation> iterator = null;
+	private GenomeLocation currentInterval = null;
+	private GaeaSamRecordBin needRealignementReads = null;
+	private ArrayList<GaeaSamRecord> notNeedRealignementReads = null;
+	private TreeSet<VariantContext> knowIndelsSet = null;
+	private int effectiveNotCleanReadCount = 0;
 
 	public IndelRealigner(SAMFileHeader mHeader,
-			ArrayList<VariantContext> vatiants, Window win,
+			ArrayList<VariantContext> variants, Window win,
 			ChromosomeInformationShare chrInfo, RealignerOptions option) {
 		this.parser = new GenomeLocationParser(mHeader.getSequenceDictionary());
 		this.variants = variants;
-		filter = new VariantRegionFilter();
 		this.chrInfo = chrInfo;
 		this.option = option;
+		initialization();
+	}
+
+	@SuppressWarnings("unchecked")
+	private void initialization() {
+		filter = new VariantRegionFilter();
+		consensusEngine = new AlternateConsensusEngine(
+				option.getConsensusModel(), option.getMismatchThreshold(),
+				option.getLODThreshold());
+		needRealignementReads = new GaeaSamRecordBin(parser);
+		notNeedRealignementReads = new ArrayList<GaeaSamRecord>();
+		knowIndelsSet = new TreeSet<VariantContext>(new KnowIndelComparator());
 	}
 
 	public void setIntervals(ArrayList<GenomeLocation> intervals) {
 		this.intervals = intervals;
+		iterator = this.intervals.iterator();
+		currentInterval = iterator.hasNext() ? iterator.next() : null;
 	}
 
 	private ArrayList<VariantContext> filterKnowIndels(GaeaSamRecord read) {
@@ -77,7 +101,7 @@ public class IndelRealigner {
 		filtered.clear();
 	}
 
-	private void realingerByConsensus(AlternateConsensus bestConsensus,
+	private void realignerCore(AlternateConsensus bestConsensus,
 			ArrayList<GaeaAlignedSamRecord> reads, byte[] ref,
 			GenomeLocation location, long totalRawMismatchQuality,
 			int leftMostIndex) {
@@ -144,15 +168,12 @@ public class IndelRealigner {
 					}
 					if (read.getAttribute(SAMTag.MD.name()) != null)
 						read.setAttribute(SAMTag.MD.name(), null);
-
-					//readsActuallyCleaned.add(read);
 				}
 			}
 		}
 	}
 
-	private void realigner(GaeaSamRecordBin readsBin,
-			ArrayList<VariantContext> knowIndels) {
+	private void consensusAndRealigner(GaeaSamRecordBin readsBin) {
 		final List<GaeaSamRecord> reads = readsBin.getReads();
 		if (reads.size() == 0)
 			return;
@@ -167,27 +188,104 @@ public class IndelRealigner {
 		// the reads cluster of making alternate consensus
 		final LinkedList<GaeaAlignedSamRecord> readsForConsensus = new LinkedList<GaeaAlignedSamRecord>();
 
-		consensusEngine.consensusByKnowIndels(knowIndels, leftMostIndex,
+		consensusEngine.consensusByKnowIndels(knowIndelsSet, leftMostIndex,
 				reference);
 		long totalRawQuality = consensusEngine
-				.consensusByReads(reads, refReads, altReads,
-						readsForConsensus, leftMostIndex, reference);
+				.consensusByReads(reads, refReads, altReads, readsForConsensus,
+						leftMostIndex, reference);
 		// function is empty
 		consensusEngine.consensusBySmithWaterman();
 
 		AlternateConsensus bestConsensus = consensusEngine
 				.findBestAlternateConsensus(altReads, leftMostIndex);
-		realingerByConsensus(bestConsensus, altReads, reference,
-				currentLocation, totalRawQuality, leftMostIndex);
+
+		realignerCore(bestConsensus, altReads, reference, currentLocation,
+				totalRawQuality, leftMostIndex);
 	}
 
-	public void traversals(ArrayList<GaeaSamRecord> records) {
+	private void realignerAndPending(ArrayList<VariantContext> knowIndels,
+			GaeaSamRecord read, GenomeLocation location, RealignerWriter writer) {
+		if (needRealignementReads.size() > 0) {
+			consensusAndRealigner(needRealignementReads);
+		}
+
+		write(writer);
+
+		do {
+			currentInterval = iterator.hasNext() ? iterator.next() : null;
+		} while (currentInterval != null
+				&& (location == null || currentInterval.isBefore(location)));
+
+		pending(knowIndels, read, writer);
+	}
+
+	private void pending(ArrayList<VariantContext> knowIndels,
+			GaeaSamRecord read, RealignerWriter writer) {
+		if (currentInterval == null) {
+			notNeedRealignementReads.add(read);
+			return;
+		}
+		if (read.getReferenceIndex() == SAMRecord.NO_ALIGNMENT_REFERENCE_INDEX) {
+			realignerAndPending(knowIndels, read, null, writer);
+			return;
+		}
+
+		GenomeLocation location = parser.createGenomeLocation(read);
+		if (location.getStop() == 0)
+			location = parser.createGenomeLocation(location.getContig(),
+					location.getStart(), location.getStart());
+		if (location.isBefore(currentInterval)) {
+			if (effectiveNotCleanReadCount != 0)
+				effectiveNotCleanReadCount++;
+			notNeedRealignementReads.add(read);
+		} else if (location.overlaps(currentInterval)) {
+			effectiveNotCleanReadCount++;
+
+			if (RealignerFilter.needToClean(read, option.getMaxInsertSize())) {
+				needRealignementReads.add(read);
+
+				for (VariantContext variant : knowIndels) {
+					if (!knowIndelsSet.contains(variant)) {
+						knowIndelsSet.add(variant);
+					}
+				}
+			} else {
+				notNeedRealignementReads.add(read);
+			}
+			if (effectiveNotCleanReadCount >= MAX_READS) {
+				write(writer);
+				currentInterval = iterator.hasNext() ? iterator.next() : null;
+			}
+		} else {
+			realignerAndPending(knowIndels, read, location, writer);
+		}
+	}
+
+	private void write(RealignerWriter writer) {
+		notNeedRealignementReads.addAll(needRealignementReads.getReads());
+		writer.writeReadList(notNeedRealignementReads);
+		needRealignementReads.clear();
+		notNeedRealignementReads.clear();
+		knowIndelsSet.clear();
+		effectiveNotCleanReadCount = 0;
+	}
+
+	public void traversals(ArrayList<GaeaSamRecord> records,
+			RealignerWriter writer) {
 		updateWindowByInterval();
 
-		ArrayList<VariantContext> filtered = null;
-		for (GaeaSamRecord sam : records) {
-			filtered = filterKnowIndels(sam);
+		ArrayList<VariantContext> overlapKnowIndels = null;
 
+		for (GaeaSamRecord sam : records) {
+			overlapKnowIndels = filterKnowIndels(sam);
+			pending(overlapKnowIndels, sam, writer);
+		}
+
+		if (effectiveNotCleanReadCount > 0) {
+			if (needRealignementReads.size() > 0) {
+				consensusAndRealigner(needRealignementReads);
+			}
+			write(writer);
 		}
 	}
 }

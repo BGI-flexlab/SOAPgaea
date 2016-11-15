@@ -10,6 +10,11 @@ public class FileNotExistException extends UserException{
 	
 	public static class MissingHeaderException extends UserException{
 
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -1223885852313830694L;
+
 		public MissingHeaderException(String path) {
 			super(String.format("file %s is not exist header!", path));
 		}

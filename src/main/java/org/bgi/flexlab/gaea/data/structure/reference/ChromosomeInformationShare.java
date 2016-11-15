@@ -5,7 +5,6 @@
 package org.bgi.flexlab.gaea.data.structure.reference;
 
 import java.io.IOException;
-import java.nio.MappedByteBuffer;
 
 import org.bgi.flexlab.gaea.exception.OutOfBoundException;
 import org.bgi.flexlab.gaea.util.SystemConfiguration;
