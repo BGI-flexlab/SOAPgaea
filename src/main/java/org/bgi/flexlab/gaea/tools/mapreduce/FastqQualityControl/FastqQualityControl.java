@@ -28,11 +28,12 @@ public class FastqQualityControl extends ToolsRunner {
 
 	@Override
 	public int run(String[] args) throws Exception {
-		FastqQualityControlOptions option = new FastqQualityControlOptions();
-		option.parse(args);
-
 		BioJob job = BioJob.getInstance();
 		Configuration conf = job.getConfiguration();
+		String[] remainArgs =  remainArgs(args,conf);
+		
+		FastqQualityControlOptions option = new FastqQualityControlOptions();
+		option.parse(remainArgs);
 		conf.setInt(FastqRecordReader.READ_NAME_TYPE, option.getReadType());
 		option.setHadoopConf(args, conf);
 

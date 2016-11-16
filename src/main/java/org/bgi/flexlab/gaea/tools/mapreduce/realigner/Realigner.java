@@ -27,13 +27,15 @@ public class Realigner extends ToolsRunner {
 
 	public int runRealigner(String[] args) throws IOException,
 			ClassNotFoundException, InterruptedException {
-		option = new RealignerOptions();
-		option.parse(args);
-
 		BioJob job = BioJob.getInstance();
-		job.setJobName("GaeaRealigner");
-
 		Configuration conf = job.getConfiguration();
+		String[] remainArgs = remainArgs(args,conf);
+		
+		option = new RealignerOptions();
+		option.parse(remainArgs);
+
+		job.setJobName("GaeaRealigner");
+		
 		option.setHadoopConf(args, conf);
 
 		job.setAnySamInputFormat(option.getInputFormat());
@@ -62,7 +64,8 @@ public class Realigner extends ToolsRunner {
 		job.setJobName("GaeaFixMate");
 
 		Configuration conf = job.getConfiguration();
-		option.setHadoopConf(args, conf);
+		String[] remainArgs = remainArgs(args,conf);
+		option.setHadoopConf(remainArgs, conf);
 
 		job.setAnySamInputFormat(format);
 		job.setOutputFormatClass(GaeaBamOutputFormat.class);
