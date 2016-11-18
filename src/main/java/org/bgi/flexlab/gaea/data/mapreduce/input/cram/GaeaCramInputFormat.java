@@ -36,6 +36,7 @@ public class GaeaCramInputFormat extends
 	}
 	
 	public boolean isSplitable(JobContext job, Path path) {
+		job.getConfiguration().setBoolean(GaeaCramRecordReader.CRAM_FILE_SPLITABLE,false);
 		return false;
 	}
 }

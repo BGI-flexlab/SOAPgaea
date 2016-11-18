@@ -1,5 +1,6 @@
 package org.bgi.flexlab.gaea.data.structure.bam;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 
 import htsjdk.samtools.Cigar;
@@ -121,4 +122,19 @@ public class GaeaCigar {
 		}
 		return new Cigar(elements);
 	}
+	
+	public static Cigar decode(final ByteBuffer binaryCigar) {
+        final Cigar ret = new Cigar();
+        while (binaryCigar.hasRemaining()) {
+            final int cigarette = binaryCigar.getInt();
+            ret.add(binaryCigarToCigarElement(cigarette));
+        }
+        return ret;
+    }
+	
+	private static CigarElement binaryCigarToCigarElement(final int cigarette) {
+        final int binaryOp = cigarette & 0xf;
+        final int length = cigarette >> 4;
+        return new CigarElement(length, CigarOperator.binaryToEnum(binaryOp));
+    }
 }

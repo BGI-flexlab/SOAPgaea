@@ -2,7 +2,6 @@ package org.bgi.flexlab.gaea.data.mapreduce.input.bam;
 
 import htsjdk.samtools.BAMRecordCodec;
 import htsjdk.samtools.Cigar;
-import htsjdk.samtools.BinaryCigarCodec;
 import htsjdk.samtools.FileTruncatedException;
 import htsjdk.samtools.SAMFileReader;
 import htsjdk.samtools.SAMFormatException;
@@ -15,6 +14,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
 
+import org.bgi.flexlab.gaea.data.structure.bam.GaeaCigar;
 import org.seqdoop.hadoop_bam.LazyBAMRecordFactory;
 import org.seqdoop.hadoop_bam.util.SeekableArrayStream;
 
@@ -249,8 +249,7 @@ public class GaeaBamSplitGuesser {
 												size);
 										bb.order(ByteOrder.LITTLE_ENDIAN);
 										try {
-											Cigar c = BinaryCigarCodec
-													.getSingleton().decode(bb);
+											Cigar c = GaeaCigar.decode(bb);
 											if ((cigarLen != 0)
 													&& (readLength != c
 															.getReadLength())) {
