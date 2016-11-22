@@ -70,7 +70,7 @@ public class GaeaCramRecordReader extends
 			end = seekableStream.length();
 
 		long[] boundaries = new long[] { start << 16, (end - 1) << 16 };
-		cramIterator = new CRAMIterator(seekableStream, refSource, boundaries);
+		cramIterator = new CRAMIterator(seekableStream, refSource, boundaries,ValidationStringency.DEFAULT_STRINGENCY);
 		ValidationStringency stringency = SAMHeaderReader
 				.getValidationStringency(conf);
 		if (stringency != null) {
