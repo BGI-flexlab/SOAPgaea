@@ -8,9 +8,8 @@ import htsjdk.samtools.cram.build.CramIO;
 import htsjdk.samtools.cram.ref.ReferenceSource;
 import htsjdk.samtools.seekablestream.SeekableStream;
 
+import java.io.File;
 import java.io.IOException;
-import java.net.URI;
-import java.nio.file.Paths;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
@@ -38,7 +37,6 @@ public class GaeaCramRecordReader extends
 	private CRAMIterator cramIterator;
 	protected SAMFileHeader samFileHeader = null;
 
-	@SuppressWarnings("deprecation")
 	@Override
 	public void initialize(InputSplit split, TaskAttemptContext context)
 			throws IOException {
@@ -52,10 +50,12 @@ public class GaeaCramRecordReader extends
 		final Path file = fileSplit.getPath();
 
 		String refSourcePath = conf.get(INPUTFORMAT_REFERENCE);
-		ReferenceSource refSource = new ReferenceSource(
+		/*ReferenceSource refSource = new ReferenceSource(
 				refSourcePath == null ? null : Paths.get(URI
-						.create(refSourcePath)));
+						.create(refSourcePath)));*/
 
+		ReferenceSource refSource = new ReferenceSource(new File(refSourcePath));
+		
 		seekableStream = WrapSeekable.openPath(conf, file);
 		start = getStart(fileSplit, conf);
 		if (start == 0) {

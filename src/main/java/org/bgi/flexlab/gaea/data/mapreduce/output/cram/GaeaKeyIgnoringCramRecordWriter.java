@@ -56,7 +56,7 @@ public class GaeaKeyIgnoringCramRecordWriter<K> extends
 
 	@Override
 	public void close(TaskAttemptContext ctx) throws IOException {
-		cramContainerStream.finish(false);
+		cramContainerStream.finish(true);
 		origOutput.close();
 
 		if (rename) {
