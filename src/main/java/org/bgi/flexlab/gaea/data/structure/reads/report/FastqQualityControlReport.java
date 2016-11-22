@@ -3,7 +3,7 @@ package org.bgi.flexlab.gaea.data.structure.reads.report;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 
-import org.bgi.flexlab.gaea.data.structure.reads.ReadBasicStatic;
+import org.bgi.flexlab.gaea.data.structure.reads.ReadBasicStatistics;
 import org.bgi.flexlab.gaea.util.ArrayListLongWrap;
 
 public class FastqQualityControlReport {
@@ -39,7 +39,7 @@ public class FastqQualityControlReport {
 		}
 	}
 
-	public void countRawReadInfo(ReadBasicStatic stat, int sampleID) {
+	public void countRawReadInfo(ReadBasicStatistics stat, int sampleID) {
 		if (!isMulti) {
 			sampleID = 0;
 		}
@@ -71,7 +71,7 @@ public class FastqQualityControlReport {
 		}
 	}
 
-	public void countCleanReadInfo(ReadBasicStatic stat, int sampleID) {
+	public void countCleanReadInfo(ReadBasicStatistics stat, int sampleID) {
 		if (!isMulti) {
 			sampleID = 0;
 		}
@@ -86,7 +86,7 @@ public class FastqQualityControlReport {
 		}
 	}
 
-	public void countBaseByPosition(ReadBasicStatic stat, int sampleID,
+	public void countBaseByPosition(ReadBasicStatistics stat, int sampleID,
 			boolean isClean) {
 		if (!isMulti) {
 			sampleID = 0;

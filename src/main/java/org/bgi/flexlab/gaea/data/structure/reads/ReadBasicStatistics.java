@@ -5,7 +5,7 @@ import org.bgi.flexlab.gaea.tools.mapreduce.fastqqualitycontrol.FastqQualityCont
 import org.bgi.flexlab.gaea.util.ArrayListLongWrap;
 import org.bgi.flexlab.gaea.util.BaseUtils;
 
-public class ReadBasicStatic {
+public class ReadBasicStatistics {
 	private short[] basicCounts;
 	private short baseNumber;
 	private short lowQualityBaseNumber;
@@ -22,7 +22,7 @@ public class ReadBasicStatic {
 	private ArrayListLongWrap[] baseByPosition;
 	private final int SIZE = FastqQualityControlReport.BASE_STATIC_COUNT/2;
 
-	public ReadBasicStatic(FastqQualityControlOptions option) {
+	public ReadBasicStatistics(FastqQualityControlOptions option) {
 		this.basicCounts = new short[7];
 		this.lowQualityBaseNumber = 0;
 		this.baseNumber = 0;
@@ -94,7 +94,7 @@ public class ReadBasicStatic {
 		}
 	}
 
-	public void addReads(ReadBasicStatic basicStatic) {
+	public void addReads(ReadBasicStatistics basicStatic) {
 		for (int i = 0; i < basicCounts.length; i++) {
 			basicCounts[i] += basicStatic.getBasicBaseCount(i);
 		}

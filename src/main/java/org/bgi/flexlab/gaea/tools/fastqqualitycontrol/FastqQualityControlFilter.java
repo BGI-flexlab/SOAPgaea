@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import org.bgi.flexlab.gaea.data.mapreduce.input.fastq.FastqMultipleSample;
-import org.bgi.flexlab.gaea.data.structure.reads.ReadBasicStatic;
+import org.bgi.flexlab.gaea.data.structure.reads.ReadBasicStatistics;
 import org.bgi.flexlab.gaea.data.structure.reads.ReadInformationWithSampleID;
 import org.bgi.flexlab.gaea.data.structure.reads.report.FastqQualityControlReport;
 import org.bgi.flexlab.gaea.tools.mapreduce.fastqqualitycontrol.FastqQualityControlOptions;
@@ -43,7 +43,7 @@ public class FastqQualityControlFilter {
 	}
 
 	public ArrayList<ReadInformationWithSampleID> parseLine(
-			ReadBasicStatic stat, ArrayList<String> values) {
+			ReadBasicStatistics stat, ArrayList<String> values) {
 		ArrayList<ReadInformationWithSampleID> list = new ArrayList<ReadInformationWithSampleID>();
 
 		for (String value : values) {
@@ -66,7 +66,7 @@ public class FastqQualityControlFilter {
 		return list;
 	}
 
-	public boolean isBadReads(ReadBasicStatic stat,
+	public boolean isBadReads(ReadBasicStatistics stat,
 			ArrayList<ReadInformationWithSampleID> list) {
 		if (stat.getReadCount() == 0) {
 			return true;
@@ -94,7 +94,7 @@ public class FastqQualityControlFilter {
 	}
 
 	public String qualityControlFilter(ArrayList<String> values) {
-		ReadBasicStatic stat = new ReadBasicStatic(option);
+		ReadBasicStatistics stat = new ReadBasicStatistics(option);
 		StringBuilder consensusSeq = new StringBuilder();
 		ArrayList<ReadInformationWithSampleID> list = parseLine(stat, values);
 
