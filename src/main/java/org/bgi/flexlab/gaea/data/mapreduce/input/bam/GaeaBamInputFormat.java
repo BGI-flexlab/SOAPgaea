@@ -118,7 +118,7 @@ public class GaeaBamInputFormat extends
 		SeekableStream sin = WrapSeekable.openPath(path.getFileSystem(cfg),
 				path);
 
-		GaeaBamSplitGuesser guesser = new GaeaBamSplitGuesser(sin);
+		GaeaBamSplitGuesser guesser = new GaeaBamSplitGuesser(sin,cfg);
 
 		FileVirtualSplit previousSplit = null;
 

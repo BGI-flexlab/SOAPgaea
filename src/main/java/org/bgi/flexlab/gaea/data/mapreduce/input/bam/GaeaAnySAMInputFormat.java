@@ -17,6 +17,7 @@ import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
+import org.seqdoop.hadoop_bam.BAMInputFormat;
 import org.seqdoop.hadoop_bam.FileVirtualSplit;
 import org.seqdoop.hadoop_bam.SAMFormat;
 import org.seqdoop.hadoop_bam.SAMInputFormat;
@@ -29,6 +30,7 @@ public class GaeaAnySAMInputFormat extends
 	public static final String SAM_FORMAT_FOR_ALL_PATH = "samformat.allpath";
 
 	private final GaeaBamInputFormat bamIF = new GaeaBamInputFormat();
+	//private final BAMInputFormat bamIF = new BAMInputFormat();
 	private final SAMInputFormat samIF = new SAMInputFormat();
 
 	private final Map<Path, SAMFormat> formatMap;

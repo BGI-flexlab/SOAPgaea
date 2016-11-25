@@ -3,9 +3,11 @@ package org.bgi.flexlab.gaea.framework.tools.mapreduce;
 import java.io.IOException;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.bgi.flexlab.gaea.data.mapreduce.input.bam.GaeaAnySAMInputFormat;
+import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamHdfsFileHeader;
 import org.bgi.flexlab.gaea.data.mapreduce.partitioner.WindowsBasedComparator;
 import org.bgi.flexlab.gaea.data.mapreduce.partitioner.WindowsBasedPartitioner;
 import org.bgi.flexlab.gaea.data.mapreduce.partitioner.WindowsBasedSort;
@@ -76,5 +78,13 @@ public class BioJob extends Job {
 	public void setAnySamInputFormat(SAMFormat fmt){
 		conf.set(GaeaAnySAMInputFormat.SAM_FORMAT_FOR_ALL_PATH, fmt.toString());
 		setInputFormatClass(GaeaAnySAMInputFormat.class);
+	}
+	
+	public void setHeader(Path input,Path output){
+		try {
+			SamHdfsFileHeader.loadHeader(input,conf,output);
+		} catch (IOException e) {
+			throw new RuntimeException(e.toString());
+		}
 	}
 }
