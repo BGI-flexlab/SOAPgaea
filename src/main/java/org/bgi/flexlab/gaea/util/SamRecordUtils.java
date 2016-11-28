@@ -96,4 +96,11 @@ public class SamRecordUtils {
 		return (index == 0) ? firstCount : (byte) Math.min(firstCount
 				+ offsetCount, Byte.MAX_VALUE);
 	}
+	
+	public static boolean isUnmapped(SAMRecord sam) {
+		if (sam.getReadUnmappedFlag() || sam.getReferenceIndex() == -1
+				|| sam.getAlignmentStart() < 0)
+			return true;
+		return false;
+	}
 }

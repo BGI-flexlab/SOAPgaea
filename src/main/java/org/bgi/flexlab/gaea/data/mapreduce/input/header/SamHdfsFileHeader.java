@@ -64,45 +64,69 @@ public class SamHdfsFileHeader extends SamFileHeader {
 	/*
 	 * merge bam header for input directory
 	 */
-	public static SAMFileHeader traversal(Path input, FileSystem fs,
+	/*public static SAMFileHeader traversal(Path input, FileSystem fs1,
 			Configuration conf,boolean cram) {
+		FileSystem fs = null;
+		try {
+			fs = input.getFileSystem(conf);
+		} catch (IOException e2) {
+			throw new FileNotExistException(input.getName());
+		}
 		ArrayList<SAMFileHeader> mergeHeaders = new ArrayList<SAMFileHeader>();
 		SAMFileHeader mergedHeader = null;
 		boolean matchedSortOrders = true;
-		try {
-			if (!fs.exists(input)) {
+			try {
+				if (!fs.exists(input)) {
+				}
+			} catch (IOException e1) {
 				throw new FileNotExistException(input.getName());
 			}
-			if (fs.isFile(input)) {
-				SAMFileHeader header = null;
-				if(!cram)
-					header = getSAMHeader(fs, input);
-				else
-					header = getCramHeader(fs,input);
-				matchedSortOrders = matchedSortOrders
-						&& header.getSortOrder() == SORT_ORDER;
-				if (!contains(header, mergeHeaders))
-					mergeHeaders.add(header);
-			} else {
-				FileStatus stats[] = fs.listStatus(input,
-						new HeaderPathFilter());
-
-				for (FileStatus file : stats) {
-					Path filePath = file.getPath();
+			try {
+				if (fs.isFile(input)) {
 					SAMFileHeader header = null;
-					if (fs.isFile(filePath)) {
-						if(!cram)
+					if(!cram)
+						try {
 							header = getSAMHeader(fs, input);
-						else
+						} catch (IOException e) {
+							throw new RuntimeException(e.toString());
+						}
+					else
+						try {
 							header = getCramHeader(fs,input);
-					} else {
-						header = traversal(filePath, fs, conf,cram);
-					}
+						} catch (IOException e) {
+							throw new RuntimeException(e.toString());
+						}
 					matchedSortOrders = matchedSortOrders
 							&& header.getSortOrder() == SORT_ORDER;
 					if (!contains(header, mergeHeaders))
 						mergeHeaders.add(header);
+				} else {
+					FileStatus[] stats = null;
+					try{
+						stats = fs.listStatus(input,new HeaderPathFilter());
+					}catch(IOException e){
+						throw new RuntimeException(e.toString());
+					}
+
+					for (FileStatus file : stats) {
+						Path filePath = file.getPath();
+						SAMFileHeader header = null;
+						if (fs.isFile(filePath)) {
+							if(!cram)
+								header = getSAMHeader(fs, input);
+							else
+								header = getCramHeader(fs,input);
+						} else {
+							header = traversal(filePath, fs, conf,cram);
+						}
+						matchedSortOrders = matchedSortOrders
+								&& header.getSortOrder() == SORT_ORDER;
+						if (!contains(header, mergeHeaders))
+							mergeHeaders.add(header);
+					}
 				}
+			} catch (IOException e) {
+				throw new RuntimeException(e.toString());
 			}
 			if (matchedSortOrders
 					|| SORT_ORDER == SAMFileHeader.SortOrder.unsorted
@@ -114,9 +138,83 @@ public class SamHdfsFileHeader extends SamFileHeader {
 			mergedHeader = new SamFileHeaderMerger(headerMergerSortOrder,
 					mergeHeaders, MERGE_SEQUENCE_DICTIONARIES)
 					.getMergedHeader();
-		} catch (IOException ioe) {
-			throw new RuntimeException(ioe.getMessage());
+		return mergedHeader;
+	}*/
+	
+	public static SAMFileHeader traversal(Path input, FileSystem fs,
+			Configuration conf,boolean cram) {
+		ArrayList<SAMFileHeader> mergeHeaders = new ArrayList<SAMFileHeader>();
+		SAMFileHeader mergedHeader = null;
+		boolean matchedSortOrders = true;
+		
+		FileStatus status = null;
+		try {
+			status = fs.getFileStatus(input);
+		} catch (IOException e2) {
+			throw new FileNotExistException(input.getName());
 		}
+		
+		if(status.isFile()){
+			SAMFileHeader header = null;
+			if(!cram)
+				try {
+					header = getSAMHeader(fs, input);
+				} catch (IOException e) {
+					throw new RuntimeException(e.toString());
+				}
+			else
+				try {
+					header = getCramHeader(fs,input);
+				} catch (IOException e) {
+					throw new RuntimeException(e.toString());
+				}
+			matchedSortOrders = matchedSortOrders
+					&& header.getSortOrder() == SORT_ORDER;
+			if (!contains(header, mergeHeaders))
+				mergeHeaders.add(header);
+		}else{
+			FileStatus[] stats = null;
+			try{
+				stats = fs.listStatus(input,new HeaderPathFilter());
+			}catch(IOException e){
+				throw new RuntimeException(e.toString());
+			}
+
+			for (FileStatus file : stats) {
+				Path filePath = file.getPath();
+				SAMFileHeader header = null;
+				if (file.isFile()) {
+					if(!cram)
+						try {
+							header = getSAMHeader(fs, filePath);
+						} catch (IOException e) {
+							throw new RuntimeException(e.toString());
+						}
+					else
+						try {
+							header = getCramHeader(fs,filePath);
+						} catch (IOException e) {
+							throw new RuntimeException(e.toString());
+						}
+				} else {
+					header = traversal(filePath, fs, conf,cram);
+				}
+				matchedSortOrders = matchedSortOrders
+						&& header.getSortOrder() == SORT_ORDER;
+				if (!contains(header, mergeHeaders))
+					mergeHeaders.add(header);
+			}
+		}
+			if (matchedSortOrders
+					|| SORT_ORDER == SAMFileHeader.SortOrder.unsorted
+					|| ASSUME_SORTED) {
+				headerMergerSortOrder = SORT_ORDER;
+			} else {
+				headerMergerSortOrder = SAMFileHeader.SortOrder.unsorted;
+			}
+			mergedHeader = new SamFileHeaderMerger(headerMergerSortOrder,
+					mergeHeaders, MERGE_SEQUENCE_DICTIONARIES)
+					.getMergedHeader();
 		return mergedHeader;
 	}
 
