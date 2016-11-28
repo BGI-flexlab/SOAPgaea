@@ -11,7 +11,7 @@ public class WindowsBasedComparator implements
 
 	@Override
 	public int compare(WindowsBasedWritable o1, WindowsBasedWritable o2) {
-		return o1.getWindowsInformation().compareTo(o2.getWindowsInformation());
+		return o1.getWindows().compareTo(o2.getWindows());
 	}
 
 	@Override
@@ -27,8 +27,6 @@ public class WindowsBasedComparator implements
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
-
 		return compare(key1, key2);
 	}
-
 }

@@ -156,16 +156,24 @@ public class RealignerOptions extends GaeaOptions implements HadoopOptions{
 		return input;
 	}
 	
-	public String getRealignerOutput(){
+	public String getRealignerHeaderOutput(){
 		return output+"realigner";
+	}
+	
+	public String getRealignerOutput(){
+		return getRealignerHeaderOutput()+"/result";
 	}
 	
 	public String getFixmateInput(){
-		return output+"realigner";
+		return getRealignerOutput();
+	}
+	
+	public String getFixmateHeaderOutput(){
+		return output+"fixmate";
 	}
 	
 	public String getFixmateOutput(){
-		return output+"fixmate";
+		return getFixmateHeaderOutput()+"/result";
 	}
 	
 	public int getExtendSize(){

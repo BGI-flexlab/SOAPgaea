@@ -40,7 +40,7 @@ public class Realigner extends ToolsRunner {
 
 		// merge header and set to configuration
 		job.setHeader(new Path(option.getRealignerInput()),
-				new Path(option.getRealignerOutput()));
+				new Path(option.getRealignerHeaderOutput()));
 
 		job.setAnySamInputFormat(option.getInputFormat());
 		job.setOutputFormatClass(GaeaBamOutputFormat.class);
@@ -49,7 +49,7 @@ public class Realigner extends ToolsRunner {
 				SAMRecordWritable.class);
 
 		job.setJarByClass(Realigner.class);
-		job.setMapperClass(WindowsBasedMapper.class);
+		job.setWindowsBasicMapperClass(WindowsBasedMapper.class, option.getWindowsSize());
 		job.setReducerClass(RealignerReducer.class);
 		job.setNumReduceTasks(option.getReducerNumber());
 
@@ -73,7 +73,7 @@ public class Realigner extends ToolsRunner {
 
 		// merge header and set to configuration
 		job.setHeader(new Path(option.getFixmateInput()),
-				new Path(option.getFixmateOutput()));
+				new Path(option.getFixmateHeaderOutput()));
 
 		job.setAnySamInputFormat(format);
 		job.setOutputFormatClass(GaeaBamOutputFormat.class);

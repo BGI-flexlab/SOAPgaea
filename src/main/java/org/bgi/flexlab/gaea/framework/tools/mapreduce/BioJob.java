@@ -46,6 +46,14 @@ public class BioJob extends Job {
 		conf.setInt(WindowsBasedMapper.WINDOWS_EXTEND_SIZE, windowsExtendSize);
 		setWindowsBasicMapperClass(cls, windowsSize);
 	}
+	
+	public void setWindowsBasicMapperClass(@SuppressWarnings("rawtypes") Class<? extends Mapper> cls,
+			int windowsSize, int windowsExtendSize,boolean multiSample)
+			throws IllegalStateException {
+		if(multiSample)
+			setMultipleSample();
+		setWindowsBasicMapperClass(cls,windowsSize,windowsExtendSize);
+	}
 
 	public void setMultipleSample() {
 		conf.setBoolean(WindowsBasedMapper.MULTIPLE_SAMPLE, true);

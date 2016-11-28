@@ -13,6 +13,7 @@ import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamHdfsFileHeader;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.WindowsBasedWritable;
 import org.bgi.flexlab.gaea.data.structure.bam.filter.SamRecordFilter;
 import org.bgi.flexlab.gaea.exception.FileNotExistException;
+import org.bgi.flexlab.gaea.util.SamRecordUtils;
 import org.seqdoop.hadoop_bam.SAMRecordWritable;
 
 public class WindowsBasedMapper
@@ -60,7 +61,7 @@ public class WindowsBasedMapper
 						.newInstance());
 			} catch (InstantiationException | IllegalAccessException
 					| ClassNotFoundException e) {
-				e.printStackTrace();
+				throw new RuntimeException(e.toString());
 			}
 		}
 
@@ -73,13 +74,13 @@ public class WindowsBasedMapper
 	protected int[] getExtendPosition(int start, int end, int length) {
 		int[] winNum = new int[3];
 
-		winNum[1] = (int) ((start - windowsExtendSize) > 0 ? (start - windowsExtendSize)
+		winNum[1] = (int) (((start - windowsExtendSize) > 0 ? (start - windowsExtendSize)
 				: 0)
-				/ windowsSize;
+				/ windowsSize);
 		winNum[0] = start / windowsSize;
-		winNum[2] = (int) ((end + windowsExtendSize) > length ? (end + windowsExtendSize)
-				: length)
-				/ windowsSize;
+		winNum[2] = (int) (((end + windowsExtendSize) > length ? length :(end + windowsExtendSize)
+				)
+				/ windowsSize);
 
 		return winNum;
 	}
@@ -95,11 +96,11 @@ public class WindowsBasedMapper
 
 	protected void setUnmappedKey(SAMRecord sam) {
 		if (multiSample) {
-			keyout.set(sam.getReadGroup().getSample(), UNMAPPED_REFERENCE_NAME, sam
-					.getReadName().hashCode(), sam.getReadName().hashCode());
+			keyout.set(sam.getReadGroup().getSample(), UNMAPPED_REFERENCE_NAME,
+					sam.getReadName().hashCode(), sam.getReadName().hashCode());
 		} else {
-			keyout.set(UNMAPPED_REFERENCE_NAME, sam.getReadName().hashCode(), sam
-					.getReadName().hashCode());
+			keyout.set(UNMAPPED_REFERENCE_NAME, sam.getReadName().hashCode(),
+					sam.getReadName().hashCode());
 		}
 	}
 
@@ -111,14 +112,15 @@ public class WindowsBasedMapper
 		if (recordFilter.filter(sam, region)) {
 			return;
 		}
-		
-		if(sam.getReadUnmappedFlag()){
+
+		if (SamRecordUtils.isUnmapped(sam)) {
 			setUnmappedKey(sam);
 			context.write(keyout, value);
 			return;
 		}
 
 		String chrName = sam.getReferenceName();
+		
 		int[] winNums = getExtendPosition(sam.getAlignmentStart(),
 				sam.getAlignmentEnd(), header.getSequence(chrName)
 						.getSequenceLength());
