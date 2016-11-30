@@ -35,6 +35,7 @@ public class RealignerReducer
 	private GenomeShare genomeShare = null;
 	private VCFLoader loader = null;
 	private RealignerEngine engine = null;
+	private RealignerContextWriter writer = null;
 
 	@Override
 	protected void setup(Context context) throws IOException {
@@ -48,11 +49,13 @@ public class RealignerReducer
 
 		genomeShare = new GenomeShare();
 		genomeShare.loadChromosomeList(option.getReference());
-		
+
 		loader = new VCFLoader(option.getKnowVariant());
 		loader.loadHeader();
-		
-		engine = new RealignerEngine(option,genomeShare,loader,mHeader);
+
+		writer = new RealignerContextWriter(context);
+		engine = new RealignerEngine(option, genomeShare, loader, mHeader,
+				writer);
 	}
 
 	private boolean unmappedWindows(WindowsBasedWritable key) {
@@ -75,16 +78,22 @@ public class RealignerReducer
 	}
 
 	private int getSamRecords(Iterable<SAMRecordWritable> values,
-			ArrayList<GaeaSamRecord> records, ArrayList<GaeaSamRecord> filteredRecords,
-			boolean unmapped, Context context) {
+			ArrayList<GaeaSamRecord> records,
+			ArrayList<GaeaSamRecord> filteredRecords, int winNum,
+			Context context) {
 		int windowsReadsCounter = 0;
 		for (SAMRecordWritable samWritable : values) {
-			GaeaSamRecord sam = new GaeaSamRecord(mHeader,samWritable.get());
+			int readWinNum = samWritable.get().getAlignmentStart()
+					/ option.getWindowsSize();
+			GaeaSamRecord sam = new GaeaSamRecord(mHeader, samWritable.get(),
+					readWinNum == winNum);
 			windowsReadsCounter++;
 
-			if (windowsReadsCounter > option.getMaxReadsAtWindows() || unmapped) {
+			if (windowsReadsCounter > option.getMaxReadsAtWindows()) {
 				try {
-					context.write(NullWritable.get(), samWritable);
+					if (sam.needToOutput()){
+						context.write(NullWritable.get(), samWritable);
+					}
 				} catch (IOException e) {
 					throw new RuntimeException(e.toString());
 				} catch (InterruptedException e) {
@@ -113,10 +122,21 @@ public class RealignerReducer
 
 		boolean unmapped = unmappedWindows(key);
 
-		int windowsReadsCounter = getSamRecords(values, records,
-				filteredRecords, unmapped, context);
+		if (unmapped) {
+			for (SAMRecordWritable value : values) {
+				SAMRecord sam = value.get();
+				sam.setHeader(mHeader);
+				outputValue.set(sam);
+				context.write(NullWritable.get(), outputValue);
+			}
+			clear();
+			return;
+		}
 
-		if (windowsReadsCounter > option.getMaxReadsAtWindows() || unmapped) {
+		int windowsReadsCounter = getSamRecords(values, records,
+				filteredRecords, key.getWindowsNumber(), context);
+
+		if (windowsReadsCounter > option.getMaxReadsAtWindows()) {
 			for (SAMRecord sam : records) {
 				outputValue.set(sam);
 				context.write(NullWritable.get(), outputValue);

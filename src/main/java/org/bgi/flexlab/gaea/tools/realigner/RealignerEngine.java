@@ -3,7 +3,6 @@ package org.bgi.flexlab.gaea.tools.realigner;
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.variant.variantcontext.VariantContext;
 
-import java.io.IOException;
 import java.util.ArrayList;
 
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
@@ -13,6 +12,7 @@ import org.bgi.flexlab.gaea.data.structure.reference.GenomeShare;
 import org.bgi.flexlab.gaea.data.structure.vcf.index.VCFLoader;
 import org.bgi.flexlab.gaea.tools.mapreduce.realigner.RealignerOptions;
 import org.bgi.flexlab.gaea.util.Window;
+import org.bgi.flexlab.gaea.variant.filter.VariantRegionFilter;
 
 public class RealignerEngine {
 	private RealignerOptions option = null;
@@ -24,22 +24,31 @@ public class RealignerEngine {
 	private ArrayList<GaeaSamRecord> filterRecords = null;
 	private Window win = null;
 	private SAMFileHeader mHeader = null;
+	private VariantRegionFilter indelFilter = null;
+	private IndelRealigner indelRealigner = null;
+	private RealignerWriter writer = null;
 
 	public RealignerEngine(RealignerOptions option, GenomeShare genomeShare,
-			VCFLoader loader, SAMFileHeader mHeader) {
+			VCFLoader loader, SAMFileHeader mHeader,RealignerWriter writer) {
 		this.option = option;
 		this.genomeShare = genomeShare;
 		this.loader = loader;
 		this.mHeader = mHeader;
+		this.writer = writer;
 	}
 
 	public void set(Window win, ArrayList<GaeaSamRecord> records,
 			ArrayList<GaeaSamRecord> filterRecords) {
 		this.win = win;
+		if(win == null)
+			throw new RuntimeException("window is null");
 		this.records = records;
 		this.filterRecords = filterRecords;
+		indelFilter = new VariantRegionFilter();
 		setChromosome(genomeShare);
 		setKnowIndels(loader);
+		indelRealigner = new IndelRealigner(mHeader, knowIndels, win, chrInfo,
+				option);
 	}
 
 	private void setChromosome(GenomeShare genomeShare) {
@@ -49,14 +58,11 @@ public class RealignerEngine {
 	private void setKnowIndels(VCFLoader loader) {
 		if (loader == null)
 			return;
-		try {
-			String referenceName = win.getContigName();
-			int WINDOWS_EXTEND = option.getExtendSize();
-			knowIndels = loader.load(referenceName, win.getStart()
-					- WINDOWS_EXTEND, win.getStop() + WINDOWS_EXTEND);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		String referenceName = win.getContigName();
+		int WINDOWS_EXTEND = option.getExtendSize();
+		knowIndels = indelFilter
+				.loadFilter(loader, referenceName, win.getStart()
+						- WINDOWS_EXTEND, win.getStop() + WINDOWS_EXTEND);
 	}
 
 	public void reduce() {
@@ -65,7 +71,8 @@ public class RealignerEngine {
 		creator.regionCreator();
 		ArrayList<GenomeLocation> intervals = creator.getIntervals();
 		filterRecords.clear();
-		
-		
+
+		indelRealigner.setIntervals(intervals);
+		indelRealigner.traversals(records,writer);
 	}
 }

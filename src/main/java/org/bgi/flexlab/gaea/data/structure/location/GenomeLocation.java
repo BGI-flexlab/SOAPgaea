@@ -6,8 +6,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Random;
-import java.util.TreeSet;
 
 import org.bgi.flexlab.gaea.exception.UserException;
 
@@ -164,7 +162,6 @@ public class GenomeLocation implements Comparable<GenomeLocation>,
 	/**
 	 * Splits the contig into to regions: [start,split point) and [split point,
 	 * end].
-	 * 
 	 */
 	public GenomeLocation[] split(final int splitPoint) {
 		if (splitPoint < getStart() || splitPoint > getStop())
@@ -175,10 +172,6 @@ public class GenomeLocation implements Comparable<GenomeLocation>,
 		return new GenomeLocation[] {
 				createGenomeLocation(getStart(), splitPoint - 1),
 				createGenomeLocation(splitPoint, getStop()) };
-	}
-
-	public GenomeLocation union(GenomeLocation that) {
-		return merge(that);
 	}
 
 	public GenomeLocation intersect(GenomeLocation that) throws UserException {
@@ -307,7 +300,6 @@ public class GenomeLocation implements Comparable<GenomeLocation>,
 		else if (that.isBefore(this))
 			minDistance = distanceFirstStopToSecondStart(that, this);
 		else
-			// this and that overlap [and possibly one contains the other]:
 			minDistance = 0;
 
 		return minDistance;

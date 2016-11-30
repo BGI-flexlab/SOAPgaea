@@ -12,7 +12,7 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.seqdoop.hadoop_bam.SAMRecordWritable;
 
 public class GaeaBamOutputFormat<K> extends FileOutputFormat<K,SAMRecordWritable> {
-	private boolean writeHeader = false;
+	private boolean writeHeader = true;
 	
 	@Override
 	public RecordWriter<K, SAMRecordWritable> getRecordWriter(

@@ -18,6 +18,7 @@ public class RealignerOptions extends GaeaOptions implements HadoopOptions{
 	private int snpWindowSize;
 	private int minReadsAtPileup;
 	private int maxIntervalSize;
+	private int maxInsertSize;
 	
 	private String knowVariant;
 	private String input;
@@ -28,6 +29,27 @@ public class RealignerOptions extends GaeaOptions implements HadoopOptions{
 	private boolean multiSample;
 	
 	private double mismatchThreshold = 0.0;
+	private double LOD = 5.0;
+	private AlternateConsensusModel model = AlternateConsensusModel.READS;
+	
+	public enum AlternateConsensusModel {
+		/**
+		 * generate alternate consensus model
+		 */
+		
+		/**
+		 * uses known indels only.
+		 */
+		DBSNP,
+		/**
+		 * uses know indels and the reads.
+		 */
+		READS,
+		/**
+		 * uses know indels and the reads and 'Smith-Waterman'.
+		 */
+		SW
+	}
 	
 	public RealignerOptions(){
 		addOption("i", "input", true, "input directory", true);
@@ -41,9 +63,12 @@ public class RealignerOptions extends GaeaOptions implements HadoopOptions{
 		addOption("M", "multiSample", false, "mutiple sample realignment[false]");
 		addOption("s", "samformat", false, "input file is sam format");
 		addOption("m", "maxReadsAtWindows", true, "max reads numbers at on windows[1000000]");
-		addOption("M", "mismatch", true, "fraction of base qualities needing to mismatch for a position to have high entropy[0]");
+		addOption("t", "mismatch", true, "fraction of base qualities needing to mismatch for a position to have high entropy[0]");
+		addOption("d","LOD",true,"LOD threshold above which the cleaner will clean [5.0].");
 		addOption("l", "minReads", true, "minimum reads at a locus to enable using the entropy calculation[4].");
 		addOption("L", "intervalLength", true, "max interval length[500].");
+		addOption("c","consensusModel",true,"Determines how to compute the possible alternate consenses.model:DBSNP,READS.[READS]");
+		addOption("I","MaxInsertSize",true,"maximum insert size of read pairs that we attempt to realign [3000].");
 		
 		FormatHelpInfo(SOFTWARE_NAME, SOFTWARE_VERSION);
 	}
@@ -74,6 +99,9 @@ public class RealignerOptions extends GaeaOptions implements HadoopOptions{
 		reference = getOptionValue("r",null);
 		knowVariant = getOptionValue("k",null);
 		
+		if(!getOptionValue("c","READS").equals("READS"))
+			model = AlternateConsensusModel.DBSNP;
+		
 		winSize = getOptionIntValue("w",10000);
 		reducerNumbers = getOptionIntValue("n",30);
 		maxReadsAtWindows = getOptionIntValue("m",1000000);
@@ -81,8 +109,10 @@ public class RealignerOptions extends GaeaOptions implements HadoopOptions{
 		snpWindowSize = getOptionIntValue("W",10);
 		minReadsAtPileup = getOptionIntValue("l",4);
 		maxIntervalSize = getOptionIntValue("L",500);
+		maxInsertSize = getOptionIntValue("I",3000);
 		
-		mismatchThreshold = getOptionDoubleValue("M",0);
+		mismatchThreshold = getOptionDoubleValue("t",0);
+		LOD = getOptionDoubleValue("d",5.0);
 		
 		samFormat = getOptionBooleanValue("s",false);
 		multiSample = getOptionBooleanValue("M",false);
@@ -126,16 +156,24 @@ public class RealignerOptions extends GaeaOptions implements HadoopOptions{
 		return input;
 	}
 	
-	public String getRealignerOutput(){
+	public String getRealignerHeaderOutput(){
 		return output+"realigner";
+	}
+	
+	public String getRealignerOutput(){
+		return getRealignerHeaderOutput()+"/result";
 	}
 	
 	public String getFixmateInput(){
-		return output+"realigner";
+		return getRealignerOutput();
+	}
+	
+	public String getFixmateHeaderOutput(){
+		return output+"fixmate";
 	}
 	
 	public String getFixmateOutput(){
-		return output+"fixmate";
+		return getFixmateHeaderOutput()+"/result";
 	}
 	
 	public int getExtendSize(){
@@ -156,5 +194,17 @@ public class RealignerOptions extends GaeaOptions implements HadoopOptions{
 	
 	public int getMaxInterval(){
 		return maxIntervalSize;
+	}
+	
+	public double getLODThreshold(){
+		return this.LOD;
+	}
+	
+	public AlternateConsensusModel getConsensusModel(){
+		return model;
+	}
+	
+	public int getMaxInsertSize(){
+		return this.maxInsertSize;
 	}
 }

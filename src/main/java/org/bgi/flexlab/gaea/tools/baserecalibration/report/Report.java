@@ -50,10 +50,11 @@ public class Report {
 			 lineReader.readLine(line);
 			 if(line.getLength()>0)
 			     reportHeader=line.toString();
-			 else
+			 else{
+				 lineReader.close();
 				 throw new UserException.CouldNotReadInputFile("the input file is empty!");
+			 }
 		} catch (IOException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 

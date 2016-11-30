@@ -19,7 +19,8 @@ public class RecalibrationTables {
         }
     }
 
-    private final NestedIntegerArray[] tables;
+    @SuppressWarnings("rawtypes")
+	private final NestedIntegerArray[] tables;
 
     public RecalibrationTables(final Covariate[] covariates) {
         this(covariates, covariates[TableType.READ_GROUP_TABLE.index].maximumKeyValue() + 1);
@@ -36,11 +37,13 @@ public class RecalibrationTables {
             tables[i] = new NestedIntegerArray<RecalibrationDatum>(numReadGroups, qualDimension, covariates[i].maximumKeyValue()+1, eventDimension);
     }
 
-    public NestedIntegerArray<RecalibrationDatum> getTable(final TableType type) {
+    @SuppressWarnings("unchecked")
+	public NestedIntegerArray<RecalibrationDatum> getTable(final TableType type) {
         return (NestedIntegerArray<RecalibrationDatum>)tables[type.index];
     }
 
-    public NestedIntegerArray<RecalibrationDatum> getTable(final int index) {
+    @SuppressWarnings("unchecked")
+	public NestedIntegerArray<RecalibrationDatum> getTable(final int index) {
         return (NestedIntegerArray<RecalibrationDatum>)tables[index];
     }
 

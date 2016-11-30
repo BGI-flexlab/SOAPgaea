@@ -1,8 +1,5 @@
 package org.bgi.flexlab.gaea.data.mapreduce.input.cram;
 
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.cram.structure.Container;
-
 import java.io.IOException;
 
 import org.apache.hadoop.fs.Path;
@@ -12,6 +9,7 @@ import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 
 public class GaeaCramChromosomeRecordReader extends GaeaCramRecordReader {
 	private int sequenceId = Integer.MIN_VALUE;
+	private int prevSeqId = -1;
 	public final static String CHROMOSOME = "chromosome.name";
 
 	public void initialize(InputSplit inputSplit, TaskAttemptContext context)
@@ -32,33 +30,24 @@ public class GaeaCramChromosomeRecordReader extends GaeaCramRecordReader {
 				chromosome = new ChromosomeIndex(file.toString(), indexPath
 						+ "/" + file.getName() + ".crai");
 			chromosome.setHeader(samFileHeader);
-			fileStart = chromosome.getStart(chrName);
-			virtualEnd = chromosome.getEnd(chrName);
-
+			start = chromosome.getStart(chrName);
+			length = chromosome.getEnd(chrName) - start;
+			
 			sequenceId = samFileHeader.getSequenceIndex(chrName);
-			sin.seek(fileStart);
+			seekableStream.seek(start);
 		}
 	}
 
 	@Override
 	public boolean nextKeyValue() {
 		/* get new container */
-		if ((samRecords.size() > 0 && currentIndex >= samRecords.size())
-				|| samRecords.size() == 0) {
-			Container c = getContainer();
-			if(prevSeqId == sequenceId && c.sequenceId != sequenceId){
-				return false;
-			}
-			if (!ContainerRead(c))
-				return false;
+		boolean res = super.nextKeyValue();
+		int currSequenceId = record.get().getReferenceIndex();
+		
+		if(prevSeqId == sequenceId && currSequenceId != sequenceId){
+			return false;
 		}
 
-		final SAMRecord r = samRecords.get(currentIndex);
-		r.setHeader(samFileHeader);
-		++currentIndex;
-
-		key.set(getKey(r));
-		record.set(r);
-		return true;
+		return res;
 	}
 }

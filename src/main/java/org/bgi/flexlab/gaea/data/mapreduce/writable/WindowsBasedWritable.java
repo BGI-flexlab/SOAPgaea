@@ -13,31 +13,33 @@ public class WindowsBasedWritable implements
 	private Text windowsInfo = new Text();
 	private IntWritable position = new IntWritable();
 
-	public void set(String sample, String chromosome, int winNum,
-			int pos) {
-		set(sample+":"+chromosome+":"+winNum,pos);
+	public void set(String sample, String chromosome, int winNum, int pos) {
+		set(sample + ":" + chromosome + ":" + winNum, pos);
 	}
-	
-	public void set(String chromosome, int winNum,
-			int pos) {
-		set(chromosome+":"+winNum,pos);
+
+	public void set(String chromosome, int winNum, int pos) {
+		set(chromosome + ":" + winNum, pos);
 	}
-	
-	protected void set(String winInfo,int pos){
+
+	protected void set(String winInfo, int pos) {
 		windowsInfo.set(winInfo);
 		position.set(pos);
 	}
 
 	public String toString() {
-		return windowsInfo.toString() + "\t" + position;
+		return windowsInfo.toString() + "\t" + position.get();
 	}
 
 	public String getChromosomeName() {
 		String[] win = windowsInfo.toString().split(":");
 		return win[win.length - 2];
 	}
-	
-	public String getWindowsInformation(){
+
+	public Text getWindows() {
+		return windowsInfo;
+	}
+
+	public String getWindowsInformation() {
 		return windowsInfo.toString();
 	}
 
@@ -70,15 +72,15 @@ public class WindowsBasedWritable implements
 	public boolean equals(Object other) {
 		if (other instanceof WindowsBasedWritable) {
 			WindowsBasedWritable tmp = (WindowsBasedWritable) other;
-			return windowsInfo.toString().equals(tmp.windowsInfo.toString())
-					&& position.get() == (tmp.position.get());
+			return windowsInfo.toString().equals(tmp.getWindowsInformation())
+					&& position.get() == (tmp.getPosition().get());
 		}
 		return false;
 	}
 
 	@Override
 	public int compareTo(WindowsBasedWritable tp) {
-		int cmp = windowsInfo.compareTo(tp.windowsInfo);
+		int cmp = windowsInfo.compareTo(tp.getWindows());
 		if (cmp != 0) {
 			return cmp;
 		}
