@@ -66,8 +66,8 @@ public class BaseUtils {
 		baseIndexMap['g'] = 3;
 	}
 
-	public static final byte DELETION_INDEX = 4;
-	public static final byte NO_CALL_INDEX = 5; // (this is 'N')
+	public static final byte DELETION_INDEX = 5;
+	public static final byte NO_CALL_INDEX = 4; // (this is 'N')
 
 	public static final int aIndex = BaseUtils
 			.simpleBaseToBaseIndex((byte) 'A');
