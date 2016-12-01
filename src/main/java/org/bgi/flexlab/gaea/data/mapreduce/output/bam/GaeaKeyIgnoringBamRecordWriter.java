@@ -91,6 +91,11 @@ public class GaeaKeyIgnoringBamRecordWriter<K> extends
 		if (binaryCodec == null || bamRecordCodec == null) {
 			initialize(sam.getHeader());
 		}
+		
+		/*check?*/
+		if(sam.getReadUnmappedFlag()){
+			sam.setAlignmentStart(0);
+		}
 		bamRecordCodec.encode(sam);
 	}
 }
