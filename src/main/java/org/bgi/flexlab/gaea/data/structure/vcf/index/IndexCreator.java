@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.bgi.flexlab.gaea.util.HdfsFileManager;
@@ -15,6 +16,7 @@ import htsjdk.tribble.index.tabix.TabixIndex;
 import htsjdk.tribble.index.tabix.TabixIndexCreator;
 import htsjdk.tribble.readers.AsciiLineReader;
 import htsjdk.tribble.readers.AsciiLineReaderIterator;
+import htsjdk.tribble.util.LittleEndianInputStream;
 import htsjdk.tribble.util.LittleEndianOutputStream;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFCodec;
@@ -31,21 +33,23 @@ public class IndexCreator {
 	public IndexCreator(String file) {
 		configuration = new Configuration();
 		this.file = file;
-		fs = HdfsFileManager.getFileSystem(new Path(file), configuration);
+		fs = HdfsFileManager.getFileSystem(new Path(this.file), configuration);
 	}
 	
-	public Index finalizeIndex() throws IllegalArgumentException, IOException {
+	public Index finalizeIndex() throws IOException {
 		Path idxfile = format(file);
 		Index index = null;
-		InputStream is = null;
+		FSDataInputStream is = null;
 		try {
 			if(fs.exists(idxfile)) {
 				is = fs.open(idxfile);
-				index = new TabixIndex(is);
+				index = new TabixIndex(new LittleEndianInputStream(is));
 			} else {
 				is = fs.open(new Path(file));
 				index = createIndex(is);
-				index.write(new LittleEndianOutputStream(HdfsFileManager.getOutputStream(idxfile, configuration)));
+				LittleEndianOutputStream os = new LittleEndianOutputStream(HdfsFileManager.getOutputStream(idxfile, configuration));
+				index.write(os);
+				os.close();
 			}
 		} finally {
 			fs.close();
@@ -60,7 +64,7 @@ public class IndexCreator {
 		VCFCodec codec = new VCFCodec();
 		VariantContext lastContext = null;
         VariantContext currentContext;
-        final Map<String, VariantContext> visitedChromos = new HashMap<String, VariantContext>(40);
+        final Map<String, VariantContext> visitedChromos = new HashMap<String, VariantContext>();
         AsciiLineReader lineReader = new AsciiLineReader(is);
         AsciiLineReaderIterator iterator = new AsciiLineReaderIterator(lineReader);
         codec.readActualHeader(iterator);
