@@ -3,7 +3,7 @@ package org.bgi.flexlab.gaea.variant.filter;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import org.bgi.flexlab.gaea.data.structure.vcf.index.VCFLoader;
+import org.bgi.flexlab.gaea.data.structure.vcf.VCFLoader;
 
 import htsjdk.variant.variantcontext.VariantContext;
 
