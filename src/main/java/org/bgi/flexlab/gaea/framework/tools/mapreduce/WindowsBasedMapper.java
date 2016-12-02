@@ -10,6 +10,7 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.bgi.flexlab.gaea.data.mapreduce.input.bed.RegionHdfsParser;
 import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamHdfsFileHeader;
+import org.bgi.flexlab.gaea.data.mapreduce.writable.WindowsBasedBasicWritable;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.WindowsBasedWritable;
 import org.bgi.flexlab.gaea.data.structure.bam.filter.SamRecordFilter;
 import org.bgi.flexlab.gaea.exception.FileNotExistException;
@@ -35,6 +36,7 @@ public class WindowsBasedMapper
 	protected WindowsBasedWritable keyout = new WindowsBasedWritable();
 	private SamRecordFilter recordFilter = null;
 	private RegionHdfsParser region = null;
+	private SAMRecordWritable outputValue = new SAMRecordWritable();
 
 	@Override
 	protected void setup(Context context) throws IOException,
@@ -112,10 +114,12 @@ public class WindowsBasedMapper
 		if (recordFilter.filter(sam, region)) {
 			return;
 		}
+		
+		outputValue.set(value.get());
 
 		if (SamRecordUtils.isUnmapped(sam)) {
 			setUnmappedKey(sam);
-			context.write(keyout, value);
+			context.write(keyout, outputValue);
 			return;
 		}
 
@@ -129,7 +133,7 @@ public class WindowsBasedMapper
 				continue;
 			}
 			setKey(sam, winNums[i]);
-			context.write(keyout, value);
+			context.write(keyout, outputValue);
 		}
 	}
 }

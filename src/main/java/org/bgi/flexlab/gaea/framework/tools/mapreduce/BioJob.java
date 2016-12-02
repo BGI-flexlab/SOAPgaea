@@ -8,6 +8,7 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.bgi.flexlab.gaea.data.mapreduce.input.bam.GaeaAnySAMInputFormat;
 import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamHdfsFileHeader;
+import org.bgi.flexlab.gaea.data.mapreduce.partitioner.WindowsBasedBasicSort;
 import org.bgi.flexlab.gaea.data.mapreduce.partitioner.WindowsBasedComparator;
 import org.bgi.flexlab.gaea.data.mapreduce.partitioner.WindowsBasedPartitioner;
 import org.bgi.flexlab.gaea.data.mapreduce.partitioner.WindowsBasedSort;
@@ -37,6 +38,7 @@ public class BioJob extends Job {
 		setPartitionerClass(WindowsBasedPartitioner.class);
 		setGroupingComparatorClass(WindowsBasedComparator.class);
 		setSortComparatorClass(WindowsBasedSort.class);
+		//setSortComparatorClass(WindowsBasedBasicSort.class);
 	}
 
 	@SuppressWarnings("rawtypes")

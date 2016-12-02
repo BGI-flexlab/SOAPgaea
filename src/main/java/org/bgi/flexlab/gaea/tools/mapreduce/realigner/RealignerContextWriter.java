@@ -34,4 +34,9 @@ public class RealignerContextWriter extends RealignerWriter{
 	@Override
 	public void close() {
 	}
+	
+	@SuppressWarnings("rawtypes")
+	public Context getContext(){
+		return context;
+	}
 }

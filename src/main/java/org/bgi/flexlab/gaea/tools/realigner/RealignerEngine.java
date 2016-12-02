@@ -28,8 +28,8 @@ public class RealignerEngine {
 	private IndelRealigner indelRealigner = null;
 	private RealignerWriter writer = null;
 
-	public RealignerEngine(RealignerOptions option, GenomeShare genomeShare,
-			VCFLoader loader, SAMFileHeader mHeader,RealignerWriter writer) {
+	public RealignerEngine(RealignerOptions option, GenomeShare genomeShare, VCFLoader loader, SAMFileHeader mHeader,
+			RealignerWriter writer) {
 		this.option = option;
 		this.genomeShare = genomeShare;
 		this.loader = loader;
@@ -37,18 +37,16 @@ public class RealignerEngine {
 		this.writer = writer;
 	}
 
-	public void set(Window win, ArrayList<GaeaSamRecord> records,
-			ArrayList<GaeaSamRecord> filterRecords) {
+	public void set(Window win, ArrayList<GaeaSamRecord> records, ArrayList<GaeaSamRecord> filterRecords) {
 		this.win = win;
-		if(win == null)
+		if (win == null)
 			throw new RuntimeException("window is null");
 		this.records = records;
 		this.filterRecords = filterRecords;
 		indelFilter = new VariantRegionFilter();
 		setChromosome(genomeShare);
 		setKnowIndels(loader);
-		indelRealigner = new IndelRealigner(mHeader, knowIndels, win, chrInfo,
-				option);
+		indelRealigner = new IndelRealigner(mHeader, knowIndels, win, chrInfo, option);
 	}
 
 	private void setChromosome(GenomeShare genomeShare) {
@@ -56,23 +54,26 @@ public class RealignerEngine {
 	}
 
 	private void setKnowIndels(VCFLoader loader) {
-		if (loader == null)
-			return;
+		if (loader == null){
+			throw new RuntimeException("loader is null!!");
+		}
 		String referenceName = win.getContigName();
 		int WINDOWS_EXTEND = option.getExtendSize();
-		knowIndels = indelFilter
-				.loadFilter(loader, referenceName, win.getStart()
-						- WINDOWS_EXTEND, win.getStop() + WINDOWS_EXTEND);
+
+		int start = (win.getStart() - WINDOWS_EXTEND) > 0 ? (win.getStart() - WINDOWS_EXTEND) : 0;
+		int end = (win.getStop() + WINDOWS_EXTEND) < mHeader.getSequence(referenceName).getSequenceLength()
+				? (win.getStop() + WINDOWS_EXTEND) : mHeader.getSequence(referenceName).getSequenceLength();
+		knowIndels = indelFilter.loadFilter(loader, referenceName, start, end);
 	}
 
-	public void reduce() {
-		IdentifyRegionsCreator creator = new IdentifyRegionsCreator(option,
-				filterRecords, mHeader, chrInfo, knowIndels);
+	public int  reduce() {
+		IdentifyRegionsCreator creator = new IdentifyRegionsCreator(option, filterRecords, mHeader, chrInfo,
+				knowIndels);
 		creator.regionCreator();
 		ArrayList<GenomeLocation> intervals = creator.getIntervals();
 		filterRecords.clear();
 
 		indelRealigner.setIntervals(intervals);
-		indelRealigner.traversals(records,writer);
+		return indelRealigner.traversals(records, writer);
 	}
 }

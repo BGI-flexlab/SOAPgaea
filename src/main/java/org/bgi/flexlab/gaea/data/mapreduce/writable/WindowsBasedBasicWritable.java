@@ -4,21 +4,26 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
-import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.WritableComparable;
 
-public class WindowsBasedWritable extends
-		WindowsBasedBasicWritable {
-	private IntWritable position = new IntWritable();
+public class WindowsBasedBasicWritable implements WritableComparable<WindowsBasedBasicWritable> {
+	protected Text windowsInfo = new Text();
 
-	@Override
+	public void set(String sample, String chromosome, int winNum, int pos) {
+		set(sample + ":" + chromosome + ":" + winNum, pos);
+	}
+
+	public void set(String chromosome, int winNum, int pos) {
+		set(chromosome + ":" + winNum, pos);
+	}
+
 	public void set(String winInfo, int pos) {
 		this.windowsInfo.set(winInfo);
-		this.position.set(pos);
 	}
 
 	public String toString() {
-		return windowsInfo.toString() + "\t" + position.get();
+		return windowsInfo.toString();
 	}
 
 	public String getChromosomeName() {
@@ -39,43 +44,31 @@ public class WindowsBasedWritable extends
 		return Integer.parseInt(win[win.length - 1]);
 	}
 
-	public IntWritable getPosition() {
-		return position;
-	}
-
 	@Override
 	public void readFields(DataInput in) throws IOException {
 		windowsInfo.readFields(in);
-		position.readFields(in);
 	}
 
 	public void write(DataOutput out) throws IOException {
 		windowsInfo.write(out);
-		position.write(out);
 	}
 
 	@Override
 	public int hashCode() {
-		return windowsInfo.hashCode() * 163 + position.hashCode();
+		return windowsInfo.hashCode() * 163;
 	}
 
 	@Override
 	public boolean equals(Object other) {
-		if (other instanceof WindowsBasedWritable) {
-			WindowsBasedWritable tmp = (WindowsBasedWritable) other;
-			return windowsInfo.toString().equals(tmp.getWindowsInformation())
-					&& position.get() == (tmp.getPosition().get());
+		if (other instanceof WindowsBasedBasicWritable) {
+			WindowsBasedBasicWritable tmp = (WindowsBasedBasicWritable) other;
+			return windowsInfo.toString().equals(tmp.getWindowsInformation());
 		}
 		return false;
 	}
 
 	@Override
 	public int compareTo(WindowsBasedBasicWritable tp) {
-		int cmp = windowsInfo.compareTo(tp.getWindows());
-		if (cmp != 0) {
-			return cmp;
-		}
-		WindowsBasedWritable tmp = (WindowsBasedWritable)tp;
-		return this.position.compareTo(tmp.position);
+		return  windowsInfo.compareTo(tp.getWindows());
 	}
 }

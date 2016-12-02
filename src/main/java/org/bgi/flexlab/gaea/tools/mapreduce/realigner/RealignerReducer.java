@@ -10,6 +10,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamHdfsFileHeader;
+import org.bgi.flexlab.gaea.data.mapreduce.writable.WindowsBasedBasicWritable;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.WindowsBasedWritable;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.bam.filter.QualityControlFilter;
@@ -18,12 +19,12 @@ import org.bgi.flexlab.gaea.data.structure.vcf.index.VCFLoader;
 import org.bgi.flexlab.gaea.exception.MissingHeaderException;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.WindowsBasedMapper;
 import org.bgi.flexlab.gaea.tools.realigner.RealignerEngine;
+import org.bgi.flexlab.gaea.util.SamRecordUtils;
 import org.bgi.flexlab.gaea.util.Window;
 import org.seqdoop.hadoop_bam.SAMRecordWritable;
 
 public class RealignerReducer
-		extends
-		Reducer<WindowsBasedWritable, SAMRecordWritable, NullWritable, SAMRecordWritable> {
+		extends Reducer<WindowsBasedWritable, SAMRecordWritable, NullWritable, SAMRecordWritable> {
 	private RealignerOptions option = new RealignerOptions();
 	private SAMFileHeader mHeader = null;
 	private SAMRecordWritable outputValue = new SAMRecordWritable();
@@ -54,46 +55,50 @@ public class RealignerReducer
 		loader.loadHeader();
 
 		writer = new RealignerContextWriter(context);
-		engine = new RealignerEngine(option, genomeShare, loader, mHeader,
-				writer);
+		engine = new RealignerEngine(option, genomeShare, loader, mHeader, writer);
 	}
 
-	private boolean unmappedWindows(WindowsBasedWritable key) {
-		if (key.getChromosomeName().equals(
-				WindowsBasedMapper.UNMAPPED_REFERENCE_NAME))
+	private boolean unmappedWindows(WindowsBasedBasicWritable key) {
+		if (key.getChromosomeName().equals(WindowsBasedMapper.UNMAPPED_REFERENCE_NAME))
 			return true;
 		return false;
 	}
 
-	private Window setWindows(WindowsBasedWritable key) {
+	private Window setWindows(WindowsBasedBasicWritable key) {
 		int winNum = key.getWindowsNumber();
 		int winSize = option.getWindowsSize();
 		int start = winNum * winSize;
-		int stop = (winNum + 1) * winSize - 1 < mHeader.getSequence(
-				key.getChromosomeName()).getSequenceLength() ? (winNum + 1)
-				* winSize - 1 : mHeader.getSequence(key.getChromosomeName())
-				.getSequenceLength();
+		int stop = (winNum + 1) * winSize - 1 < mHeader.getSequence(key.getChromosomeName()).getSequenceLength()
+				? (winNum + 1) * winSize - 1 : mHeader.getSequence(key.getChromosomeName()).getSequenceLength();
 
 		return new Window(key.getChromosomeName(), start, stop);
 	}
 
-	private int getSamRecords(Iterable<SAMRecordWritable> values,
-			ArrayList<GaeaSamRecord> records,
-			ArrayList<GaeaSamRecord> filteredRecords, int winNum,
-			Context context) {
+	private int getSamRecords(Iterable<SAMRecordWritable> values, ArrayList<GaeaSamRecord> records,
+			ArrayList<GaeaSamRecord> filteredRecords, int winNum, Context context) {
 		int windowsReadsCounter = 0;
 		for (SAMRecordWritable samWritable : values) {
-			int readWinNum = samWritable.get().getAlignmentStart()
-					/ option.getWindowsSize();
-			GaeaSamRecord sam = new GaeaSamRecord(mHeader, samWritable.get(),
-					readWinNum == winNum);
+			int readWinNum = samWritable.get().getAlignmentStart() / option.getWindowsSize();
+			GaeaSamRecord sam = new GaeaSamRecord(mHeader, samWritable.get(), readWinNum == winNum);
 			windowsReadsCounter++;
 
 			if (windowsReadsCounter > option.getMaxReadsAtWindows()) {
 				try {
-					if (sam.needToOutput()){
+					if (sam.needToOutput()) {
 						context.write(NullWritable.get(), samWritable);
 					}
+				} catch (IOException e) {
+					throw new RuntimeException(e.toString());
+				} catch (InterruptedException e) {
+					throw new RuntimeException(e.toString());
+				}
+				continue;
+			}
+
+			if (SamRecordUtils.isUnmapped(sam)) {
+				context.getCounter("ERROR", "unexpect unmapped reads").increment(1);
+				try {
+					context.write(NullWritable.get(), samWritable);
 				} catch (IOException e) {
 					throw new RuntimeException(e.toString());
 				} catch (InterruptedException e) {
@@ -116,8 +121,7 @@ public class RealignerReducer
 	}
 
 	@Override
-	public void reduce(WindowsBasedWritable key,
-			Iterable<SAMRecordWritable> values, Context context)
+	public void reduce(WindowsBasedWritable key, Iterable<SAMRecordWritable> values, Context context)
 			throws IOException, InterruptedException {
 
 		boolean unmapped = unmappedWindows(key);
@@ -133,8 +137,7 @@ public class RealignerReducer
 			return;
 		}
 
-		int windowsReadsCounter = getSamRecords(values, records,
-				filteredRecords, key.getWindowsNumber(), context);
+		int windowsReadsCounter = getSamRecords(values, records, filteredRecords, key.getWindowsNumber(), context);
 
 		if (windowsReadsCounter > option.getMaxReadsAtWindows()) {
 			for (SAMRecord sam : records) {
@@ -144,8 +147,13 @@ public class RealignerReducer
 		} else {
 			Window win = setWindows(key);
 			engine.set(win, records, filteredRecords);
-			engine.reduce();
+			int cnt = engine.reduce();
+			context.getCounter("ERROR", "reads input count").increment(cnt);
 		}
 		clear();
+	}
+	
+	@Override
+	protected void cleanup(Context context) throws IOException, InterruptedException {
 	}
 }
