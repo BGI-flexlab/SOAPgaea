@@ -14,8 +14,7 @@ import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamHdfsFileHeader;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.WindowsBasedWritable;
 import org.bgi.flexlab.gaea.data.structure.bam.filter.BaseRecalibrationFilter;
 import org.bgi.flexlab.gaea.data.structure.bam.filter.SamRecordFilter;
-import org.bgi.flexlab.gaea.data.structure.vcf.index.Index;
-import org.bgi.flexlab.gaea.data.structure.vcf.index.VCFIndexCreator;
+import org.bgi.flexlab.gaea.data.structure.vcf.index.IndexCreator;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.BioJob;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.ToolsRunner;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.WindowsBasedMapper;
@@ -28,6 +27,7 @@ import org.seqdoop.hadoop_bam.SAMFormat;
 import org.seqdoop.hadoop_bam.SAMRecordWritable;
 
 import htsjdk.samtools.SAMFileHeader;
+import htsjdk.tribble.index.Index;
 
 public class BaseRecalibration extends ToolsRunner{
 	
@@ -119,8 +119,7 @@ public class BaseRecalibration extends ToolsRunner{
 	private void createIndex() throws IOException {
 		if(options.getKnowSite()!=null) {
 			for(String site:options.getKnowSite()) {
-				VCFIndexCreator creator=new VCFIndexCreator();
-				creator.initialize(site, creator.defaultBinSize());
+				IndexCreator creator = new IndexCreator(site);
 				Index idx = creator.finalizeIndex();
 			}
 		}
