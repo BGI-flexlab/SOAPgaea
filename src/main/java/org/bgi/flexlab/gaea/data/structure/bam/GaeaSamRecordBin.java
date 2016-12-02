@@ -18,16 +18,10 @@ public class GaeaSamRecordBin {
 	public GaeaSamRecordBin(GenomeLocationParser parser,int extend) {
 		setParser(parser);
 		setExtend(extend);
-		initialzation();
 	}
 
 	public GaeaSamRecordBin(GenomeLocationParser parser) {
 		setParser(parser);
-		initialzation();
-	}
-	
-	private void initialzation(){
-		records = new ArrayList<GaeaSamRecord>();
 	}
 
 	public void setParser(GenomeLocationParser parser) {

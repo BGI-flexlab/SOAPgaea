@@ -6,15 +6,24 @@ import java.io.IOException;
 
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.WritableComparable;
 
-public class WindowsBasedWritable extends
-		WindowsBasedBasicWritable {
+public class WindowsBasedWritable implements
+		WritableComparable<WindowsBasedWritable> {
+	private Text windowsInfo = new Text();
 	private IntWritable position = new IntWritable();
 
-	@Override
-	public void set(String winInfo, int pos) {
-		this.windowsInfo.set(winInfo);
-		this.position.set(pos);
+	public void set(String sample, String chromosome, int winNum, int pos) {
+		set(sample + ":" + chromosome + ":" + winNum, pos);
+	}
+
+	public void set(String chromosome, int winNum, int pos) {
+		set(chromosome + ":" + winNum, pos);
+	}
+
+	protected void set(String winInfo, int pos) {
+		windowsInfo.set(winInfo);
+		position.set(pos);
 	}
 
 	public String toString() {
@@ -70,12 +79,11 @@ public class WindowsBasedWritable extends
 	}
 
 	@Override
-	public int compareTo(WindowsBasedBasicWritable tp) {
+	public int compareTo(WindowsBasedWritable tp) {
 		int cmp = windowsInfo.compareTo(tp.getWindows());
 		if (cmp != 0) {
 			return cmp;
 		}
-		WindowsBasedWritable tmp = (WindowsBasedWritable)tp;
-		return this.position.compareTo(tmp.position);
+		return position.compareTo(tp.position);
 	}
 }
