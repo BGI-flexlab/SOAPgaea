@@ -9,7 +9,7 @@ import java.util.List;
 
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
 import org.bgi.flexlab.gaea.data.structure.vcf.index.Index;
-import org.bgi.flexlab.gaea.data.structure.vcf.index.VCFIndexCreator;
+import org.bgi.flexlab.gaea.data.structure.vcf.index.IndexCreator;
 import org.bgi.flexlab.gaea.data.structure.vcf.index.VCFLoader;
 import org.bgi.flexlab.gaea.util.Window;
 
@@ -73,10 +73,9 @@ public class VariantDataTracker {
 	
 	private void initializeLoader() {
 		if(loader==null) {
-			VCFIndexCreator creator = new VCFIndexCreator();
 			int size = 200;
 			//creator.initialize(name, creator.defaultBinSize());
-			creator.initialize(name, size);
+			IndexCreator creator = new IndexCreator(name, size);
 			@SuppressWarnings("rawtypes")
 			Index idx;
 			try {
@@ -100,20 +99,9 @@ public class VariantDataTracker {
 		loadVariantContextPos();
 	}
 
-	/*public boolean getValue(String name, GenomeLoc onlyAtThisLoc)
-	{
-		return addValue( onlyAtThisLoc, true, false);
-	}*/
-	
 	public boolean getValue(GenomeLocation onlyAtThisLoc) {
 		return addValue(onlyAtThisLoc, true, false);
 	}
-	
-	/*public List<VariantContext> getValues(String name, GenomeLoc onlyAtThisLoc) throws IOException {
-		
-		return addValues(new ArrayList<VariantContext>(1), onlyAtThisLoc, true, false);
-	}*/
-	
 
 	private boolean addValue(GenomeLocation curLocation,  boolean requireStartHere,
 			final boolean takeFirstOnly)  {
