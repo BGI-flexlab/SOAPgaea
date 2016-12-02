@@ -33,7 +33,7 @@ public class AlignmentUtil {
 			switch (element.getOperator()) {
 			case M:
 				for (int i = 0; i < length; i++, readIndex++, posOnRef++) {
-					if (posOnRef > ref.length || readIndex > endIndex) {
+					if (posOnRef >= ref.length || readIndex > endIndex) {
 						return mismatchQualitySum;
 					}
 					if (readIndex < posOnRead)
@@ -105,22 +105,26 @@ public class AlignmentUtil {
 				+ (indelLength * (element.getOperator() == CigarOperator.D ? -1
 						: 1));
 		byte[] alt = new byte[refLength];
-
-		if (refBaseCount > alt.length || refIndex > ref.length)
+		
+		if(refIndex > alt.length || refIndex > ref.length)
 			return null;
 
-		System.arraycopy(ref, refIndex, alt, 0, refBaseCount);
-		int currPos = refBaseCount;
+		System.arraycopy(ref, 0, alt, 0, refIndex);
+		
+		int currPos = refIndex;
 
 		if (element.getOperator() == CigarOperator.D) {
-			refBaseCount += indelLength;
+			refIndex += indelLength;
 		} else {
 			System.arraycopy(read, readBaseCount, alt, currPos, indelLength);
 			currPos += indelLength;
 		}
-
-		System.arraycopy(ref, refBaseCount, alt, currPos, ref.length
-				- refBaseCount);
+		
+		 if (ref.length - refIndex > alt.length - currPos)
+	            return null;
+		
+		System.arraycopy(ref, refIndex, alt, currPos, ref.length
+				- refIndex);
 
 		return alt;
 	}

@@ -25,8 +25,7 @@ public class Realigner extends ToolsRunner {
 	private SAMFormat format = SAMFormat.BAM;
 	private RealignerOptions option = null;
 
-	public int runRealigner(String[] args) throws IOException,
-			ClassNotFoundException, InterruptedException {
+	public int runRealigner(String[] args) throws IOException, ClassNotFoundException, InterruptedException {
 		BioJob job = BioJob.getInstance();
 		Configuration conf = job.getConfiguration();
 		String[] remainArgs = remainArgs(args, conf);
@@ -39,30 +38,24 @@ public class Realigner extends ToolsRunner {
 		option.setHadoopConf(args, conf);
 
 		// merge header and set to configuration
-		job.setHeader(new Path(option.getRealignerInput()),
-				new Path(option.getRealignerHeaderOutput()));
+		job.setHeader(new Path(option.getRealignerInput()), new Path(option.getRealignerHeaderOutput()));
 
 		job.setAnySamInputFormat(option.getInputFormat());
 		job.setOutputFormatClass(GaeaBamOutputFormat.class);
-		job.setOutputKeyValue(WindowsBasedWritable.class,
-				SAMRecordWritable.class, NullWritable.class,
-				SAMRecordWritable.class);
+		job.setOutputKeyValue(WindowsBasedWritable.class, SAMRecordWritable.class, NullWritable.class,SAMRecordWritable.class);
 
 		job.setJarByClass(Realigner.class);
 		job.setWindowsBasicMapperClass(WindowsBasedMapper.class, option.getWindowsSize());
 		job.setReducerClass(RealignerReducer.class);
 		job.setNumReduceTasks(option.getReducerNumber());
 
-		FileInputFormat
-				.setInputPaths(job, new Path(option.getRealignerInput()));
-		FileOutputFormat.setOutputPath(job,
-				new Path(option.getRealignerOutput()));
+		FileInputFormat.setInputPaths(job, new Path(option.getRealignerInput()));
+		FileOutputFormat.setOutputPath(job, new Path(option.getRealignerOutput()));
 
 		return job.waitForCompletion(true) ? 0 : 1;
 	}
 
-	public int runFixMate(String[] args) throws IOException,
-			ClassNotFoundException, InterruptedException {
+	public int runFixMate(String[] args) throws IOException, ClassNotFoundException, InterruptedException {
 
 		BioJob job = BioJob.getInstance();
 		job.setJobName("GaeaFixMate");
@@ -72,13 +65,11 @@ public class Realigner extends ToolsRunner {
 		option.setHadoopConf(remainArgs, conf);
 
 		// merge header and set to configuration
-		job.setHeader(new Path(option.getFixmateInput()),
-				new Path(option.getFixmateHeaderOutput()));
+		job.setHeader(new Path(option.getFixmateInput()), new Path(option.getFixmateHeaderOutput()));
 
 		job.setAnySamInputFormat(format);
 		job.setOutputFormatClass(GaeaBamOutputFormat.class);
-		job.setOutputKeyValue(Text.class, SAMRecordWritable.class,
-				NullWritable.class, SAMRecordWritable.class);
+		job.setOutputKeyValue(Text.class, SAMRecordWritable.class, NullWritable.class, SAMRecordWritable.class);
 
 		job.setJarByClass(Realigner.class);
 		job.setMapperClass(FixmateMapper.class);
@@ -86,8 +77,7 @@ public class Realigner extends ToolsRunner {
 		job.setNumReduceTasks(option.getReducerNumber());
 
 		FileInputFormat.setInputPaths(job, new Path(option.getFixmateInput()));
-		FileOutputFormat
-				.setOutputPath(job, new Path(option.getFixmateOutput()));
+		FileOutputFormat.setOutputPath(job, new Path(option.getFixmateOutput()));
 
 		return job.waitForCompletion(true) ? 0 : 1;
 	}

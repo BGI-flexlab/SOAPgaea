@@ -21,6 +21,7 @@ import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocationParser;
 import org.bgi.flexlab.gaea.data.structure.location.RealignerIntervalFilter;
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
+import org.bgi.flexlab.gaea.tools.mapreduce.realigner.RealignerContextWriter;
 import org.bgi.flexlab.gaea.tools.mapreduce.realigner.RealignerOptions;
 import org.bgi.flexlab.gaea.tools.realigner.alternateconsensus.AlternateConsensus;
 import org.bgi.flexlab.gaea.tools.realigner.alternateconsensus.AlternateConsensusEngine;
@@ -47,21 +48,20 @@ public class IndelRealigner {
 	private TreeSet<VariantContext> knowIndelsSet = null;
 	private int effectiveNotCleanReadCount = 0;
 
-	public IndelRealigner(SAMFileHeader mHeader,
-			ArrayList<VariantContext> variants, Window win,
+	public IndelRealigner(SAMFileHeader mHeader, ArrayList<VariantContext> variants, Window win,
 			ChromosomeInformationShare chrInfo, RealignerOptions option) {
 		this.parser = new GenomeLocationParser(mHeader.getSequenceDictionary());
 		this.variants = variants;
 		this.chrInfo = chrInfo;
 		this.option = option;
+		this.win = win;
 		initialization();
 	}
 
 	@SuppressWarnings("unchecked")
 	private void initialization() {
 		filter = new VariantRegionFilter();
-		consensusEngine = new AlternateConsensusEngine(
-				option.getConsensusModel(), option.getMismatchThreshold(),
+		consensusEngine = new AlternateConsensusEngine(option.getConsensusModel(), option.getMismatchThreshold(),
 				option.getLODThreshold());
 		needRealignementReads = new GaeaSamRecordBin(parser);
 		notNeedRealignementReads = new ArrayList<GaeaSamRecord>();
@@ -76,8 +76,7 @@ public class IndelRealigner {
 
 	private ArrayList<VariantContext> filterKnowIndels(GaeaSamRecord read) {
 		GenomeLocation location = parser.createGenomeLocation(read);
-		return filter.listFilter(variants, location.getStart(),
-				location.getStop());
+		return filter.listFilter(variants, location.getStart(), location.getStop());
 	}
 
 	private void updateWindowByInterval() {
@@ -89,8 +88,7 @@ public class IndelRealigner {
 		}
 
 		GenomeLocation start = filtered.get(0);
-		if (start.getStart() < win.getStart()
-				&& start.getStop() >= win.getStart()) {
+		if (start.getStart() < win.getStart() && start.getStop() >= win.getStart()) {
 			win.setStart(start.getStop() + 1);
 		}
 
@@ -101,68 +99,54 @@ public class IndelRealigner {
 		filtered.clear();
 	}
 
-	private void realignerCore(AlternateConsensus bestConsensus,
-			ArrayList<GaeaAlignedSamRecord> reads, byte[] ref,
-			GenomeLocation location, long totalRawMismatchQuality,
-			int leftMostIndex) {
+	private void realignerCore(AlternateConsensus bestConsensus, ArrayList<GaeaAlignedSamRecord> reads, byte[] ref,
+			GenomeLocation location, long totalRawMismatchQuality, int leftMostIndex) {
 		double improvement = (bestConsensus == null ? -1
-				: ((double) (totalRawMismatchQuality - bestConsensus
-						.getMismatch())) / 10.0);
+				: ((double) (totalRawMismatchQuality - bestConsensus.getMismatch())) / 10.0);
 
 		int threshold = 0;
 		if (improvement < threshold)
 			return;
 
 		int posOnRef = bestConsensus.getPositionOnReference();
-		Cigar newCigar = AlignmentUtil.leftAlignIndel(bestConsensus.getCigar(),
-				ref, bestConsensus.getSequence(), posOnRef, posOnRef);
+		Cigar newCigar = AlignmentUtil.leftAlignIndel(bestConsensus.getCigar(), ref, bestConsensus.getSequence(),
+				posOnRef, posOnRef);
 		bestConsensus.setCigar(newCigar);
 
 		GaeaAlignedSamRecord alignRead = null;
 		for (Pair<Integer, Integer> pair : bestConsensus.getReadIndexes()) {
 			alignRead = reads.get(pair.first);
-			if (!consensusEngine.updateRead(bestConsensus.getCigar(), posOnRef,
-					pair.second, alignRead, leftMostIndex))
+			if (!consensusEngine.updateRead(bestConsensus.getCigar(), posOnRef, pair.second, alignRead, leftMostIndex))
 				return;
 		}
 
 		if (consensusEngine.needRealignment(reads, ref, leftMostIndex)) {
-			for (Pair<Integer, Integer> indexPair : bestConsensus
-					.getReadIndexes()) {
+			for (Pair<Integer, Integer> indexPair : bestConsensus.getReadIndexes()) {
 				alignRead = reads.get(indexPair.first);
 				if (alignRead.statusFinalize()) {
 					GaeaSamRecord read = alignRead.getRead();
 
 					if (read.getMappingQuality() != 255)
-						read.setMappingQuality(Math.min(alignRead.getRead()
-								.getMappingQuality() + 10, 254));
+						read.setMappingQuality(Math.min(alignRead.getRead().getMappingQuality() + 10, 254));
 
-					int neededBasesToLeft = leftMostIndex
-							- read.getAlignmentStart();
-					int neededBasesToRight = read.getAlignmentEnd()
-							- leftMostIndex - ref.length + 1;
-					int neededBases = Math.max(neededBasesToLeft,
-							neededBasesToRight);
+					int neededBasesToLeft = leftMostIndex - read.getAlignmentStart();
+					int neededBasesToRight = read.getAlignmentEnd() - leftMostIndex - ref.length + 1;
+					int neededBases = Math.max(neededBasesToLeft, neededBasesToRight);
 					if (neededBases > 0) {
 						int padLeft = Math.max(leftMostIndex - neededBases, 1);
-						int padRight = Math.min(leftMostIndex + ref.length
-								+ neededBases,
-								parser.getContigInfo(location.getContig())
-										.getSequenceLength());
-						ref = chrInfo.getBaseSequence(padLeft, padRight)
-								.getBytes();
+						int padRight = Math.min(leftMostIndex + ref.length + neededBases,
+								parser.getContigInfo(location.getContig()).getSequenceLength());
+						ref = chrInfo.getBaseSequence(padLeft, padRight).getBytes();
 						leftMostIndex = padLeft;
 					}
 
 					try {
 						if (read.getAttribute(SAMTag.NM.name()) != null)
-							read.setAttribute(SAMTag.NM.name(), SequenceUtil
-									.calculateSamNmTag(read, ref,
-											leftMostIndex - 1));
+							read.setAttribute(SAMTag.NM.name(),
+									SequenceUtil.calculateSamNmTag(read, ref, leftMostIndex - 1));
 						if (read.getAttribute(SAMTag.UQ.name()) != null)
-							read.setAttribute(SAMTag.UQ.name(), SequenceUtil
-									.sumQualitiesOfMismatches(read, ref,
-											leftMostIndex - 1));
+							read.setAttribute(SAMTag.UQ.name(),
+									SequenceUtil.sumQualitiesOfMismatches(read, ref, leftMostIndex - 1));
 					} catch (Exception e) {
 						throw new RuntimeException(e.toString());
 					}
@@ -188,23 +172,19 @@ public class IndelRealigner {
 		// the reads cluster of making alternate consensus
 		final LinkedList<GaeaAlignedSamRecord> readsForConsensus = new LinkedList<GaeaAlignedSamRecord>();
 
-		consensusEngine.consensusByKnowIndels(knowIndelsSet, leftMostIndex,
-				reference);
-		long totalRawQuality = consensusEngine
-				.consensusByReads(reads, refReads, altReads, readsForConsensus,
-						leftMostIndex, reference);
+		consensusEngine.consensusByKnowIndels(knowIndelsSet, leftMostIndex, reference);
+		long totalRawQuality = consensusEngine.consensusByReads(reads, refReads, altReads, readsForConsensus,
+				leftMostIndex, reference);
 		// function is empty
 		consensusEngine.consensusBySmithWaterman();
 
-		AlternateConsensus bestConsensus = consensusEngine
-				.findBestAlternateConsensus(altReads, leftMostIndex);
+		AlternateConsensus bestConsensus = consensusEngine.findBestAlternateConsensus(altReads, leftMostIndex);
 
-		realignerCore(bestConsensus, altReads, reference, currentLocation,
-				totalRawQuality, leftMostIndex);
+		realignerCore(bestConsensus, altReads, reference, currentLocation, totalRawQuality, leftMostIndex);
 	}
 
-	private void realignerAndPending(ArrayList<VariantContext> knowIndels,
-			GaeaSamRecord read, GenomeLocation location, RealignerWriter writer) {
+	private void realignerAndPending(ArrayList<VariantContext> knowIndels, GaeaSamRecord read, GenomeLocation location,
+			RealignerWriter writer) {
 		if (needRealignementReads.size() > 0) {
 			consensusAndRealigner(needRealignementReads);
 		}
@@ -213,14 +193,12 @@ public class IndelRealigner {
 
 		do {
 			currentInterval = iterator.hasNext() ? iterator.next() : null;
-		} while (currentInterval != null
-				&& (location == null || currentInterval.isBefore(location)));
+		} while (currentInterval != null && (location == null || currentInterval.isBefore(location)));
 
 		pending(knowIndels, read, writer);
 	}
 
-	private void pending(ArrayList<VariantContext> knowIndels,
-			GaeaSamRecord read, RealignerWriter writer) {
+	private void pending(ArrayList<VariantContext> knowIndels, GaeaSamRecord read, RealignerWriter writer) {
 		if (currentInterval == null) {
 			notNeedRealignementReads.add(read);
 			return;
@@ -232,8 +210,7 @@ public class IndelRealigner {
 
 		GenomeLocation location = parser.createGenomeLocation(read);
 		if (location.getStop() == 0)
-			location = parser.createGenomeLocation(location.getContig(),
-					location.getStart(), location.getStart());
+			location = parser.createGenomeLocation(location.getContig(), location.getStart(), location.getStart());
 		if (location.isBefore(currentInterval)) {
 			if (effectiveNotCleanReadCount != 0)
 				effectiveNotCleanReadCount++;
@@ -262,6 +239,10 @@ public class IndelRealigner {
 	}
 
 	private void write(RealignerWriter writer) {
+		if (writer instanceof RealignerContextWriter) {
+			((RealignerContextWriter) writer).getContext().getCounter("ERROR", "clean reads")
+					.increment(needRealignementReads.size());
+		}
 		notNeedRealignementReads.addAll(needRealignementReads.getReads());
 		writer.writeReadList(notNeedRealignementReads);
 		needRealignementReads.clear();
@@ -270,22 +251,25 @@ public class IndelRealigner {
 		effectiveNotCleanReadCount = 0;
 	}
 
-	public void traversals(ArrayList<GaeaSamRecord> records,
-			RealignerWriter writer) {
+	public int traversals(ArrayList<GaeaSamRecord> records, RealignerWriter writer) {
 		updateWindowByInterval();
 
 		ArrayList<VariantContext> overlapKnowIndels = null;
 
+		int cnt = 0;
 		for (GaeaSamRecord sam : records) {
+			cnt++;
 			overlapKnowIndels = filterKnowIndels(sam);
 			pending(overlapKnowIndels, sam, writer);
 		}
 
-		if (effectiveNotCleanReadCount > 0) {
+		if (effectiveNotCleanReadCount > 0 || notNeedRealignementReads.size() > 0) {
 			if (needRealignementReads.size() > 0) {
 				consensusAndRealigner(needRealignementReads);
 			}
 			write(writer);
 		}
+
+		return cnt;
 	}
 }

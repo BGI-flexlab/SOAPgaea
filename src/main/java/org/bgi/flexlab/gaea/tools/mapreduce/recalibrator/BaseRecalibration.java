@@ -14,7 +14,10 @@ import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamHdfsFileHeader;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.WindowsBasedWritable;
 import org.bgi.flexlab.gaea.data.structure.bam.filter.BaseRecalibrationFilter;
 import org.bgi.flexlab.gaea.data.structure.bam.filter.SamRecordFilter;
+<<<<<<< HEAD
 import org.bgi.flexlab.gaea.data.structure.vcf.index.IndexCreator;
+=======
+>>>>>>> refs/remotes/origin/master
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.BioJob;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.ToolsRunner;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.WindowsBasedMapper;
