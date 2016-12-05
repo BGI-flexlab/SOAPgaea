@@ -7,12 +7,12 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 
+import org.bgi.flexlab.gaea.data.mapreduce.input.vcf.VCFHdfsLoader;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
-import org.bgi.flexlab.gaea.data.structure.vcf.index.Index;
 import org.bgi.flexlab.gaea.data.structure.vcf.index.IndexCreator;
-import org.bgi.flexlab.gaea.data.structure.vcf.index.VCFLoader;
 import org.bgi.flexlab.gaea.util.Window;
 
+import htsjdk.tribble.index.Index;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFHeader;
 
@@ -28,7 +28,7 @@ public class VariantDataTracker {
 	private String name;
 	private String type;
 	private Window window;
-	private VCFLoader loader = null;;
+	private VCFHdfsLoader loader = null;;
 	private List<VariantContext> data = null;
 	private HashSet<Integer> site = null;
 	private boolean bound;
@@ -52,7 +52,7 @@ public class VariantDataTracker {
 		initializeData();
 	}
 	
-	public VariantDataTracker(VCFLoader loader,String type,Style s) {
+	public VariantDataTracker(VCFHdfsLoader loader,String type,Style s) {
 		this.loader=loader;
 		this.type=type;
 		this.style=s;
@@ -73,14 +73,11 @@ public class VariantDataTracker {
 	
 	private void initializeLoader() {
 		if(loader==null) {
-			int size = 200;
 			//creator.initialize(name, creator.defaultBinSize());
-			IndexCreator creator = new IndexCreator(name, size);
-			@SuppressWarnings("rawtypes")
-			Index idx;
+			IndexCreator creator = new IndexCreator(name);
 			try {
-				idx = creator.finalizeIndex();
-				loader = new VCFLoader(name, idx);
+				Index idx = creator.finalizeIndex();
+				loader = new VCFHdfsLoader(name, idx);
 				loader.loadHeader();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block

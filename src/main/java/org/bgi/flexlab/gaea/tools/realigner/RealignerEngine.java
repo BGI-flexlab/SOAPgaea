@@ -5,11 +5,11 @@ import htsjdk.variant.variantcontext.VariantContext;
 
 import java.util.ArrayList;
 
+import org.bgi.flexlab.gaea.data.mapreduce.input.vcf.VCFHdfsLoader;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
 import org.bgi.flexlab.gaea.data.structure.reference.GenomeShare;
-import org.bgi.flexlab.gaea.data.structure.vcf.VCFLoader;
 //import org.bgi.flexlab.gaea.data.structure.vcf.index.VCFLoader;
 import org.bgi.flexlab.gaea.tools.mapreduce.realigner.RealignerOptions;
 import org.bgi.flexlab.gaea.util.Window;
@@ -18,7 +18,7 @@ import org.bgi.flexlab.gaea.variant.filter.VariantRegionFilter;
 public class RealignerEngine {
 	private RealignerOptions option = null;
 	private GenomeShare genomeShare = null;
-	private VCFLoader loader = null;
+	private VCFHdfsLoader loader = null;
 	private ChromosomeInformationShare chrInfo = null;
 	private ArrayList<VariantContext> knowIndels = null;
 	private ArrayList<GaeaSamRecord> records = null;
@@ -29,7 +29,7 @@ public class RealignerEngine {
 	private IndelRealigner indelRealigner = null;
 	private RealignerWriter writer = null;
 
-	public RealignerEngine(RealignerOptions option, GenomeShare genomeShare, VCFLoader loader, SAMFileHeader mHeader,
+	public RealignerEngine(RealignerOptions option, GenomeShare genomeShare, VCFHdfsLoader loader, SAMFileHeader mHeader,
 			RealignerWriter writer) {
 		this.option = option;
 		this.genomeShare = genomeShare;
@@ -54,7 +54,7 @@ public class RealignerEngine {
 		chrInfo = genomeShare.getChromosomeInfo(win.getContigName());
 	}
 
-	private void setKnowIndels(VCFLoader loader) {
+	private void setKnowIndels(VCFHdfsLoader loader) {
 		if (loader == null){
 			throw new RuntimeException("loader is null!!");
 		}

@@ -10,12 +10,12 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamHdfsFileHeader;
+import org.bgi.flexlab.gaea.data.mapreduce.input.vcf.VCFHdfsLoader;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.WindowsBasedBasicWritable;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.WindowsBasedWritable;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.bam.filter.QualityControlFilter;
 import org.bgi.flexlab.gaea.data.structure.reference.GenomeShare;
-import org.bgi.flexlab.gaea.data.structure.vcf.VCFLoader;
 //import org.bgi.flexlab.gaea.data.structure.vcf.index.VCFLoader;
 import org.bgi.flexlab.gaea.exception.MissingHeaderException;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.WindowsBasedMapper;
@@ -35,7 +35,7 @@ public class RealignerReducer
 	private ArrayList<GaeaSamRecord> filteredRecords = new ArrayList<GaeaSamRecord>();
 
 	private GenomeShare genomeShare = null;
-	private VCFLoader loader = null;
+	private VCFHdfsLoader loader = null;
 	private RealignerEngine engine = null;
 	private RealignerContextWriter writer = null;
 
@@ -52,7 +52,7 @@ public class RealignerReducer
 		genomeShare = new GenomeShare();
 		genomeShare.loadChromosomeList(option.getReference());
 
-		loader = new VCFLoader(option.getKnowVariant());
+		loader = new VCFHdfsLoader(option.getKnowVariant());
 		loader.loadHeader();
 
 		writer = new RealignerContextWriter(context);

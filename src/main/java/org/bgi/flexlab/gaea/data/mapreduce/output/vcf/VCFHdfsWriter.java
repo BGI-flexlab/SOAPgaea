@@ -22,10 +22,6 @@ public class VCFHdfsWriter extends VCFFileWriter{
 	
 	@Override
 	public void initOutputStream(String filePath, Configuration conf) {
-		try {
-			os = new BufferedOutputStream(HdfsFileManager.getOutputStream(new Path(filePath), conf));
-		} catch (IOException e) {
-			throw new RuntimeEOFException(e);
-		}
+		os = new BufferedOutputStream(HdfsFileManager.getOutputStream(new Path(filePath), conf));
 	}
 }

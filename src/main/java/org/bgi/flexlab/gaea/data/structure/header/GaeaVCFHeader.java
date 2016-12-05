@@ -9,6 +9,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.hdfs.DFSClient.Conf;
 
 public abstract class GaeaVCFHeader implements Serializable {
 	/**
@@ -16,11 +17,10 @@ public abstract class GaeaVCFHeader implements Serializable {
 	 */
 	private static final long serialVersionUID = -4160938012339601002L;
 
+	public static final String VCF_HEADER_PROPERTY = "vcfHeader";
 	
-	public String writeHeaderToHDFS(String outputPath){
-		String uri = writeHeader(outputPath);
-		writeToHDFS(new Path(uri.toString()));
-		return uri;
+	public void writeHeaderToHDFS(String outputPath, Configuration conf){
+		writeToHDFS(new Path(conf.get(VCF_HEADER_PROPERTY)));
 	}
 	
 	public boolean writeToHDFS(Path path){
@@ -38,17 +38,6 @@ public abstract class GaeaVCFHeader implements Serializable {
 		}
 		return true;
 	}
-	
-	public String writeHeader(String outputPath){
-		StringBuilder uri = new StringBuilder();
-		uri.append(outputPath);
-		uri.append(System.getProperty("file.separator"));
-		uri.append("vcfHeader");
-		uri.append(System.getProperty("file.separator"));
-		uri.append("VcfHeader.obj");
-		return uri.toString();
-	}
-	
 
 	public GaeaVCFHeader readFromFile(String file) throws IOException, ClassNotFoundException {
 		Configuration conf = new Configuration();
@@ -61,14 +50,13 @@ public abstract class GaeaVCFHeader implements Serializable {
 		return vcfHeader;
 	}
 
-	public void loadVcfHeader(String output){
+	public void loadVcfHeader(boolean cache, Configuration conf){
 		GaeaVCFHeader vcfHeaderTmp = initializeHeader();
 		try {
-			if(output == null){//distribute cache
+			if(cache){//distribute cache
 				vcfHeaderTmp = readFromFile("VcfHeaderObj");
 			} else {//no distribute cache
-				String uri = writeHeader(output);
-				vcfHeaderTmp = readFromFile(uri.toString());
+				vcfHeaderTmp = readFromFile(conf.get(VCF_HEADER_PROPERTY));
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
