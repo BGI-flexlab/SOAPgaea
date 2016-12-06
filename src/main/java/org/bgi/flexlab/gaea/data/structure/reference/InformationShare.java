@@ -10,7 +10,7 @@ public class InformationShare {
 	protected MappedByteBuffer[] byteBuffer = null;
 	
 	/*load information;egg : chromosome dbsnp*/
-	public void loadInformation(String path)
+	protected void loadInformation(String path)
 			throws IOException {
 		RandomAccessFile raf = new RandomAccessFile(path, "r");
 		FileChannel fc = raf.getChannel();

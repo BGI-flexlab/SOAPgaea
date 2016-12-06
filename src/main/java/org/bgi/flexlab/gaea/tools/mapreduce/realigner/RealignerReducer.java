@@ -11,12 +11,10 @@ import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamHdfsFileHeader;
 import org.bgi.flexlab.gaea.data.mapreduce.input.vcf.VCFHdfsLoader;
-import org.bgi.flexlab.gaea.data.mapreduce.writable.WindowsBasedBasicWritable;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.WindowsBasedWritable;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.bam.filter.QualityControlFilter;
 import org.bgi.flexlab.gaea.data.structure.reference.GenomeShare;
-//import org.bgi.flexlab.gaea.data.structure.vcf.index.VCFLoader;
 import org.bgi.flexlab.gaea.exception.MissingHeaderException;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.WindowsBasedMapper;
 import org.bgi.flexlab.gaea.tools.realigner.RealignerEngine;
@@ -59,13 +57,13 @@ public class RealignerReducer
 		engine = new RealignerEngine(option, genomeShare, loader, mHeader, writer);
 	}
 
-	private boolean unmappedWindows(WindowsBasedBasicWritable key) {
+	private boolean unmappedWindows(WindowsBasedWritable key) {
 		if (key.getChromosomeName().equals(WindowsBasedMapper.UNMAPPED_REFERENCE_NAME))
 			return true;
 		return false;
 	}
 
-	private Window setWindows(WindowsBasedBasicWritable key) {
+	private Window setWindows(WindowsBasedWritable key) {
 		int winNum = key.getWindowsNumber();
 		int winSize = option.getWindowsSize();
 		int start = winNum * winSize;
