@@ -8,7 +8,7 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.Tool;
-import org.bgi.flexlab.gaea.data.structure.reference.GenomeShare;
+import org.bgi.flexlab.gaea.data.structure.reference.ReferenceShare;
 
 public class VariantAnnotation extends Configured implements Tool{
 	

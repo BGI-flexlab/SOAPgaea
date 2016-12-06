@@ -14,7 +14,7 @@ import org.bgi.flexlab.gaea.data.mapreduce.input.vcf.VCFHdfsLoader;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.WindowsBasedWritable;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.bam.filter.QualityControlFilter;
-import org.bgi.flexlab.gaea.data.structure.reference.GenomeShare;
+import org.bgi.flexlab.gaea.data.structure.reference.ReferenceShare;
 import org.bgi.flexlab.gaea.exception.MissingHeaderException;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.WindowsBasedMapper;
 import org.bgi.flexlab.gaea.tools.realigner.RealignerEngine;
@@ -32,7 +32,7 @@ public class RealignerReducer
 	private ArrayList<GaeaSamRecord> records = new ArrayList<GaeaSamRecord>();
 	private ArrayList<GaeaSamRecord> filteredRecords = new ArrayList<GaeaSamRecord>();
 
-	private GenomeShare genomeShare = null;
+	private ReferenceShare genomeShare = null;
 	private VCFHdfsLoader loader = null;
 	private RealignerEngine engine = null;
 	private RealignerContextWriter writer = null;
@@ -47,7 +47,7 @@ public class RealignerReducer
 			throw new MissingHeaderException("Realigner");
 		}
 
-		genomeShare = new GenomeShare();
+		genomeShare = new ReferenceShare();
 		genomeShare.loadChromosomeList(option.getReference());
 
 		loader = new VCFHdfsLoader(option.getKnowVariant());

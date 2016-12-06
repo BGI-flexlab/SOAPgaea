@@ -15,7 +15,7 @@ import org.bgi.flexlab.gaea.data.structure.location.GenomeLocationParser;
 import org.bgi.flexlab.gaea.data.structure.pileup.Pileup;
 import org.bgi.flexlab.gaea.data.structure.pileup.manager.PileupState;
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
-import org.bgi.flexlab.gaea.data.structure.reference.GenomeShare;
+import org.bgi.flexlab.gaea.data.structure.reference.ReferenceShare;
 import org.bgi.flexlab.gaea.tools.mapreduce.recalibrator.BaseRecalibrationOptions;
 import org.bgi.flexlab.gaea.util.Window;
 import org.seqdoop.hadoop_bam.SAMRecordWritable;
@@ -48,7 +48,7 @@ public class BaseRecalibrationReducer extends Reducer<WindowsBasedWritable, SAMR
 	/**
 	 * chromosome information
 	 */
-	private static GenomeShare genome;
+	private static ReferenceShare genome;
 
 	private SAMFileHeader mFileHeader=null;
 	
@@ -65,7 +65,7 @@ public class BaseRecalibrationReducer extends Reducer<WindowsBasedWritable, SAMR
 		options.parse(job.getStrings("args"));
 		winSize = options.getWinSize();
 		
-		genome = new GenomeShare();	
+		genome = new ReferenceShare();	
 		if(job.get("cacheref")==null)
 			genome.loadChromosomeList(options.getReferenceSequencePath());
 		else

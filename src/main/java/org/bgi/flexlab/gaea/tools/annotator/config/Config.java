@@ -13,7 +13,7 @@ import java.util.Properties;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.bgi.flexlab.gaea.data.structure.reference.GenomeShare;
+import org.bgi.flexlab.gaea.data.structure.reference.ReferenceShare;
 import org.bgi.flexlab.gaea.tools.annotator.codons.CodonTable;
 import org.bgi.flexlab.gaea.tools.annotator.codons.CodonTables;
 import org.bgi.flexlab.gaea.tools.annotator.effect.SnpEffectPredictor;
@@ -61,7 +61,7 @@ public class Config implements Serializable {
 	private List<String> dbNameList;
 	private Properties properties;
 	private Genome genome;
-	private GenomeShare genomeShare;
+	private ReferenceShare genomeShare;
 	private SnpEffectPredictor snpEffectPredictor;
 	private Configuration conf;
 
@@ -76,7 +76,7 @@ public class Config implements Serializable {
 		configFilePath = null;
 	}
 	
-	public Config(Configuration conf, GenomeShare genomeShare) {
+	public Config(Configuration conf, ReferenceShare genomeShare) {
 		this.conf = conf;
 		this.genomeShare = genomeShare;
 		init();

@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Properties;
 
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
-import org.bgi.flexlab.gaea.data.structure.reference.GenomeShare;
+import org.bgi.flexlab.gaea.data.structure.reference.ReferenceShare;
 import org.bgi.flexlab.gaea.tools.annotator.effect.EffectType;
 import org.bgi.flexlab.gaea.tools.annotator.util.Gpr;
 import org.bgi.flexlab.gaea.tools.annotator.util.GprSeq;
@@ -39,7 +39,7 @@ public class Genome extends Marker implements Serializable, Iterable<Chromosome>
 	Genes genes; // All genes, transcripts, exons, UTRs, CDS, etc.
 	Boolean codingInfo = null; // Do we have coding info from genes?
 	Boolean transcriptSupportLevelInfo = null; // Do we have 'TranscriptSupportLevel' info in transcripts?
-	GenomeShare genomeShare;
+	ReferenceShare genomeShare;
 
 	/**
 	 * Create a genome from a faidx file.
@@ -86,7 +86,7 @@ public class Genome extends Marker implements Serializable, Iterable<Chromosome>
 		setGenomeId();
 	}
 
-	public Genome(String version, GenomeShare genomeShare) {
+	public Genome(String version, ReferenceShare genomeShare) {
 		super(null, 0, Integer.MAX_VALUE, false, version);
 		this.version = version;
 		this.genomeShare = genomeShare;

@@ -2,12 +2,14 @@
  * Copyright (c) 2011, BGI and/or its affiliates. All rights reserved.
  * BGI PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
-package org.bgi.flexlab.gaea.data.structure.reference;
+package org.bgi.flexlab.gaea.data.structure.reference.soap;
 
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
+
+import org.bgi.flexlab.gaea.data.structure.memoryshare.BioMemoryShare;
 
 /**
  * dbSNP信息共享内存
@@ -15,7 +17,7 @@ import java.io.IOException;
  * @author ZhangYong
  *
  */
-public class ChromosomeDbSNPShare extends InformationShare {
+public class ChromosomeDbsnpSoapShare extends BioMemoryShare {
 	/**
 	 * dbSNP记录条数
 	 */
@@ -25,11 +27,6 @@ public class ChromosomeDbSNPShare extends InformationShare {
 	 * dbSNP索引数组
 	 */
 	private int[] dbsnpIndex;
-
-	/**
-	 * 存储dbSNP信息的Map文件
-	 */
-	//private MappedByteBuffer[] dbsnpBuffer;
 
 	/**
 	 * dbSNP占用存储空间大小
@@ -43,7 +40,7 @@ public class ChromosomeDbSNPShare extends InformationShare {
 	 * @param indexPath
 	 * @param dbnum
 	 */
-	public ChromosomeDbSNPShare(String dbsnpPath, String indexPath, int dbnum) {
+	public ChromosomeDbsnpSoapShare(String dbsnpPath, String indexPath, int dbnum) {
 		dbsnpRecordCount = dbnum;
 		dbsnpIndex = new int[dbsnpRecordCount];
 		dbsnpSize = (Byte.SIZE + Float.SIZE) / 8;
