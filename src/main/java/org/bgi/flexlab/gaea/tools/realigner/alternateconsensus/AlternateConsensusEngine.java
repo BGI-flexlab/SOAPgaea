@@ -48,7 +48,7 @@ public class AlternateConsensusEngine {
 		byte[] qualities = read.getReadQualities();
 
 		for (int readIndex = 0; readIndex < readSeq.length; readIndex++) {
-			if (posOnRef >= ref.length) {
+			if (posOnRef > ref.length) {
 				mismatchQualitySum += (readSeq.length - readIndex)
 						* MAX_QUALITY;
 				break;
@@ -329,7 +329,7 @@ public class AlternateConsensusEngine {
 
 			int i;
 			for (i = 0; i < seq.length; i++) {
-				if (refIndex < 0 || refIndex >= refLength)
+				if (refIndex < 0 || refIndex > refLength)
 					break;
 				totalRawQuality[refIndex] += quality[i];
 				if (ref[refIndex] != seq[i])
@@ -346,7 +346,7 @@ public class AlternateConsensusEngine {
 				case X:
 				case EQ:
 					for (i = 0; i < length; i++, refIndex++, readIndex++) {
-						if (refIndex >= refLength)
+						if (refIndex > refLength)
 							break;
 						totalCleanQuality[refIndex] += quality[readIndex];
 						if (ref[refIndex] != seq[readIndex])

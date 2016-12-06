@@ -153,11 +153,10 @@ public class MultipleVCFHeader extends  GaeaVCFHeader implements Serializable{
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
-		conf.set("output", output);
 		if(distributeCacheHeader){
 			distributeCacheVcfHeader(output, conf);
 		} else {
-			writeHeaderToHDFS(output);
+			writeHeaderToHDFS(output,conf);
 		}
 	}
 	
@@ -166,10 +165,10 @@ public class MultipleVCFHeader extends  GaeaVCFHeader implements Serializable{
 	}
 	
 	public boolean distributeCacheVcfHeader(String outputPath, Configuration conf) {
-		String output = writeHeaderToHDFS(outputPath);
+		writeHeaderToHDFS(outputPath, conf);
 		try {
 			DistributedCache.createSymlink(conf);
-			DistributedCache.addCacheFile(new URI(output + "#VcfHeaderObj"), conf);
+			DistributedCache.addCacheFile(new URI(conf.get(GaeaVCFHeader.VCF_HEADER_PROPERTY) + "#VcfHeaderObj"), conf);
 		} catch (URISyntaxException e) {
 			e.printStackTrace();
 			return false;

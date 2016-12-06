@@ -4,20 +4,20 @@ import java.io.IOException;
 
 import org.apache.hadoop.io.DataInputBuffer;
 import org.apache.hadoop.io.RawComparator;
-import org.bgi.flexlab.gaea.data.mapreduce.writable.WindowsBasedBasicWritable;
+import org.bgi.flexlab.gaea.data.mapreduce.writable.WindowsBasedWritable;
 
 public class WindowsBasedComparator implements
-		RawComparator<WindowsBasedBasicWritable> {
+		RawComparator<WindowsBasedWritable> {
 
 	@Override
-	public int compare(WindowsBasedBasicWritable o1, WindowsBasedBasicWritable o2) {
+	public int compare(WindowsBasedWritable o1, WindowsBasedWritable o2) {
 		return o1.getWindows().compareTo(o2.getWindows());
 	}
 
 	@Override
 	public int compare(byte[] b1, int s1, int l1, byte[] b2, int s2, int l2) {
-		WindowsBasedBasicWritable key1 = new WindowsBasedBasicWritable();
-		WindowsBasedBasicWritable key2 = new WindowsBasedBasicWritable();
+		WindowsBasedWritable key1 = new WindowsBasedWritable();
+		WindowsBasedWritable key2 = new WindowsBasedWritable();
 		DataInputBuffer buffer = new DataInputBuffer();
 		try {
 			buffer.reset(b1, s1, l1);

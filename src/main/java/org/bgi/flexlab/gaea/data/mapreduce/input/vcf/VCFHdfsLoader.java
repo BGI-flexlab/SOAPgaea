@@ -1,4 +1,4 @@
-package org.bgi.flexlab.gaea.data.structure.vcf;
+package org.bgi.flexlab.gaea.data.mapreduce.input.vcf;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.zip.GZIPInputStream;
@@ -29,26 +30,30 @@ import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFCodec;
 import htsjdk.variant.vcf.VCFHeader;
 
-public class VCFLoader {
+public class VCFHdfsLoader {
 	
 	private String path;
 	
 	private Configuration conf = new Configuration();
 	
 	private VCFCodec codec = new VCFCodec();
-	private VCFHeader vcfHeader;
+	private Object header;
+	
+	private InputStream is;
+	
+	private AsciiLineReaderIterator iterator;
 	
 	private Index idx;
 
 	public static final Set<String> BLOCK_COMPRESSED_EXTENSIONS = Collections.unmodifiableSet(new HashSet<String>(Arrays.asList(".gz", ".gzip", ".bgz", ".bgzf")));
 	
-	public VCFLoader(String vcfFile, Index idx) throws IOException {
+	public VCFHdfsLoader(String vcfFile, Index idx) throws IOException {
 		this.idx = idx;
 		this.path = vcfFile;
 		loadHeader();
 	}
 
-	public VCFLoader(String vcfFile) throws IllegalArgumentException, IOException {
+	public VCFHdfsLoader(String vcfFile) throws IllegalArgumentException, IOException {
 		this.path = vcfFile;
 		IndexCreator creator = new IndexCreator(vcfFile);
 		try {
@@ -59,23 +64,33 @@ public class VCFLoader {
 		loadHeader();
 	}
 
-	public void loadHeader() throws IOException {
+	public void initInputStream() throws IOException {
 		if (path == null || path.equals(""))
 			return;
 
-		InputStream fsInputStream = HdfsFileManager.getInputStream(
-				new Path(path), conf);
+		is = new BufferedInputStream(HdfsFileManager.getInputStream(new Path(path), conf), 512000);
 		if (hasBlockCompressedExtension(path)) {
             // TODO -- warning I don't think this can work, the buffered input stream screws up position
-            fsInputStream = new GZIPInputStream(new BufferedInputStream(fsInputStream));
+            is = new GZIPInputStream(new BufferedInputStream(is, 512000));
         }
-		AsciiLineReader reader = new AsciiLineReader(fsInputStream);
-		AsciiLineReaderIterator it = new AsciiLineReaderIterator(reader);
-		Object header = codec.readHeader(it);
-		it.close();
-		vcfHeader = (VCFHeader)(((FeatureCodecHeader)header).getHeaderValue());
+	}
+	
+	public void loadHeader() throws IOException {
+		initInputStream();
+		AsciiLineReader reader = new AsciiLineReader(is);
+		iterator = new AsciiLineReaderIterator(reader);
+		header = codec.readHeader(iterator);
 	}
 
+	public Iterator<VariantContext> iterator() throws IOException {
+		ArrayList<VariantContext> result = new ArrayList<>();
+		while(iterator.hasNext()) {
+			result.add(codec.decode(iterator.next()));;
+		}
+		iterator.close();
+		return result.iterator();
+	}
+	
 	public ArrayList<VariantContext> load(String chr, int start, int end)
 			throws IOException {
 
@@ -130,12 +145,15 @@ public class VCFLoader {
 	}
 	
 	public VCFHeader getHeader() {
-		return vcfHeader;
+		return (VCFHeader)(((FeatureCodecHeader)header).getHeaderValue());
 	}
 	
 	public static void main(String[] args ) throws IllegalArgumentException, IOException{
-		VCFLoader loader = new VCFLoader(args[0]);
-		for(VariantContext vc:loader.load("chr1", 1, 10000000))
-			System.out.println(vc.getEnd());;
+		VCFHdfsLoader loader = new VCFHdfsLoader(args[0]);
+		Iterator<VariantContext> iterator = loader.iterator();
+		while(iterator.hasNext()) {
+			VariantContext vContext = iterator.next();
+			System.out.println(vContext.getChr() + "\t" + vContext.getStart());
+		}
 	}
 }

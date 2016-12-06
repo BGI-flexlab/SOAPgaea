@@ -3,7 +3,7 @@ package org.bgi.flexlab.gaea.variant.filter;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import org.bgi.flexlab.gaea.data.structure.vcf.VCFLoader;
+import org.bgi.flexlab.gaea.data.mapreduce.input.vcf.VCFHdfsLoader;
 
 import htsjdk.variant.variantcontext.VariantContext;
 
@@ -27,7 +27,7 @@ public abstract class VariantFilter {
 		return filter;
 	}
 
-	public ArrayList<VariantContext> loadFilter(VCFLoader loader, String referenceName, int start, int end) {
+	public ArrayList<VariantContext> loadFilter(VCFHdfsLoader loader, String referenceName, int start, int end) {
 		try {
 			return loader.load(referenceName, start, end);
 		} catch (IOException e) {

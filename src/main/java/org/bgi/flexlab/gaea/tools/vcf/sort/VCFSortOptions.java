@@ -2,27 +2,21 @@ package org.bgi.flexlab.gaea.tools.vcf.sort;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.cli.ParseException;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.util.GenericOptionsParser;
+import org.bgi.flexlab.gaea.data.mapreduce.input.vcf.VCFRecordReader;
 import org.bgi.flexlab.gaea.data.mapreduce.options.HadoopOptions;
+import org.bgi.flexlab.gaea.data.structure.header.GaeaVCFHeader;
 import org.bgi.flexlab.gaea.options.GaeaOptions;
 import org.bgi.flexlab.gaea.util.HdfsFileManager;
 import org.seqdoop.hadoop_bam.KeyIgnoringVCFOutputFormat;
 import org.seqdoop.hadoop_bam.VCFOutputFormat;
-import org.seqdoop.hadoop_bam.util.VCFHeaderReader;
-import org.seqdoop.hadoop_bam.util.WrapSeekable;
-
-import htsjdk.tribble.readers.AsciiLineReader;
-import htsjdk.tribble.readers.AsciiLineReaderIterator;
-import htsjdk.variant.vcf.VCFHeader;
 
 public class VCFSortOptions extends GaeaOptions implements HadoopOptions{
 	private final static String SOFTWARE_NAME = "VCFSort";
@@ -53,11 +47,7 @@ public class VCFSortOptions extends GaeaOptions implements HadoopOptions{
 	
 	private boolean multiSample;
 	
-	private Map<Long, VCFHeader> headerID = new HashMap<>();
-	
-	private Map<String, Long> chrOrder = new HashMap<>();
-	
-	private Map<Long, String> multiOutputs = new HashMap<>();
+	private Map<Integer, String> multiOutputs;
 
 	
 	@Override
@@ -66,10 +56,20 @@ public class VCFSortOptions extends GaeaOptions implements HadoopOptions{
 			String[] otherArgs = new GenericOptionsParser(args).getRemainingArgs();
 			conf.setStrings("args", otherArgs);
 			conf.set(VCFOutputFormat.OUTPUT_VCF_FORMAT_PROPERTY, "VCF");
+			conf.set(GaeaVCFHeader.VCF_HEADER_PROPERTY, setOutputURI("vcfHeader.obj"));
+			conf.set(VCFRecordReader.CHR_ORDER_PROPERTY, setOutputURI("chrOrder.obj"));
 			conf.setBoolean(KeyIgnoringVCFOutputFormat.WRITE_HEADER_PROPERTY, false);
 		} catch(IOException e) {
 			throw new RuntimeException(e);
 		}
+	}
+	
+	private String setOutputURI(String outputPath){
+		StringBuilder uri = new StringBuilder();
+		uri.append(output);
+		uri.append(System.getProperty("file.separator"));
+		uri.append(outputPath);
+		return uri.toString();
 	}
 	
 	@Override
@@ -90,19 +90,11 @@ public class VCFSortOptions extends GaeaOptions implements HadoopOptions{
 		
 		input = getOptionValue("i", null);
 		traversalInputPath(new Path(input));
-		setHeaderID();
 		
 		output = getOptionValue("o", null);
 		setWorkPath();
-		setMultiOutputPath();
 		
 		chrFile = getOptionValue("r", null);
-		try {
-			initChrOrder();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			throw new RuntimeException(e);
-		}
 		
 		reducerN = getOptionIntValue("n", 30);
 		
@@ -114,7 +106,6 @@ public class VCFSortOptions extends GaeaOptions implements HadoopOptions{
 		// TODO Auto-generated method stub
 		Configuration conf = new Configuration();
 		FileSystem fs = HdfsFileManager.getFileSystem(path, conf);
-		long i = 0;
 		try {
 			if (!fs.exists(path)) {
 				System.err
@@ -140,39 +131,6 @@ public class VCFSortOptions extends GaeaOptions implements HadoopOptions{
 			throw new RuntimeException(ioe);
 		}
 	}
-
-	private void setHeaderID() {
-		long id = 0;
-		VCFHeader oldHeader = null;
-		Configuration conf = new Configuration();
-		for(Path input : inputList) {
-			try {
-				final WrapSeekable ins = WrapSeekable.openPath(conf, input);
-				VCFHeader header = VCFHeaderReader.readHeaderFrom(ins);
-				if(!header.equals(oldHeader))
-					headerID.put(++id << 40, header);
-				ins.close();
-				oldHeader = header;
-			} catch(IOException e) {
-				throw new RuntimeException(e);
-			}
-		}
-	}
-
-	public Map<Long, VCFHeader> getHeaderID() {
-		return headerID;
-	}
-	
-	private void setMultiOutputPath() {
-		int i = 0;
-		for(long id : getHeaderID().keySet()) {
-			multiOutputs.put(id, "SortResult" + ++i);
-		}
-	}
-	
-	public Map<Long, String> getMultiOutputPath() {
-		return multiOutputs;
-	}
 	
 	public void setWorkPath() {
 		if (this.output.endsWith("/"))
@@ -185,24 +143,12 @@ public class VCFSortOptions extends GaeaOptions implements HadoopOptions{
 		return workPath;
 	}
 	
-	private void initChrOrder() throws IOException {
-		Configuration conf = new Configuration();
-		chrOrder.clear();
-        FSDataInputStream ins = HdfsFileManager.getInputStream(new Path(chrFile), conf);
-        AsciiLineReaderIterator it = new AsciiLineReaderIterator(new AsciiLineReader(ins));
-        String line;  
-        long i = 1;
-        while(it.hasNext()){
-        	line = it.next();
-        	//System.err.println("fai:" + line);
-        	String[] cols = line.split("\t");
-        	chrOrder.put(cols[0].trim(), i++ << 32 );
-        }
-        it.close();
+	public void setMultiOutputs(Map<Integer, String> multiOutputs) {
+		this.multiOutputs = multiOutputs;
 	}
 	
-	public Map<String, Long> getChrOrder() {
-		return chrOrder;
+	public Map<Integer, String> getMultiOutputs() {
+		return multiOutputs;
 	}
 	
 	public ArrayList<Path> getInputFileList() {

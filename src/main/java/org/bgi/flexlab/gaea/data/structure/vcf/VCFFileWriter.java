@@ -3,6 +3,7 @@ package org.bgi.flexlab.gaea.data.structure.vcf;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Serializable;
+import java.util.EnumSet;
 
 import org.apache.hadoop.conf.Configuration;
 
@@ -26,7 +27,7 @@ public abstract class VCFFileWriter implements Serializable{
 	private boolean hasWrittenHeader = false;
 	
 	protected OutputStream os;
-		
+	
 	public VCFFileWriter(String path,boolean doNotWriteGenotypes,
 			final boolean allowMissingFieldsInHeader, Configuration conf) throws IOException {
 		initOutputStream(path, conf);

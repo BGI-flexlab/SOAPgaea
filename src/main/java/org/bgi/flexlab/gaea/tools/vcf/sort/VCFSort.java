@@ -2,8 +2,11 @@ package org.bgi.flexlab.gaea.tools.vcf.sort;
 
 
 import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.util.HashMap;
 import java.util.Map;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
@@ -21,12 +24,16 @@ import org.apache.hadoop.mapreduce.lib.partition.InputSampler;
 import org.apache.hadoop.mapreduce.lib.partition.TotalOrderPartitioner;
 import org.apache.hadoop.util.ToolRunner;
 import org.bgi.flexlab.gaea.data.mapreduce.input.vcf.VCFRecordReader;
+import org.bgi.flexlab.gaea.data.structure.header.MultipleVCFHeader;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.BioJob;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.ToolsRunner;
+import org.bgi.flexlab.gaea.util.HdfsFileManager;
 import org.bgi.flexlab.gaea.util.SortUilts;
 import org.seqdoop.hadoop_bam.KeyIgnoringVCFOutputFormat;
 import org.seqdoop.hadoop_bam.VariantContextWritable;
 import hbparquet.hadoop.util.ContextUtil;
+import htsjdk.tribble.readers.AsciiLineReader;
+import htsjdk.tribble.readers.AsciiLineReaderIterator;
 
 public class VCFSort extends ToolsRunner{
 
@@ -51,6 +58,10 @@ public class VCFSort extends ToolsRunner{
 			
 			SortUilts.configureSampling(new Path(options.getTempOutput()), conf, options);
 
+			MultipleVCFHeader mVcfHeader = mergeHeader(options, conf);
+			
+			initChrOrder(conf);
+			
 			job.setJobName("VCFSort");
 			
 			job.setJarByClass(VCFSort.class);
@@ -70,8 +81,7 @@ public class VCFSort extends ToolsRunner{
 					options.getInputFileList().toArray(new Path[options.getInputFileList().size()]));
 			FileOutputFormat.setOutputPath(job, new Path(options.getWorkPath()));
 	
-			setMultiOutputs(job);
-			
+			setMultiOutputs(mVcfHeader, job);
 			
 			InputSampler.<LongWritable, VariantContextWritable>writePartitionFile(
 					job,
@@ -86,7 +96,7 @@ public class VCFSort extends ToolsRunner{
 			}
 			
 			if (options.getOutputPath() != null) {
-				SortUilts.merge(options, conf);
+				SortUilts.merge(mVcfHeader,options, conf);
 			}
 		} catch (IOException e) {
 			System.err.printf("vcf-Sort :: Hadoop error: %s\n", e);
@@ -100,12 +110,44 @@ public class VCFSort extends ToolsRunner{
 		return 0;
 	}
 	
-	private void setMultiOutputs(BioJob job) {
+	private MultipleVCFHeader mergeHeader(VCFSortOptions options, Configuration conf) {
+		MultipleVCFHeader mVcfHeader = new MultipleVCFHeader();
+		mVcfHeader.mergeHeader(new Path(options.getInput()), options.getOutputPath(), conf, false);
+		return mVcfHeader;
+	}
+	
+	private void initChrOrder(Configuration conf) throws IOException {
+		Map<String, Long> chrOrder = new HashMap<>();
+		FSDataInputStream ins = HdfsFileManager.getInputStream(new Path(options.getChrOrderFile()), conf);
+        AsciiLineReaderIterator it = new AsciiLineReaderIterator(new AsciiLineReader(ins));
+        String line;  
+        long i = 1;
+        while(it.hasNext()){
+        	line = it.next();
+        	//System.err.println("fai:" + line);
+        	String[] cols = line.split("\t");
+        	chrOrder.put(cols[0].trim(), i++ << 32 );
+        }
+        it.close();
+        storage(chrOrder, conf);
+	}
+	
+	private void storage(Map<String, Long> chrOrder, Configuration conf) throws IOException {
+		ObjectOutputStream oStream = new ObjectOutputStream(HdfsFileManager.getOutputStream(
+				new Path(conf.get(VCFRecordReader.CHR_ORDER_PROPERTY)), conf));
+		oStream.writeObject(chrOrder);
+		oStream.close();
+	}
+	
+	private void setMultiOutputs(MultipleVCFHeader mVcfHeader, BioJob job) {
 		// TODO Auto-generated method stub
-		Map<Long, String> multiOutputs = options.getMultiOutputPath();
-		for(long id : options.getMultiOutputPath().keySet()) {
+		int i = 0;
+		Map<Integer, String> multiOutputs = new HashMap<>();
+		for(int id : mVcfHeader.getFileName2ID().values()) {
+			multiOutputs.put(id, "SortResult" + ++i);
 			MultipleOutputs.addNamedOutput(job, multiOutputs.get(id), SortOutputFormat.class, NullWritable.class, VariantContextWritable.class);
 		}
+		options.setMultiOutputs(multiOutputs);
 	}
 	
 	public static void main(String[] args ) throws Exception {
@@ -117,14 +159,14 @@ public class VCFSort extends ToolsRunner{
 final class VCFSortReducer extends Reducer<LongWritable, VariantContextWritable, NullWritable, VariantContextWritable> {
 	private MultipleOutputs<NullWritable, VariantContextWritable> mos;
 	private VCFSortOptions options;
-	private Map<Long, String> multiOutputs;
+	private Map<Integer, String> multiOutputs;
 
 	@Override 
 	protected void setup(Context context) throws IOException{
 		Configuration conf = context.getConfiguration();
 		options = new VCFSortOptions();
 		options.getOptionsFromHadoopConf(conf);
-		multiOutputs = options.getMultiOutputPath();
+		multiOutputs = options.getMultiOutputs();
 		mos = new MultipleOutputs<NullWritable, VariantContextWritable>(context);	
 	}
 
@@ -136,7 +178,7 @@ final class VCFSortReducer extends Reducer<LongWritable, VariantContextWritable,
 				ctx)
 		throws IOException, InterruptedException
 	{
-		long id = key.get() >> 40 << 40;
+		int id = (int)(key.get() >> 40);
 		for (VariantContextWritable rec : records)
 			//NullWirtable.get()输出null;
 			mos.write(multiOutputs.get(id), NullWritable.get(), rec);
@@ -153,9 +195,8 @@ class SortInputFormat extends FileInputFormat<LongWritable, VariantContextWritab
 	
 	@Override
 	public RecordReader<LongWritable, VariantContextWritable> createRecordReader(InputSplit split, TaskAttemptContext ctx) throws IOException, InterruptedException {
-		VCFSortOptions options = new VCFSortOptions();
-		options.getOptionsFromHadoopConf(ctx.getConfiguration());
-		return new VCFRecordReader(options);
+		Configuration conf = ctx.getConfiguration();
+		return new VCFRecordReader(conf, conf.get(VCFRecordReader.CHR_ORDER_PROPERTY), true);
 	}
 }
 
