@@ -2,7 +2,7 @@
  * Copyright (c) 2011, BGI and/or its affiliates. All rights reserved.
  * BGI PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
-package org.bgi.flexlab.gaea.data.structure.reference.soap;
+package org.bgi.flexlab.gaea.data.structure.dbsnp.soap;
 
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
