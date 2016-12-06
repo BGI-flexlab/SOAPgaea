@@ -37,7 +37,7 @@ public class IndexCreator {
 	}
 	
 	public Index finalizeIndex() throws IOException {
-		Path idxfile = format(file);
+		Path idxfile = new Path(format(file));
 		Index index = null;
 		FSDataInputStream is = null;
 		try {
@@ -99,7 +99,7 @@ public class IndexCreator {
             throw new RuntimeException("Input file is not sorted by start position.");
 	}
 	
-	private Path format(String inputFile) {
-		return new Path(inputFile + ".gaeaidx");
+	public static String format(String inputFile) {
+		return inputFile + ".gaeaidx";
 	}
 }
