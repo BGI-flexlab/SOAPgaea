@@ -15,7 +15,7 @@ import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.bgi.flexlab.gaea.data.structure.header.SingleVCFHeader;
-import org.bgi.flexlab.gaea.data.structure.reference.GenomeShare;
+import org.bgi.flexlab.gaea.data.structure.reference.ReferenceShare;
 import org.bgi.flexlab.gaea.tools.annotator.config.Config;
 import org.bgi.flexlab.gaea.tools.annotator.db.DBAnnotator;
 import org.bgi.flexlab.gaea.tools.annotator.effect.VcfAnnotationContext;
@@ -39,7 +39,7 @@ public class VariantAnnotationMapper extends Mapper<LongWritable, Text, NullWrit
 		
 		System.err.println();
 		long start = System.currentTimeMillis();
-		GenomeShare genomeShare = new GenomeShare();
+		ReferenceShare genomeShare = new ReferenceShare();
 		genomeShare.loadChromosomeList(conf.get("reference"));
 		System.err.println("genomeShare耗时：" + (System.currentTimeMillis()-start)+"毫秒");
 		

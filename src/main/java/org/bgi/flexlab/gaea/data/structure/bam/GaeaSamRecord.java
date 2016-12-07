@@ -22,6 +22,10 @@ import org.bgi.flexlab.gaea.util.EventType;
 import org.bgi.flexlab.gaea.util.ReadUtils;
 
 public class GaeaSamRecord extends SAMRecord {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 8070430647521989737L;
 	// ReduceReads specific attribute tags
 	public static final String REDUCED_READ_CONSENSUS_TAG = "RR";
 	// Base Quality Score Recalibrator specific attribute tags

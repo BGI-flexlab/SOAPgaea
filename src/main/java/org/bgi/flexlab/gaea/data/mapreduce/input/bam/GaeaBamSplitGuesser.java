@@ -9,8 +9,6 @@ import java.nio.ByteOrder;
 import java.util.Arrays;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.util.GenericOptionsParser;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaCigar;
 
 import htsjdk.samtools.BAMRecordCodec;

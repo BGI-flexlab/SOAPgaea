@@ -56,7 +56,7 @@ public class GaeaSamRecordBin {
 			int end = location.getStop() + REFERENCE_EXTEND;
 			location = parser.createGenomeLocation(location.getContig(), start,
 					end);
-			refBases = chr.getBytes(start - 1, end - 1);
+			refBases = chr.getBaseBytes(start - 1, end - 1);
 
 			StringUtil.toUpperCase(refBases);
 		}

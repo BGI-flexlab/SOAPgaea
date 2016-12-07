@@ -4,9 +4,7 @@
  */
 package org.bgi.flexlab.gaea.data.structure.reference;
 
-import java.io.IOException;
-
-import org.bgi.flexlab.gaea.exception.OutOfBoundException;
+import org.bgi.flexlab.gaea.data.structure.memoryshare.BioMemoryShare;
 import org.bgi.flexlab.gaea.util.SystemConfiguration;
 
 /**
@@ -15,116 +13,10 @@ import org.bgi.flexlab.gaea.util.SystemConfiguration;
  * @author ZhangYong
  *
  */
-public class ChromosomeInformationShare extends InformationShare {
-
-	private static int CAPACITY = Byte.SIZE / 4;
-
-	/**
-	 * 染色体名称
-	 */
-	private String chrName;
-
-	/**
-	 * 染色体对应参考基因组长度
-	 */
-	private int length;
-
-	/**
-	 * 二进制格式的序列。 每4个bit表示一个碱基的信息: 第一位表示dbSNPstatus 第二位表示N 最后两位表示碱基类型，其中A: 00, C:
-	 * 01, T: 10, G:11 每个long类型变量可以存储16个碱基的信息
-	 */
-	// private MappedByteBuffer[] refSeq; // reference seq map
-
-	/**
-	 * dbSNP 信息
-	 */
-	private ChromosomeDbSNPShare dbsnpInfo;
-
-	/**
-	 * @return the chrName
-	 */
-	public String getChromosomeName() {
-		return chrName;
-	}
-
-	/**
-	 * @param chrName
-	 *            the chrName to set
-	 */
-	public void setChromosomeName(String chrName) {
-		this.chrName = chrName;
-	}
-
-	/**
-	 * 设置染色体对应参考基因组长度
-	 * 
-	 * @param chrLen
-	 *            染色体长度
-	 */
-	public void setLength(int chrLen) {
-		length = chrLen;
-	}
-
-	/**
-	 * 获取染色体对应参考基因组长度
-	 */
-	public int getLength() {
-		return length;
-	}
-
-	/**
-	 * 映射一条染色体文件到内存
-	 * 
-	 * @param chr
-	 *            染色体文件名
-	 * @throws IOException
-	 */
-	public void loadChromosome(String chr) throws IOException {
-		loadInformation(chr);
-	}
-
-	/**
-	 * 映射dbSNP信息到内存 有dbsnp信息才初始化dbsnpInfo
-	 * 
-	 * @throws IOException
-	 * @param dbsnpPath
-	 *            dbSNP path
-	 * @return 0
-	 */
-	public void loadDbSNP(String dbsnpPath, String indexPath, int size)
-			throws IOException {
-		dbsnpInfo = new ChromosomeDbSNPShare(dbsnpPath, indexPath, size);
-	}
-
-	/**
-	 * 获取dbsnp信息
-	 * 
-	 * @param
-	 * @return ChromosomeDbSNPShare
-	 */
-	public ChromosomeDbSNPShare getDbsnpInfo() {
-		return dbsnpInfo;
-	}
-
-	public byte[] getBytes(int start, int end) {
-		if (start > length)
-			throw new OutOfBoundException(start, length);
-
-		byte[] bases;
-
-		int posi = start / CAPACITY;
-		int pose;
-		if (end >= length) {
-			pose = (length - 1) / CAPACITY;
-		} else {
-			pose = end / CAPACITY;
-		}
-		bases = new byte[pose - posi + 1];
-		byteBuffer[0].position(posi);
-		byteBuffer[0].get(bases, 0, pose - posi + 1);
-		byteBuffer[0].position(0);
-
-		return bases;
+public class ChromosomeInformationShare extends BioMemoryShare {
+	
+	public ChromosomeInformationShare(){
+		super(Byte.SIZE / 4);
 	}
 
 	/**
@@ -180,6 +72,10 @@ public class ChromosomeInformationShare extends InformationShare {
 					.getFastaAbb((bases[bases.length - 1] >> 4) & 0x0f));
 		}
 		return seq.toString();
+	}
+	
+	public byte[] getBaseBytes(int start,int end){
+		return getBaseSequence(start,end).getBytes();
 	}
 
 	/**

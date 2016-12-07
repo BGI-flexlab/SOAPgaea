@@ -9,7 +9,7 @@ import org.bgi.flexlab.gaea.data.mapreduce.input.vcf.VCFHdfsLoader;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
-import org.bgi.flexlab.gaea.data.structure.reference.GenomeShare;
+import org.bgi.flexlab.gaea.data.structure.reference.ReferenceShare;
 //import org.bgi.flexlab.gaea.data.structure.vcf.index.VCFLoader;
 import org.bgi.flexlab.gaea.tools.mapreduce.realigner.RealignerOptions;
 import org.bgi.flexlab.gaea.util.Window;
@@ -17,7 +17,7 @@ import org.bgi.flexlab.gaea.variant.filter.VariantRegionFilter;
 
 public class RealignerEngine {
 	private RealignerOptions option = null;
-	private GenomeShare genomeShare = null;
+	private ReferenceShare genomeShare = null;
 	private VCFHdfsLoader loader = null;
 	private ChromosomeInformationShare chrInfo = null;
 	private ArrayList<VariantContext> knowIndels = null;
@@ -29,7 +29,7 @@ public class RealignerEngine {
 	private IndelRealigner indelRealigner = null;
 	private RealignerWriter writer = null;
 
-	public RealignerEngine(RealignerOptions option, GenomeShare genomeShare, VCFHdfsLoader loader, SAMFileHeader mHeader,
+	public RealignerEngine(RealignerOptions option, ReferenceShare genomeShare, VCFHdfsLoader loader, SAMFileHeader mHeader,
 			RealignerWriter writer) {
 		this.option = option;
 		this.genomeShare = genomeShare;
@@ -50,7 +50,7 @@ public class RealignerEngine {
 		indelRealigner = new IndelRealigner(mHeader, knowIndels, win, chrInfo, option);
 	}
 
-	private void setChromosome(GenomeShare genomeShare) {
+	private void setChromosome(ReferenceShare genomeShare) {
 		chrInfo = genomeShare.getChromosomeInfo(win.getContigName());
 	}
 
