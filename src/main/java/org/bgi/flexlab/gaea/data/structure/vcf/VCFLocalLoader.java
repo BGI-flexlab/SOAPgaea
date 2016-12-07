@@ -45,4 +45,7 @@ public class VCFLocalLoader {
 		return reader.getFileHeader();
 	}
 	
+	public void close() {
+		reader.close();
+	}
 }
