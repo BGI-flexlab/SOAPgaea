@@ -135,6 +135,11 @@
 			<artifactId>gson</artifactId>
 			<version>2.6.2</version>
 		</dependency>
+		<dependency>
+			<groupId>org.tukaani</groupId>
+			<artifactId>xz</artifactId>
+			<version>1.5</version>
+		</dependency>
 	</dependencies>
 
 	<repositories>
