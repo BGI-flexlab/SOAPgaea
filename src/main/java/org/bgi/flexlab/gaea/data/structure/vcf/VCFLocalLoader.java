@@ -40,8 +40,6 @@ import htsjdk.variant.vcf.VCFHeader;
 public class VCFLocalLoader {
 	
 	public static final Set<String> BLOCK_COMPRESSED_EXTENSIONS = Collections.unmodifiableSet(new HashSet<String>(Arrays.asList(".gz", ".gzip", ".bgz", ".bgzf")));
-
-	VCFFileReader reader;
 		
 	private String input, idxFile;
 		
@@ -116,8 +114,9 @@ public class VCFLocalLoader {
 		}
 	}
 	
-	public CloseableIterator<VariantContext> query(String chr, int start, int end) {
-		return reader.query(chr, start, end);
+//	FIXME:function need to be fulfilled
+	public void query(String chr, int start, int end) {
+
 	}
 
 	private void readHeader() throws IOException {
