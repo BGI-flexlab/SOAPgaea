@@ -57,20 +57,20 @@ public class VCFLocalLoader {
 		codec = new VCFCodec();
 		input = dbSNP;
 		readHeader();
+		seekableStream = new SeekableFileInputStream(input);
 		idxFile = format(dbSNP);
 		if(!(new File(idxFile)).exists()) {
 			vcfIndex index = new vcfIndex();
 			index.buildIndex(refPath, dbSNP, idxFile);
 		}
-		seekableStream = new SeekableFileInputStream(input);
 	}
-//	use for test
-	public VCFLocalLoader(String dbSNP) throws IOException {
-		codec = new VCFCodec();
-		input = dbSNP;
-		seekableStream = new SeekableFileInputStream(input);
-		readHeader();
-	}
+////	use for test
+//	public VCFLocalLoader(String dbSNP) throws IOException {
+//		codec = new VCFCodec();
+//		input = dbSNP;
+//		seekableStream = new SeekableFileInputStream(input);
+//		readHeader();
+//	}
 	
 	public Iterator<PositionalVariantContext> iterator() throws IOException {
 		return collect();
@@ -140,8 +140,7 @@ public class VCFLocalLoader {
 	}
 	
 	public static String format(String inputFile) {
-//		FIXME:replace with inputFile + vcfIndex.INDEX_SUFFIX
-		return inputFile + "window.index";
+		return inputFile + vcfIndex.INDEX_SUFFIX;
 	}
 	
 	public VCFHeader getHeader() {
