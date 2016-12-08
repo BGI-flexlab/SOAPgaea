@@ -29,7 +29,7 @@ public abstract class VariantFilter {
 
 	public ArrayList<VariantContext> loadFilter(VCFHdfsLoader loader, String referenceName, int start, int end) {
 		try {
-			return loader.load(referenceName, start, end);
+			return loader.query(referenceName, start, end);
 		} catch (IOException e) {
 			throw new RuntimeException(e.toString());
 		}
