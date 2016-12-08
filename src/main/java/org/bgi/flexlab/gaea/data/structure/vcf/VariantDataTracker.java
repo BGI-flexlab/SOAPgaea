@@ -107,7 +107,7 @@ public class VariantDataTracker {
 			val = site;
 		} else {
 			try {
-				List<VariantContext> temp = loader.load(curLocation.getContig(), curLocation.getStart(), curLocation.getStop());
+				List<VariantContext> temp = loader.query(curLocation.getContig(), curLocation.getStart(), curLocation.getStop());
 				if(temp!=null) {
 					val=new HashSet<Integer>();
 					for(VariantContext c:temp) {
@@ -176,7 +176,7 @@ public class VariantDataTracker {
 	
 	private void loadVariantContext() {
 		try {
-			ArrayList<VariantContext> temp = loader.load(window.getContigName(), window.getStart(), window.getStop());
+			ArrayList<VariantContext> temp = loader.query(window.getContigName(), window.getStart(), window.getStop());
 			if(temp!=null)
 				data = temp;
 			else
@@ -192,7 +192,7 @@ public class VariantDataTracker {
 			result = data;
 		} else {
 			try {
-				result = loader.load(curLocation.getContig(), curLocation.getStart(), curLocation.getStop());
+				result = loader.query(curLocation.getContig(), curLocation.getStart(), curLocation.getStop());
 			} catch (IOException e) {
 				e.printStackTrace();
 			}

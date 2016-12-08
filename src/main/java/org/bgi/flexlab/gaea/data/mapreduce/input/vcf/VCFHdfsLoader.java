@@ -91,7 +91,11 @@ public class VCFHdfsLoader {
 		return result.iterator();
 	}
 	
-	public ArrayList<VariantContext> load(String chr, int start, int end)
+	public void query(String chr, int winID) {
+		
+	}
+	
+	public ArrayList<VariantContext> query(String chr, int start, int end)
 			throws IOException {
 
 		if (idx == null)
@@ -146,14 +150,5 @@ public class VCFHdfsLoader {
 	
 	public VCFHeader getHeader() {
 		return (VCFHeader)(((FeatureCodecHeader)header).getHeaderValue());
-	}
-	
-	public static void main(String[] args ) throws IllegalArgumentException, IOException{
-		VCFHdfsLoader loader = new VCFHdfsLoader(args[0]);
-		Iterator<VariantContext> iterator = loader.iterator();
-		while(iterator.hasNext()) {
-			VariantContext vContext = iterator.next();
-			System.out.println(vContext.getChr() + "\t" + vContext.getStart());
-		}
 	}
 }
