@@ -64,10 +64,12 @@ public class VCFLocalLoader {
 		return pvc;
 	}
 	
+	@Deprecated
 	public Iterator<PositionalVariantContext> iterator() throws IOException {
 		return collect();
 	}
 	
+	@Deprecated
 	public Iterator<PositionalVariantContext> iterator(long pos) throws IOException {
 		seek(pos);;
 		return collect();
