@@ -175,7 +175,9 @@
 						<addMavenDescriptor>false</addMavenDescriptor>
 						<manifest>
 							<addClasspath>true</addClasspath>
-							<mainClass>org.bgi.flexlab.gaea.framework.tools.mapreduce.Main</mainClass>
+							<!--mainClass>org.bgi.flexlab.gaea.framework.tools.mapreduce.Main</mainClass-->
+							<!--mainClass>org.bgi.flexlab.gaea.data.structure.dbsnp.DbsnpShare</mainClass-->
+							<mainClass>org.bgi.flexlab.gaea.data.structure.reference.index.VcfIndex</mainClass>
 						</manifest>
 					</archive>
 				</configuration>
