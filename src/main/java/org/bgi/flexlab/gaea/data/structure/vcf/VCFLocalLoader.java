@@ -11,7 +11,7 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.zip.GZIPInputStream;
 
-import org.bgi.flexlab.gaea.data.structure.reference.index.VcfIndex;
+//import org.bgi.flexlab.gaea.data.structure.reference.index.VcfIndex;
 import org.tukaani.xz.SeekableFileInputStream;
 
 import htsjdk.tribble.FeatureCodecHeader;
@@ -32,6 +32,8 @@ public class VCFLocalLoader {
 		
 	private SeekableFileInputStream seekableStream = null; 
 	
+	private AsciiLineReaderIterator iterator;
+	
 	private VCFCodec codec;
 	
 	private FeatureCodecHeader header;
@@ -43,6 +45,23 @@ public class VCFLocalLoader {
 		input = dbSNP;
 		readHeader();
 		seekableStream = new SeekableFileInputStream(input);
+		seek(0);
+	}
+	
+	public boolean hasNext() {
+		return iterator.hasNext();
+	}
+	
+	public PositionalVariantContext next() {
+		long pos = iterator.getPosition() + this.pos;
+		String line = iterator.next();
+		while(line.startsWith(VCFHeader.HEADER_INDICATOR)) {
+			pos = iterator.getPosition() + this.pos;
+			line = iterator.next();
+		}
+		VariantContext vc = codec.decode(line);
+		PositionalVariantContext pvc = new PositionalVariantContext(vc, pos);
+		return pvc;
 	}
 	
 	public Iterator<PositionalVariantContext> iterator() throws IOException {
@@ -55,9 +74,6 @@ public class VCFLocalLoader {
 	}
 	
 	private Iterator<PositionalVariantContext> collect() throws IOException {
-		@SuppressWarnings("resource")
-		AsciiLineReaderIterator iterator = new AsciiLineReaderIterator(
-				new AsciiLineReader(seekableStream));
 		ArrayList<PositionalVariantContext> variantContexts = new ArrayList<>();
 		while(iterator.hasNext()) {
 			long pos = iterator.getPosition() + this.pos;
@@ -114,9 +130,9 @@ public class VCFLocalLoader {
         }	
 	}
 	
-	public static String format(String inputFile) {
-		return inputFile + VcfIndex.INDEX_SUFFIX;
-	}
+//	public static String format(String inputFile) {
+//		return inputFile + VcfIndex.INDEX_SUFFIX;
+//	}
 	
 	public VCFHeader getHeader() {
 		return (VCFHeader)(header.getHeaderValue());
@@ -125,6 +141,7 @@ public class VCFLocalLoader {
 	public void seek(long pos) throws IOException {
 		this.pos = pos;
 		seekableStream.seek(this.pos);
+		iterator = new AsciiLineReaderIterator(new AsciiLineReader(seekableStream));
 	}
 	
 	public static boolean hasBlockCompressedExtension(String fileName){
@@ -136,11 +153,12 @@ public class VCFLocalLoader {
 	}
 	
 	public void close() {
-		if(seekableStream != null)
+		if(iterator != null)
 			try {
-				seekableStream.close();
+				iterator.close();
 			} catch (IOException e) {
 				throw new RuntimeException(e.toString());
 			}
 	}
+	
 }
