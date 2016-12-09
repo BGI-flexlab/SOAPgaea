@@ -46,7 +46,7 @@ public class ChromosomeInformation {
 	public void setBinarySequence(String sequence) {
 		// 为类成员变量length赋值
 		length = sequence.length();
-		int capacity = length;
+		int capacity = length / SystemConfiguration.getCapacity();
 		if (length % SystemConfiguration.getCapacity() != 0)
 			capacity++;
 
@@ -55,8 +55,8 @@ public class ChromosomeInformation {
 
 		// 处理碱基序列的每一个字符，初始化binarySeq数组。每个碱基用4bit表示。
 		for (int i = 0; i < sequence.length(); i++) {
-			binarySeq[i / SystemConfiguration.getCapacity()] |= ((((byte) sequence
-					.charAt(i) >> 1) & 7) << (i % SystemConfiguration.getCapacity() * 4));
+			binarySeq[i / SystemConfiguration.getCapacity()] |= ((((byte) sequence.charAt(i) >> 1) & 7) << (i
+					% SystemConfiguration.getCapacity() * 4));
 		}
 	}
 
@@ -68,8 +68,8 @@ public class ChromosomeInformation {
 	 */
 	public void insertSnpInformation(int pos) {
 		byte intValue = 1;
-		binarySeq[pos / SystemConfiguration.getCapacity()] |= (intValue << (pos
-				% SystemConfiguration.getCapacity() * 4 + 3));
+		binarySeq[pos
+				/ SystemConfiguration.getCapacity()] |= (intValue << (pos % SystemConfiguration.getCapacity() * 4 + 3));
 	}
 
 	/**
@@ -80,8 +80,7 @@ public class ChromosomeInformation {
 	 * @throws IOException
 	 */
 	public void outputChrInformation(String outPath) throws IOException {
-		DataOutputStream out = new DataOutputStream(new BufferedOutputStream(
-				new FileOutputStream(outPath)));
+		DataOutputStream out = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(outPath)));
 		out.write(binarySeq);
 		out.close();
 	}

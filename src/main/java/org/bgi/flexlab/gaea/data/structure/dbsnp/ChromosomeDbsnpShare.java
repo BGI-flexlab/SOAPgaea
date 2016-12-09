@@ -1,58 +1,56 @@
 package org.bgi.flexlab.gaea.data.structure.dbsnp;
 
-import java.util.Arrays;
-
 import org.bgi.flexlab.gaea.data.structure.memoryshare.BioMemoryShare;
-
-import htsjdk.variant.variantcontext.VariantContext.Type;
+import org.bgi.flexlab.gaea.data.structure.reference.index.VcfIndex;
 
 public class ChromosomeDbsnpShare extends BioMemoryShare {
+	private final static int WINDOW_SIZE = VcfIndex.WINDOW_SIZE;
+	private final static int CAPACITY = Long.SIZE / Byte.SIZE;
 
 	public ChromosomeDbsnpShare() {
-		super(Byte.SIZE / 2);
+		super(1);
 	}
 
-	/**
-	 * start and end are minimum : 0 ,maximum :length-1
-	 */
-	public Type[] getSnpInformation(int start, int end) {
-		byte[] snps = getBytes(start, end);
-		int len = snps.length;
-		int i;
+	public long getStartPosition(int winNum, int winSize) {
+		if (winNum * winSize >= getLength())
+			throw new RuntimeException("position is more than chromosome length.");
+
+		if (winSize == 0)
+			winSize = WINDOW_SIZE;
+
+		if (winSize % WINDOW_SIZE != 0)
+			throw new RuntimeException("window size is not multiple for " + WINDOW_SIZE);
+
+		int multipe = winSize / WINDOW_SIZE;
+
+		int minWinNum = winNum * multipe;
+		int maxWinNum = (winNum + 1) * multipe;
 		
-		byte[] bytes = new byte[len*4];
-		for(i = 0 ; i < len ; i++){
-			bytes[i<<2] = (byte)((snps[i]>>6) & 0x3);
-			bytes[(i<<2) + 1] = (byte)((snps[i]>>4) & 0x3);
-			bytes[(i<<2) + 2]= (byte)((snps[i]>>2) & 0x3);
-			bytes[(i<<2) + 3] = (byte)((snps[i]) & 0x3);
-		}
-		
-		Type[] types = new Type[end-start+1];
-		Arrays.fill(types, Type.NO_VARIATION);
-		
-		int s = start - ((start>>2)<<2);
-		int e = end - ((start>>2)<<2) + 1;
-		
-		for( i = s ; i < e ; i++){
-			if(i >= len)
-				break;
+		if(minWinNum * CAPACITY >= fcSize)
+			return -1;
+		int end = maxWinNum * CAPACITY - 1;
+		if(end >= fcSize)
+			end = (fcSize - 1);
 			
-			if(bytes[i] == 1)
-				types[i-s] = Type.SNP;
-			else if(bytes[i] == 2)
-				types[i-s] = Type.INDEL;
-			else if(bytes[i] == 3)
-				types[i-s] = Type.MIXED;
-		}
-		
-		snps = null;
+		byte[] indexs = getBytes(minWinNum * CAPACITY, end);
 
-		return types;
+		long position = 0;
+
+		for (int j = 0; j < indexs.length; j += CAPACITY) {
+			for (int i = 0; i < CAPACITY; i++) {
+				position <<= CAPACITY;
+				position |= (indexs[j + i] & 0xff);
+			}
+			if (position != 0)
+				return position;
+
+			position = 0;
+		}
+
+		return -1;
 	}
 
-	public Type getSnpInformation(int position) {
-		Type type = getSnpInformation(position, position)[0];
-		return type;
+	public long getStartPosition(int winNum) {
+		return getStartPosition(winNum, WINDOW_SIZE);
 	}
 }
