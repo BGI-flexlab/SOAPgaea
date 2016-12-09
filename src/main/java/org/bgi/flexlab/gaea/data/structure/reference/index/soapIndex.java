@@ -12,7 +12,7 @@ import java.io.IOException;
 
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformation;
 
-public class soapIndex extends referenceIndex {
+public class SoapIndex extends ReferenceIndex {
 
 	private static byte getSnpBasicInfo(String[] info) {
 		byte snpBasicInfo = 0;
@@ -151,7 +151,7 @@ public class soapIndex extends referenceIndex {
 
 	@SuppressWarnings("resource")
 	@Override
-	protected void dbsnpParser(String dbSnpListPath, String outputPath) {
+	protected void dbsnpParser(String dbSnpListPath,String outputPath) {
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(dbSnpListPath));
 			String line;

@@ -7,47 +7,75 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Iterator;
 
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformation;
 import org.bgi.flexlab.gaea.data.structure.vcf.VCFLocalLoader;
+import org.bgi.flexlab.gaea.data.structure.vcf.VCFLocalLoader.PositionalVariantContext;
+import org.bgi.flexlab.gaea.util.ChromosomeUtils;
 
 import htsjdk.variant.variantcontext.VariantContext;
-import htsjdk.variant.variantcontext.VariantContext.Type;
 
-public class vcfIndex extends referenceIndex {
+public class VcfIndex extends ReferenceIndex {
+	public final static String INDEX_SUFFIX = ".window.idx";
+	public final static int WINDOW_SIZE = 100;
+	private int capacity = Long.SIZE / Byte.SIZE;
+
+	public VcfIndex() {
+	}
 
 	private void saveAsBinary(String outputPath, byte[] binaries) throws IOException {
+		System.err.println("starting writing:"+binaries.length);
 		DataOutputStream out = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(outputPath)));
 		out.write(binaries);
 		out.close();
 	}
 
-	private void insertSNPInformation(byte[] sequences, int position, byte flag) {
-		int index = position >> 2;
+	private void setBinaryIndex(int winNum, byte[] indexs, long position) {
+		int index = winNum * capacity;
 
-		int leftMove = Byte.SIZE - 2 - ((position & 0x3) * 2);
-
-		sequences[index] |= (flag << leftMove);
+		int move;
+		for (int i = 0; i < capacity; i++) {
+			move = 56 - i * 8;
+			indexs[index + i] = (byte) ((position >> move) & 0xff);
+		}
 	}
 
-	@SuppressWarnings("resource")
+	private void insertSnpInformation(ChromosomeInformation curChrInfo, VariantContext context, byte[] sequences) {
+		for (int pos = context.getStart(); pos <= context.getEnd(); pos++) {
+			if (pos > curChrInfo.getLength())
+				break;
+			curChrInfo.insertSnpInformation(pos - 1);
+		}
+	}
+
+	private void fileWriter(FileWriter bnListWriter, String outputPath, String lastChrName, int lastLength) {
+		try {
+			bnListWriter.write(lastChrName);
+			bnListWriter.write("\t");
+			bnListWriter.write(outputPath + "/" + lastChrName + ".dbsnp.bn");
+			bnListWriter.write("\t");
+			bnListWriter.write(String.valueOf(lastLength));
+			bnListWriter.write("\n");
+		} catch (IOException e) {
+			throw new RuntimeException(e.toString());
+		}
+	}
+
 	@Override
 	protected void dbsnpParser(String dbsnpPath, String outputPath) {
 		VCFLocalLoader reader = null;
 		try {
 			reader = new VCFLocalLoader(dbsnpPath);
-		} catch (IOException e1) {
-			throw new RuntimeException(e1.toString());
+		} catch (IOException e2) {
+			throw new RuntimeException(e2.toString());
 		}
-		Iterator<VariantContext> iterator = reader.iterator();
 
 		String lastChrName = null;
 		int lastLength = -1;
 		ChromosomeInformation curChrInfo = null;
-		byte[] sequences = null;
+		byte[] binaryIndex = null;
 
-		String dbsnpList = outputPath + "/dbsnp_bn.list";
+		String dbsnpList = dbsnpPath + INDEX_SUFFIX;
 		FileWriter bnListWriter = null;
 		try {
 			bnListWriter = new FileWriter(new File(dbsnpList));
@@ -55,9 +83,13 @@ public class vcfIndex extends referenceIndex {
 			throw new RuntimeException(e1.toString());
 		}
 
-		while (iterator.hasNext()) {
-			VariantContext context = iterator.next();
-			String chrName = context.getContig();
+		int lastWinNum = -1;
+
+		while (reader.hasNext()) {
+			PositionalVariantContext posContext = reader.next();
+			long currPos = posContext.getPosition();
+			VariantContext context = posContext.getVariantContext();
+			String chrName = ChromosomeUtils.formatChrName(context.getContig());
 
 			if (lastChrName == null || !lastChrName.equals(chrName)) {
 				curChrInfo = chromosomeInfoMap.get(chrName);
@@ -65,51 +97,71 @@ public class vcfIndex extends referenceIndex {
 					throw new RuntimeException(
 							"> Failed appending dbSNP information. No information related to chromosome name: "
 									+ chrName);
+				int len = curChrInfo.getLength() / WINDOW_SIZE;
+				if ((curChrInfo.getLength() % WINDOW_SIZE) != 0)
+					len++;
+
 				if (lastChrName != null && !lastChrName.equals(chrName)) {
 					try {
-						saveAsBinary(outputPath + "/" + lastChrName + ".dbsnp.bn", sequences);
+						saveAsBinary(outputPath + "/" + lastChrName + ".dbsnp.bn", binaryIndex);
 					} catch (IOException e) {
 						throw new RuntimeException(e.toString());
 					}
-					try {
-						bnListWriter.write(chrName);
-						bnListWriter.write("\t");
-						bnListWriter.write(outputPath + "/" + lastChrName + ".dbsnp.bn");
-						bnListWriter.write("\t");
-						bnListWriter.write(String.valueOf(lastLength));
-						bnListWriter.write("\n");
-					} catch (IOException e) {
-						throw new RuntimeException(e.toString());
-					}
-
-					sequences = null;
-					sequences = new byte[(curChrInfo.getLength() + 3) / 4];
-					Arrays.fill(sequences, 0, sequences.length, (byte) 0);
+					fileWriter(bnListWriter, outputPath, lastChrName, lastLength);
 				}
+				
+				binaryIndex = null;
+				binaryIndex = new byte[len * capacity];
+				Arrays.fill(binaryIndex, 0, binaryIndex.length, (byte) 0);
+
 				lastChrName = chrName;
 				lastLength = curChrInfo.getLength();
-			}
-
-			for (int pos = context.getStart(); pos <= context.getEnd(); pos++) {
-				if (pos < curChrInfo.getLength()) {
-					curChrInfo.insertSnpInformation(pos - 1);
-					byte flag = 0;
-					if (context.getType() == Type.SNP)
-						flag = 1;
-					else if (context.getType() == Type.INDEL)
-						flag = 2;
-					else if (context.getType() == Type.MIXED)
-						flag = 3;
-					insertSNPInformation(sequences, pos - 1, flag);
+				
+				if(lastChrName != null && lastChrName.equals("chr1")){
+					System.err.print("chrName:"+lastChrName+"\t"+lastLength+"\t"+binaryIndex.length);
 				}
 			}
+
+			int currWinNum = ((context.getStart() - 1) / WINDOW_SIZE);
+
+			if (lastWinNum != currWinNum) {
+				lastWinNum = currWinNum;
+				setBinaryIndex(currWinNum, binaryIndex, currPos);
+			}
+
+			insertSnpInformation(curChrInfo, context, binaryIndex);
 		}
 
+		try {
+			saveAsBinary(outputPath + "/" + lastChrName + ".dbsnp.bn", binaryIndex);
+		} catch (IOException e) {
+			throw new RuntimeException(e.toString());
+		}
+
+		fileWriter(bnListWriter, outputPath, lastChrName, lastLength);
+
 		reader.close();
+
 		try {
 			bnListWriter.close();
 		} catch (IOException e) {
 			throw new RuntimeException(e.toString());
 		}
+	}
+
+	public static void main(String[] args) {
+		VcfIndex index = new VcfIndex();
+
+		if (args.length < 2) {
+			System.err.println("java -Xmx10g -jar gaea-1.0.0.jar reference_path dbsnp_path output_path");
+			System.exit(1);
+		}
+		
+		if(args.length == 2)
+			index.buildIndex(args[0], args[1], null);
+		else
+			index.buildIndex(args[0], args[1], args[2]);
+
+		System.out.println("build index finish!!");
 	}
 }

@@ -23,7 +23,7 @@ import org.bgi.flexlab.gaea.util.ChromosomeUtils;
  *
  * @author ZhangYong, ZhangZhi
  */
-public abstract class referenceIndex {
+public abstract class ReferenceIndex {
 	/**
 	 * chromosome information map
 	 */
@@ -136,14 +136,31 @@ public abstract class referenceIndex {
 		String abs = file.getAbsolutePath();
 		return abs;
 	}
+	
+	private void createDirectory(String path){
+		File file = new File(path);
+		
+		if(!file.exists())
+			file.mkdirs();
+		else
+			throw new RuntimeException("output directory is exist,please remove first!");
+	}
 
 	public void buildIndex(String refPath, String dbsnpListPath, String indexOutputPath) {
+		if(indexOutputPath == null){
+			File file = new File(refPath);
+			indexOutputPath = file.getParentFile()+"/WindowIndex/";
+		}
+			
 		indexOutputPath = absoluteOutputPath(indexOutputPath);
 		if (!indexOutputPath.endsWith("/"))
 			indexOutputPath += "/";
 		
 		String referenceIndexOutputPath = indexOutputPath + "reference";
 		String dbsnpIndexOutputPath = indexOutputPath + "dbsnp";
+		
+		createDirectory(referenceIndexOutputPath);
+		createDirectory(dbsnpIndexOutputPath);
 
 		try {
 			loadReference(refPath);
@@ -151,7 +168,7 @@ public abstract class referenceIndex {
 			throw new RuntimeException(e.toString());
 		}
 
-		dbsnpParser(dbsnpListPath, dbsnpIndexOutputPath);
+		dbsnpParser(dbsnpListPath,dbsnpIndexOutputPath);
 
 		try {
 			referenceSaveAsBinary(referenceIndexOutputPath);
@@ -160,5 +177,5 @@ public abstract class referenceIndex {
 		}
 	}
 	
-	protected abstract void dbsnpParser(String dbSnpListPath, String outputPath);
+	protected abstract void dbsnpParser(String dbSnpListPath,String outputPath);
 }
