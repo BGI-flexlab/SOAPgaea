@@ -3,49 +3,43 @@ package org.bgi.flexlab.gaea.data.structure.reference;
 import org.bgi.flexlab.gaea.exception.OutOfBoundException;
 
 public class BaseAndSNPInformation {
-	private byte[] bytes = null;
+	private boolean[] snps = null;
 	private int start;
-	
-	public BaseAndSNPInformation(byte[] bytes,int start){
-		this.bytes = bytes;
+	private String sequences = null;
+
+	public BaseAndSNPInformation(ChromosomeInformationShare chrInfo, int start, int end) {
+		set(chrInfo, start, end);
+	}
+
+	public void set(ChromosomeInformationShare chrInfo, int start, int end) {
 		this.start = start;
+		byte[] bases = chrInfo.getBytes(start, end);
+
+		sequences = chrInfo.getBaseSequence(bases, start, end);
+		snps = chrInfo.isSNPs(bases, start, end);
 	}
-	
-	public void setBytes(byte[] bytes){
-		this.bytes = bytes;
-	}
-	
-	public void setStart(int start){
-		this.start = start;
-	}
-	
-	public boolean[] getSNPs(){
-		if(bytes == null)
-			return null;
-		int len = bytes.length;
-		boolean[] snps = new boolean[len];
-		
-		for(int i = 0 ; i < len ; i++){
-			if(((bytes[i] >> 3) & 0x1) == 0)
-				snps[i] = false;
-			else
-				snps[i] = true;
-		}
-		
+
+	public boolean[] getSNPs() {
 		return snps;
 	}
-	
-	public boolean getSNP(int pos){
+
+	public boolean getSNP(int pos) {
 		int index = pos - start;
-		if(index >= bytes.length)
-			throw new OutOfBoundException(pos,start+bytes.length);
-		
-		if(((bytes[index] >> 3 ) & 0x1) == 0)
-			return false;
-		return true;
+		if (index >= snps.length)
+			throw new OutOfBoundException(pos, start + snps.length);
+
+		return snps[index];
 	}
-	
-	public byte[] getBytes(){
-		return bytes;
+
+	public String getSequences() {
+		return sequences;
+	}
+
+	public char getBase(int pos) {
+		int index = pos - start;
+		if (index >= sequences.length())
+			throw new OutOfBoundException(pos, start + sequences.length());
+
+		return sequences.charAt(index);
 	}
 }

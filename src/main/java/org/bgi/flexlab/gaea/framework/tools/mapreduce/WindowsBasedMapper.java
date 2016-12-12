@@ -20,8 +20,7 @@ import org.bgi.flexlab.gaea.util.SamRecordUtils;
 import org.seqdoop.hadoop_bam.SAMRecordWritable;
 
 public class WindowsBasedMapper
-		extends
-		Mapper<LongWritable, SAMRecordWritable, WindowsBasedWritable, SAMRecordWritable> {
+		extends Mapper<LongWritable, SAMRecordWritable, WindowsBasedWritable, SAMRecordWritable> {
 
 	public final static String WINDOWS_SIZE = "windows.size";
 	public final static String WINDOWS_EXTEND_SIZE = "windows.extend.size";
@@ -39,12 +38,11 @@ public class WindowsBasedMapper
 	private SamRecordFilter recordFilter = null;
 	private RegionHdfsParser region = null;
 	private SAMRecordWritable outputValue = new SAMRecordWritable();
-	
-	private HashMap<String,Integer> sampleIDs = null;
+
+	private HashMap<String, Integer> sampleIDs = null;
 
 	@Override
-	protected void setup(Context context) throws IOException,
-			InterruptedException {
+	protected void setup(Context context) throws IOException, InterruptedException {
 		Configuration conf = context.getConfiguration();
 		windowsSize = conf.getInt(WINDOWS_SIZE, 10000);
 		windowsExtendSize = conf.getInt(WINDOWS_EXTEND_SIZE, 500);
@@ -54,14 +52,13 @@ public class WindowsBasedMapper
 
 		if (header == null) {
 			String[] filename = context.getInputSplit().toString().split("/|:");
-			throw new FileNotExistException.MissingHeaderException(
-					filename[filename.length - 2]);
+			throw new FileNotExistException.MissingHeaderException(filename[filename.length - 2]);
 		}
-		
-		sampleIDs = new HashMap<String,Integer>();
-		
+
+		sampleIDs = new HashMap<String, Integer>();
+
 		List<SAMReadGroupRecord> list = header.getReadGroups();
-		for(int i = 0 ; i < list.size() ; i++){
+		for (int i = 0; i < list.size(); i++) {
 			sampleIDs.put(list.get(i).getSample(), i);
 		}
 
@@ -70,10 +67,8 @@ public class WindowsBasedMapper
 			recordFilter = new SamRecordFilter.DefaultSamRecordFilter();
 		} else {
 			try {
-				recordFilter = (SamRecordFilter) (Class.forName(className)
-						.newInstance());
-			} catch (InstantiationException | IllegalAccessException
-					| ClassNotFoundException e) {
+				recordFilter = (SamRecordFilter) (Class.forName(className).newInstance());
+			} catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
 				throw new RuntimeException(e.toString());
 			}
 		}
@@ -87,52 +82,42 @@ public class WindowsBasedMapper
 	protected int[] getExtendPosition(int start, int end, int length) {
 		int[] winNum = new int[3];
 
-		winNum[1] = (int) (((start - windowsExtendSize) > 0 ? (start - windowsExtendSize)
-				: 0)
-				/ windowsSize);
+		winNum[1] = (int) (((start - windowsExtendSize) > 0 ? (start - windowsExtendSize) : 0) / windowsSize);
 		winNum[0] = start / windowsSize;
-		winNum[2] = (int) (((end + windowsExtendSize) > length ? length :(end + windowsExtendSize)
-				)
-				/ windowsSize);
+		winNum[2] = (int) (((end + windowsExtendSize) > length ? length : (end + windowsExtendSize)) / windowsSize);
 
 		return winNum;
 	}
 
 	protected void setKey(SAMRecord sam, int winNum) {
+		int sampleID = 0;
 		if (multiSample) {
-			if(!sampleIDs.containsKey(sam.getReadGroup().getSample()))
-				throw new RuntimeException("header isn't contains sample "+sam.getReadGroup().getSample());
-			int sampleID = sampleIDs.get(sam.getReadGroup().getSample());
-			keyout.set(sampleID, sam.getReferenceIndex(),
-					winNum, sam.getAlignmentStart());
-		} else {
-			keyout.set(sam.getReferenceIndex(), winNum, sam.getAlignmentStart());
+			if (!sampleIDs.containsKey(sam.getReadGroup().getSample()))
+				throw new RuntimeException("header isn't contains sample " + sam.getReadGroup().getSample());
+			sampleID = sampleIDs.get(sam.getReadGroup().getSample());
 		}
+		keyout.set(sampleID, sam.getReferenceIndex(), winNum, sam.getAlignmentStart());
 	}
 
 	protected void setUnmappedKey(SAMRecord sam) {
 		int sampleID = 0;
 		if (multiSample) {
-			if(!sampleIDs.containsKey(sam.getReadGroup().getSample()))
-				throw new RuntimeException("header isn't contains sample "+sam.getReadGroup().getSample());
+			if (!sampleIDs.containsKey(sam.getReadGroup().getSample()))
+				throw new RuntimeException("header isn't contains sample " + sam.getReadGroup().getSample());
 			sampleID = sampleIDs.get(sam.getReadGroup().getSample());
-			keyout.set(sampleID, -1,
-					sam.getReadName().hashCode(), sam.getReadName().hashCode());
-		} else {
-			keyout.set(-1, sam.getReadName().hashCode(),
-					sam.getReadName().hashCode());
 		}
+		keyout.set(sampleID, -1, sam.getReadName().hashCode(), sam.getReadName().hashCode());
 	}
 
 	@Override
-	protected void map(LongWritable key, SAMRecordWritable value,
-			Context context) throws IOException, InterruptedException {
+	protected void map(LongWritable key, SAMRecordWritable value, Context context)
+			throws IOException, InterruptedException {
 		SAMRecord sam = value.get();
 		sam.setHeader(header);
 		if (recordFilter.filter(sam, region)) {
 			return;
 		}
-		
+
 		outputValue.set(value.get());
 
 		if (SamRecordUtils.isUnmapped(sam)) {
@@ -142,10 +127,9 @@ public class WindowsBasedMapper
 		}
 
 		String chrName = sam.getReferenceName();
-		
-		int[] winNums = getExtendPosition(sam.getAlignmentStart(),
-				sam.getAlignmentEnd(), header.getSequence(chrName)
-						.getSequenceLength());
+
+		int[] winNums = getExtendPosition(sam.getAlignmentStart(), sam.getAlignmentEnd(),
+				header.getSequence(chrName).getSequenceLength());
 		for (int i = 0; i < 3; i++) {
 			if (i != 0 && winNums[i] == winNums[0]) {
 				continue;

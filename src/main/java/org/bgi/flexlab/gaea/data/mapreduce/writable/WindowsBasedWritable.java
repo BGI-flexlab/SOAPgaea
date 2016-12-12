@@ -57,8 +57,8 @@ public class WindowsBasedWritable implements WritableComparable<WindowsBasedWrit
 		return windowsInfo.get();
 	}
 
-	public String getWindowsInformation() {
-		return windowsInfo.toString();
+	public LongWritable getWindowsInformation() {
+		return windowsInfo;
 	}
 
 	public int getWindowsNumber() {
