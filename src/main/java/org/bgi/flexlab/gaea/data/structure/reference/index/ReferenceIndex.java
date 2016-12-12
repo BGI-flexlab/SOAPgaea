@@ -168,7 +168,8 @@ public abstract class ReferenceIndex {
 			throw new RuntimeException(e.toString());
 		}
 
-		dbsnpParser(dbsnpListPath,dbsnpIndexOutputPath);
+		if(dbsnpListPath != null)
+			dbsnpParser(dbsnpListPath,dbsnpIndexOutputPath);
 
 		try {
 			referenceSaveAsBinary(referenceIndexOutputPath);

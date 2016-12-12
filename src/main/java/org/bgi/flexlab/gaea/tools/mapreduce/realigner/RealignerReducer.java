@@ -16,7 +16,6 @@ import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.bam.filter.QualityControlFilter;
 import org.bgi.flexlab.gaea.data.structure.reference.ReferenceShare;
 import org.bgi.flexlab.gaea.exception.MissingHeaderException;
-import org.bgi.flexlab.gaea.framework.tools.mapreduce.WindowsBasedMapper;
 import org.bgi.flexlab.gaea.tools.realigner.RealignerEngine;
 import org.bgi.flexlab.gaea.util.SamRecordUtils;
 import org.bgi.flexlab.gaea.util.Window;
@@ -58,7 +57,7 @@ public class RealignerReducer
 	}
 
 	private boolean unmappedWindows(WindowsBasedWritable key) {
-		if (key.getChromosomeName().equals(WindowsBasedMapper.UNMAPPED_REFERENCE_NAME))
+		if (key.getChromosomeIndex() == SAMRecord.NO_ALIGNMENT_REFERENCE_INDEX)
 			return true;
 		return false;
 	}
@@ -67,10 +66,12 @@ public class RealignerReducer
 		int winNum = key.getWindowsNumber();
 		int winSize = option.getWindowsSize();
 		int start = winNum * winSize;
-		int stop = (winNum + 1) * winSize - 1 < mHeader.getSequence(key.getChromosomeName()).getSequenceLength()
-				? (winNum + 1) * winSize - 1 : mHeader.getSequence(key.getChromosomeName()).getSequenceLength();
 
-		return new Window(key.getChromosomeName(), start, stop);
+		String chrName = mHeader.getSequence(key.getChromosomeIndex()).getSequenceName();
+		int stop = (winNum + 1) * winSize - 1 < mHeader.getSequence(chrName).getSequenceLength()
+				? (winNum + 1) * winSize - 1 : mHeader.getSequence(chrName).getSequenceLength();
+
+		return new Window(chrName, start, stop);
 	}
 
 	private int getSamRecords(Iterable<SAMRecordWritable> values, ArrayList<GaeaSamRecord> records,
@@ -151,7 +152,7 @@ public class RealignerReducer
 		}
 		clear();
 	}
-	
+
 	@Override
 	protected void cleanup(Context context) throws IOException, InterruptedException {
 	}

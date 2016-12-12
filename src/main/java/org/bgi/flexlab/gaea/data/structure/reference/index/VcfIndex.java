@@ -63,6 +63,8 @@ public class VcfIndex extends ReferenceIndex {
 
 	@Override
 	protected void dbsnpParser(String dbsnpPath, String outputPath) {
+		if(dbsnpPath == null)
+			return;
 		VCFLocalLoader reader = null;
 		try {
 			reader = new VCFLocalLoader(dbsnpPath);

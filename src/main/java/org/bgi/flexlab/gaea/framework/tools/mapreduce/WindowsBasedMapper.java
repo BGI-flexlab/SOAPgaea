@@ -1,9 +1,12 @@
 package org.bgi.flexlab.gaea.framework.tools.mapreduce;
 
 import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.SAMReadGroupRecord;
 import htsjdk.samtools.SAMRecord;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.LongWritable;
@@ -36,6 +39,8 @@ public class WindowsBasedMapper
 	private SamRecordFilter recordFilter = null;
 	private RegionHdfsParser region = null;
 	private SAMRecordWritable outputValue = new SAMRecordWritable();
+	
+	private HashMap<String,Integer> sampleIDs = null;
 
 	@Override
 	protected void setup(Context context) throws IOException,
@@ -51,6 +56,13 @@ public class WindowsBasedMapper
 			String[] filename = context.getInputSplit().toString().split("/|:");
 			throw new FileNotExistException.MissingHeaderException(
 					filename[filename.length - 2]);
+		}
+		
+		sampleIDs = new HashMap<String,Integer>();
+		
+		List<SAMReadGroupRecord> list = header.getReadGroups();
+		for(int i = 0 ; i < list.size() ; i++){
+			sampleIDs.put(list.get(i).getSample(), i);
 		}
 
 		String className = conf.get(SAM_RECORD_FILTER);
@@ -88,19 +100,26 @@ public class WindowsBasedMapper
 
 	protected void setKey(SAMRecord sam, int winNum) {
 		if (multiSample) {
-			keyout.set(sam.getReadGroup().getSample(), sam.getReferenceName(),
+			if(!sampleIDs.containsKey(sam.getReadGroup().getSample()))
+				throw new RuntimeException("header isn't contains sample "+sam.getReadGroup().getSample());
+			int sampleID = sampleIDs.get(sam.getReadGroup().getSample());
+			keyout.set(sampleID, sam.getReferenceIndex(),
 					winNum, sam.getAlignmentStart());
 		} else {
-			keyout.set(sam.getReferenceName(), winNum, sam.getAlignmentStart());
+			keyout.set(sam.getReferenceIndex(), winNum, sam.getAlignmentStart());
 		}
 	}
 
 	protected void setUnmappedKey(SAMRecord sam) {
+		int sampleID = 0;
 		if (multiSample) {
-			keyout.set(sam.getReadGroup().getSample(), UNMAPPED_REFERENCE_NAME,
+			if(!sampleIDs.containsKey(sam.getReadGroup().getSample()))
+				throw new RuntimeException("header isn't contains sample "+sam.getReadGroup().getSample());
+			sampleID = sampleIDs.get(sam.getReadGroup().getSample());
+			keyout.set(sampleID, -1,
 					sam.getReadName().hashCode(), sam.getReadName().hashCode());
 		} else {
-			keyout.set(UNMAPPED_REFERENCE_NAME, sam.getReadName().hashCode(),
+			keyout.set(-1, sam.getReadName().hashCode(),
 					sam.getReadName().hashCode());
 		}
 	}

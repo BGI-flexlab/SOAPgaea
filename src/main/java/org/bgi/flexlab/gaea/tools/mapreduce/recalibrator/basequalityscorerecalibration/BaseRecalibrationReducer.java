@@ -32,105 +32,106 @@ public class BaseRecalibrationReducer extends Reducer<WindowsBasedWritable, SAMR
 	/**
 	 * win number
 	 */
-	private int winNum=-1;
+	private int winNum = -1;
 	/**
 	 * reference name
 	 */
-	private String referenceName="*";
+	private String referenceName = "*";
 	/**
 	 * windows start pos
 	 */
-	private int start=-1;
+	private int start = -1;
 	/**
 	 * window stop pos
 	 */
-	private int stop=-1;		
+	private int stop = -1;
 	/**
 	 * chromosome information
 	 */
 	private static ReferenceShare genome;
 
-	private SAMFileHeader mFileHeader=null;
-	
+	private SAMFileHeader mFileHeader = null;
+
 	private BaseRecalibrator br = null;
-	
+
 	private GenomeLocationParser genomeLocParser;
-	
+
 	public static Context ctx = null;
-	
+
 	@Override
 	protected void setup(Context context) throws IOException, InterruptedException {
 		Configuration job = context.getConfiguration();
-		options = new BaseRecalibrationOptions();;
+		options = new BaseRecalibrationOptions();
+		;
 		options.parse(job.getStrings("args"));
 		winSize = options.getWinSize();
-		
-		genome = new ReferenceShare();	
-		if(job.get("cacheref")==null)
+
+		genome = new ReferenceShare();
+		if (job.get("cacheref") == null)
 			genome.loadChromosomeList(options.getReferenceSequencePath());
 		else
 			genome.loadChromosomeList();
 		mFileHeader = SamHdfsFileHeader.getHeader(job);
-		
+
 		genomeLocParser = new GenomeLocationParser(mFileHeader.getSequenceDictionary());
-		
+
 		br = new BaseRecalibrator(mFileHeader, options);/**/
 		br.initialize();
 	}
-	
+
 	@Override
-	public void reduce(WindowsBasedWritable key, Iterable<SAMRecordWritable> values, Context context) throws IOException, InterruptedException {
+	public void reduce(WindowsBasedWritable key, Iterable<SAMRecordWritable> values, Context context)
+			throws IOException, InterruptedException {
 		ctx = context;
 		getKeyInfo(key);
 		setWin();
 		initKnowSite();
 		ArrayList<GaeaSamRecord> records = retrieveRecords(values.iterator());
 		ChromosomeInformationShare chrInfo = genome.getChromosomeInfo(referenceName);
-		if(chrInfo == null){
-			context.getCounter("ERROR", referenceName+"is no in reference").increment(1);
+		if (chrInfo == null) {
+			context.getCounter("ERROR", referenceName + "is no in reference").increment(1);
 			return;
 		}
-		PileupState manager=new PileupState(records, genomeLocParser);
-		Pileup locus=null;
+		PileupState manager = new PileupState(records, genomeLocParser);
+		Pileup locus = null;
 		while (manager.hasNext()) {
-			 locus=manager.next();
-			 if(locus.getLocation().getStart()<start)
-				 continue;
-			 if(locus.getLocation().getStart()>stop)
-				 break;
-			br.map((byte)chrInfo.getBase((int)locus.getLocation().getStart()-1), locus);
+			locus = manager.next();
+			if (locus.getLocation().getStart() < start)
+				continue;
+			if (locus.getLocation().getStart() > stop)
+				break;
+			br.map((byte) chrInfo.getBase((int) locus.getLocation().getStart() - 1), locus);
 		}
 	}
-	
-	protected void cleanup(Context context) throws IOException,InterruptedException {
+
+	protected void cleanup(Context context) throws IOException, InterruptedException {
 		br.print(context);
-    }
-	
+	}
+
 	private void setWin() {
-		start=winNum*winSize;
-		stop=(winNum+1)*winSize-1<mFileHeader.getSequence(referenceName).getSequenceLength()?(winNum+1)*winSize-1:mFileHeader.getSequence(referenceName).getSequenceLength();
+		start = winNum * winSize;
+		stop = (winNum + 1) * winSize - 1 < mFileHeader.getSequence(referenceName).getSequenceLength()
+				? (winNum + 1) * winSize - 1 : mFileHeader.getSequence(referenceName).getSequenceLength();
 	}
-	
+
 	private void getKeyInfo(WindowsBasedWritable key) {
-		referenceName = key.getChromosomeName();
-		winNum = key.getWindowsNumber(); 
+		referenceName = mFileHeader.getSequence(key.getChromosomeIndex()).getSequenceName();
+		winNum = key.getWindowsNumber();
 	}
-	
+
 	private void initKnowSite() {
-		if(options.getKnowSite() != null) {
-			Window win = new Window(referenceName,start,stop);
+		if (options.getKnowSite() != null) {
+			Window win = new Window(referenceName, start, stop);
 			br.initKnowSite(win);
 		}
 	}
-	
+
 	private ArrayList<GaeaSamRecord> retrieveRecords(Iterator<SAMRecordWritable> values) {
 		ArrayList<GaeaSamRecord> records = new ArrayList<>();
-		while(values.hasNext()) {
+		while (values.hasNext()) {
 			GaeaSamRecord aRecord = new GaeaSamRecord(mFileHeader, values.next().get());
 			records.add(aRecord);
 		}
 		return records;
 	}
 }
-
-

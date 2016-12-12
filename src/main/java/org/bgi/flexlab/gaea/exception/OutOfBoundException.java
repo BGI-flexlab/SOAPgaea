@@ -8,4 +8,7 @@ public class OutOfBoundException extends UserException{
 		super(String.format("Offset cannot be greater than length %d : %d", offset,length));
 	}
 
+	public OutOfBoundException(String descr) {
+		super(descr);
+	}
 }

@@ -8,8 +8,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.Job;
 import org.bgi.flexlab.gaea.data.structure.memoryshare.WholeGenomeShare;
-import org.bgi.flexlab.gaea.data.structure.vcf.VCFLocalLoader;
-import org.bgi.flexlab.gaea.data.structure.vcf.VCFLocalLoader.PositionalVariantContext;
 import org.bgi.flexlab.gaea.util.ChromosomeUtils;
 
 public class DbsnpShare extends WholeGenomeShare {
@@ -80,46 +78,5 @@ public class DbsnpShare extends WholeGenomeShare {
 			dbsnpInfo.get(chrName).setLength(length);
 			dbsnpInfo.get(chrName).setChromosomeName(chrName);
 		}
-	}
-
-	public static void main(String[] args) {
-		DbsnpShare share = new DbsnpShare();
-
-		share.loadChromosomeList(args[0]);
-
-		ChromosomeDbsnpShare dbshare = share.getChromosomeDbsnp(ChromosomeUtils.formatChrName(args[1]));
-		
-		int winSize = 100;
-		if(args.length > 3)
-			winSize = Integer.parseInt(args[3]);
-		
-		int length = dbshare.getLength();
-
-		VCFLocalLoader reader;
-		try {
-			reader = new VCFLocalLoader(args[2]);
-		} catch (IOException e1) {
-			throw new RuntimeException(e1.toString());
-		}
-		
-		for(int i = 0 ; i < (length / winSize) ; i++){
-			long position = dbshare.getStartPosition(i,winSize);
-			try {
-				if(position < 0)
-					continue;
-				
-				reader.seek(position);
-				
-				while(reader.hasNext()){
-					PositionalVariantContext context = reader.next();
-					System.out.println(i+"\t"+position+"\t"+context.getVariantContext().getStart());
-					break;
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-		
-		reader.close();
 	}
 }

@@ -1,6 +1,5 @@
 package org.bgi.flexlab.gaea.data.structure.vcf;
 
-import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -9,9 +8,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
-import java.util.zip.GZIPInputStream;
 
-//import org.bgi.flexlab.gaea.data.structure.reference.index.VcfIndex;
 import org.tukaani.xz.SeekableFileInputStream;
 
 import htsjdk.tribble.FeatureCodecHeader;
@@ -120,7 +117,7 @@ public class VCFLocalLoader {
             is = ParsingUtils.openInputStream(input);
             if (hasBlockCompressedExtension(input)) {
                 // TODO -- warning I don't think this can work, the buffered input stream screws up position
-                is = new GZIPInputStream(new BufferedInputStream(is));
+                //is = new GZIPInputStream(new BufferedInputStream(is));
             }
             pbs = new PositionalBufferedStream(is);
             header = codec.readHeader(codec.makeSourceFromStream(pbs));
@@ -132,10 +129,6 @@ public class VCFLocalLoader {
         }	
 	}
 	
-//	public static String format(String inputFile) {
-//		return inputFile + VcfIndex.INDEX_SUFFIX;
-//	}
-	
 	public VCFHeader getHeader() {
 		return (VCFHeader)(header.getHeaderValue());
 	}
@@ -146,7 +139,7 @@ public class VCFLocalLoader {
 		iterator = new AsciiLineReaderIterator(new AsciiLineReader(seekableStream));
 	}
 	
-	public static boolean hasBlockCompressedExtension(String fileName){
+	private boolean hasBlockCompressedExtension(String fileName){
 		 for (final String extension : BLOCK_COMPRESSED_EXTENSIONS) {
 	            if (fileName.toLowerCase().endsWith(extension))
 	                return true;
