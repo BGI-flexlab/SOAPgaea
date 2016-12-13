@@ -13,6 +13,7 @@ public class BioMemoryShare {
 	protected String chrName;
 	protected int length;
 	protected MappedByteBuffer[] byteBuffer = null;
+	protected int fcSize = 0;
 	
 	protected BioMemoryShare(int capacity){
 		this.capacity = capacity;
@@ -28,7 +29,8 @@ public class BioMemoryShare {
 			throws IOException {
 		RandomAccessFile raf = new RandomAccessFile(path, "r");
 		FileChannel fc = raf.getChannel();
-		int blocks = (int) ((fc.size() / Integer.MAX_VALUE) + 1);
+		fcSize = (int)(fc.size() & 0xffffffff);
+		int blocks = (int) ((fcSize / Integer.MAX_VALUE) + 1);
 		byteBuffer = new MappedByteBuffer[blocks];
 		int start = 0;
 		long remain = 0;
