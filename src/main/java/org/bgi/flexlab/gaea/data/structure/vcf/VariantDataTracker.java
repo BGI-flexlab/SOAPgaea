@@ -77,8 +77,7 @@ public class VariantDataTracker {
 			IndexCreator creator = new IndexCreator(name);
 			try {
 				Index idx = creator.finalizeIndex();
-				loader = new VCFHdfsLoader(name, idx);
-				loader.loadHeader();
+				loader = new VCFHdfsLoader(name);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
