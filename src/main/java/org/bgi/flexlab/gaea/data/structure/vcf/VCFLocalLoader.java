@@ -1,6 +1,5 @@
 package org.bgi.flexlab.gaea.data.structure.vcf;
 
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -107,7 +106,6 @@ public class VCFLocalLoader {
 		public long getPosition() {
 			return position;
 		}
-		
 	}
 
 	public ArrayList<VariantContext> query(String chrName, long start, int end) {
