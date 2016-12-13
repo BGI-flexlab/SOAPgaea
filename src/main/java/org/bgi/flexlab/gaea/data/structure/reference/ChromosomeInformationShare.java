@@ -4,13 +4,7 @@
  */
 package org.bgi.flexlab.gaea.data.structure.reference;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.HashMap;
-
 import org.bgi.flexlab.gaea.data.structure.memoryshare.BioMemoryShare;
-import org.bgi.flexlab.gaea.util.ChromosomeUtils;
 import org.bgi.flexlab.gaea.util.SystemConfiguration;
 
 /**
@@ -20,8 +14,8 @@ import org.bgi.flexlab.gaea.util.SystemConfiguration;
  *
  */
 public class ChromosomeInformationShare extends BioMemoryShare {
-	
-	public ChromosomeInformationShare(){
+
+	public ChromosomeInformationShare() {
 		super(Byte.SIZE / 4);
 	}
 
@@ -32,11 +26,11 @@ public class ChromosomeInformationShare extends BioMemoryShare {
 	 * @return base
 	 */
 	public byte getBinaryBase(int pos) {
-		byte curr = getBytes(pos,pos)[0];
-		
-		if((pos & 0x1) == 0)
-			return (byte)(curr & 0x0f);
-		return (byte)((curr >> 4) & 0x0f);
+		byte curr = getBytes(pos, pos)[0];
+
+		if ((pos & 0x1) == 0)
+			return (byte) (curr & 0x0f);
+		return (byte) ((curr >> 4) & 0x0f);
 	}
 
 	/**
@@ -45,19 +39,46 @@ public class ChromosomeInformationShare extends BioMemoryShare {
 	public char getBase(int pos) {
 		return SystemConfiguration.getFastaAbb(getBinaryBase(pos));
 	}
-	
-	public boolean isSNP(int pos){
+
+	public boolean isSNP(int pos) {
 		byte posByte = getBinaryBase(pos);
-		
-		if(((posByte >> 3) & 0x1) == 0)
+
+		if (((posByte >> 3) & 0x1) == 0)
 			return false;
 		return true;
 	}
-	
-	public BaseAndSNPInformation getInformation(int start,int end){
-		byte[] bytes = getBytes(start,end);
-		BaseAndSNPInformation info = new BaseAndSNPInformation(bytes,start);
-		return info;
+
+	public boolean[] isSNPs(int start, int end) {
+		byte[] bases = getBytes(start, end);
+		return isSNPs(bases, start, end);
+	}
+
+	public boolean[] isSNPs(byte[] bases, int start, int end) {
+		boolean[] snps = new boolean[end - start + 1];
+
+		int index = 0;
+		if ((start & 0x1) == 0) {
+			snps[index++] = ((bases[0] >> 3) & 0x1) == 1 ? true : false;
+			snps[index++] = ((bases[0] >> 7) & 0x1) == 1 ? true : false;
+		} else
+			snps[index++] = ((bases[0] >> 7) & 0x1) == 1 ? true : false;
+
+		if (end == start)
+			return snps;
+
+		for (int i = 1; i < bases.length - 1; i++) {
+			snps[index++] = ((bases[i] >> 3) & 0x1) == 1 ? true : false;
+			snps[index++] = ((bases[i] >> 7) & 0x1) == 1 ? true : false;
+		}
+
+		if ((end & 0x1) == 0) {
+			snps[index++] = ((bases[bases.length - 1] >> 3) & 0x1) == 1 ? true : false;
+		} else {
+			snps[index++] = ((bases[bases.length - 1] >> 3) & 0x1) == 1 ? true : false;
+			snps[index++] = ((bases[bases.length - 1] >> 7) & 0x1) == 1 ? true : false;
+		}
+
+		return snps;
 	}
 
 	/**
@@ -69,9 +90,13 @@ public class ChromosomeInformationShare extends BioMemoryShare {
 	 * @return String 序列
 	 */
 	public String getBaseSequence(int start, int end) {
-		StringBuffer seq = new StringBuffer();
 		byte[] bases = getBytes(start, end);
 
+		return getBaseSequence(bases, start, end);
+	}
+
+	public String getBaseSequence(byte[] bases, int start, int end) {
+		StringBuffer seq = new StringBuffer();
 		if ((start & 0x1) == 0) {
 			seq.append(SystemConfiguration.getFastaAbb(bases[0] & 0x0f));
 			seq.append(SystemConfiguration.getFastaAbb((bases[0] >> 4) & 0x0f));
@@ -87,19 +112,16 @@ public class ChromosomeInformationShare extends BioMemoryShare {
 			seq.append(SystemConfiguration.getFastaAbb((bases[i] >> 4) & 0x0f));
 		}
 		if ((end & 0x1) == 0) {
-			seq.append(SystemConfiguration
-					.getFastaAbb(bases[bases.length - 1] & 0x0f));
+			seq.append(SystemConfiguration.getFastaAbb(bases[bases.length - 1] & 0x0f));
 		} else {
-			seq.append(SystemConfiguration
-					.getFastaAbb(bases[bases.length - 1] & 0x0f));
-			seq.append(SystemConfiguration
-					.getFastaAbb((bases[bases.length - 1] >> 4) & 0x0f));
+			seq.append(SystemConfiguration.getFastaAbb(bases[bases.length - 1] & 0x0f));
+			seq.append(SystemConfiguration.getFastaAbb((bases[bases.length - 1] >> 4) & 0x0f));
 		}
 		return seq.toString();
 	}
-	
-	public byte[] getBaseBytes(int start,int end){
-		return getBaseSequence(start,end).getBytes();
+
+	public byte[] getBaseBytes(int start, int end) {
+		return getBaseSequence(start, end).getBytes();
 	}
 
 	/**
@@ -126,44 +148,5 @@ public class ChromosomeInformationShare extends BioMemoryShare {
 			l |= (((long) (b[i + j] & 0xff)) << (8 * j));
 		}
 		return Double.longBitsToDouble(l);
-	}
-	
-	public static void main(String[] args) throws IOException{
-		String input = args[0];
-		String chrName = ChromosomeUtils.formatChrName(args[1]);
-		
-		HashMap<String,String> map = new HashMap<String,String>();
-		
-		BufferedReader br = new BufferedReader(new FileReader(input));
-		
-		String line ;
-		while((line = br.readLine()) != null){
-			String[] str = line.split("\t");
-			map.put(str[0], line);
-		}
-		
-		br.close();
-		
-		if(!map.containsKey(chrName))
-			throw new RuntimeException(chrName+" is not exist!");
-		
-		String[] str = map.get(chrName).split("\t");
-		ChromosomeInformationShare chr = new ChromosomeInformationShare();
-		chr.setChromosomeName(chrName);
-		chr.setLength(Integer.parseInt(str[2]));
-		
-		try {
-			chr.loadInformation(str[1]);
-		} catch (IOException e) {
-			throw new RuntimeException(e.toString());
-		}
-		
-		for(int i = 0 ; i < chr.getLength() ; i++){
-			if(chr.isSNP(i)){
-				System.out.println((i+1)+"\t"+chr.getBase(i));
-			}
-		}
-		
-		map.clear();
 	}
 }

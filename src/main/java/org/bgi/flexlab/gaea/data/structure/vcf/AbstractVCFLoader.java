@@ -11,6 +11,8 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.zip.GZIPInputStream;
 
+import org.bgi.flexlab.gaea.util.ChromosomeUtils;
+
 import htsjdk.tribble.FeatureCodecHeader;
 import htsjdk.tribble.TribbleException;
 import htsjdk.tribble.readers.AsciiLineReaderIterator;
@@ -101,11 +103,30 @@ public abstract class AbstractVCFLoader {
 		public long getPosition() {
 			return position;
 		}
+		
+		iterator = new AsciiLineReaderIterator(new AsciiLineReader(seekableStream));
 	}
 	
-//	FIXME:function need to be fulfilled
-	public void query(String chr, int start, int end) {
+	
+	public ArrayList<VariantContext> query(String chrName, long start, int end) throws IOException {
+		ArrayList<VariantContext> contexts = new ArrayList<VariantContext>();
 
+		chrName = ChromosomeUtils.formatChrName(chrName);
+		seek(start);
+
+		while (hasNext()) {
+			VariantContext context = next().getVariantContext();
+			if (chrName.equals(ChromosomeUtils.formatChrName(context.getContig()))) {
+				if (context.getStart() > end) {
+					break;
+				}
+				contexts.add(context);
+			} else {
+				break;
+			}
+		}
+
+		return contexts;
 	}
 
 	private void readHeader() throws IOException {

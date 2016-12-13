@@ -10,13 +10,14 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamHdfsFileHeader;
-import org.bgi.flexlab.gaea.data.mapreduce.input.vcf.VCFHdfsLoader;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.WindowsBasedWritable;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.bam.filter.QualityControlFilter;
+import org.bgi.flexlab.gaea.data.structure.dbsnp.DbsnpShare;
 import org.bgi.flexlab.gaea.data.structure.reference.ReferenceShare;
+import org.bgi.flexlab.gaea.data.structure.reference.index.VcfIndex;
+import org.bgi.flexlab.gaea.data.structure.vcf.VCFLocalLoader;
 import org.bgi.flexlab.gaea.exception.MissingHeaderException;
-import org.bgi.flexlab.gaea.framework.tools.mapreduce.WindowsBasedMapper;
 import org.bgi.flexlab.gaea.tools.realigner.RealignerEngine;
 import org.bgi.flexlab.gaea.util.SamRecordUtils;
 import org.bgi.flexlab.gaea.util.Window;
@@ -33,7 +34,8 @@ public class RealignerReducer
 	private ArrayList<GaeaSamRecord> filteredRecords = new ArrayList<GaeaSamRecord>();
 
 	private ReferenceShare genomeShare = null;
-	private VCFHdfsLoader loader = null;
+	private DbsnpShare dbsnpShare = null;
+	private VCFLocalLoader loader = null;
 	private RealignerEngine engine = null;
 	private RealignerContextWriter writer = null;
 
@@ -49,16 +51,18 @@ public class RealignerReducer
 
 		genomeShare = new ReferenceShare();
 		genomeShare.loadChromosomeList(option.getReference());
+		
+		dbsnpShare = new DbsnpShare(option.getKnowVariant(),option.getReference());
+		dbsnpShare.loadChromosomeList(option.getKnowVariant()+VcfIndex.INDEX_SUFFIX);;
 
-		loader = new VCFHdfsLoader(option.getKnowVariant());
-		loader.loadHeader();
+		loader = new VCFLocalLoader(option.getKnowVariant());
 
 		writer = new RealignerContextWriter(context);
-		engine = new RealignerEngine(option, genomeShare, loader, mHeader, writer);
+		engine = new RealignerEngine(option, genomeShare,dbsnpShare, loader, mHeader, writer);
 	}
 
 	private boolean unmappedWindows(WindowsBasedWritable key) {
-		if (key.getChromosomeName().equals(WindowsBasedMapper.UNMAPPED_REFERENCE_NAME))
+		if (key.getChromosomeIndex() == SAMRecord.NO_ALIGNMENT_REFERENCE_INDEX)
 			return true;
 		return false;
 	}
@@ -67,10 +71,12 @@ public class RealignerReducer
 		int winNum = key.getWindowsNumber();
 		int winSize = option.getWindowsSize();
 		int start = winNum * winSize;
-		int stop = (winNum + 1) * winSize - 1 < mHeader.getSequence(key.getChromosomeName()).getSequenceLength()
-				? (winNum + 1) * winSize - 1 : mHeader.getSequence(key.getChromosomeName()).getSequenceLength();
 
-		return new Window(key.getChromosomeName(), start, stop);
+		String chrName = mHeader.getSequence(key.getChromosomeIndex()).getSequenceName();
+		int stop = (winNum + 1) * winSize - 1 < mHeader.getSequence(chrName).getSequenceLength()
+				? (winNum + 1) * winSize - 1 : mHeader.getSequence(chrName).getSequenceLength();
+
+		return new Window(chrName, start, stop);
 	}
 
 	private int getSamRecords(Iterable<SAMRecordWritable> values, ArrayList<GaeaSamRecord> records,
@@ -151,7 +157,7 @@ public class RealignerReducer
 		}
 		clear();
 	}
-	
+
 	@Override
 	protected void cleanup(Context context) throws IOException, InterruptedException {
 	}

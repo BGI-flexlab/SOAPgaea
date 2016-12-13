@@ -5,12 +5,13 @@ import htsjdk.variant.variantcontext.VariantContext;
 
 import java.util.ArrayList;
 
-import org.bgi.flexlab.gaea.data.mapreduce.input.vcf.VCFHdfsLoader;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
+import org.bgi.flexlab.gaea.data.structure.dbsnp.DbsnpShare;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
 import org.bgi.flexlab.gaea.data.structure.reference.ReferenceShare;
-//import org.bgi.flexlab.gaea.data.structure.vcf.index.VCFLoader;
+import org.bgi.flexlab.gaea.data.structure.reference.index.VcfIndex;
+import org.bgi.flexlab.gaea.data.structure.vcf.VCFLocalLoader;
 import org.bgi.flexlab.gaea.tools.mapreduce.realigner.RealignerOptions;
 import org.bgi.flexlab.gaea.util.Window;
 import org.bgi.flexlab.gaea.variant.filter.VariantRegionFilter;
@@ -18,7 +19,7 @@ import org.bgi.flexlab.gaea.variant.filter.VariantRegionFilter;
 public class RealignerEngine {
 	private RealignerOptions option = null;
 	private ReferenceShare genomeShare = null;
-	private VCFHdfsLoader loader = null;
+	private VCFLocalLoader loader = null;
 	private ChromosomeInformationShare chrInfo = null;
 	private ArrayList<VariantContext> knowIndels = null;
 	private ArrayList<GaeaSamRecord> records = null;
@@ -28,14 +29,16 @@ public class RealignerEngine {
 	private VariantRegionFilter indelFilter = null;
 	private IndelRealigner indelRealigner = null;
 	private RealignerWriter writer = null;
+	private DbsnpShare dbsnpShare = null;
 
-	public RealignerEngine(RealignerOptions option, ReferenceShare genomeShare, VCFHdfsLoader loader, SAMFileHeader mHeader,
-			RealignerWriter writer) {
+	public RealignerEngine(RealignerOptions option, ReferenceShare genomeShare, DbsnpShare dbsnpShare,
+			VCFLocalLoader loader, SAMFileHeader mHeader, RealignerWriter writer) {
 		this.option = option;
 		this.genomeShare = genomeShare;
 		this.loader = loader;
 		this.mHeader = mHeader;
 		this.writer = writer;
+		this.dbsnpShare = dbsnpShare;
 	}
 
 	public void set(Window win, ArrayList<GaeaSamRecord> records, ArrayList<GaeaSamRecord> filterRecords) {
@@ -54,8 +57,8 @@ public class RealignerEngine {
 		chrInfo = genomeShare.getChromosomeInfo(win.getContigName());
 	}
 
-	private void setKnowIndels(VCFHdfsLoader loader) {
-		if (loader == null){
+	private void setKnowIndels(VCFLocalLoader loader) {
+		if (loader == null) {
 			throw new RuntimeException("loader is null!!");
 		}
 		String referenceName = win.getContigName();
@@ -64,10 +67,14 @@ public class RealignerEngine {
 		int start = (win.getStart() - WINDOWS_EXTEND) > 0 ? (win.getStart() - WINDOWS_EXTEND) : 0;
 		int end = (win.getStop() + WINDOWS_EXTEND) < mHeader.getSequence(referenceName).getSequenceLength()
 				? (win.getStop() + WINDOWS_EXTEND) : mHeader.getSequence(referenceName).getSequenceLength();
-		knowIndels = indelFilter.loadFilter(loader, referenceName, start, end);
+
+		long startPosition = dbsnpShare.getStartPosition(referenceName, start / VcfIndex.WINDOW_SIZE,
+				VcfIndex.WINDOW_SIZE);
+
+		knowIndels = indelFilter.loadFilter(loader, referenceName, startPosition, end);
 	}
 
-	public int  reduce() {
+	public int reduce() {
 		IdentifyRegionsCreator creator = new IdentifyRegionsCreator(option, filterRecords, mHeader, chrInfo,
 				knowIndels);
 		creator.regionCreator();

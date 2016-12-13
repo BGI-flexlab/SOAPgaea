@@ -6,12 +6,11 @@ import org.apache.hadoop.io.DataInputBuffer;
 import org.apache.hadoop.io.RawComparator;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.WindowsBasedWritable;
 
-public class WindowsBasedComparator implements
-		RawComparator<WindowsBasedWritable> {
+public class WindowsBasedComparator implements RawComparator<WindowsBasedWritable> {
 
 	@Override
 	public int compare(WindowsBasedWritable o1, WindowsBasedWritable o2) {
-		return o1.getWindows().compareTo(o2.getWindows());
+		return (int) ((o1.getWindows() - o2.getWindows()) & 0xffffffff);
 	}
 
 	@Override

@@ -26,7 +26,7 @@ public class WindowsBasedSort implements RawComparator<WindowsBasedWritable> {
 
 	@Override
 	public int compare(WindowsBasedWritable o1, WindowsBasedWritable o2) {
-		int ii = o1.getWindows().compareTo(o2.getWindows());
+		int ii = (int) ((o1.getWindows() - o2.getWindows()) & 0xffffffff);
 		if (ii != 0) {
 			return ii;
 		} else {
