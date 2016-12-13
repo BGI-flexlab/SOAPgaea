@@ -104,7 +104,6 @@ public abstract class AbstractVCFLoader {
 			return position;
 		}
 		
-		iterator = new AsciiLineReaderIterator(new AsciiLineReader(seekableStream));
 	}
 	
 	
@@ -148,7 +147,7 @@ public abstract class AbstractVCFLoader {
         }	
 	}
 	
-	public abstract InputStream getInputStream(String input);
+	public abstract InputStream getInputStream (String input) throws IOException;
 //	public static String format(String inputFile) {
 //		return inputFile + VcfIndex.INDEX_SUFFIX;
 //	}
