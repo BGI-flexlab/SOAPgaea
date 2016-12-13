@@ -24,6 +24,7 @@ import org.bgi.flexlab.gaea.util.ChromosomeUtils;
  * @author ZhangYong, ZhangZhi
  */
 public abstract class ReferenceIndex {
+	private final static String HDFS_PRIX = "file://"; 
 	/**
 	 * chromosome information map
 	 */
@@ -147,6 +148,12 @@ public abstract class ReferenceIndex {
 	}
 
 	public void buildIndex(String refPath, String dbsnpListPath, String indexOutputPath) {
+		if(refPath.startsWith(HDFS_PRIX))
+			refPath = refPath.substring(HDFS_PRIX.length());
+		
+		if(dbsnpListPath.startsWith(HDFS_PRIX))
+			dbsnpListPath = dbsnpListPath.substring(HDFS_PRIX.length());
+		
 		if(indexOutputPath == null){
 			File file = new File(refPath);
 			indexOutputPath = file.getParentFile()+"/WindowIndex/";

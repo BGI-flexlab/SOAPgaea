@@ -118,10 +118,6 @@ public class VcfIndex extends ReferenceIndex {
 
 				lastChrName = chrName;
 				lastLength = curChrInfo.getLength();
-				
-				if(lastChrName != null && lastChrName.equals("chr1")){
-					System.err.print("chrName:"+lastChrName+"\t"+lastLength+"\t"+binaryIndex.length);
-				}
 			}
 
 			int currWinNum = ((context.getStart() - 1) / WINDOW_SIZE);

@@ -1,5 +1,6 @@
 package org.bgi.flexlab.gaea.data.structure.dbsnp;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Map;
@@ -8,12 +9,29 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.Job;
 import org.bgi.flexlab.gaea.data.structure.memoryshare.WholeGenomeShare;
+import org.bgi.flexlab.gaea.data.structure.reference.index.VcfIndex;
 import org.bgi.flexlab.gaea.util.ChromosomeUtils;
 
 public class DbsnpShare extends WholeGenomeShare {
 	private static final String CACHE_NAME = "dbsnpList";
 
 	private Map<String, ChromosomeDbsnpShare> dbsnpInfo = new ConcurrentHashMap<String, ChromosomeDbsnpShare>();
+	
+	public DbsnpShare(String dbsnpPath,String refPath){
+		indexExist(dbsnpPath,refPath);
+	}
+	
+	public static void indexExist(String dbsnpPath,String refPath){
+		String chrList = dbsnpPath + VcfIndex.INDEX_SUFFIX;
+		if(chrList.startsWith("file://"))
+			chrList = chrList.substring("file://".length());
+		File file = new File(chrList);
+		
+		if(!file.exists()){
+			VcfIndex index = new VcfIndex();
+			index.buildIndex(refPath, dbsnpPath, null);
+		}
+	}
 
 	public static boolean distributeCache(String chrList, Job job) {
 		try {

@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
+import org.bgi.flexlab.gaea.util.ChromosomeUtils;
 import org.tukaani.xz.SeekableFileInputStream;
 
 import htsjdk.tribble.FeatureCodecHeader;
@@ -22,21 +23,22 @@ import htsjdk.variant.vcf.VCFCodec;
 import htsjdk.variant.vcf.VCFHeader;
 
 public class VCFLocalLoader {
-	
-	public static final Set<String> BLOCK_COMPRESSED_EXTENSIONS = Collections.unmodifiableSet(new HashSet<String>(Arrays.asList(".gz", ".gzip", ".bgz", ".bgzf")));
-		
+
+	public static final Set<String> BLOCK_COMPRESSED_EXTENSIONS = Collections
+			.unmodifiableSet(new HashSet<String>(Arrays.asList(".gz", ".gzip", ".bgz", ".bgzf")));
+
 	private String input;
-		
-	private SeekableFileInputStream seekableStream = null; 
-	
+
+	private SeekableFileInputStream seekableStream = null;
+
 	private AsciiLineReaderIterator iterator;
-	
+
 	private VCFCodec codec;
-	
+
 	private FeatureCodecHeader header;
-	
+
 	private long pos;
-	
+
 	public VCFLocalLoader(String dbSNP) throws IOException {
 		codec = new VCFCodec();
 		input = dbSNP;
@@ -44,15 +46,15 @@ public class VCFLocalLoader {
 		seekableStream = new SeekableFileInputStream(input);
 		seek(0);
 	}
-	
+
 	public boolean hasNext() {
 		return iterator.hasNext();
 	}
-	
+
 	public PositionalVariantContext next() {
 		long pos = iterator.getPosition() + this.pos;
 		String line = iterator.next();
-		while(line.startsWith(VCFHeader.HEADER_INDICATOR)) {
+		while (line.startsWith(VCFHeader.HEADER_INDICATOR)) {
 			pos = iterator.getPosition() + this.pos;
 			line = iterator.next();
 		}
@@ -60,100 +62,125 @@ public class VCFLocalLoader {
 		PositionalVariantContext pvc = new PositionalVariantContext(vc, pos);
 		return pvc;
 	}
-	
+
 	@Deprecated
 	public Iterator<PositionalVariantContext> iterator() throws IOException {
 		return collect();
 	}
-	
+
 	@Deprecated
 	public Iterator<PositionalVariantContext> iterator(long pos) throws IOException {
-		seek(pos);;
+		seek(pos);
+		;
 		return collect();
 	}
-	
+
 	private Iterator<PositionalVariantContext> collect() throws IOException {
 		ArrayList<PositionalVariantContext> variantContexts = new ArrayList<>();
-		while(iterator.hasNext()) {
+		while (iterator.hasNext()) {
 			long pos = iterator.getPosition() + this.pos;
 			String line = iterator.next();
-			if(line.startsWith(VCFHeader.HEADER_INDICATOR))
+			if (line.startsWith(VCFHeader.HEADER_INDICATOR))
 				continue;
 			VariantContext vc = codec.decode(line);
 			variantContexts.add(new PositionalVariantContext(vc, pos));
 		}
 		return variantContexts.iterator();
 	}
-	
+
 	public class PositionalVariantContext {
-		
+
 		private VariantContext vc;
-		
+
 		private long position;
-		
+
 		public PositionalVariantContext(VariantContext vc, long position) {
 			this.vc = vc;
 			this.position = position;
 		}
-		
+
 		public VariantContext getVariantContext() {
 			return vc;
 		}
-		
+
 		public long getPosition() {
 			return position;
 		}
 	}
-	
-//	FIXME:function need to be fulfilled
-	public void query(String chr, int start, int end) {
 
+	public ArrayList<VariantContext> query(String chrName, long start, int end) {
+		ArrayList<VariantContext> contexts = new ArrayList<VariantContext>();
+
+		chrName = ChromosomeUtils.formatChrName(chrName);
+		try {
+			seek(start);
+		} catch (IOException e) {
+			throw new RuntimeException(e.toString());
+		}
+
+		while (hasNext()) {
+			VariantContext context = next().getVariantContext();
+			if (chrName.equals(ChromosomeUtils.formatChrName(context.getContig()))) {
+				if (context.getStart() > end) {
+					break;
+				}
+				contexts.add(context);
+			} else {
+				break;
+			}
+		}
+
+		return contexts;
 	}
 
 	private void readHeader() throws IOException {
 		InputStream is = null;
-        PositionalBufferedStream pbs = null;
-        try {
-            is = ParsingUtils.openInputStream(input);
-            if (hasBlockCompressedExtension(input)) {
-                // TODO -- warning I don't think this can work, the buffered input stream screws up position
-                //is = new GZIPInputStream(new BufferedInputStream(is));
-            }
-            pbs = new PositionalBufferedStream(is);
-            header = codec.readHeader(codec.makeSourceFromStream(pbs));
-        } catch (Exception e) {
-            throw new TribbleException.MalformedFeatureFile("Unable to parse header with error: " + e.getMessage(), input, e);
-        } finally {
-            if (pbs != null) pbs.close();
-            else if (is != null) is.close();
-        }	
+		PositionalBufferedStream pbs = null;
+		try {
+			is = ParsingUtils.openInputStream(input);
+			if (hasBlockCompressedExtension(input)) {
+				// TODO -- warning I don't think this can work, the buffered
+				// input stream screws up position
+				// is = new GZIPInputStream(new BufferedInputStream(is));
+			}
+			pbs = new PositionalBufferedStream(is);
+			header = codec.readHeader(codec.makeSourceFromStream(pbs));
+		} catch (Exception e) {
+			throw new TribbleException.MalformedFeatureFile("Unable to parse header with error: " + e.getMessage(),
+					input, e);
+		} finally {
+			if (pbs != null)
+				pbs.close();
+			else if (is != null)
+				is.close();
+		}
 	}
-	
+
 	public VCFHeader getHeader() {
-		return (VCFHeader)(header.getHeaderValue());
+		return (VCFHeader) (header.getHeaderValue());
 	}
-	
+
 	public void seek(long pos) throws IOException {
 		this.pos = pos;
 		seekableStream.seek(this.pos);
 		iterator = new AsciiLineReaderIterator(new AsciiLineReader(seekableStream));
 	}
-	
-	private boolean hasBlockCompressedExtension(String fileName){
-		 for (final String extension : BLOCK_COMPRESSED_EXTENSIONS) {
-	            if (fileName.toLowerCase().endsWith(extension))
-	                return true;
-	     }
-	     return false;
+
+	private boolean hasBlockCompressedExtension(String fileName) {
+		for (final String extension : BLOCK_COMPRESSED_EXTENSIONS) {
+			if (fileName.toLowerCase().endsWith(extension))
+				return true;
+		}
+		return false;
 	}
-	
+
 	public void close() {
-		if(iterator != null)
+		if (iterator != null)
 			try {
 				iterator.close();
 			} catch (IOException e) {
 				throw new RuntimeException(e.toString());
 			}
 	}
-	
+
 }
