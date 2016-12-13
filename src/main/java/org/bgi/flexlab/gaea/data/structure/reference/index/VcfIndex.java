@@ -9,8 +9,8 @@ import java.io.IOException;
 import java.util.Arrays;
 
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformation;
+import org.bgi.flexlab.gaea.data.structure.vcf.AbstractVCFLoader.PositionalVariantContext;
 import org.bgi.flexlab.gaea.data.structure.vcf.VCFLocalLoader;
-import org.bgi.flexlab.gaea.data.structure.vcf.VCFLocalLoader.PositionalVariantContext;
 import org.bgi.flexlab.gaea.util.ChromosomeUtils;
 
 import htsjdk.variant.variantcontext.VariantContext;
