@@ -1,5 +1,6 @@
 package org.bgi.flexlab.gaea.variant.filter;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 import org.bgi.flexlab.gaea.data.structure.vcf.VCFLocalLoader;
@@ -26,7 +27,12 @@ public abstract class VariantFilter {
 		return filter;
 	}
 
-	public ArrayList<VariantContext> loadFilter(VCFLocalLoader loader, String referenceName, long startPosition, int end) {
-		return loader.query(referenceName, startPosition, end);
+	public ArrayList<VariantContext> loadFilter(VCFLocalLoader loader, String referenceName, long startPosition,
+			int end) {
+		try {
+			return loader.query(referenceName, startPosition, end);
+		} catch (IOException e) {
+			throw new RuntimeException(e.toString());
+		}
 	}
 }

@@ -2,9 +2,12 @@ package org.bgi.flexlab.gaea.data.structure.memoryshare;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.lang.reflect.Method;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 
 import org.bgi.flexlab.gaea.exception.OutOfBoundException;
 
@@ -14,22 +17,21 @@ public class BioMemoryShare {
 	protected int length;
 	protected MappedByteBuffer[] byteBuffer = null;
 	protected int fcSize = 0;
-	
-	protected BioMemoryShare(int capacity){
+
+	protected BioMemoryShare(int capacity) {
 		this.capacity = capacity;
 	}
-	
-	public BioMemoryShare(){
+
+	public BioMemoryShare() {
 	}
-	
+
 	/**
 	 * load bio information;egg : chromosome or dbsnp
-	 * */
-	protected void loadInformation(String path)
-			throws IOException {
+	 */
+	protected void loadInformation(String path) throws IOException {
 		RandomAccessFile raf = new RandomAccessFile(path, "r");
 		FileChannel fc = raf.getChannel();
-		fcSize = (int)(fc.size() & 0xffffffff);
+		fcSize = (int) (fc.size() & 0xffffffff);
 		int blocks = (int) ((fcSize / Integer.MAX_VALUE) + 1);
 		byteBuffer = new MappedByteBuffer[blocks];
 		int start = 0;
@@ -38,22 +40,21 @@ public class BioMemoryShare {
 		for (int i = 0; i < blocks; i++) {
 			start = Integer.MAX_VALUE * i;
 			remain = (long) (fc.size() - start);
-			size = (int) ((remain > Integer.MAX_VALUE) ? Integer.MAX_VALUE
-					: remain);
+			size = (int) ((remain > Integer.MAX_VALUE) ? Integer.MAX_VALUE : remain);
 			MappedByteBuffer mapedBB = fc.map(MapMode.READ_ONLY, start, size);
 			byteBuffer[i] = mapedBB;
 		}
 		raf.close();
 	}
-	
-	public void loadChromosome(String path){
+
+	public void loadChromosome(String path) {
 		try {
 			loadInformation(path);
 		} catch (IOException e) {
 			throw new RuntimeException(e.toString());
 		}
 	}
-	
+
 	public String getChromosomeName() {
 		return chrName;
 	}
@@ -69,7 +70,7 @@ public class BioMemoryShare {
 	public int getLength() {
 		return length;
 	}
-	
+
 	public byte[] getBytes(int start, int end) {
 		if (start > length)
 			throw new OutOfBoundException(start, length);
@@ -89,5 +90,25 @@ public class BioMemoryShare {
 		byteBuffer[0].position(0);
 
 		return bases;
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public void clean() throws Exception {
+		for (MappedByteBuffer buffer : byteBuffer) {
+			AccessController.doPrivileged(new PrivilegedAction() {
+				@SuppressWarnings("restriction")
+				public Object run() {
+					try {
+						Method getCleanerMethod = buffer.getClass().getMethod("cleaner", new Class[0]);
+						getCleanerMethod.setAccessible(true);
+						sun.misc.Cleaner cleaner = (sun.misc.Cleaner) getCleanerMethod.invoke(buffer, new Object[0]);
+						cleaner.clean();
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+					return null;
+				}
+			});
+		}
 	}
 }

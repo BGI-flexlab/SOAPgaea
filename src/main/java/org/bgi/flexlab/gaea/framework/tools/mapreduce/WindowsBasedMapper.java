@@ -138,4 +138,9 @@ public class WindowsBasedMapper
 			context.write(keyout, outputValue);
 		}
 	}
+
+	@Override
+	protected void cleanup(Context context) throws IOException, InterruptedException {
+		sampleIDs.clear();
+	}
 }

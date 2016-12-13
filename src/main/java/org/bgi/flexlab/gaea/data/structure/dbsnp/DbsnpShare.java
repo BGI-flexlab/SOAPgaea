@@ -97,4 +97,16 @@ public class DbsnpShare extends WholeGenomeShare {
 			dbsnpInfo.get(chrName).setChromosomeName(chrName);
 		}
 	}
+
+	@Override
+	public void clean() {
+		for(String key : dbsnpInfo.keySet()){
+			ChromosomeDbsnpShare share = dbsnpInfo.get(key);
+			try {
+				share.clean();
+			} catch (Exception e) {
+				throw new RuntimeException(e.toString());
+			}
+		}
+	}
 }
