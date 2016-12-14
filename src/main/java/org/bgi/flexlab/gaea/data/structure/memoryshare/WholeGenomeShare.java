@@ -129,6 +129,8 @@ public abstract class WholeGenomeShare {
 		}
 		return true;
 	}
+	
+	public abstract void clean();
 
 	public abstract boolean addChromosome(String chrName);
 	
