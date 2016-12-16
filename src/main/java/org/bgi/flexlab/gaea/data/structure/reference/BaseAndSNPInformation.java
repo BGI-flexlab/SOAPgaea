@@ -7,7 +7,11 @@ public class BaseAndSNPInformation {
 	private int start;
 	private String sequences = null;
 
-	public BaseAndSNPInformation(ChromosomeInformationShare chrInfo, int start, int end) {
+	public BaseAndSNPInformation() {
+	}
+
+	public void set(ReferenceShare reference, String chrName, int start, int end) {
+		ChromosomeInformationShare chrInfo = reference.getChromosomeInfo(chrName);
 		set(chrInfo, start, end);
 	}
 

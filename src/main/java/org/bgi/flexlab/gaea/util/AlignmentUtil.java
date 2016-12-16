@@ -11,14 +11,12 @@ import org.bgi.flexlab.gaea.data.structure.bam.GaeaCigar;
 
 public class AlignmentUtil {
 
-	public static int mismatchQualityCount(GaeaAlignedSamRecord read,
-			byte[] ref, int posOnRef) {
-		return mismatchQualityCount(read, ref, posOnRef, 0, read.getRead()
-				.getReadLength());
+	public static int mismatchQualityCount(GaeaAlignedSamRecord read, byte[] ref, int posOnRef) {
+		return mismatchQualityCount(read, ref, posOnRef, 0, read.getRead().getReadLength());
 	}
 
-	public static int mismatchQualityCount(GaeaAlignedSamRecord read,
-			byte[] ref, int posOnRef, int posOnRead, int baseLength) {
+	public static int mismatchQualityCount(GaeaAlignedSamRecord read, byte[] ref, int posOnRef, int posOnRead,
+			int baseLength) {
 		int mismatchQualitySum = 0;
 
 		int readIndex = 0;
@@ -68,8 +66,8 @@ public class AlignmentUtil {
 		return mismatchQualitySum;
 	}
 
-	public static byte[] createStringByIndel(Cigar cigar, int indexOfIndel,
-			byte[] ref, byte[] read, int refIndex, int readIndex) {
+	public static byte[] createStringByIndel(Cigar cigar, int indexOfIndel, byte[] ref, byte[] read, int refIndex,
+			int readIndex) {
 		CigarElement element = cigar.getCigarElement(indexOfIndel);
 		int indelLength = element.getLength();
 
@@ -95,22 +93,19 @@ public class AlignmentUtil {
 			}
 		}
 
-		/*CigarOperator.I needn't be changed*/
-		if (element.getOperator() == CigarOperator.D
-				&& (indelLength + refBaseCount > ref.length)) {
+		/* CigarOperator.I needn't be changed */
+		if (element.getOperator() == CigarOperator.D && (indelLength + refBaseCount > ref.length)) {
 			indelLength -= (indelLength + refBaseCount - ref.length);
 		}
 
-		int refLength = ref.length
-				+ (indelLength * (element.getOperator() == CigarOperator.D ? -1
-						: 1));
+		int refLength = ref.length + (indelLength * (element.getOperator() == CigarOperator.D ? -1 : 1));
 		byte[] alt = new byte[refLength];
-		
-		if(refIndex > alt.length || refIndex > ref.length)
+
+		if (refIndex > alt.length || refIndex > ref.length)
 			return null;
 
 		System.arraycopy(ref, 0, alt, 0, refIndex);
-		
+
 		int currPos = refIndex;
 
 		if (element.getOperator() == CigarOperator.D) {
@@ -119,18 +114,17 @@ public class AlignmentUtil {
 			System.arraycopy(read, readBaseCount, alt, currPos, indelLength);
 			currPos += indelLength;
 		}
-		
-		 if (ref.length - refIndex > alt.length - currPos)
-	            return null;
-		
-		System.arraycopy(ref, refIndex, alt, currPos, ref.length
-				- refIndex);
+
+		if (ref.length - refIndex > alt.length - currPos)
+			return null;
+
+		System.arraycopy(ref, refIndex, alt, currPos, ref.length - refIndex);
 
 		return alt;
 	}
 
-	public static Cigar leftAlignIndel(Cigar originCigar, final byte[] refSeq,
-			final byte[] readSeq, final int refIndex, final int readIndex) {
+	public static Cigar leftAlignIndel(Cigar originCigar, final byte[] refSeq, final byte[] readSeq, final int refIndex,
+			final int readIndex) {
 		Cigar unclipcigar = GaeaCigar.unclipCigar(originCigar);
 
 		int indexOfIndel = GaeaCigar.firstIndexOfIndel(unclipcigar);
@@ -138,11 +132,9 @@ public class AlignmentUtil {
 		if (indexOfIndel < 1)
 			return unclipcigar;
 
-		final int indelLength = unclipcigar.getCigarElement(indexOfIndel)
-				.getLength();
+		final int indelLength = unclipcigar.getCigarElement(indexOfIndel).getLength();
 
-		byte[] alt = createStringByIndel(unclipcigar, indexOfIndel, refSeq,
-				readSeq, refIndex, readIndex);
+		byte[] alt = createStringByIndel(unclipcigar, indexOfIndel, refSeq, readSeq, refIndex, readIndex);
 		if (alt == null)
 			return unclipcigar;
 
@@ -153,11 +145,9 @@ public class AlignmentUtil {
 			if (newCigar == null)
 				return unclipcigar;
 
-			byte[] newAlt = createStringByIndel(newCigar, indexOfIndel, refSeq,
-					readSeq, refIndex, readIndex);
+			byte[] newAlt = createStringByIndel(newCigar, indexOfIndel, refSeq, readSeq, refIndex, readIndex);
 
-			boolean reachedEndOfRead = GaeaCigar
-					.cigarHasZeroSizeElement(newCigar);
+			boolean reachedEndOfRead = GaeaCigar.cigarHasZeroSizeElement(newCigar);
 
 			if (Arrays.equals(alt, newAlt)) {
 				unclipcigar = newCigar;
@@ -171,5 +161,55 @@ public class AlignmentUtil {
 		}
 
 		return unclipcigar;
+	}
+
+	public static int[] referencePositions(Cigar cigar, int start, int readLength) {
+		int[] positions = new int[readLength];
+		Arrays.fill(positions, 0);
+
+		int readIndex = 0;
+		int referenceIndex = start;
+
+		for (CigarElement element : cigar.getCigarElements()) {
+			int length = element.getLength();
+			CigarOperator op = element.getOperator();
+
+			switch (op) {
+			case M:
+			case EQ:
+			case X:
+				for (int i = 0; i < length; i++) {
+					positions[readIndex++] = referenceIndex++;
+				}
+				break;
+			case S:
+			case I:
+				readIndex += length;
+				break;
+			case D:
+			case N:
+				referenceIndex += length;
+				break;
+			default:
+				break;
+			}
+		}
+
+		return positions;
+	}
+
+	public static int[] readOffsets(Cigar cigar, int start, int end) {
+		int length = end - start + 1;
+		int[] positions = new int[length];
+		Arrays.fill(positions, 0);
+		
+		CigarState state = new CigarState();
+		state.parseCigar(cigar.toString());
+		
+		for(int i = start ; i <= end ; i++){
+			positions[i-start] = state.resolveCigar(i, start);
+		}
+
+		return positions;
 	}
 }

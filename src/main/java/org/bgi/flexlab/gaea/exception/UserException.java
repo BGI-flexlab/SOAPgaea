@@ -111,15 +111,19 @@ public class UserException extends RuntimeException {
         }
     }
  
-    public static class BadArgumentValue extends CommandLineException {
+    public static class BadArgumentValueException extends CommandLineException {
         /**
 		 * 
 		 */
 		private static final long serialVersionUID = -2902450578967979989L;
 
-		public BadArgumentValue(String arg, String message) {
+		public BadArgumentValueException(String arg, String message) {
             super(String.format("Argument %s has a bad value: %s", arg, message));
         }
+		
+		public BadArgumentValueException(int value,int min,int max){
+			super(String.format("Argument must in [%d,%d],but user is set to %d", min,max,value));
+		}
     }
     
     public static class CouldNotCreateOutputFile extends UserException {

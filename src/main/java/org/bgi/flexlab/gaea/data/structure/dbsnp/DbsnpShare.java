@@ -49,6 +49,7 @@ public class DbsnpShare extends WholeGenomeShare {
 
 	public void loadChromosomeList(String chrList) {
 		try {
+			chrList = "file://"+chrList;
 			loadChromosomeList(new Path(chrList));
 		} catch (IllegalArgumentException | IOException e) {
 			throw new RuntimeException(e.toString());

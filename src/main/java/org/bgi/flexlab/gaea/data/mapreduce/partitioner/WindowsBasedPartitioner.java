@@ -9,7 +9,7 @@ public class WindowsBasedPartitioner<T> extends Partitioner<WindowsBasedWritable
 	@Override
 	public int getPartition(WindowsBasedWritable key, T v, int numPartitioner) {
 		LongWritable windowsInfo = key.getWindowsInformation();
-		int hashcode = windowsInfo.hashCode();
+		int hashcode = windowsInfo.hashCode() / 163 ;
 		return Math.abs(hashcode) % numPartitioner;
 	}
 }
