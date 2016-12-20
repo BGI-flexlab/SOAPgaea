@@ -29,6 +29,8 @@ public abstract class VariantFilter {
 
 	public ArrayList<VariantContext> loadFilter(VCFLocalLoader loader, String referenceName, long startPosition,
 			int end) {
+		if(startPosition < 0)
+			throw new RuntimeException(String.format("start position  %d is less than zero",startPosition));
 		try {
 			return loader.query(referenceName, startPosition, end);
 		} catch (IOException e) {

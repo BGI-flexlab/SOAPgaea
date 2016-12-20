@@ -1,10 +1,23 @@
 package org.bgi.flexlab.gaea.tools.mapreduce.realigner;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.ParseException;
 import org.apache.hadoop.conf.Configuration;
 import org.bgi.flexlab.gaea.data.mapreduce.options.HadoopOptions;
 import org.bgi.flexlab.gaea.options.GaeaOptions;
+import org.bgi.flexlab.gaea.tools.mapreduce.realigner.RealignerOptions.AlternateConsensusModel;
+import org.bgi.flexlab.gaea.tools.mapreduce.recalibrator.BaseRecalibratorOptions;
 
-public class RealignerExtendOptions  extends GaeaOptions implements HadoopOptions{
+public class RealignerExtendOptions extends GaeaOptions implements HadoopOptions{
+	public final static String SOFTWARE_NAME = "Realigner";
+	public final static String SOFTWARE_VERSION = "1.0";
+	
+	private RealignerOptions realignerOptions = new RealignerOptions();
+	private BaseRecalibratorOptions bqsrOptions = new BaseRecalibratorOptions();
+	
 	public RealignerExtendOptions(){
 		addOption("a", "defaultPlatform", true, "If a read has no platform then default to the provided String."
 						+ " Valid options are illumina, 454, and solid.");
@@ -45,23 +58,44 @@ public class RealignerExtendOptions  extends GaeaOptions implements HadoopOption
 		addOption("T", "lqt", true, "minimum quality for the bases in the tail of the reads to be considered.(default:2)");
 		addOption("w", "keyWindow", true, "window size for key[10000]");
 		addOption("W", "window", true, "window size for calculating entropy or SNP clusters[10]");
+		
+		FormatHelpInfo(SOFTWARE_NAME, SOFTWARE_VERSION);
 	}
 
 	@Override
 	public void setHadoopConf(String[] args, Configuration conf) {
-		// TODO Auto-generated method stub
-		
+		conf.setStrings("args", args);
 	}
 
 	@Override
 	public void getOptionsFromHadoopConf(Configuration conf) {
-		// TODO Auto-generated method stub
+		String[] args = conf.getStrings("args");
+		this.parse(args);
+	}
+	
+	private void parse(CommandLine cmdLine,ArrayList<String> realigner,ArrayList<String> bqsr){
 		
 	}
 
 	@Override
 	public void parse(String[] args) {
-		// TODO Auto-generated method stub
+		ArrayList<String> realigner = new ArrayList<String>();
+		ArrayList<String> others = new ArrayList<String>();
 		
+		try {
+			cmdLine = parser.parse(options, args);
+		} catch (ParseException e) {
+			System.err.println(e.getMessage());
+			FormatHelpInfo(SOFTWARE_NAME, SOFTWARE_VERSION);
+			System.exit(1);
+		}
+	}
+	
+	public RealignerOptions getRealignerOptions(){
+		return this.realignerOptions;
+	}
+	
+	public BaseRecalibratorOptions getBqsrOptions(){
+		return this.bqsrOptions;
 	}
 }

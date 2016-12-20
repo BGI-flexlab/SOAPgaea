@@ -19,7 +19,7 @@ import htsjdk.samtools.SAMFileHeader;
 
 public class RecalibratorEngine {
 	private SAMFileHeader mHeader = null;
-	private BaseRecalibrationOptions option = new BaseRecalibrationOptions();
+	private BaseRecalibratorOptions option = new BaseRecalibratorOptions();
 	private ReferenceShare chrInfo = null;
 	private BaseAndSNPInformation information = null;
 	private BaseRecalibrationFilter filter = null;
@@ -27,7 +27,7 @@ public class RecalibratorEngine {
 	private Covariate[] covariates = null;
 	private RecalibratorTable recalibratorTables = null;
 
-	public RecalibratorEngine(BaseRecalibrationOptions option, ReferenceShare chrInfo, SAMFileHeader mHeader) {
+	public RecalibratorEngine(BaseRecalibratorOptions option, ReferenceShare chrInfo, SAMFileHeader mHeader) {
 		this.option = option;
 		this.chrInfo = chrInfo;
 		this.mHeader = mHeader;

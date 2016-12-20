@@ -243,7 +243,9 @@ public class IndelRealigner {
 			((RealignerContextWriter) writer).getContext().getCounter("ERROR", "clean reads")
 					.increment(needRealignementReads.size());
 		}
-		notNeedRealignementReads.addAll(needRealignementReads.getReads());
+		if(needRealignementReads.getReads() != null)
+			notNeedRealignementReads.addAll(needRealignementReads.getReads());
+		
 		writer.writeReadList(notNeedRealignementReads);
 		needRealignementReads.clear();
 		notNeedRealignementReads.clear();

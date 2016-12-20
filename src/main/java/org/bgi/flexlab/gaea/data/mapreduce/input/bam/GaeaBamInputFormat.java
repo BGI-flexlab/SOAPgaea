@@ -17,23 +17,25 @@ import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
-import org.seqdoop.hadoop_bam.BAMRecordReader;
+import org.bgi.flexlab.gaea.data.mapreduce.writable.SamRecordWritable;
 import org.seqdoop.hadoop_bam.FileVirtualSplit;
-import org.seqdoop.hadoop_bam.SAMRecordWritable;
 import org.seqdoop.hadoop_bam.SplittingBAMIndex;
 import org.seqdoop.hadoop_bam.util.WrapSeekable;
 
 public class GaeaBamInputFormat extends
-		FileInputFormat<LongWritable, SAMRecordWritable> {
+		FileInputFormat<LongWritable, SamRecordWritable> {
+	public static boolean DEBUG_BAM_SPLITTER = false; 
 
 	private Path getIdxPath(Path path) {
 		return path.suffix(".splitting-bai");
 	}
 
-	public RecordReader<LongWritable, SAMRecordWritable> createRecordReader(
+	public RecordReader<LongWritable, SamRecordWritable> createRecordReader(
 			InputSplit split, TaskAttemptContext ctx)
 			throws InterruptedException, IOException {
-		RecordReader<LongWritable, SAMRecordWritable> rr = new BAMRecordReader();
+		RecordReader<LongWritable, SamRecordWritable> rr = new GaeaBamRecordReader();
+		Configuration conf = ctx.getConfiguration();
+		DEBUG_BAM_SPLITTER = conf.getBoolean("debug.bam.splitter", false);
 		rr.initialize(split, ctx);
 		return rr;
 	}

@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.bgi.flexlab.gaea.exception.UserException;
-import org.bgi.flexlab.gaea.tools.mapreduce.recalibrator.BaseRecalibrationOptions;
+import org.bgi.flexlab.gaea.tools.mapreduce.recalibrator.BaseRecalibratorOptions;
 import org.bgi.flexlab.gaea.util.Pair;
 
 import htsjdk.samtools.SAMFileHeader;
@@ -61,7 +61,7 @@ public class CovariateUtil {
 	}
 
 	private static Pair<ArrayList<Covariate>, ArrayList<Covariate>> initializeCovariates(
-			BaseRecalibrationOptions option) {
+			BaseRecalibratorOptions option) {
 		final List<Class<? extends Covariate>> covariateClasses = initConvariate();
 		final List<Class<? extends RequiredCovariate>> requiredClasses = initRequiredCovariate();
 		final List<Class<? extends OptionalCovariate>> standardClasses = initOptionalCovariate();
@@ -98,7 +98,7 @@ public class CovariateUtil {
 		return new Pair<ArrayList<Covariate>, ArrayList<Covariate>>(requiredCovariates, optionalCovariates);
 	}
 
-	public static Covariate[] initializeCovariates(BaseRecalibrationOptions option, SAMFileHeader mHeader) {
+	public static Covariate[] initializeCovariates(BaseRecalibratorOptions option, SAMFileHeader mHeader) {
 		Pair<ArrayList<Covariate>, ArrayList<Covariate>> covariates = initializeCovariates(option);
 		ArrayList<Covariate> requiredCovariates = covariates.getFirst();
 		ArrayList<Covariate> optionalCovariates = covariates.getSecond();

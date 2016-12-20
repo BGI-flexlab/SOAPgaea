@@ -42,6 +42,8 @@ public class GaeaSamRecordBin {
 					location.getStart(), loc.getStop());
 		}
 
+		if(records == null)
+			records = new ArrayList<GaeaSamRecord>();
 		records.add(read);
 	}
 
@@ -68,11 +70,14 @@ public class GaeaSamRecordBin {
 	}
 
 	public int size() {
+		if(records == null)
+			return 0;
 		return records.size();
 	}
 
 	public void clear() {
-		records.clear();
+		if(records != null)
+			records.clear();
 		refBases = null;
 		location = null;
 	}

@@ -107,4 +107,8 @@ public abstract class GaeaOptions {
 			return Long.parseLong(cmdLine.getOptionValue(opt));
 		return defaultValue;
 	}
+	
+	public Options getOptions(){
+		return this.options;
+	}
 }

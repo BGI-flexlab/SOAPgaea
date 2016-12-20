@@ -7,10 +7,6 @@ import org.bgi.flexlab.gaea.options.GaeaOptions;
 import org.seqdoop.hadoop_bam.SAMFormat;
 
 public class RealignerOptions extends GaeaOptions implements HadoopOptions{
-	
-	private final static String SOFTWARE_NAME = "Realigner";
-	private final static String SOFTWARE_VERSION = "1.0";
-	
 	private int winSize;
 	private int reducerNumbers;
 	private int maxReadsAtWindows;
@@ -69,8 +65,6 @@ public class RealignerOptions extends GaeaOptions implements HadoopOptions{
 		addOption("L", "intervalLength", true, "max interval length[500].");
 		addOption("c","consensusModel",true,"Determines how to compute the possible alternate consenses.model:DBSNP,READS.[READS]");
 		addOption("I","MaxInsertSize",true,"maximum insert size of read pairs that we attempt to realign [3000].");
-		
-		FormatHelpInfo(SOFTWARE_NAME, SOFTWARE_VERSION);
 	}
 
 	@Override
@@ -90,7 +84,7 @@ public class RealignerOptions extends GaeaOptions implements HadoopOptions{
 			cmdLine = parser.parse(options, args);
 		} catch (ParseException e) {
 			System.err.println(e.getMessage());
-			printHelpInfotmation(SOFTWARE_NAME);
+			FormatHelpInfo(RealignerExtendOptions.SOFTWARE_NAME, RealignerExtendOptions.SOFTWARE_VERSION);
 			System.exit(1);
 		}
 		

@@ -70,8 +70,9 @@ public class RealignerEngine {
 
 		long startPosition = dbsnpShare.getStartPosition(referenceName, start / VcfIndex.WINDOW_SIZE,
 				VcfIndex.WINDOW_SIZE);
-
-		knowIndels = indelFilter.loadFilter(loader, referenceName, startPosition, end);
+		
+		if(startPosition >= 0)
+			knowIndels = indelFilter.loadFilter(loader, referenceName, startPosition, end);
 	}
 
 	public int reduce() {

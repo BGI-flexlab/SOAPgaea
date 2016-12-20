@@ -5,7 +5,7 @@ import java.util.EnumSet;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.sequenceplatform.NGSPlatform;
 import org.bgi.flexlab.gaea.exception.UserException;
-import org.bgi.flexlab.gaea.tools.mapreduce.recalibrator.BaseRecalibrationOptions;
+import org.bgi.flexlab.gaea.tools.mapreduce.recalibrator.BaseRecalibratorOptions;
 import org.bgi.flexlab.gaea.tools.mapreduce.recalibrator.ReadCovariates;
 import org.bgi.flexlab.gaea.util.BaseUtils;
 
@@ -20,7 +20,7 @@ public class CycleCovariate implements OptionalCovariate {
 			NGSPlatform.ION_TORRENT);
 
 	@Override
-	public void initialize(BaseRecalibrationOptions option) {
+	public void initialize(BaseRecalibratorOptions option) {
 		if (option.DEFAULT_PLATFORM != null && !NGSPlatform.isKnown(option.DEFAULT_PLATFORM))
 			throw new UserException("unknow platform for " + option.DEFAULT_PLATFORM);
 

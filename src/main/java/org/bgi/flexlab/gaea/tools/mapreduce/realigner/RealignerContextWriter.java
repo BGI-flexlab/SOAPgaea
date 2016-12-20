@@ -4,20 +4,20 @@ import java.io.IOException;
 
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Reducer.Context;
+import org.bgi.flexlab.gaea.data.mapreduce.writable.SamRecordWritable;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.tools.realigner.RealignerWriter;
-import org.seqdoop.hadoop_bam.SAMRecordWritable;
 
 public class RealignerContextWriter extends RealignerWriter{
 
 	@SuppressWarnings("rawtypes")
 	private Context context = null;
-	private SAMRecordWritable value = null;
+	private SamRecordWritable value = null;
 	
 	@SuppressWarnings("rawtypes")
 	public RealignerContextWriter(Context context){
 		this.context = context;
-		this.value = new SAMRecordWritable();
+		this.value = new SamRecordWritable();
 	}
 	
 	@SuppressWarnings("unchecked")

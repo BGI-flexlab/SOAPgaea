@@ -1,14 +1,14 @@
 package org.bgi.flexlab.gaea.tools.mapreduce.recalibrator.covariate;
 
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
-import org.bgi.flexlab.gaea.tools.mapreduce.recalibrator.BaseRecalibrationOptions;
+import org.bgi.flexlab.gaea.tools.mapreduce.recalibrator.BaseRecalibratorOptions;
 import org.bgi.flexlab.gaea.tools.mapreduce.recalibrator.ReadCovariates;
 
 public interface Covariate {
 	/**
      * Initialize any member variables
      */
-    public void initialize(final BaseRecalibrationOptions option);
+    public void initialize(final BaseRecalibratorOptions option);
 
     /**
      * Calculates covariate values for all positions in the read.
