@@ -1,4 +1,4 @@
-package org.bgi.flexlab.gaea.tools.mapreduce.recalibrator.covariate;
+package org.bgi.flexlab.gaea.tools.recalibrator.covariate;
 
 import java.util.ArrayList;
 
@@ -7,8 +7,8 @@ import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.bam.clipper.ReadClipper;
 import org.bgi.flexlab.gaea.data.structure.bam.clipper.algorithm.ClippingWriteNs;
 import org.bgi.flexlab.gaea.data.structure.bam.clipper.algorithm.ReadClippingAlgorithm;
-import org.bgi.flexlab.gaea.tools.mapreduce.recalibrator.BaseRecalibratorOptions;
-import org.bgi.flexlab.gaea.tools.mapreduce.recalibrator.ReadCovariates;
+import org.bgi.flexlab.gaea.tools.mapreduce.realigner.BaseRecalibratorOptions;
+import org.bgi.flexlab.gaea.tools.recalibrator.ReadCovariates;
 import org.bgi.flexlab.gaea.util.BaseUtils;
 
 public class ContextCovariate implements OptionalCovariate {

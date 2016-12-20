@@ -1,11 +1,11 @@
-package org.bgi.flexlab.gaea.tools.mapreduce.recalibrator.covariate;
+package org.bgi.flexlab.gaea.tools.recalibrator.covariate;
 
 import java.util.HashMap;
 import java.util.List;
 
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
-import org.bgi.flexlab.gaea.tools.mapreduce.recalibrator.BaseRecalibratorOptions;
-import org.bgi.flexlab.gaea.tools.mapreduce.recalibrator.ReadCovariates;
+import org.bgi.flexlab.gaea.tools.mapreduce.realigner.BaseRecalibratorOptions;
+import org.bgi.flexlab.gaea.tools.recalibrator.ReadCovariates;
 
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMReadGroupRecord;

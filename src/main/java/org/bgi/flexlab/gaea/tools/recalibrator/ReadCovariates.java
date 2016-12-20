@@ -1,4 +1,4 @@
-package org.bgi.flexlab.gaea.tools.mapreduce.recalibrator;
+package org.bgi.flexlab.gaea.tools.recalibrator;
 
 public class ReadCovariates {
 	private int[][][] mkeys = null;

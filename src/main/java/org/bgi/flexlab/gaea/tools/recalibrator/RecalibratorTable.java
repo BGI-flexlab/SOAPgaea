@@ -1,6 +1,6 @@
-package org.bgi.flexlab.gaea.tools.mapreduce.recalibrator;
+package org.bgi.flexlab.gaea.tools.recalibrator;
 
-import org.bgi.flexlab.gaea.tools.mapreduce.recalibrator.covariate.Covariate;
+import org.bgi.flexlab.gaea.tools.recalibrator.covariate.Covariate;
 import org.bgi.flexlab.gaea.util.NestedObjectArray;
 
 public class RecalibratorTable {

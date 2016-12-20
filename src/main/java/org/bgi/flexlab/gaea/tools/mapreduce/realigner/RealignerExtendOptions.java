@@ -1,15 +1,13 @@
 package org.bgi.flexlab.gaea.tools.mapreduce.realigner;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.ParseException;
 import org.apache.hadoop.conf.Configuration;
 import org.bgi.flexlab.gaea.data.mapreduce.options.HadoopOptions;
-import org.bgi.flexlab.gaea.options.GaeaOptions;
+import org.bgi.flexlab.gaea.data.options.GaeaOptions;
 import org.bgi.flexlab.gaea.tools.mapreduce.realigner.RealignerOptions.AlternateConsensusModel;
-import org.bgi.flexlab.gaea.tools.mapreduce.recalibrator.BaseRecalibratorOptions;
 
 public class RealignerExtendOptions extends GaeaOptions implements HadoopOptions{
 	public final static String SOFTWARE_NAME = "Realigner";

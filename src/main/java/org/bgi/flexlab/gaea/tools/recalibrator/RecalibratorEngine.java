@@ -1,4 +1,4 @@
-package org.bgi.flexlab.gaea.tools.mapreduce.recalibrator;
+package org.bgi.flexlab.gaea.tools.recalibrator;
 
 import java.util.ArrayList;
 
@@ -7,10 +7,11 @@ import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.bam.filter.BaseRecalibrationFilter;
 import org.bgi.flexlab.gaea.data.structure.reference.BaseAndSNPInformation;
 import org.bgi.flexlab.gaea.data.structure.reference.ReferenceShare;
-import org.bgi.flexlab.gaea.tools.mapreduce.recalibrator.RecalibratorUtil.Consistent;
-import org.bgi.flexlab.gaea.tools.mapreduce.recalibrator.RecalibratorUtil.SolidRecallMode;
-import org.bgi.flexlab.gaea.tools.mapreduce.recalibrator.covariate.Covariate;
-import org.bgi.flexlab.gaea.tools.mapreduce.recalibrator.covariate.CovariateUtil;
+import org.bgi.flexlab.gaea.tools.mapreduce.realigner.BaseRecalibratorOptions;
+import org.bgi.flexlab.gaea.tools.recalibrator.RecalibratorUtil.Consistent;
+import org.bgi.flexlab.gaea.tools.recalibrator.RecalibratorUtil.SolidRecallMode;
+import org.bgi.flexlab.gaea.tools.recalibrator.covariate.Covariate;
+import org.bgi.flexlab.gaea.tools.recalibrator.covariate.CovariateUtil;
 import org.bgi.flexlab.gaea.util.AlignmentUtil;
 import org.bgi.flexlab.gaea.util.BaseUtils;
 import org.bgi.flexlab.gaea.util.NestedObjectArray;

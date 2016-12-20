@@ -1,4 +1,4 @@
-package org.bgi.flexlab.gaea.tools.mapreduce.recalibrator;
+package org.bgi.flexlab.gaea.tools.mapreduce.realigner;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -11,8 +11,9 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.bgi.flexlab.gaea.data.mapreduce.options.HadoopOptions;
 import org.bgi.flexlab.gaea.data.options.GaeaOptions;
-import org.bgi.flexlab.gaea.tools.mapreduce.recalibrator.RecalibratorUtil.SolidNocallStrategy;
-import org.bgi.flexlab.gaea.tools.mapreduce.recalibrator.RecalibratorUtil.SolidRecallMode;
+import org.bgi.flexlab.gaea.tools.recalibrator.RecalibratorUtil;
+import org.bgi.flexlab.gaea.tools.recalibrator.RecalibratorUtil.SolidNocallStrategy;
+import org.bgi.flexlab.gaea.tools.recalibrator.RecalibratorUtil.SolidRecallMode;
 import org.bgi.flexlab.gaea.util.HdfsFileManager;
 import org.bgi.flexlab.gaea.util.QualityUtils;
 
