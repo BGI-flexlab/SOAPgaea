@@ -98,8 +98,9 @@ public class RecalibratorEngine {
 	public void dataUpdate(final int offset, final byte base, final byte quality, final byte refBase,
 			final ReadCovariates readCovariates) {
 		final boolean isError = !BaseUtils.basesAreEqual(base, refBase);
-		final int[] keys = readCovariates.getKeySet(offset, EventType.SNP);
-		final int eventIndex = EventType.SNP.index;
+		final EventType eventType = EventType.SNP;
+		final int[] keys = readCovariates.getKeySet(offset, eventType);
+		final int eventIndex = eventType.index;
 
 		final NestedObjectArray<RecalibratorDatum> rgRecalTable = recalibratorTables
 				.getTable(RecalibratorTable.Type.READ_GROUP_TABLE);
