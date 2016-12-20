@@ -1,6 +1,6 @@
 package org.bgi.flexlab.gaea.tools.mapreduce.recalibrator;
 
-import org.bgi.flexlab.gaea.exception.UserException;
+import org.bgi.flexlab.gaea.data.exception.UserException;
 
 public enum EventType {
     SNP(0, "M"),

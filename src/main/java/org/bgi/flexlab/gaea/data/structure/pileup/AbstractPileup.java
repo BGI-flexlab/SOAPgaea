@@ -9,10 +9,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
 import org.bgi.flexlab.gaea.data.structure.pileup.filter.PileupElementFilter;
-import org.bgi.flexlab.gaea.exception.UserException;
 import org.bgi.flexlab.gaea.util.BaseUtils;
 import org.bgi.flexlab.gaea.util.FragmentCollection;
 import org.bgi.flexlab.gaea.util.FragmentUtils;

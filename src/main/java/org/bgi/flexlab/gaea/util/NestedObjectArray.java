@@ -3,7 +3,7 @@ package org.bgi.flexlab.gaea.util;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.bgi.flexlab.gaea.exception.UserException;
+import org.bgi.flexlab.gaea.data.exception.UserException;
 
 public class NestedObjectArray<T> {
 	private int size;

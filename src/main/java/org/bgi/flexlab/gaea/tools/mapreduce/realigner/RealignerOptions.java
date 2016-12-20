@@ -3,7 +3,7 @@ package org.bgi.flexlab.gaea.tools.mapreduce.realigner;
 import org.apache.commons.cli.ParseException;
 import org.apache.hadoop.conf.Configuration;
 import org.bgi.flexlab.gaea.data.mapreduce.options.HadoopOptions;
-import org.bgi.flexlab.gaea.options.GaeaOptions;
+import org.bgi.flexlab.gaea.data.options.GaeaOptions;
 import org.seqdoop.hadoop_bam.SAMFormat;
 
 public class RealignerOptions extends GaeaOptions implements HadoopOptions{

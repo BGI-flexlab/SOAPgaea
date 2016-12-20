@@ -1,9 +1,9 @@
 package org.bgi.flexlab.gaea.data.structure.pileup;
 
+import org.bgi.flexlab.gaea.data.exception.MalformedReadException;
+import org.bgi.flexlab.gaea.data.exception.UserException.PileupException;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.pileup.manager.PileupElementCigarState;
-import org.bgi.flexlab.gaea.exception.MalformedReadException;
-import org.bgi.flexlab.gaea.exception.UserException.PileupException;
 import org.bgi.flexlab.gaea.util.BaseUtils;
 import org.bgi.flexlab.gaea.util.MathUtils;
 

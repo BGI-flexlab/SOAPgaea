@@ -1,4 +1,4 @@
-package org.bgi.flexlab.gaea.exception;
+package org.bgi.flexlab.gaea.data.exception;
 
 public class MissingHeaderException extends UserException{
 

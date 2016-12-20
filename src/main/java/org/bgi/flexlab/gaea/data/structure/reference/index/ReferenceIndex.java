@@ -14,8 +14,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.bgi.flexlab.gaea.data.exception.NullFilePathException;
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformation;
-import org.bgi.flexlab.gaea.exception.NullFilePathException;
 import org.bgi.flexlab.gaea.util.ChromosomeUtils;
 
 /**

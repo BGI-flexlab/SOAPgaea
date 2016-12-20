@@ -1,4 +1,4 @@
-package org.bgi.flexlab.gaea.options;
+package org.bgi.flexlab.gaea.data.options;
 
 import java.util.HashMap;
 

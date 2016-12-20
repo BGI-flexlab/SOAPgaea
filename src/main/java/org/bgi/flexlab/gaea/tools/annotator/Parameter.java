@@ -7,7 +7,7 @@ package org.bgi.flexlab.gaea.tools.annotator;
 import java.io.Serializable;
 
 import org.apache.commons.cli.ParseException;
-import org.bgi.flexlab.gaea.options.GaeaOptions;
+import org.bgi.flexlab.gaea.data.options.GaeaOptions;
 
 
 public class Parameter extends GaeaOptions implements Serializable {

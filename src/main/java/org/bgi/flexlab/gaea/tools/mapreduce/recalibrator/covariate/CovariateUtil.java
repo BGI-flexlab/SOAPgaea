@@ -3,7 +3,7 @@ package org.bgi.flexlab.gaea.tools.mapreduce.recalibrator.covariate;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.bgi.flexlab.gaea.exception.UserException;
+import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.tools.mapreduce.recalibrator.BaseRecalibratorOptions;
 import org.bgi.flexlab.gaea.util.Pair;
 

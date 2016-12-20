@@ -1,6 +1,6 @@
 package org.bgi.flexlab.gaea.data.structure.reference;
 
-import org.bgi.flexlab.gaea.exception.OutOfBoundException;
+import org.bgi.flexlab.gaea.data.exception.OutOfBoundException;
 
 public class BaseAndSNPInformation {
 	private boolean[] snps = null;

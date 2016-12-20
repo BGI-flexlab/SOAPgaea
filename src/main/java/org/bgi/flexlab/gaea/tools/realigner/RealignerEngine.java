@@ -12,9 +12,9 @@ import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
 import org.bgi.flexlab.gaea.data.structure.reference.ReferenceShare;
 import org.bgi.flexlab.gaea.data.structure.reference.index.VcfIndex;
 import org.bgi.flexlab.gaea.data.structure.vcf.VCFLocalLoader;
+import org.bgi.flexlab.gaea.data.variant.filter.VariantRegionFilter;
 import org.bgi.flexlab.gaea.tools.mapreduce.realigner.RealignerOptions;
 import org.bgi.flexlab.gaea.util.Window;
-import org.bgi.flexlab.gaea.variant.filter.VariantRegionFilter;
 
 public class RealignerEngine {
 	private RealignerOptions option = null;

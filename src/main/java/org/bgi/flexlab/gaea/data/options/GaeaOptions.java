@@ -1,4 +1,4 @@
-package org.bgi.flexlab.gaea.options;
+package org.bgi.flexlab.gaea.data.options;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;

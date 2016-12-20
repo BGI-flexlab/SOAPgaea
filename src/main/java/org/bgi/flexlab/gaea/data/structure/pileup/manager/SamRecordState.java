@@ -1,9 +1,9 @@
 package org.bgi.flexlab.gaea.data.structure.pileup.manager;
 
+import org.bgi.flexlab.gaea.data.exception.BadCigarException;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocationParser;
-import org.bgi.flexlab.gaea.exception.BadCigarException;
 
 import htsjdk.samtools.Cigar;
 import htsjdk.samtools.CigarElement;

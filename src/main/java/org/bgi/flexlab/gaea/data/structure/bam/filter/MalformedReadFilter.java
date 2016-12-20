@@ -1,8 +1,8 @@
 package org.bgi.flexlab.gaea.data.structure.bam.filter;
 
+import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.region.Region;
-import org.bgi.flexlab.gaea.exception.UserException;
 
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMRecord;

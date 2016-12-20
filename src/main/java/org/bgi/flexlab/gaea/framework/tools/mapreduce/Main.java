@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Properties;
 
-import org.bgi.flexlab.gaea.options.ToolsOptions;
+import org.bgi.flexlab.gaea.data.options.ToolsOptions;
 import org.bgi.flexlab.gaea.util.ArrayUtils;
 
 public class Main {

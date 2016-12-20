@@ -10,7 +10,7 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.bgi.flexlab.gaea.data.mapreduce.options.HadoopOptions;
-import org.bgi.flexlab.gaea.options.GaeaOptions;
+import org.bgi.flexlab.gaea.data.options.GaeaOptions;
 import org.bgi.flexlab.gaea.tools.mapreduce.recalibrator.RecalibratorUtil.SolidNocallStrategy;
 import org.bgi.flexlab.gaea.tools.mapreduce.recalibrator.RecalibratorUtil.SolidRecallMode;
 import org.bgi.flexlab.gaea.util.HdfsFileManager;

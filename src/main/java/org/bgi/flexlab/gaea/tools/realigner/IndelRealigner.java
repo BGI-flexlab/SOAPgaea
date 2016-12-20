@@ -21,6 +21,7 @@ import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocationParser;
 import org.bgi.flexlab.gaea.data.structure.location.RealignerIntervalFilter;
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
+import org.bgi.flexlab.gaea.data.variant.filter.VariantRegionFilter;
 import org.bgi.flexlab.gaea.tools.mapreduce.realigner.RealignerContextWriter;
 import org.bgi.flexlab.gaea.tools.mapreduce.realigner.RealignerOptions;
 import org.bgi.flexlab.gaea.tools.realigner.alternateconsensus.AlternateConsensus;
@@ -28,7 +29,6 @@ import org.bgi.flexlab.gaea.tools.realigner.alternateconsensus.AlternateConsensu
 import org.bgi.flexlab.gaea.util.AlignmentUtil;
 import org.bgi.flexlab.gaea.util.Pair;
 import org.bgi.flexlab.gaea.util.Window;
-import org.bgi.flexlab.gaea.variant.filter.VariantRegionFilter;
 
 public class IndelRealigner {
 	private static int MAX_READS = 20000;

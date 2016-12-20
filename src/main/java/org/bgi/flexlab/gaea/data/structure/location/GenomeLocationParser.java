@@ -1,6 +1,6 @@
 package org.bgi.flexlab.gaea.data.structure.location;
 
-import org.bgi.flexlab.gaea.exception.UserException;
+import org.bgi.flexlab.gaea.data.exception.UserException;
 
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMSequenceDictionary;

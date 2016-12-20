@@ -1,4 +1,4 @@
-package org.bgi.flexlab.gaea.variant.filter;
+package org.bgi.flexlab.gaea.data.variant.filter;
 
 import htsjdk.variant.variantcontext.VariantContext;
 

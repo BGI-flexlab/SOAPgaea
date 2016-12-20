@@ -2,6 +2,7 @@ package org.bgi.flexlab.gaea.tools.mapreduce.recalibrator;
 
 import java.util.ArrayList;
 
+import org.bgi.flexlab.gaea.data.mapreduce.writable.SamRecordWritable;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.bam.filter.BaseRecalibrationFilter;
 import org.bgi.flexlab.gaea.data.structure.reference.BaseAndSNPInformation;
@@ -13,7 +14,6 @@ import org.bgi.flexlab.gaea.tools.mapreduce.recalibrator.covariate.CovariateUtil
 import org.bgi.flexlab.gaea.util.AlignmentUtil;
 import org.bgi.flexlab.gaea.util.BaseUtils;
 import org.bgi.flexlab.gaea.util.NestedObjectArray;
-import org.seqdoop.hadoop_bam.SAMRecordWritable;
 
 import htsjdk.samtools.SAMFileHeader;
 
@@ -23,7 +23,6 @@ public class RecalibratorEngine {
 	private ReferenceShare chrInfo = null;
 	private BaseAndSNPInformation information = null;
 	private BaseRecalibrationFilter filter = null;
-	private int winNum = -1;
 	private Covariate[] covariates = null;
 	private RecalibratorTable recalibratorTables = null;
 
@@ -37,14 +36,15 @@ public class RecalibratorEngine {
 				mHeader.getReadGroups().size());
 	}
 
-	public void setWindows(String chrName, int winNum) {
-		this.winNum = winNum;
+	private void setWindows(String chrName, int winNum) {
 		int start = winNum > 0 ? (winNum - 1) * option.getWindowsSize() : 0;
 		int end = (winNum + 2) * option.getWindowsSize() - 1;
 		information.set(chrInfo, chrName, start, end);
 	}
 
-	public void mapReads(ArrayList<GaeaSamRecord> records, Iterable<SAMRecordWritable> iterator) {
+	public void mapReads(ArrayList<GaeaSamRecord> records, Iterable<SamRecordWritable> iterator,String chrName,int winNum) {
+		setWindows(chrName,winNum);
+		
 		if (records != null) {
 			for (GaeaSamRecord sam : records) {
 				baseQualityStatistics(sam);
@@ -54,7 +54,7 @@ public class RecalibratorEngine {
 		if (iterator == null)
 			return;
 
-		for (SAMRecordWritable writable : iterator) {
+		for (SamRecordWritable writable : iterator) {
 			int readWinNum = writable.get().getAlignmentStart() / option.getWindowsSize();
 			GaeaSamRecord sam = new GaeaSamRecord(mHeader, writable.get(), readWinNum == winNum);
 			baseQualityStatistics(sam);
@@ -95,7 +95,7 @@ public class RecalibratorEngine {
 		}
 	}
 
-	public void dataUpdate(final int offset, final byte base, final byte qual, final byte refBase,
+	public void dataUpdate(final int offset, final byte base, final byte quality, final byte refBase,
 			final ReadCovariates readCovariates) {
 		final boolean isError = !BaseUtils.basesAreEqual(base, refBase);
 		final int[] keys = readCovariates.getKeySet(offset, EventType.SNP);
@@ -105,7 +105,7 @@ public class RecalibratorEngine {
 				.getTable(RecalibratorTable.Type.READ_GROUP_TABLE);
 
 		final RecalibratorDatum rgPreviousDatum = rgRecalTable.get(keys[0], eventIndex);
-		final RecalibratorDatum rgThisDatum = RecalibratorDatum.build(qual, isError);
+		final RecalibratorDatum rgThisDatum = RecalibratorDatum.build(quality, isError);
 		if (rgPreviousDatum == null)
 			rgRecalTable.put(rgThisDatum, keys[0], eventIndex);
 		else
@@ -115,7 +115,7 @@ public class RecalibratorEngine {
 				.getTable(RecalibratorTable.Type.QUALITY_SCORE_TABLE);
 		final RecalibratorDatum qualPreviousDatum = qualRecalTable.get(keys[0], keys[1], eventIndex);
 		if (qualPreviousDatum == null)
-			qualRecalTable.put(RecalibratorDatum.build(qual, isError), keys[0], keys[1], eventIndex);
+			qualRecalTable.put(RecalibratorDatum.build(quality, isError), keys[0], keys[1], eventIndex);
 		else
 			qualPreviousDatum.increment(isError);
 
@@ -125,7 +125,7 @@ public class RecalibratorEngine {
 			final NestedObjectArray<RecalibratorDatum> covRecalTable = recalibratorTables.getTable(i);
 			final RecalibratorDatum covPreviousDatum = covRecalTable.get(keys[0], keys[1], keys[i], eventIndex);
 			if (covPreviousDatum == null)
-				covRecalTable.put(RecalibratorDatum.build(qual, isError), keys[0], keys[1], keys[i], eventIndex);
+				covRecalTable.put(RecalibratorDatum.build(quality, isError), keys[0], keys[1], keys[i], eventIndex);
 			else
 				covPreviousDatum.increment(isError);
 		}

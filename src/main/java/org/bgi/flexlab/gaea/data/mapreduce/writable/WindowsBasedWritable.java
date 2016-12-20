@@ -7,7 +7,7 @@ import java.io.IOException;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.WritableComparable;
-import org.bgi.flexlab.gaea.exception.OutOfBoundException;
+import org.bgi.flexlab.gaea.data.exception.OutOfBoundException;
 
 import htsjdk.samtools.SAMRecord;
 

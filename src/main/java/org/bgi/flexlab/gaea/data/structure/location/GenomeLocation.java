@@ -7,7 +7,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import org.bgi.flexlab.gaea.exception.UserException;
+import org.bgi.flexlab.gaea.data.exception.UserException;
 
 public class GenomeLocation implements Comparable<GenomeLocation>,
 		Comparator<GenomeLocation>, Serializable {

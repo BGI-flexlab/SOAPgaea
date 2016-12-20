@@ -1,8 +1,8 @@
 package org.bgi.flexlab.gaea.tools.mapreduce.recalibrator;
 
+import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.sequenceplatform.NGSPlatform;
-import org.bgi.flexlab.gaea.exception.UserException;
 import org.bgi.flexlab.gaea.tools.mapreduce.recalibrator.covariate.Covariate;
 import org.bgi.flexlab.gaea.util.BaseUtils;
 import org.bgi.flexlab.gaea.util.ReadUtils;
