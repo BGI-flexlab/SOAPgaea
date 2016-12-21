@@ -17,20 +17,19 @@ import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
+import org.bgi.flexlab.gaea.data.mapreduce.input.sam.GaeaSamInputFormat;
+import org.bgi.flexlab.gaea.data.mapreduce.writable.SamRecordWritable;
 import org.seqdoop.hadoop_bam.FileVirtualSplit;
 import org.seqdoop.hadoop_bam.SAMFormat;
-import org.seqdoop.hadoop_bam.SAMInputFormat;
-import org.seqdoop.hadoop_bam.SAMRecordWritable;
 
 public class GaeaAnySAMInputFormat extends
-		FileInputFormat<LongWritable, SAMRecordWritable> {
+		FileInputFormat<LongWritable, SamRecordWritable> {
 
 	public static final String TRUST_EXTS_PROPERTY = "hadoopbam.anysam.trust-exts";
 	public static final String SAM_FORMAT_FOR_ALL_PATH = "samformat.allpath";
 
 	private final GaeaBamInputFormat bamIF = new GaeaBamInputFormat();
-	//private final BAMInputFormat bamIF = new BAMInputFormat();
-	private final SAMInputFormat samIF = new SAMInputFormat();
+	private final GaeaSamInputFormat samIF = new GaeaSamInputFormat();
 
 	private final Map<Path, SAMFormat> formatMap;
 
@@ -84,7 +83,7 @@ public class GaeaAnySAMInputFormat extends
 	}
 
 	@Override
-	public RecordReader<LongWritable, SAMRecordWritable> createRecordReader(
+	public RecordReader<LongWritable, SamRecordWritable> createRecordReader(
 			InputSplit split, TaskAttemptContext ctx)
 			throws InterruptedException, IOException {
 		final Path path;

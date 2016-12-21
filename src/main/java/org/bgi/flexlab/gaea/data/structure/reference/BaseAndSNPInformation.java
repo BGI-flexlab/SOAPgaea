@@ -1,13 +1,17 @@
 package org.bgi.flexlab.gaea.data.structure.reference;
 
-import org.bgi.flexlab.gaea.exception.OutOfBoundException;
+import org.bgi.flexlab.gaea.data.exception.OutOfBoundException;
 
 public class BaseAndSNPInformation {
 	private boolean[] snps = null;
 	private int start;
 	private String sequences = null;
 
-	public BaseAndSNPInformation(ChromosomeInformationShare chrInfo, int start, int end) {
+	public BaseAndSNPInformation() {
+	}
+
+	public void set(ReferenceShare reference, String chrName, int start, int end) {
+		ChromosomeInformationShare chrInfo = reference.getChromosomeInfo(chrName);
 		set(chrInfo, start, end);
 	}
 

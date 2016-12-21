@@ -19,11 +19,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.bgi.flexlab.gaea.data.exception.OutOfBoundException;
+import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
 import org.bgi.flexlab.gaea.data.structure.sequenceplatform.NGSPlatform;
-import org.bgi.flexlab.gaea.exception.OutOfBoundException;
-import org.bgi.flexlab.gaea.exception.UserException;
 
 public class ReadUtils {
 

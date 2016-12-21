@@ -7,8 +7,6 @@ import org.apache.hadoop.fs.Path;
 import org.bgi.flexlab.gaea.data.structure.vcf.VCFFileWriter;
 import org.bgi.flexlab.gaea.util.HdfsFileManager;
 
-import htsjdk.samtools.util.RuntimeEOFException;
-
 public class VCFHdfsWriter extends VCFFileWriter{
 	/**
 	 * 

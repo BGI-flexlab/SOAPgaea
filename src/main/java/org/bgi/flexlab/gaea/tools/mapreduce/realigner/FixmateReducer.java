@@ -9,31 +9,31 @@ import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamHdfsFileHeader;
+import org.bgi.flexlab.gaea.data.mapreduce.writable.SamRecordWritable;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.util.GaeaSamPairUtil;
-import org.seqdoop.hadoop_bam.SAMRecordWritable;
 
 public class FixmateReducer extends
-		Reducer<Text, SAMRecordWritable, NullWritable, SAMRecordWritable> {
+		Reducer<Text, SamRecordWritable, NullWritable, SamRecordWritable> {
 	private SAMFileHeader header = null;
-	private SAMRecordWritable valueout = null;
+	private SamRecordWritable valueout = null;
 
 	protected void setup(Context context) throws IOException,
 			InterruptedException {
 		Configuration conf = context.getConfiguration();
 		header = SamHdfsFileHeader.getHeader(conf);
-		valueout = new SAMRecordWritable();
+		valueout = new SamRecordWritable();
 	}
 
 	@Override
-	public void reduce(Text key, Iterable<SAMRecordWritable> values,
+	public void reduce(Text key, Iterable<SamRecordWritable> values,
 			Context context) throws IOException, InterruptedException {
 
 		GaeaSamRecord[] reads = new GaeaSamRecord[2];
 		reads[0] = null;
 		reads[1] = null;
 
-		for (SAMRecordWritable read : values) {
+		for (SamRecordWritable read : values) {
 			GaeaSamRecord sam = new GaeaSamRecord(header, read.get());
 			int type = (((sam.getFlags() >> 6) & 1) == 1) ? 0 : 1;
 

@@ -17,10 +17,10 @@ import java.io.Writer;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
-import org.seqdoop.hadoop_bam.SAMRecordWritable;
+import org.bgi.flexlab.gaea.data.mapreduce.writable.SamRecordWritable;
 
 public class GaeaKeyIgnoringBamRecordWriter<K> extends
-		RecordWriter<K, SAMRecordWritable> {
+		RecordWriter<K, SamRecordWritable> {
 
 	private BinaryCodec binaryCodec;
 	private BAMRecordCodec bamRecordCodec;
@@ -85,7 +85,7 @@ public class GaeaKeyIgnoringBamRecordWriter<K> extends
 	}
 
 	@Override
-	public void write(K ignored, SAMRecordWritable samRecordWritable) throws IOException,
+	public void write(K ignored, SamRecordWritable samRecordWritable) throws IOException,
 			InterruptedException {
 		SAMRecord sam = samRecordWritable.get();
 		if (binaryCodec == null || bamRecordCodec == null) {

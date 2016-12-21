@@ -9,12 +9,12 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.bgi.flexlab.gaea.data.mapreduce.output.bam.GaeaBamOutputFormat;
+import org.bgi.flexlab.gaea.data.mapreduce.writable.SamRecordWritable;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.WindowsBasedWritable;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.BioJob;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.ToolsRunner;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.WindowsBasedMapper;
 import org.seqdoop.hadoop_bam.SAMFormat;
-import org.seqdoop.hadoop_bam.SAMRecordWritable;
 
 public class Realigner extends ToolsRunner {
 
@@ -42,7 +42,7 @@ public class Realigner extends ToolsRunner {
 
 		job.setAnySamInputFormat(option.getInputFormat());
 		job.setOutputFormatClass(GaeaBamOutputFormat.class);
-		job.setOutputKeyValue(WindowsBasedWritable.class, SAMRecordWritable.class, NullWritable.class,SAMRecordWritable.class);
+		job.setOutputKeyValue(WindowsBasedWritable.class, SamRecordWritable.class, NullWritable.class,SamRecordWritable.class);
 
 		job.setJarByClass(Realigner.class);
 		job.setWindowsBasicMapperClass(WindowsBasedMapper.class, option.getWindowsSize());
@@ -69,7 +69,7 @@ public class Realigner extends ToolsRunner {
 
 		job.setAnySamInputFormat(format);
 		job.setOutputFormatClass(GaeaBamOutputFormat.class);
-		job.setOutputKeyValue(Text.class, SAMRecordWritable.class, NullWritable.class, SAMRecordWritable.class);
+		job.setOutputKeyValue(Text.class, SamRecordWritable.class, NullWritable.class, SamRecordWritable.class);
 
 		job.setJarByClass(Realigner.class);
 		job.setMapperClass(FixmateMapper.class);

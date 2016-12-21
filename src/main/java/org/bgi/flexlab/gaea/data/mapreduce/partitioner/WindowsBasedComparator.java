@@ -10,7 +10,11 @@ public class WindowsBasedComparator implements RawComparator<WindowsBasedWritabl
 
 	@Override
 	public int compare(WindowsBasedWritable o1, WindowsBasedWritable o2) {
-		return (int) ((o1.getWindows() - o2.getWindows()) & 0xffffffff);
+		if(o1.getWindows() == o2.getWindows())
+			return 0;
+		if(o1.getWindows() > o2.getWindows())
+			return 1;
+		return -1;
 	}
 
 	@Override

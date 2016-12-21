@@ -49,6 +49,7 @@ public class DbsnpShare extends WholeGenomeShare {
 
 	public void loadChromosomeList(String chrList) {
 		try {
+			chrList = "file://"+chrList;
 			loadChromosomeList(new Path(chrList));
 		} catch (IllegalArgumentException | IOException e) {
 			throw new RuntimeException(e.toString());
@@ -69,14 +70,14 @@ public class DbsnpShare extends WholeGenomeShare {
 	public ChromosomeDbsnpShare getChromosomeDbsnp(String chrName) {
 		chrName = ChromosomeUtils.formatChrName(chrName);
 		if (!dbsnpInfo.containsKey(chrName))
-			throw new RuntimeException("dbsnp not contains reference " + chrName);
+			return null;
 		return dbsnpInfo.get(chrName);
 	}
 
 	public long getStartPosition(String chrName, int winNum, int winSize) {
 		chrName = ChromosomeUtils.formatChrName(chrName);
 		if (!dbsnpInfo.containsKey(chrName))
-			throw new RuntimeException("dbsnp not contains reference " + chrName);
+			return -1;
 
 		return dbsnpInfo.get(chrName).getStartPosition(winNum, winSize);
 	}

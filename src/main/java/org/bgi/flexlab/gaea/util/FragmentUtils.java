@@ -9,10 +9,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.bgi.flexlab.gaea.data.exception.UnsortedException;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.pileup.Pileup;
 import org.bgi.flexlab.gaea.data.structure.pileup.PileupElement;
-import org.bgi.flexlab.gaea.exception.UnsortedException;
 
 public class FragmentUtils {
 

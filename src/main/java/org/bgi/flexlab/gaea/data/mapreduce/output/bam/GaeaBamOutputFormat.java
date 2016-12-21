@@ -9,19 +9,19 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import org.seqdoop.hadoop_bam.SAMRecordWritable;
+import org.bgi.flexlab.gaea.data.mapreduce.writable.SamRecordWritable;
 
-public class GaeaBamOutputFormat<K> extends FileOutputFormat<K,SAMRecordWritable> {
+public class GaeaBamOutputFormat<K> extends FileOutputFormat<K,SamRecordWritable> {
 	private boolean writeHeader = true;
 	
 	@Override
-	public RecordWriter<K, SAMRecordWritable> getRecordWriter(
+	public RecordWriter<K, SamRecordWritable> getRecordWriter(
 			TaskAttemptContext context) throws IOException, InterruptedException {
 		return getRecordWriter(context, getDefaultWorkFile(context, ""));
 	}
 	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public RecordWriter<K, SAMRecordWritable> getRecordWriter(
+	public RecordWriter<K, SamRecordWritable> getRecordWriter(
 			TaskAttemptContext context, Path outputPath) throws IOException {
 		Log.setGlobalLogLevel(LogLevel.ERROR);
 		return new GaeaKeyIgnoringBamRecordWriter(outputPath,

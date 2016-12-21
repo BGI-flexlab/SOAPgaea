@@ -9,7 +9,7 @@ import java.nio.channels.FileChannel.MapMode;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 
-import org.bgi.flexlab.gaea.exception.OutOfBoundException;
+import org.bgi.flexlab.gaea.data.exception.OutOfBoundException;
 
 public class BioMemoryShare {
 	protected int capacity = Byte.SIZE / 4;
@@ -73,7 +73,7 @@ public class BioMemoryShare {
 
 	public byte[] getBytes(int start, int end) {
 		if (start > length)
-			throw new OutOfBoundException(start, length);
+			throw new OutOfBoundException(length, start);
 
 		byte[] bases;
 

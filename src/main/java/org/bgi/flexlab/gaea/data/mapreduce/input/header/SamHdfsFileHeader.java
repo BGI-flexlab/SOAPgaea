@@ -10,8 +10,8 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PathFilter;
 import org.apache.hadoop.fs.permission.FsAction;
 import org.apache.hadoop.fs.permission.FsPermission;
+import org.bgi.flexlab.gaea.data.exception.FileNotExistException;
 import org.bgi.flexlab.gaea.data.structure.header.SamFileHeader;
-import org.bgi.flexlab.gaea.exception.FileNotExistException;
 import org.seqdoop.hadoop_bam.util.WrapSeekable;
 
 import htsjdk.samtools.SAMFileHeader;

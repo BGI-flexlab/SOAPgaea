@@ -1,13 +1,11 @@
 package org.bgi.flexlab.gaea.data.structure.pileup;
 
+import org.bgi.flexlab.gaea.data.exception.MalformedReadException;
+import org.bgi.flexlab.gaea.data.exception.UserException.PileupException;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.pileup.manager.PileupElementCigarState;
-import org.bgi.flexlab.gaea.exception.MalformedReadException;
-import org.bgi.flexlab.gaea.exception.UserException.PileupException;
 import org.bgi.flexlab.gaea.util.BaseUtils;
 import org.bgi.flexlab.gaea.util.MathUtils;
-
-import com.google.java.contract.Ensures;
 
 public class PileupElement implements Comparable<PileupElement> {
 	public static final byte DELETION_BASE = BaseUtils.D;
@@ -107,12 +105,10 @@ public class PileupElement implements Comparable<PileupElement> {
 		return offset == -1;
 	}
 
-	@Ensures("result != null")
 	public GaeaSamRecord getRead() {
 		return read;
 	}
 
-	@Ensures("result == offset")
 	public int getOffset() {
 		return offset;
 	}
@@ -160,7 +156,6 @@ public class PileupElement implements Comparable<PileupElement> {
 		return read.getMappingQuality();
 	}
 
-	@Ensures("result != null")
 	public String toString() {
 		return String.format("%s @ %d = %c Q%d", getRead().getReadName(),
 				getOffset(), (char) getBase(), getQuality());

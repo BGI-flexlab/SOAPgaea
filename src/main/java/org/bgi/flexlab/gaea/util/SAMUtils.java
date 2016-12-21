@@ -42,28 +42,25 @@ public final class SAMUtils
     private static final byte COMPRESSED_D_HIGH = (byte)(COMPRESSED_D_LOW << 4);
     private static final byte COMPRESSED_B_HIGH = (byte)(COMPRESSED_B_LOW << 4);
 
-
-    public static final int MAX_PHRED_SCORE = 93;
-
     /**
-     * Convert from a byte array containing =AaCcGgTtNn represented as ASCII, to a byte array half as long,
-     * with =, A, C, G, T converted to 0, 1, 2, 4, 8, 15.
-     * @param readBases Bases as ASCII bytes.
-     * @return New byte array with bases represented as nybbles, in BAM binary format.
-     */
-    public static byte[] bytesToCompressedBases(final byte[] readBases) {
-        final byte[] compressedBases = new byte[(readBases.length + 1)/2];
-        int i;
-        for (i = 1; i < readBases.length; i+=2) {
-            compressedBases[i/2] = (byte)(charToCompressedBaseHigh(readBases[i-1]) |
-                                    charToCompressedBaseLow(readBases[i]));
-        }
-        // Last nybble
-        if (i == readBases.length) {
-            compressedBases[i/2] = charToCompressedBaseHigh((char)readBases[i-1]);
-        }
-        return compressedBases;
+ * Convert from a byte array containing =AaCcGgTtNn represented as ASCII, to a byte array half as long,
+ * with =, A, C, G, T converted to 0, 1, 2, 4, 8, 15.
+ * @param readBases Bases as ASCII bytes.
+ * @return New byte array with bases represented as nybbles, in BAM binary format.
+ */
+public static byte[] bytesToCompressedBases(final byte[] readBases) {
+    final byte[] compressedBases = new byte[(readBases.length + 1)/2];
+    int i;
+    for (i = 1; i < readBases.length; i+=2) {
+        compressedBases[i/2] = (byte)(charToCompressedBaseHigh(readBases[i-1]) |
+                charToCompressedBaseLow(readBases[i]));
     }
+    // Last nybble
+    if (i == readBases.length) {
+        compressedBases[i/2] = charToCompressedBaseHigh((char)readBases[i-1]);
+    }
+    return compressedBases;
+}
 
     /**
      * Convert from a byte array with basese stored in nybbles, with =, A, C, G, T represented as 0, 1, 2, 4, 8, 15,
@@ -84,6 +81,49 @@ public final class SAMUtils
         // Last nybble
         if (i == length) {
             ret[i-1] = compressedBaseToByteHigh(compressedBases[i/2 + compressedOffset]);
+        }
+        return ret;
+    }
+
+    /**
+     * Convert from a byte array containing =AaCcGgTtNn represented as ASCII, to a byte array half as long,
+     * with =, A, C, G, T converted to 0, 1, 2, 4, 8, 15.
+     * @param readBases Bases as ASCII bytes.
+     * @return New byte array with bases represented as nybbles, in BAM binary format.
+     */
+    public static byte[] bytesToCompressedBasesGaea(final byte[] readBases) {
+        final byte[] compressedBases = new byte[(readBases.length + 1)/2];
+        int i;
+        for (i = 1; i < readBases.length; i+=2) {
+            compressedBases[i/2] = (byte)((BaseUtils.extendedBaseToBaseIndex(readBases[i-1]) << 4) |
+                    BaseUtils.extendedBaseToBaseIndex(readBases[i]));
+        }
+        // Last nybble
+        if (i == readBases.length) {
+            compressedBases[i/2] = (byte)(BaseUtils.extendedBaseToBaseIndex(readBases[i-1]) << 4);
+        }
+        return compressedBases;
+    }
+
+    /**
+     * Convert from a byte array with basese stored in nybbles, with =, A, C, G, T represented as 0, 1, 2, 4, 8, 15,
+     * to a a byte array containing =AaCcGgTtNn represented as ASCII.
+     * @param length Number of bases (not bytes) to convert.
+     * @param compressedBases Bases represented as nybbles, in BAM binary format.
+     * @param compressedOffset Byte offset in compressedBases to start.
+     * @return New byte array with bases as ASCII bytes.
+     */
+    public static byte[] compressedBasesToBytesGaea(final int length, final byte[] compressedBases, final int compressedOffset) {
+        final byte[] ret = new byte[length];
+        int i;
+        for (i = 1; i < length; i+=2) {
+            final int compressedIndex = i / 2 + compressedOffset;
+            ret[i-1] = BaseUtils.baseIndexToSimpleBase(compressedBases[compressedIndex] >> 4);
+            ret[i] = BaseUtils.baseIndexToSimpleBase(compressedBases[compressedIndex] & 0x0f);
+        }
+        // Last nybble
+        if (i == length) {
+            ret[i-1] = BaseUtils.baseIndexToSimpleBase(compressedBases[i/2 + compressedOffset] >> 4);
         }
         return ret;
     }
@@ -338,7 +378,7 @@ public final class SAMUtils
      * @return Printable ASCII representation of phred score.
      */
     public static char phredToFastq(final int phredScore) {
-        if (phredScore < 0 || phredScore > MAX_PHRED_SCORE) {
+        if (phredScore < 0 || phredScore > QualityUtils.MAXIMUM_USABLE_QUALITY_SCORE) {
             throw new IllegalArgumentException("Cannot encode phred score: " + phredScore);
         }
         return (char) (33 + phredScore);

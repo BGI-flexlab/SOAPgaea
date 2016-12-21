@@ -7,7 +7,7 @@ import htsjdk.samtools.SAMUtils;
 
 import java.util.Arrays;
 
-import org.bgi.flexlab.gaea.exception.UserException;
+import org.bgi.flexlab.gaea.data.exception.UserException;
 
 public class SamRecordUtils {
 

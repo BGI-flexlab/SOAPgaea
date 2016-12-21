@@ -58,7 +58,6 @@ public class GaeaSamRecord extends SAMRecord {
 
 	public GaeaSamRecord(SAMFileHeader header, SAMRecord sam) {
 		super(header);
-		sam.setHeader(header);
 		set(sam);
 	}
 
@@ -252,12 +251,10 @@ public class GaeaSamRecord extends SAMRecord {
 	public void set(SAMRecord sam) {
 		this.setReadName(sam.getReadName());
 		this.setFlags(sam.getFlags());
-		this.setReferenceName(sam.getReferenceName());
 		this.setReferenceIndex(sam.getReferenceIndex());
 		this.setAlignmentStart(sam.getAlignmentStart());
 		this.setMappingQuality(sam.getMappingQuality());
 		this.setCigar(sam.getCigar());
-		this.setMateReferenceName(sam.getMateReferenceName());
 		this.setMateReferenceIndex(sam.getMateReferenceIndex());
 		this.setMateAlignmentStart(sam.getMateAlignmentStart());
 		this.setInferredInsertSize(sam.getInferredInsertSize());
