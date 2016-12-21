@@ -14,8 +14,7 @@ public class ReadCovariates {
 	}
 	
 	public ReadCovariates(int readLength, int numberOfCovariates) {
-		this.largeKeys = false;
-		initialize(1,readLength,numberOfCovariates);
+		this(readLength,numberOfCovariates,false);
 	}
 	
 	private void initialize(int length,final int readLength, final int numberOfCovariates) {

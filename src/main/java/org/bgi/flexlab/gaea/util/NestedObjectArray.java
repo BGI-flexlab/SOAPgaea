@@ -1,9 +1,13 @@
 package org.bgi.flexlab.gaea.util;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.hadoop.io.NullWritable;
+import org.apache.hadoop.io.Text;
 import org.bgi.flexlab.gaea.data.exception.UserException;
+import org.bgi.flexlab.gaea.tools.recalibrator.RecalibratorDatum;
 
 public class NestedObjectArray<T> {
 	private int size;
@@ -84,6 +88,18 @@ public class NestedObjectArray<T> {
         public Leave(final int[] keys, final Object value) {
             this.keys = keys;
             this.value = value;
+        }
+        
+        public String toString(int index){
+        	StringBuilder sb = new StringBuilder();
+			sb.append(index);
+			sb.append("\t");
+			for (int k : keys) {
+				sb.append(k);
+				sb.append("\t");
+			}
+			sb.append(((RecalibratorDatum)value).toString());
+			return sb.toString();
         }
     }
 
