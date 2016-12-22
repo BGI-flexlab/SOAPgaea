@@ -14,6 +14,7 @@ import org.apache.hadoop.filecache.DistributedCache;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.mapreduce.Job;
 
 public class MultipleVCFHeader extends  GaeaVCFHeader implements Serializable{
 	/**
@@ -129,7 +130,8 @@ public class MultipleVCFHeader extends  GaeaVCFHeader implements Serializable{
 		return filePathName.trim();
 	}
 	
-	public void mergeHeader(Path inputPath, String output, Configuration conf, boolean distributeCacheHeader) {
+	public void mergeHeader(Path inputPath, String output, Job job, boolean distributeCacheHeader) {
+		Configuration conf = job.getConfiguration();
 		try {
 			FileSystem fs = inputPath.getFileSystem(conf);
 			fs = inputPath.getFileSystem(conf);
@@ -146,7 +148,7 @@ public class MultipleVCFHeader extends  GaeaVCFHeader implements Serializable{
 				
 				for (FileStatus file : stats) {
 					Path filePath = file.getPath();
-					mergeHeader(filePath, output, conf, distributeCacheHeader);
+					mergeHeader(filePath, output, job, distributeCacheHeader);
 				}
 			}
 			fs.close();
@@ -154,7 +156,7 @@ public class MultipleVCFHeader extends  GaeaVCFHeader implements Serializable{
 			throw new RuntimeException(e);
 		}
 		if(distributeCacheHeader){
-			distributeCacheVcfHeader(output, conf);
+			distributeCacheVcfHeader(output, job, conf);
 		} else {
 			writeHeaderToHDFS(output,conf);
 		}
@@ -164,11 +166,10 @@ public class MultipleVCFHeader extends  GaeaVCFHeader implements Serializable{
 		return (!inputPath.getName().startsWith("_")) && (fs.getFileStatus(inputPath).getLen() != 0);
 	}
 	
-	public boolean distributeCacheVcfHeader(String outputPath, Configuration conf) {
+	public boolean distributeCacheVcfHeader(String outputPath, Job job, Configuration conf) {
 		writeHeaderToHDFS(outputPath, conf);
 		try {
-			DistributedCache.createSymlink(conf);
-			DistributedCache.addCacheFile(new URI(conf.get(GaeaVCFHeader.VCF_HEADER_PROPERTY) + "#VcfHeaderObj"), conf);
+			job.addCacheFile(new URI(conf.get(GaeaVCFHeader.VCF_HEADER_PROPERTY) + "#VcfHeaderObj"));
 		} catch (URISyntaxException e) {
 			e.printStackTrace();
 			return false;
