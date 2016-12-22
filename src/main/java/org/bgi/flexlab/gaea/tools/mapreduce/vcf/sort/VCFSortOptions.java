@@ -1,4 +1,4 @@
-package org.bgi.flexlab.gaea.tools.vcf.sort;
+package org.bgi.flexlab.gaea.tools.mapreduce.vcf.sort;
 
 import java.io.IOException;
 import java.util.ArrayList;

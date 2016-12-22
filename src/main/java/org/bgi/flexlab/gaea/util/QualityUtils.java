@@ -7,4 +7,8 @@ public class QualityUtils {
 	public static double qualityToErrorProbility(final double qual) {
 		return Math.pow(10.0, ((double) qual) / -10.0);
 	}
+	
+	static public double qualToProb(double qual) {
+        return 1.0 - Math.pow(10.0, qual/(-10.0));
+    }
 }
