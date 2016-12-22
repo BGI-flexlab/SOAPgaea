@@ -14,7 +14,7 @@ public class RealignerExtendOptions extends GaeaOptions implements HadoopOptions
 	public final static String SOFTWARE_VERSION = "1.0";
 	
 	private RealignerOptions realignerOptions = new RealignerOptions();
-	private BaseRecalibratorOptions bqsrOptions = new BaseRecalibratorOptions();
+	private RecalibratorOptions bqsrOptions = new RecalibratorOptions();
 	
 	public RealignerExtendOptions(){
 		addOption("a", "defaultPlatform", true, "If a read has no platform then default to the provided String."
@@ -93,7 +93,7 @@ public class RealignerExtendOptions extends GaeaOptions implements HadoopOptions
 		return this.realignerOptions;
 	}
 	
-	public BaseRecalibratorOptions getBqsrOptions(){
+	public RecalibratorOptions getBqsrOptions(){
 		return this.bqsrOptions;
 	}
 }

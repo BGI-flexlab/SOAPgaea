@@ -23,11 +23,11 @@ public class SamRecordUtils {
 	public static byte[] getBaseQualities(SAMRecord sam,
 			final EventType errorModel) {
 		switch (errorModel) {
-		case BASE_SUBSTITUTION:
+		case SNP:
 			return sam.getBaseQualities();
-		case BASE_INSERTION:
+		case Insertion:
 			return getBaseInsertionQualities(sam);
-		case BASE_DELETION:
+		case Deletion:
 			return getBaseDeletionQualities(sam);
 		default:
 			throw new UserException("Unrecognized Base Recalibration type: "

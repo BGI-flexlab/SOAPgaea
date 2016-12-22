@@ -4,8 +4,8 @@ import java.io.BufferedOutputStream;
 import java.io.IOException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
+import org.bgi.flexlab.gaea.data.mapreduce.util.HdfsFileManager;
 import org.bgi.flexlab.gaea.data.structure.vcf.VCFFileWriter;
-import org.bgi.flexlab.gaea.util.HdfsFileManager;
 
 public class VCFHdfsWriter extends VCFFileWriter{
 	/**

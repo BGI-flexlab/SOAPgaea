@@ -1,5 +1,7 @@
 package org.bgi.flexlab.gaea.tools.recalibrator;
 
+import org.bgi.flexlab.gaea.util.EventType;
+
 public class ReadCovariates {
 	private int[][][] mkeys = null;
 	private boolean largeKeys = false;

@@ -10,18 +10,18 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.bgi.flexlab.gaea.data.mapreduce.options.HadoopOptions;
+import org.bgi.flexlab.gaea.data.mapreduce.util.HdfsFileManager;
 import org.bgi.flexlab.gaea.data.options.GaeaOptions;
 import org.bgi.flexlab.gaea.tools.recalibrator.RecalibratorUtil;
 import org.bgi.flexlab.gaea.tools.recalibrator.RecalibratorUtil.SolidNocallStrategy;
 import org.bgi.flexlab.gaea.tools.recalibrator.RecalibratorUtil.SolidRecallMode;
-import org.bgi.flexlab.gaea.util.HdfsFileManager;
 import org.bgi.flexlab.gaea.util.QualityUtils;
 
-public class BaseRecalibratorOptions extends GaeaOptions implements HadoopOptions {
+public class RecalibratorOptions extends GaeaOptions implements HadoopOptions {
 	private final static String SOFTWARE_NAME = "BaseRecalibration";
 	private final static String SOFTWARE_VERSION = "1.0";
 
-	public BaseRecalibratorOptions() {
+	public RecalibratorOptions() {
 		addOption("i", "input", true, "input bam or bams or sam(separated by comma)", true);
 		addOption("t", "inputType", true, "bam:0 sam:1(default:0");
 		addOption("o", "output", true, "output path", true);
