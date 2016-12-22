@@ -15,6 +15,7 @@ import org.bgi.flexlab.gaea.tools.recalibrator.covariate.CovariateUtil;
 import org.bgi.flexlab.gaea.tools.recalibrator.table.RecalibratorTable;
 import org.bgi.flexlab.gaea.util.AlignmentUtil;
 import org.bgi.flexlab.gaea.util.BaseUtils;
+import org.bgi.flexlab.gaea.util.EventType;
 import org.bgi.flexlab.gaea.util.NestedObjectArray;
 
 import htsjdk.samtools.SAMFileHeader;

@@ -8,7 +8,6 @@ import htsjdk.samtools.SAMUtils;
 import java.util.Arrays;
 
 import org.bgi.flexlab.gaea.data.exception.UserException;
-import org.bgi.flexlab.gaea.tools.recalibrator.EventType;
 
 public class SamRecordUtils {
 

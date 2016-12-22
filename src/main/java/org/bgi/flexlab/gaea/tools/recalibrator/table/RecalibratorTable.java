@@ -4,10 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.bgi.flexlab.gaea.tools.mapreduce.realigner.RecalibratorOptions;
-import org.bgi.flexlab.gaea.tools.recalibrator.EventType;
 import org.bgi.flexlab.gaea.tools.recalibrator.RecalibratorDatum;
 import org.bgi.flexlab.gaea.tools.recalibrator.covariate.Covariate;
 import org.bgi.flexlab.gaea.tools.recalibrator.covariate.CovariateUtil;
+import org.bgi.flexlab.gaea.util.EventType;
 import org.bgi.flexlab.gaea.util.NestedObjectArray;
 import org.bgi.flexlab.gaea.util.NestedObjectArray.Leave;
 

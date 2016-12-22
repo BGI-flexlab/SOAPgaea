@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.bgi.flexlab.gaea.data.structure.sequenceplatform.NGSPlatform;
-import org.bgi.flexlab.gaea.tools.recalibrator.EventType;
+import org.bgi.flexlab.gaea.util.EventType;
 import org.bgi.flexlab.gaea.util.ReadUtils;
 
 public class GaeaSamRecord extends SAMRecord {
