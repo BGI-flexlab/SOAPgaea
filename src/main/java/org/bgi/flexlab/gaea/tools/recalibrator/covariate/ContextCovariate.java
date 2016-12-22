@@ -7,7 +7,7 @@ import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.bam.clipper.ReadClipper;
 import org.bgi.flexlab.gaea.data.structure.bam.clipper.algorithm.ClippingWriteNs;
 import org.bgi.flexlab.gaea.data.structure.bam.clipper.algorithm.ReadClippingAlgorithm;
-import org.bgi.flexlab.gaea.tools.mapreduce.realigner.BaseRecalibratorOptions;
+import org.bgi.flexlab.gaea.tools.mapreduce.realigner.RecalibratorOptions;
 import org.bgi.flexlab.gaea.tools.recalibrator.ReadCovariates;
 import org.bgi.flexlab.gaea.util.BaseUtils;
 
@@ -25,7 +25,7 @@ public class ContextCovariate implements OptionalCovariate {
 	private ReadClippingAlgorithm algorithm;
 
 	@Override
-	public void initialize(BaseRecalibratorOptions option) {
+	public void initialize(RecalibratorOptions option) {
 		mContextSize = option.MISMATCHES_CONTEXT_SIZE;
 		iContextSize = option.INDELS_CONTEXT_SIZE;
 

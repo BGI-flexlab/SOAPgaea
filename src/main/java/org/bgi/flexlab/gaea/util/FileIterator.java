@@ -8,6 +8,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.util.LineReader;
+import org.bgi.flexlab.gaea.data.mapreduce.util.HdfsFileManager;
 
 public class FileIterator {
 	private Configuration conf=new Configuration();

@@ -65,7 +65,6 @@ public class PileupState {
 			} else {
 				break;
 			}
-
 		}
 	}
 

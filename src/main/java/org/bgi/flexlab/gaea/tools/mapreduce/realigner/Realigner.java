@@ -35,7 +35,7 @@ public class Realigner extends ToolsRunner {
 
 		job.setJobName("GaeaRealigner");
 
-		option.setHadoopConf(args, conf);
+		option.setHadoopConf(remainArgs, conf);
 
 		// merge header and set to configuration
 		job.setHeader(new Path(option.getRealignerInput()), new Path(option.getRealignerHeaderOutput()));

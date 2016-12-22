@@ -1,5 +1,6 @@
 package org.bgi.flexlab.gaea.data.structure.reads;
 
+import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.bam.ParseSAMBasic;
 import org.bgi.flexlab.gaea.data.structure.bam.SAMInformationBasic;
 import org.bgi.flexlab.gaea.util.CigarState;
@@ -54,5 +55,11 @@ public class ReadInformationForBamToDepth extends SAMInformationBasic{
 	 */
 	public void setEnd(int end) {
 		this.end = end;
+	}
+
+	@Override
+	public boolean parseSAM(GaeaSamRecord samRecord) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 }

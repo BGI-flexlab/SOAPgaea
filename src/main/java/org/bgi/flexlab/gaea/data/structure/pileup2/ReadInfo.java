@@ -2,6 +2,7 @@ package org.bgi.flexlab.gaea.data.structure.pileup2;
 
 import org.bgi.flexlab.gaea.data.mapreduce.writable.ReadInfoWritable;
 import org.bgi.flexlab.gaea.data.structure.alignment.SAMInfoBasic;
+import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.bam.ParseSAMBasic;
 import org.bgi.flexlab.gaea.data.structure.bam.ParseSAMInterface;
 import org.bgi.flexlab.gaea.util.CigarState;
@@ -135,6 +136,12 @@ public class ReadInfo extends SAMInfoBasic implements ParseSAMInterface {
 	 */
 	public void setSample(String sample) {
 		this.sample = sample;
+	}
+
+	@Override
+	public boolean parseSAM(GaeaSamRecord samRecord) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 }
 

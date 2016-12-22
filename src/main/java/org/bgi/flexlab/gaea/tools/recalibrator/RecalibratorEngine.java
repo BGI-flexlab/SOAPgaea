@@ -7,11 +7,12 @@ import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.bam.filter.BaseRecalibrationFilter;
 import org.bgi.flexlab.gaea.data.structure.reference.BaseAndSNPInformation;
 import org.bgi.flexlab.gaea.data.structure.reference.ReferenceShare;
-import org.bgi.flexlab.gaea.tools.mapreduce.realigner.BaseRecalibratorOptions;
+import org.bgi.flexlab.gaea.tools.mapreduce.realigner.RecalibratorOptions;
 import org.bgi.flexlab.gaea.tools.recalibrator.RecalibratorUtil.Consistent;
 import org.bgi.flexlab.gaea.tools.recalibrator.RecalibratorUtil.SolidRecallMode;
 import org.bgi.flexlab.gaea.tools.recalibrator.covariate.Covariate;
 import org.bgi.flexlab.gaea.tools.recalibrator.covariate.CovariateUtil;
+import org.bgi.flexlab.gaea.tools.recalibrator.table.RecalibratorTable;
 import org.bgi.flexlab.gaea.util.AlignmentUtil;
 import org.bgi.flexlab.gaea.util.BaseUtils;
 import org.bgi.flexlab.gaea.util.NestedObjectArray;
@@ -20,14 +21,14 @@ import htsjdk.samtools.SAMFileHeader;
 
 public class RecalibratorEngine {
 	private SAMFileHeader mHeader = null;
-	private BaseRecalibratorOptions option = new BaseRecalibratorOptions();
+	private RecalibratorOptions option = new RecalibratorOptions();
 	private ReferenceShare chrInfo = null;
 	private BaseAndSNPInformation information = null;
 	private BaseRecalibrationFilter filter = null;
 	private Covariate[] covariates = null;
 	private RecalibratorTable recalibratorTables = null;
 
-	public RecalibratorEngine(BaseRecalibratorOptions option, ReferenceShare chrInfo, SAMFileHeader mHeader) {
+	public RecalibratorEngine(RecalibratorOptions option, ReferenceShare chrInfo, SAMFileHeader mHeader) {
 		this.option = option;
 		this.chrInfo = chrInfo;
 		this.mHeader = mHeader;

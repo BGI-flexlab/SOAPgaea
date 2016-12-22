@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
-import org.bgi.flexlab.gaea.tools.mapreduce.realigner.BaseRecalibratorOptions;
+import org.bgi.flexlab.gaea.tools.mapreduce.realigner.RecalibratorOptions;
 import org.bgi.flexlab.gaea.tools.recalibrator.ReadCovariates;
 
 import htsjdk.samtools.SAMFileHeader;
@@ -16,7 +16,7 @@ public class ReadGroupCovariate implements RequiredCovariate {
 	private int currentId = 0;
 
 	@Override
-	public void initialize(BaseRecalibratorOptions option) {
+	public void initialize(RecalibratorOptions option) {
 	}
 
 	public void initializeReadGroup(SAMFileHeader mFileHeader) {

@@ -1,14 +1,14 @@
 package org.bgi.flexlab.gaea.tools.recalibrator.covariate;
 
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
-import org.bgi.flexlab.gaea.tools.mapreduce.realigner.BaseRecalibratorOptions;
+import org.bgi.flexlab.gaea.tools.mapreduce.realigner.RecalibratorOptions;
 import org.bgi.flexlab.gaea.tools.recalibrator.ReadCovariates;
 import org.bgi.flexlab.gaea.util.QualityUtils;
 
 public class QualityCovariate implements RequiredCovariate {
 
 	@Override
-	public void initialize(BaseRecalibratorOptions option) {}
+	public void initialize(RecalibratorOptions option) {}
 
 	@Override
 	public void recordValues(final GaeaSamRecord read, final ReadCovariates values) {

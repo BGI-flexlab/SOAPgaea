@@ -12,9 +12,9 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
+import org.bgi.flexlab.gaea.data.mapreduce.util.HdfsFileManager;
 import org.bgi.flexlab.gaea.data.structure.header.MultipleVCFHeader;
 import org.bgi.flexlab.gaea.tools.vcf.sort.VCFSortOptions;
-import org.bgi.flexlab.gaea.util.HdfsFileManager;
 import org.seqdoop.hadoop_bam.VariantContextWritable;
 
 import htsjdk.tribble.FeatureCodecHeader;

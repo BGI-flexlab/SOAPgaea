@@ -1,4 +1,4 @@
-package org.bgi.flexlab.gaea.util;
+package org.bgi.flexlab.gaea.data.mapreduce.util;
 
 import java.io.IOException;
 

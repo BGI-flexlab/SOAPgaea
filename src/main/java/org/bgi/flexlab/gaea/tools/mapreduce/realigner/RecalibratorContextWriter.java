@@ -6,8 +6,8 @@ import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer.Context;
 import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
-import org.bgi.flexlab.gaea.tools.recalibrator.RecalibratorTable;
 import org.bgi.flexlab.gaea.tools.recalibrator.RecalibratorWriter;
+import org.bgi.flexlab.gaea.tools.recalibrator.table.RecalibratorTable;
 
 public class RecalibratorContextWriter implements RecalibratorWriter {
 	public final static String RECALIBRATOR_TABLE_TAG = "bqsr.table";
