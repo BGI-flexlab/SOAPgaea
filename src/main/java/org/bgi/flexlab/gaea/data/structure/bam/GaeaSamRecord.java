@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.bgi.flexlab.gaea.data.structure.sequenceplatform.NGSPlatform;
-import org.bgi.flexlab.gaea.util.EventType;
+import org.bgi.flexlab.gaea.tools.recalibrator.EventType;
 import org.bgi.flexlab.gaea.util.ReadUtils;
 
 public class GaeaSamRecord extends SAMRecord {
@@ -569,11 +569,11 @@ public class GaeaSamRecord extends SAMRecord {
 
 	public byte[] getBaseQualities(final EventType errorModel) {
 		switch (errorModel) {
-		case BASE_SUBSTITUTION:
+		case SNP:
 			return getBaseQualities();
-		case BASE_INSERTION:
+		case Insertion:
 			return getBaseInsertionQualities();
-		case BASE_DELETION:
+		case Deletion:
 			return getBaseDeletionQualities();
 		default:
 			throw new RuntimeException("Unrecognized Base Recalibration type: "
@@ -586,7 +586,7 @@ public class GaeaSamRecord extends SAMRecord {
 		if (quals == null) {
 			quals = new byte[getBaseQualities().length];
 			Arrays.fill(quals, (byte) 45); 
-			setBaseQualities(quals, EventType.BASE_DELETION);
+			setBaseQualities(quals, EventType.Deletion);
 		}
 		return quals;
 	}
@@ -605,7 +605,7 @@ public class GaeaSamRecord extends SAMRecord {
 											// exist the samtools API will
 			// be updated and the original quals will be pulled here, but for
 			// now we assume the original quality is a flat Q45
-			setBaseQualities(quals, EventType.BASE_INSERTION);
+			setBaseQualities(quals, EventType.Insertion);
 		}
 		return quals;
 	}
@@ -617,14 +617,14 @@ public class GaeaSamRecord extends SAMRecord {
 
 	public void setBaseQualities(final byte[] quals, final EventType errorModel) {
 		switch (errorModel) {
-		case BASE_SUBSTITUTION:
+		case SNP:
 			setBaseQualities(quals);
 			break;
-		case BASE_INSERTION:
+		case Insertion:
 			setAttribute(GaeaSamRecord.BQSR_BASE_INSERTION_QUALITIES,
 					quals == null ? null : SAMUtils.phredToFastq(quals));
 			break;
-		case BASE_DELETION:
+		case Deletion:
 			setAttribute(GaeaSamRecord.BQSR_BASE_DELETION_QUALITIES,
 					quals == null ? null : SAMUtils.phredToFastq(quals));
 			break;

@@ -8,6 +8,7 @@ import htsjdk.samtools.SAMUtils;
 import java.util.Arrays;
 
 import org.bgi.flexlab.gaea.data.exception.UserException;
+import org.bgi.flexlab.gaea.tools.recalibrator.EventType;
 
 public class SamRecordUtils {
 
@@ -23,11 +24,11 @@ public class SamRecordUtils {
 	public static byte[] getBaseQualities(SAMRecord sam,
 			final EventType errorModel) {
 		switch (errorModel) {
-		case BASE_SUBSTITUTION:
+		case SNP:
 			return sam.getBaseQualities();
-		case BASE_INSERTION:
+		case Insertion:
 			return getBaseInsertionQualities(sam);
-		case BASE_DELETION:
+		case Deletion:
 			return getBaseDeletionQualities(sam);
 		default:
 			throw new UserException("Unrecognized Base Recalibration type: "
