@@ -16,6 +16,8 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.Job;
 
+import htsjdk.variant.vcf.VCFHeader;
+
 public class MultipleVCFHeader extends  GaeaVCFHeader implements Serializable{
 	/**
 	 * serial ID
@@ -30,7 +32,7 @@ public class MultipleVCFHeader extends  GaeaVCFHeader implements Serializable{
 	/**
 	 * ID to header
 	 */
-	private Map<Integer, SingleVCFHeader> ID2SignelVcfHeader = new ConcurrentHashMap<Integer, SingleVCFHeader>();
+	private Map<Integer, SingleVCFHeader> ID2SingleVcfHeader = new ConcurrentHashMap<Integer, SingleVCFHeader>();
 	
 	/**
 	 * global ID
@@ -42,8 +44,8 @@ public class MultipleVCFHeader extends  GaeaVCFHeader implements Serializable{
 	 * @param id
 	 * @return header String
 	 */
-	public String getVcfHeader(int id) {
-		return ID2SignelVcfHeader.get(id).getHeaderInfoWithSample(null);
+	public VCFHeader getVcfHeader(int id) {
+		return ID2SingleVcfHeader.get(id).getHeader();
 	}
 	
 	/**
@@ -53,7 +55,7 @@ public class MultipleVCFHeader extends  GaeaVCFHeader implements Serializable{
 	 */
 	public ArrayList<String> getVcfHeaderLines(int id) {
 		ArrayList<String> headerLines = new ArrayList<String>();
-		for(String line : ID2SignelVcfHeader.get(id).getHeaderInfoStringLines(null)){
+		for(String line : ID2SingleVcfHeader.get(id).getHeaderInfoStringLines(null)){
 			headerLines.add(line);
 		}
 		return headerLines;
@@ -65,7 +67,7 @@ public class MultipleVCFHeader extends  GaeaVCFHeader implements Serializable{
 	 * @return
 	 */
 	public int getSampleNum(int id) {
-		return ID2SignelVcfHeader.get(id).getSampleNames().size();
+		return ID2SingleVcfHeader.get(id).getSampleNames().size();
 	}
 	
 	/**
@@ -74,7 +76,7 @@ public class MultipleVCFHeader extends  GaeaVCFHeader implements Serializable{
 	 * @return
 	 */
 	public List<String> getSampleNames(int id) {
-		return ID2SignelVcfHeader.get(id).getSampleNames();
+		return ID2SingleVcfHeader.get(id).getSampleNames();
 	}
 	
 	/**
@@ -110,7 +112,7 @@ public class MultipleVCFHeader extends  GaeaVCFHeader implements Serializable{
 	private void readVcfHeader(Path vcf, Configuration conf) throws IOException {
 		SingleVCFHeader singleVcfHeader = new SingleVCFHeader();
 		singleVcfHeader.parseHeader(vcf, null, conf);
-		ID2SignelVcfHeader.put(id, singleVcfHeader);
+		ID2SingleVcfHeader.put(id, singleVcfHeader);
 		
 		//String filePathName = formatFilePath(vcf.toString());
 		fileName2ID.put(vcf.toString(), id);
@@ -181,7 +183,7 @@ public class MultipleVCFHeader extends  GaeaVCFHeader implements Serializable{
 	public void copy(GaeaVCFHeader header){
 		MultipleVCFHeader multiHeader = (MultipleVCFHeader) header;
 		fileName2ID = multiHeader.fileName2ID;
-		ID2SignelVcfHeader = multiHeader.ID2SignelVcfHeader;
+		ID2SingleVcfHeader = multiHeader.ID2SingleVcfHeader;
 		id = multiHeader.id;
 	}
 	
@@ -198,7 +200,8 @@ public class MultipleVCFHeader extends  GaeaVCFHeader implements Serializable{
 		return fileName2ID;
 	}
 
-	public Map<Integer, SingleVCFHeader> getID2SignelVcfHeader() {
-		return ID2SignelVcfHeader;
+	public Map<Integer, SingleVCFHeader> getID2SingleVcfHeader() {
+		return ID2SingleVcfHeader;
 	}
+	
 }

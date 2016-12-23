@@ -62,7 +62,7 @@ public class SortUilts {
 			
 		    final VariantContextWriterBuilder builder = new VariantContextWriterBuilder();
 			VariantContextWriter writer;
-			Map<Integer, SingleVCFHeader> id2VcfHeader = mVcfHeader.getID2SignelVcfHeader();
+			Map<Integer, SingleVCFHeader> id2VcfHeader = mVcfHeader.getID2SingleVcfHeader();
             for( int id : multiOutputs.keySet()){
             	VCFHeader newHeader = id2VcfHeader.get(id).getHeader();
             	writer = builder.setOutputStream(
