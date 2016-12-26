@@ -1,55 +1,95 @@
 package org.bgi.flexlab.gaea.data.structure.pileup2;
 
+
+import org.bgi.flexlab.gaea.data.structure.alignment.AlignmentsBasic;
+import org.bgi.flexlab.gaea.data.structure.bam.SAMCompressionInformationBasic;
+import org.bgi.flexlab.gaea.util.CigarState;
+
 public class PileupReadInfo {
 	/**
 	 * read information
 	 */
-	private ReadInfo readInfo;
-	
+	protected AlignmentsBasic readInfo;
+
 	/**
 	 * position on reads
 	 */
-	private int qpos;
-	
+	protected int qpos;
+
 	/**
-	 * is deletionn base
+	 * cigar state for cigar analysis
 	 */
-	private boolean deletionBase = false;
-	
+	protected CigarState cigarState;
+
 	/**
-	 * next is inert baes
+	 * end for reads
 	 */
-	private boolean nextInsertBase = false;
-	
-	public PileupReadInfo(ReadInfo readInfo) {
-		this.readInfo = readInfo;
+	protected int end;
+
+	/**
+	 * sample info
+	 */
+	protected String sample;
+
+	/**
+	 * is deletion base
+	 */
+	private boolean isDeletionBase = false;
+
+	/**
+	 * next is insertion base
+	 */
+	private boolean isNextInsertBase = false;
+
+	/**
+	 * constructor
+	 */
+	public PileupReadInfo() {
+		readInfo = null;
+		qpos = Integer.MIN_VALUE;
+		end = readInfo.getPosition();
+		sample = null;
 	}
 
-	public void calculateQposition(int refPos) {
-		qpos = readInfo.getCigarState().resolveCigar(refPos, readInfo.getPosition());
-		
+	/**
+	 * constructor
+	 * @param readInfo
+	 */
+	public PileupReadInfo(AlignmentsBasic readInfo) {
+		this.readInfo = readInfo;
+		cigarState.parseCigar(readInfo.getCigars());
+		end = readInfo.calculateReadEnd();
+		sample = readInfo.getSample();
+	}
+
+	/**
+	 * calculate query position
+	 * @param refPos
+	 */
+	public void calculateQueryPosition(int refPos) {
+		qpos = cigarState.resolveCigar(refPos, readInfo.getPosition());
 		if(qpos == -1)
-			deletionBase = true;
+			isDeletionBase = true;
 		else
-			deletionBase = false;
+			isDeletionBase = false;
 		if(qpos == -2)
-			nextInsertBase = true;
+			isNextInsertBase = true;
 		else
-			nextInsertBase = false;
+			isNextInsertBase = false;
 	}
 	
 	
 	/**
 	 * @return the readInfo
 	 */
-	public ReadInfo getReadInfo() {
+	public SAMCompressionInformationBasic getReadInfo() {
 		return readInfo;
 	}
 
 	/**
 	 * @param readInfo the readInfo to set
 	 */
-	public void setReadInfo(ReadInfo readInfo) {
+	public void setReadInfo(AlignmentsBasic readInfo) {
 		this.readInfo = readInfo;
 	}
 
@@ -59,66 +99,83 @@ public class PileupReadInfo {
 	public int getQpos() {
 		return qpos;
 	}
-	
+
+	/**
+	 * return base in char
+	 * @return
+	 */
 	public char getBase() {
 		if(qpos < 0)
 			return 0;
 		return readInfo.getBaseFromRead(qpos);
 	}
-	
+
+	/**
+	 * return base in byte
+	 * @return
+	 */
 	public byte getByteBase() {
 		return (byte)getBase();
 	}
-	
+
+	/**
+	 * return binary 4bits base
+	 * @return
+	 */
 	public byte getBinaryBase() {
 		if(qpos < 0)
 			return (byte) qpos;
 		return readInfo.getBinaryBase(qpos);
 	}
-	
-	public char getBaseQuality() {
+
+	/**
+	 * return base quality
+	 * @return
+	 */
+	public byte getBaseQuality() {
 		if(qpos < 0)
 			return 0;
 		return readInfo.getBaseQuality(qpos);
 	}
-	
-	public byte getByteBaseQuality() {
-		return (byte)getBaseQuality();
+
+	/**
+	 * return base quality in char
+	 * @return
+	 */
+	public char getByteBaseQuality() {
+		return (char)getBaseQuality();
 	}
 
-	public byte getBaseQualityValue(){
-		if(qpos < 0)
-			return (byte)qpos;
-		return (byte)readInfo.getBaseQualityValue(qpos);
-	}
-	
+	/**
+	 * return mapping quality
+	 * @return
+	 */
 	public int getMappingQuality() {
 		return readInfo.getMappingQual();
 	}
 
-	/**
-	 * @return the deletionBase
-	 */
-	public boolean isDeletionBase() {
-		return deletionBase;
+	public int getPosition() {
+		return readInfo.getPosition();
 	}
 
 	/**
-	 * @return the nextInsertBase
+	 * get end of alignment
+	 * @return
 	 */
+	public int getEnd() {
+		return end;
+	}
+
+	public String getSample() {
+		return sample;
+	}
+
+	public boolean isDeletionBase() {
+		return isDeletionBase;
+	}
+
 	public boolean isNextInsertBase() {
-		return nextInsertBase;
-	}
-	
-	private int quality;
-	private int base;
-	
-	public void setBaseQuality(int qual){
-		this.quality = qual;
-	}
-	
-	public void setBase(int b){
-		this.base = b;
+		return isNextInsertBase;
 	}
 }
 

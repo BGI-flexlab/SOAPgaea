@@ -89,6 +89,12 @@ public class CigarState {
 			}
 		}
 	}
+
+	public void parseCigar(int[] cigarValues) {
+		for(int cigarValue: cigarValues) {
+			cigar.add(cigarValue);
+		}
+	}
 	
 	private int addCigarAndUpdateBegin(String cigarv, int endv, int begin, int opIdx) {
 		int len = Integer.parseInt(cigarv.substring(begin, endv));

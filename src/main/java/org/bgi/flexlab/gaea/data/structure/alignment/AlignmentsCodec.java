@@ -4,12 +4,21 @@ import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import org.bgi.flexlab.gaea.data.structure.bam.SAMCompressionInformationBasic;
 
+import java.io.DataInput;
+import java.io.DataInputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+
 public abstract class AlignmentsCodec <T extends SAMCompressionInformationBasic>{
 	protected Input dataInput;
 	protected Output dataOutput;
 	protected T alignments;
 	//FieldAccess access = FieldAccess.get(AlignmentsBasic.class);
-	
+
+	public AlignmentsCodec() {
+
+	}
+
 	public AlignmentsCodec(Input dataInput) {
 		this.dataInput = dataInput;
 		AlignmentsInit();
@@ -19,10 +28,18 @@ public abstract class AlignmentsCodec <T extends SAMCompressionInformationBasic>
 		this.dataOutput = dataOutput;
 		AlignmentsInit();
 	}
+
+	public void setInputStream(InputStream input) {
+		dataInput = new Input(input);
+	}
+
+	public void setOutputStream(OutputStream output) {
+		dataOutput = new Output(output);
+	}
 	
-	public void encode() {
-		writeBasic();
-		writeOtherInfo();
+	public void encode(T alignments) {
+		writeBasic(alignments);
+		writeOtherInfo(alignments);
 	}
 
 	public T decode() {
@@ -32,7 +49,7 @@ public abstract class AlignmentsCodec <T extends SAMCompressionInformationBasic>
 		return alignments;
 	}
 	
-	private void writeBasic() {
+	private void writeBasic(T alignments) {
 		dataOutput.write(alignments.getFlag());
 		dataOutput.writeInt(alignments.getChrNameIndex());
 		dataOutput.writeInt(alignments.getPosition());
@@ -64,7 +81,7 @@ public abstract class AlignmentsCodec <T extends SAMCompressionInformationBasic>
 	
 	public abstract void AlignmentsInit();
 
-	protected abstract void writeOtherInfo();
+	protected abstract void writeOtherInfo(T alignments);
 	
 	protected abstract void readOtherInfo();
 	

@@ -79,6 +79,10 @@ public abstract class SAMInformationBasic extends ReadInformation implements Par
 		return true;
 	}
 
+	public boolean parseSAM(GaeaSamRecord samRecord) {
+		return true;
+	}
+
 	protected abstract void parseOtherInfo(String[] aligmentArray);
 	
 	@Override

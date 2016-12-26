@@ -4,62 +4,67 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.bgi.flexlab.gaea.data.mapreduce.writable.ReadInfoWritable;
+import org.bgi.flexlab.gaea.data.structure.alignment.AlignmentsBasic;
 
-public class Mpileup {
+public class Mpileup implements MpileupInterface<Pileup>{
+
 	/**
 	 * reads pool list
 	 */
-	private Iterator<ReadInfoWritable> readsPool;
+	protected ReadsPool readsPool;
 
 	/**
 	 * sample -> pileup
 	 */
-	private Map<String,PileupForMaxQualityBase> plps = new HashMap<String,PileupForMaxQualityBase>();
+	protected Map<String, Pileup> pileups = new HashMap<>();
 
 	/**
 	 * end of pileup position
 	 */
-	private int end;
+	protected int end;
 
 	/**
 	 * position
 	 */
-	private int position;
+	protected int position;
 
 	/**
 	 * tmp read
 	 */
-	private ReadInfoWritable tmpRead = null;
+	protected AlignmentsBasic tmpRead = null;
 
 	/**
-	 * 
+	 *
 	 * @param readsPool
 	 * @param position
 	 * @param end
 	 */
-	public Mpileup(Iterator<ReadInfoWritable> readsPool, int position, int end) {
+	public Mpileup(ReadsPool readsPool, int position, int end) {
 		this.readsPool = readsPool;
 		this.position = position;
 		this.end = end;
 	}
 
-	private void addReads2Pileup(ReadInfo read, int pos) {
-		PileupForMaxQualityBase plp = plps.get(read.getSample());
-		if (plp == null) {
-			//plp = new NiftyPileup();
-			plp = new PileupForMaxQualityBase();
-			plp.setPosition(pos);
-			plps.put(read.getSample(), plp);
+
+	protected void addReads2Pileup(AlignmentsBasic read, int pos) {
+		Pileup pileup = pileups.get(read.getSample());
+		if (pileup == null) {
+			pileup = new Pileup();
+			pileup.setPosition(pos);
+			pileups.put(read.getSample(), pileup);
 		}
-		plp.addReads(read);
+		pileup.addReads(read);
 	}
 
+	/**
+	 *
+	 * @return
+	 */
 	public boolean allEmpty() {
 		boolean allEmpty = true;
-		for (String sample : plps.keySet()) {
-			PileupForMaxQualityBase plp = plps.get(sample);
-			if (!plp.isEmpty()) {
+		for (String sample : pileups.keySet()) {
+			Pileup pileup = pileups.get(sample);
+			if (!pileup.isEmpty()) {
 				allEmpty = false;
 				break;
 			}
@@ -67,31 +72,42 @@ public class Mpileup {
 
 		return allEmpty;
 	}
-	
-	private int forwardPosition(int minPosition, int size) {
+
+	/**
+	 *
+	 * @param minPosition
+	 * @param size
+	 * @return min position
+	 */
+	public int forwardPosition(int minPosition, int size) {
 		int minimumPosition = Integer.MAX_VALUE;
 		// forward position
 		@SuppressWarnings("rawtypes")
-		java.util.Iterator it = plps.entrySet().iterator();
+		java.util.Iterator it = pileups.entrySet().iterator();
 		while(it.hasNext()){
 			@SuppressWarnings("rawtypes")
 			java.util.Map.Entry entry = (java.util.Map.Entry) it.next();
-			PileupForMaxQualityBase plp = (PileupForMaxQualityBase)entry.getValue();
-			if (plp.getPosition() == minPosition) {
-				plp.forwardPosition(size);
+			Pileup pileup = (Pileup)entry.getValue();
+			if (pileup.getPosition() == minPosition) {
+				pileup.forwardPosition(size);
 			}
-			
-			if(plp.getPosition() < minimumPosition && !plp.isEmpty())
-				minimumPosition = plp.getPosition();
-			else if(plp.isEmpty()){
+
+			if(pileup.getPosition() < minimumPosition && !pileup.isEmpty())
+				minimumPosition = pileup.getPosition();
+			else if(pileup.isEmpty()){
 				it.remove();
 			}
 		}
-		
+
 		return minimumPosition;
 	}
 
-	private int addReads(int minPosition) {
+	/**
+	 *
+	 * @param minPosition
+	 * @return
+	 */
+	public int addReads(int minPosition) {
 		int currentPosition = minPosition;
 
 		if (readsPool.hasNext() && tmpRead == null) {
@@ -99,8 +115,8 @@ public class Mpileup {
 		}
 
 		while (tmpRead != null) {
-			ReadInfo read = new ReadInfo();
-			read.parseAFC(tmpRead);
+			AlignmentsBasic read = tmpRead;
+
 			if (currentPosition == Integer.MAX_VALUE
 					|| currentPosition == read.getPosition()) {
 				if (currentPosition == Integer.MAX_VALUE)
@@ -116,38 +132,43 @@ public class Mpileup {
 		}
 		return currentPosition;
 	}
-	
-	private void syn(int minPosition,Map<String, PileupForMaxQualityBase> posPlps) {
+
+	/**
+	 *
+	 * @param minPosition
+	 * @param posPlps
+	 */
+	public void syn(int minPosition,Map<String, Pileup> posPlps) {
 		@SuppressWarnings("rawtypes")
-		Iterator it = plps.entrySet().iterator();
+		Iterator it = pileups.entrySet().iterator();
 		while(it.hasNext()){
 			@SuppressWarnings("rawtypes")
 			java.util.Map.Entry entry = (java.util.Map.Entry) it.next();
-			PileupForMaxQualityBase plp = (PileupForMaxQualityBase)entry.getValue();
+			Pileup plp = (Pileup)entry.getValue();
 			if (plp.getPosition() == minPosition) {
 				String sample = (String)entry.getKey();
 				posPlps.put(sample, plp);
 			}
 		}
 	}
-	
 
-	public Map<String,PileupForMaxQualityBase> getNextPosPileup(){
+
+	public Map<String, Pileup> getNextPosPileup() {
 		if (position > end)
 			return null;
-		
+
 		int minPosition = forwardPosition(position, 1);
-		
+
 		position = addReads(minPosition);
-		
+
 		if (minPosition != Integer.MAX_VALUE && position != minPosition)
 			throw new RuntimeException("error in" + position + "\t"
 					+ minPosition);
 		if (position > end || allEmpty())
 			return null;
-		
-		Map<String,PileupForMaxQualityBase> posPlps = new HashMap<String,PileupForMaxQualityBase>();
-		syn(position,posPlps);
+
+		Map<String, Pileup> posPlps = new HashMap<String, Pileup>();
+		syn(position, posPlps);
 
 		return posPlps;
 	}
@@ -155,10 +176,10 @@ public class Mpileup {
 	public int getMinPositionInPlp() {
 		int minPosition = Integer.MAX_VALUE;
 
-		for (String sample : plps.keySet()) {
-			PileupForMaxQualityBase plp = plps.get(sample);
-			if (minPosition > plp.getPosition() && !plp.isEmpty()) {
-				minPosition = plp.getPosition();
+		for (String sample : pileups.keySet()) {
+			Pileup pileup = pileups.get(sample);
+			if (minPosition > pileup.getPosition() && !pileup.isEmpty()) {
+				minPosition = pileup.getPosition();
 			}
 		}
 
@@ -168,5 +189,6 @@ public class Mpileup {
 	public int getPosition() {
 		return position;
 	}
+
 }
 
