@@ -7,25 +7,20 @@ import java.util.ArrayList;
 
 public class Pileup implements PileupInterface<PileupReadInfo>{
 
+	public static int MAX_DEPTH = 500;
 
 	/**
 	 * pileup struct;
 	 */
-	protected ArrayList<PileupReadInfo> plp;
+	private ArrayList<PileupReadInfo> plp;
 
 	/**
 	 * position
 	 */
-	protected int position;
-
-	/**
-	 * need more ?
-	 */
-	private boolean needMore;
+	private int position;
 
 	public Pileup() {
 		position = -1;
-		needMore = true;
 		plp = new ArrayList<>();
 	}
 
@@ -35,11 +30,11 @@ public class Pileup implements PileupInterface<PileupReadInfo>{
 
 	/**
 	 * add readInfo to pileup
-	 * @param readInfo
+	 * @param readInfo read info in AlignmentsBasic
 	 */
 	public void addReads(AlignmentsBasic readInfo) {
 		PileupReadInfo read = new PileupReadInfo(readInfo);
-		if(position >= read.getPosition() && position <= read.getEnd()) {
+		if(position >= read.getPosition() && position <= read.getEnd() && plp.size() < MAX_DEPTH) {
 			plp.add(read);
 		} else {
 			if(plp.size() == 0) {
@@ -102,21 +97,16 @@ public class Pileup implements PileupInterface<PileupReadInfo>{
 
 	/**
 	 * set position
-	 * @param position
+	 * @param position position
 	 */
 	public void setPosition(int position) {
 		this.position = position;
 	}
 
 	/**
-	 * @return the needMore
+	 *
+	 * @return plp array list.
 	 */
-	public boolean isNeedMore() {
-		if(plp.size() == 0)
-			return true;
-		return needMore;
-	}
-
 	public ArrayList<PileupReadInfo> getPlp() {
 		return plp;
 	}
