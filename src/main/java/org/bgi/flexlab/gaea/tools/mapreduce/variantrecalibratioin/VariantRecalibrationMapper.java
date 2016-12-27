@@ -8,10 +8,10 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocationParser;
-import org.bgi.flexlab.gaea.tools.variantrecalibratioin.model.VariantDataManager;
 import org.bgi.flexlab.gaea.tools.variantrecalibratioin.traindata.DBResource;
 import org.bgi.flexlab.gaea.tools.variantrecalibratioin.traindata.FileResource;
 import org.bgi.flexlab.gaea.tools.variantrecalibratioin.traindata.TrainData;
+import org.bgi.flexlab.gaea.tools.variantrecalibratioin.traindata.TrainDataManager;
 import org.bgi.flexlab.gaea.tools.variantrecalibratioin.traindata.VariantDatumMessenger;
 import org.seqdoop.hadoop_bam.VariantContextWritable;
 
@@ -22,7 +22,7 @@ public class VariantRecalibrationMapper extends Mapper<LongWritable, VariantCont
 
 	private VariantRecalibrationOptions options;
 	
-	private VariantDataManager manager;
+	private TrainDataManager manager;
 	
 	private GenomeLocationParser genomeLocParser;
 	
@@ -38,7 +38,7 @@ public class VariantRecalibrationMapper extends Mapper<LongWritable, VariantCont
 		genomeLocParser = new GenomeLocationParser(ref.getSequenceDictionary());
 		ref.close();
 
-		manager = new VariantDataManager( options.getUseAnnotations(), options );
+		manager = new TrainDataManager( options.getUseAnnotations(), options );
 		for(String resource : options.getResources()) {
 			TrainData trainData = new TrainData(options.getReference(), resource);
 			if(trainData.isDB()) {
@@ -78,6 +78,7 @@ public class VariantRecalibrationMapper extends Mapper<LongWritable, VariantCont
 	public boolean validContext(VariantContext vc) {
 		return vc != null && 
 				(vc.isNotFiltered() || options.getIgnoreInputFilters().containsAll(vc.getFilters())) &&
-				VariantDataManager.checkVariationClass(vc, options.getMode());
+				TrainDataManager.checkVariationClass(vc, options.getMode());
 	}
+	
 }

@@ -2,6 +2,7 @@ package org.bgi.flexlab.gaea.tools.recalibrator;
 
 import java.util.Random;
 
+import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.util.QualityUtils;
 
 public class RecalibratorDatum {
@@ -67,6 +68,14 @@ public class RecalibratorDatum {
 		this.estimatedQuality = -10 * Math.log10(combineErrors / this.numBases);
 		addMismatchNumber(other.numMismatches);
 	}
+	
+	public void increment(RecalibratorDatum other){
+		if(other == null)
+			throw new UserException("recalibrator datum cann't be null !");
+		
+		addBaseNumber(other.getBasesNumber());
+		addMismatchNumber(other.getMismatchNumber());
+	}
 
 	public void increment(boolean isError) {
 		addBaseNumber(1);
@@ -88,7 +97,7 @@ public class RecalibratorDatum {
 		this.empiricalQuality = DEFAULT_DOUBLE;
 	}
 
-	public double getMismatchNumber() {
+	public long getMismatchNumber() {
 		return this.numMismatches;
 	}
 

@@ -55,7 +55,7 @@ public class ReadInformationForBamQC extends SAMInformationBasic {
 		
 		lenValue = ParseSAMBasic.parseCigar(position, cigarState);
 	}
-	
+
 	public boolean parseBAMQC(String value) {
 		// 该行为空时，不进行解析
 		if (value.isEmpty()) {

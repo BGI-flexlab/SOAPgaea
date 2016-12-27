@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.Comparator;
 
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
+import org.bgi.flexlab.gaea.tools.variantrecalibratioin.model.MultipleVariateGaussian;
 
 public class VariantDatum {
 	public double[] annotations;
@@ -21,7 +22,7 @@ public class VariantDatum {
     public int consensusCount;
     public GenomeLocation loc;
     public int worstAnnotation;
-//    public MultivariateGaussian assignment; // used in K-means implementation 
+    public MultipleVariateGaussian assignment; // used in K-means implementation 
 
     public static class VariantDatumLODComparator implements Comparator<VariantDatum>, Serializable {
         @Override

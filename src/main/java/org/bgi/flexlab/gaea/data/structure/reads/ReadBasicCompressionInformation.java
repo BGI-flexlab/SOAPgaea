@@ -110,7 +110,7 @@ public class ReadBasicCompressionInformation {
 	 * @param position
 	 * @return
 	 */
-	public int getBaseQualityValue(int position) {
-		return (int) getBaseQuality(position) - MINIMUM_BASE_QUALITY;
+	public byte getBaseQualityValue(int position) {
+		return (byte) (getBaseQuality(position) - MINIMUM_BASE_QUALITY);
 	}
 }

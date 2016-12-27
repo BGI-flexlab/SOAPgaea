@@ -1,18 +1,22 @@
 package org.bgi.flexlab.gaea.tools.variantrecalibratioin.traindata;
 
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
 
 import htsjdk.variant.variantcontext.VariantContext;
 
-public class TrainData {	
+public class TrainData implements Iterable<TrainData>{	
 	
 	private String contextName;
 	
 	private ResourceType ram;
 	
 	private String ref;
+	
+	private List<TrainData> trainingDataSet = new ArrayList<>();
 	/**
 	 * default constructor
 	 */
@@ -117,5 +121,17 @@ public class TrainData {
 		td.setType(db);
 		td.initialize();
 		System.out.println(td.isKnown());
+	}
+
+	@Override
+	public Iterator<TrainData> iterator() {
+		// TODO Auto-generated method stub
+		return new Iterator<TrainData>() {
+			private int index = 0;
+			public boolean hasNext() {
+				return index < trainingDataSet.size();
+			}
+			public TrainData next() { return trainingDataSet.get(index++); }
+		};
 	}
 }

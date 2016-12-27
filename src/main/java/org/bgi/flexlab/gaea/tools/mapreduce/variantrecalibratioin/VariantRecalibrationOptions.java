@@ -8,12 +8,9 @@ import java.util.List;
 import org.apache.commons.cli.ParseException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.util.GenericOptionsParser;
-import org.bgi.flexlab.gaea.data.mapreduce.input.vcf.VCFRecordReader;
 import org.bgi.flexlab.gaea.data.mapreduce.options.HadoopOptions;
 import org.bgi.flexlab.gaea.data.options.GaeaOptions;
 import org.bgi.flexlab.gaea.data.structure.header.GaeaVCFHeader;
-import org.seqdoop.hadoop_bam.KeyIgnoringVCFOutputFormat;
-import org.seqdoop.hadoop_bam.VCFOutputFormat;
 
 public class VariantRecalibrationOptions extends GaeaOptions implements HadoopOptions {
 	private final static String SOFTWARE_NAME = "VariantRecalibration";
@@ -191,11 +188,12 @@ public class VariantRecalibrationOptions extends GaeaOptions implements HadoopOp
 		try {
 			String[] otherArgs = new GenericOptionsParser(args).getRemainingArgs();
 			conf.setStrings("args", otherArgs);
+			conf.setInt("num.key.fields.for.partition", 1);
+			conf.set("mapred.child.java.opts", "-Xmx10240m");
 			conf.set(GaeaVCFHeader.VCF_HEADER_PROPERTY, setOutputURI("vcfHeader.obj"));
 		} catch(IOException e) {
 			throw new RuntimeException(e);
 		}		
-		conf.set("mapred.child.java.opts", "-Xmx10240m");
 	}
 
 	private String setOutputURI(String output){

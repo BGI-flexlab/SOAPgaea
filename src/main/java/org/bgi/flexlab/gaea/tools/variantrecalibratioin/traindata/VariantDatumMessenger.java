@@ -1,18 +1,10 @@
 package org.bgi.flexlab.gaea.tools.variantrecalibratioin.traindata;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.TreeSet;
-
-import org.apache.hadoop.conf.Configuration;
-import org.apache.xerces.impl.dv.ValidationContext;
-import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocationParser;
 import org.bgi.flexlab.gaea.tools.mapreduce.variantrecalibratioin.VariantRecalibrationOptions;
 import org.bgi.flexlab.gaea.tools.variantrecalibratioin.model.VariantDataManager;
-import org.bgi.flexlab.gaea.util.MathUtils;
 import org.bgi.flexlab.gaea.util.QualityUtils;
 
 import htsjdk.variant.variantcontext.VariantContext;
@@ -80,35 +72,6 @@ public class VariantDatumMessenger{
 		return datumInfo.toString();
 	}
 	
-	public void parseHadoopLine(String line, GenomeLocationParser genomeLocParser) {
-		String[] lineSplits = line.split("\t");
-		
-		int index = 0;
-		//int id = Integer.parseInt(lineSplits[index++]);
-		int annoSize = Integer.parseInt(lineSplits[index++]);
-		isNull = new boolean[annoSize];
-		for(int i = 0; i < annoSize; i++) {
-			isNull[i] = Boolean.parseBoolean(lineSplits[index++]);
-		}
-		
-		annotations = new double[annoSize];
-		for(int i = 0; i < annoSize; i++) {
-			if(!isNull[i])
-				annotations[i] = Double.parseDouble(lineSplits[index++]);
-			else
-				index++;
-		}
-		
-		lod = Double.parseDouble(lineSplits[index++]);
-		flag = Byte.parseByte(lineSplits[index++]);
-		originalQual = Double.parseDouble(lineSplits[index++]);
-		prior = Double.parseDouble(lineSplits[index++]);
-		consensusCount = Integer.parseInt(lineSplits[index++]);
-		loc = genomeLocParser.createGenomeLocation(lineSplits[index++], Integer.parseInt(lineSplits[index++]), Integer.parseInt(lineSplits[index++]));
-		worstAnnotation = Integer.parseInt(lineSplits[index++]);
-		//return id;
-	}
-	
 	public double[] getAnnotations() {
 		return annotations;
 	}
@@ -168,12 +131,12 @@ public class VariantDatumMessenger{
 		
 		private VariantRecalibrationOptions options;
 		
-		private VariantDataManager manager;
+		private TrainDataManager manager;
 				
 		private VariantContext vc;
 				
-		public Builder(VariantDataManager manager, VariantContext vc, VariantRecalibrationOptions options) {
-		// TODO Auto-generated constructor stub
+//		builder used for retrieving object
+		public Builder(){
 			this.annotations = null;
 			this.isNull = null;
 			this.lod = 0.0;
@@ -183,8 +146,13 @@ public class VariantDatumMessenger{
 			this.consensusCount = 0;
 			this.loc = null;
 			this.worstAnnotation = 0;
-			this.options = options;
+		}
+		
+		public Builder(TrainDataManager manager, VariantContext vc, VariantRecalibrationOptions options) {
+		// TODO Auto-generated constructor stub
+			this();
 			this.vc = vc;
+			this.options = options;
 			this.manager = manager;
 		}
 		
@@ -248,9 +216,39 @@ public class VariantDatumMessenger{
 	    }
 	    
 	    private boolean isValidVariant( final VariantContext evalVC, final VariantContext trainVC, final boolean TRUST_ALL_POLYMORPHIC) {
-	        return trainVC != null && trainVC.isNotFiltered() && trainVC.isVariant() && VariantDataManager.checkVariationClass( evalVC, trainVC ) &&
+	        return trainVC != null && trainVC.isNotFiltered() && trainVC.isVariant() && TrainDataManager.checkVariationClass( evalVC, trainVC ) &&
 	                        (TRUST_ALL_POLYMORPHIC || !trainVC.hasGenotypes() || trainVC.isPolymorphicInSamples());
 	    }
+	    
+	    public VariantDatumMessenger buildFrom(String line, GenomeLocationParser genomeLocParser) {
+			String[] lineSplits = line.split("\t");
+			
+			int index = 0;
+			//int id = Integer.parseInt(lineSplits[index++]);
+			int annoSize = Integer.parseInt(lineSplits[index++]);
+			this.isNull = new boolean[annoSize];
+			for(int i = 0; i < annoSize; i++) {
+				this.isNull[i] = Boolean.parseBoolean(lineSplits[index++]);
+			}
+			
+			this.annotations = new double[annoSize];
+			for(int i = 0; i < annoSize; i++) {
+				if(!this.isNull[i])
+					this.annotations[i] = Double.parseDouble(lineSplits[index++]);
+				else
+					index++;
+			}
+			
+			this.lod = Double.parseDouble(lineSplits[index++]);
+			this.flag = Byte.parseByte(lineSplits[index++]);
+			this.originalQual = Double.parseDouble(lineSplits[index++]);
+			this.prior = Double.parseDouble(lineSplits[index++]);
+			this.consensusCount = Integer.parseInt(lineSplits[index++]);
+			this.loc = genomeLocParser.createGenomeLocation(lineSplits[index++], Integer.parseInt(lineSplits[index++]), Integer.parseInt(lineSplits[index++]));
+			this.worstAnnotation = Integer.parseInt(lineSplits[index++]);
+			//return id;
+			return new VariantDatumMessenger(this);
+		}
 	    
 		public VariantDatumMessenger build() {
 			return new VariantDatumMessenger(this);

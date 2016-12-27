@@ -86,6 +86,17 @@ public abstract class SAMCompressionInformationBasic extends ReadBasicCompressio
 		return true;
 	}
 
+	public int calculateReadEnd() {
+		int end = position;
+		for(int cigar : cigars) {
+			int cigarOp = (cigar & SystemConfiguration.BAM_CIGAR_MASK);
+			int cigarLength = cigar >> SystemConfiguration.BAM_CIGAR_SHIFT;
+			if(cigarOp == SystemConfiguration.BAM_CMATCH || cigarOp == SystemConfiguration.BAM_CDEL || cigarOp == SystemConfiguration.BAM_CREF_SKIP || cigarOp == SystemConfiguration.BAM_CEQUAL) {
+				end += cigarLength;
+			}
+		}
+		return end;
+	}
 
 	/**
 	 * flag booleans

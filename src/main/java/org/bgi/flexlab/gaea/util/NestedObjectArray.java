@@ -1,11 +1,8 @@
 package org.bgi.flexlab.gaea.util;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.hadoop.io.NullWritable;
-import org.apache.hadoop.io.Text;
 import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.tools.recalibrator.RecalibratorDatum;
 

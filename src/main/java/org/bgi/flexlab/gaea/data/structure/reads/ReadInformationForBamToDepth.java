@@ -8,8 +8,7 @@ import org.bgi.flexlab.gaea.util.CigarState;
 public class ReadInformationForBamToDepth extends SAMInformationBasic{
 	
 	private int end;
-	
-	@Override
+
 	protected void parseOtherInfo(String[] alignmentArray) {
 		end = ParseSAMBasic.parseCigar(position, cigarState)[0];
 	}

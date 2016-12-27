@@ -1,103 +1,114 @@
 package org.bgi.flexlab.gaea.data.structure.pileup2;
 
+
+import org.bgi.flexlab.gaea.data.structure.alignment.AlignmentsBasic;
+
 import java.util.ArrayList;
 
+public class Pileup implements PileupInterface<PileupReadInfo>{
 
-public abstract class Pileup {
-	
+	public static int MAX_DEPTH = 500;
+
 	/**
 	 * pileup struct;
 	 */
-	protected ArrayList<PileupReadInfo> plp = new ArrayList<PileupReadInfo>();
-	
+	private ArrayList<PileupReadInfo> plp;
+
 	/**
 	 * position
 	 */
-	protected int position;
-	
-	/**
-	 * need more ?
-	 */
-	private boolean needMore = true;
+	private int position;
+
+	public Pileup() {
+		position = -1;
+		plp = new ArrayList<>();
+	}
+
+	public ArrayList<PileupReadInfo> getFinalPileup() {
+		return plp;
+	}
 
 	/**
-	 * get sample plp
-	 * @return
-	 */
-	public abstract ArrayList<PileupReadInfo> getPileup();
-	
-	/**
 	 * add readInfo to pileup
-	 * @param pRead
+	 * @param readInfo read info in AlignmentsBasic
 	 */
-	public void addReads(ReadInfo read) {
-		if(position >= read.getPosition() && position <= read.getEnd()) {
-			plp.add(new PileupReadInfo(read));
+	public void addReads(AlignmentsBasic readInfo) {
+		PileupReadInfo read = new PileupReadInfo(readInfo);
+		if(position >= read.getPosition() && position <= read.getEnd() && plp.size() < MAX_DEPTH) {
+			plp.add(read);
 		} else {
 			if(plp.size() == 0) {
 				position = read.getPosition();
-				plp.add(new PileupReadInfo(read));
+				plp.add(read);
 			} else {
 				throw new RuntimeException("add read to plp error.");
 			}
 		}
 	}
-	
+
+	@Override
 	public void calculateQposition(){
 		if(position != Integer.MAX_VALUE){
 			for(int i = 0; i < plp.size(); i++) {
 				PileupReadInfo posRead= plp.get(i);
-				posRead.calculateQposition(position);
+				posRead.calculateQueryPosition(position);
 			}
 		}
 	}
-	
-	/*
+
+	/**
 	 * remove proccessed reads
 	 * */
 	public void remove(){
 		for(int i = 0; i < plp.size(); i++) {
 			PileupReadInfo posRead = plp.get(i);
-			ReadInfo read = posRead.getReadInfo();
-			if(position > read.getEnd()) {
+
+			if(position > posRead.getEnd()) {
 				plp.remove(i);
 				i--;
 			}
 		}
 	}
-	
+
 	public void forwardPosition(int size) {
 		position += size;
-		
+
 		remove();
-		
+
 		if(isEmpty())
 			position = Integer.MAX_VALUE;
 	}
-	
+
+	/**
+	 * is plp empty
+	 * @return
+	 */
 	public boolean isEmpty() {
 		return plp.size() == 0;
 	}
-	
+
+	/**
+	 * get position
+	 * @return
+	 */
 	public int getPosition() {
 		return position;
 	}
 
+	/**
+	 * set position
+	 * @param position position
+	 */
 	public void setPosition(int position) {
 		this.position = position;
 	}
-	
-	public void addPosition(int add) {
-		this.position = position + add;
-	}
 
 	/**
-	 * @return the needMore
+	 *
+	 * @return plp array list.
 	 */
-	public boolean isNeedMore() {
-		if(plp.size() == 0)
-			return true;
-		return needMore;
+	public ArrayList<PileupReadInfo> getPlp() {
+		return plp;
 	}
 }
 
