@@ -54,7 +54,6 @@ public class RealignerReducer
 
 		dbsnpShare = new DbsnpShare(option.getKnowVariant(), option.getReference());
 		dbsnpShare.loadChromosomeList(option.getKnowVariant() + VcfIndex.INDEX_SUFFIX);
-		;
 
 		loader = new VCFLocalLoader(option.getKnowVariant());
 
@@ -133,7 +132,6 @@ public class RealignerReducer
 	@Override
 	public void reduce(WindowsBasedWritable key, Iterable<SamRecordWritable> values, Context context)
 			throws IOException, InterruptedException {
-
 		int chrIndex = key.getChromosomeIndex();
 		int winNum = key.getWindowsNumber();
 		boolean unmapped = unmappedWindows(chrIndex);

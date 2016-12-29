@@ -10,6 +10,29 @@ import org.bgi.flexlab.gaea.util.ReadUtils;
 import htsjdk.samtools.SAMReadGroupRecord;
 
 public class RecalibratorUtil {
+	/**
+	 * table name
+	 */
+	public final static String ARGUMENT_TABLE_NAME = "Argument";
+	public final static String QUANTIZED_TABLE_NAME = "Quantized";
+	public final static String[] RECALIBRATOR_TABLE_NAME = { "ReadGroupTable", "QualityScoreTable", "CovariateTable" };
+
+	/**
+	 * table column name
+	 */
+	public final static String ARGUMENT_VALUE_COLUMN_NAME = "Value";
+	public final static String QUALITY_SCORE_COLUMN_NAME = "QualityScore";
+	public final static String QUALITY_VALUE_COLUMN_NAME = "QuantizedScore";
+	public static final String QUALITY_COUNT_COLUMN_NAME = "Count";
+	public final static String COVARIATE_VALUE_COLUMN_NAME = "CovariateValue";
+	public final static String COVARIATE_NAME_COLUMN_NAME = "CovariateName";
+	public final static String NUMBER_OBSERVATIONS_COLUMN_NAME = "Observations";
+	public final static String NUMBER_ERRORS_COLUMN_NAME = "Errors";
+	public final static String EVENT_TYPE_COLUMN_NAME = "EventType";
+	public final static String EMPIRICAL_QUALITY_COLUMN_NAME = "EmpiricalQuality";
+	public final static String ESTIMATED_Q_REPORTED_COLUMN_NAME = "EstimatedQReported";
+	public final static String READGROUP_COLUMN_NAME = "ReadGroup";
+
 	public enum SolidNocallStrategy {
 		THROW_EXCEPTION, LEAVE_READ_UNRECALIBRATED, PURGE_READ;
 

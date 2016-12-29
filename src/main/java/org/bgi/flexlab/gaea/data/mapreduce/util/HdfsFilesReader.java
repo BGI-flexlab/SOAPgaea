@@ -79,7 +79,7 @@ public class HdfsFilesReader extends GaeaFilesReader{
 		if(lineReader != null){
 			Text line = new Text();
 			try {
-				if(lineReader.readLine(line) > 0 && line.getLength() != 0){
+				if(lineReader.readLine(line) > 0){
 					currentLine = line.toString();
 					return true;
 				}else{

@@ -13,13 +13,11 @@ import htsjdk.samtools.SAMFileHeader;
 public class RecalibratorTableCombiner {
 	private GaeaFilesReader reader = null;
 	private RecalibratorTable tables = null;
-	private RecalibratorOptions option = null;
 	private Covariate[] covariates = null;
 
 	public RecalibratorTableCombiner(RecalibratorOptions option, SAMFileHeader header) {
 		covariates = CovariateUtil.initializeCovariates(option, header);
 		tables = new RecalibratorTable(covariates, header.getReadGroups().size());
-		this.option = option;
 	}
 
 	public void combineTable(String path) {
@@ -54,6 +52,10 @@ public class RecalibratorTableCombiner {
 		
 		updateTable(index,keys,datum);
 	}
+	
+	public Covariate[] getCovariates(){
+		return this.covariates;
+	}
 
 	private void updateTable(int index, int[] keys, RecalibratorDatum datum) {
 		final NestedObjectArray<RecalibratorDatum> table = tables.getTable(index);
@@ -66,5 +68,9 @@ public class RecalibratorTableCombiner {
 			else
 				currDatum.increment(datum);
 		}
+	}
+	
+	public RecalibratorTable getRecalibratorTable(){
+		return this.tables;
 	}
 }
