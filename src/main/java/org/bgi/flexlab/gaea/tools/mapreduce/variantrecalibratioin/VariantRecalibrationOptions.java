@@ -22,6 +22,7 @@ public class VariantRecalibrationOptions extends GaeaOptions implements HadoopOp
 		addOption("R", "resource", true, "A list of sites for which to apply a prior probability of"
 				+ " being correct but which aren't used by the algorithm, separated by ':'.", true);
 		addOption("o", "output", true, "The output local path.", true);
+		addOption("e", "report", true, "The output path of vcf qc report", true);
 		addOption("t", "titv", true, "the expected novel Ti/Tv ratio to use when calculating FDR tranches"
 				+ " and for display on the optimization curve output figures. (approx 2.15 for whole genome"
 				+ " experiments). ONLY USED FOR PLOTTING PURPOSES!");
@@ -165,6 +166,11 @@ public class VariantRecalibrationOptions extends GaeaOptions implements HadoopOp
 	private int minNumBadVariants;
 	
 	/**
+	 * VCF qc report
+	 */
+	private String report;
+	
+	/**
 	 * class of Model
 	 * @author zhangyong2
 	 *
@@ -229,6 +235,8 @@ public class VariantRecalibrationOptions extends GaeaOptions implements HadoopOp
 		
 		outputPath = getOptionValue("o", null);
 		
+		report = getOptionValue("e", null);
+		
 		TargetTiTv = getOptionDoubleValue("t", 2.15);
 		
 		String an = getOptionValue("a", null);
@@ -288,6 +296,10 @@ public class VariantRecalibrationOptions extends GaeaOptions implements HadoopOp
 		return resources;
 	}
 
+	public String getReportPath() {
+		return report;
+	}
+	
 	/**
 	 * @param resources the resources to set
 	 */

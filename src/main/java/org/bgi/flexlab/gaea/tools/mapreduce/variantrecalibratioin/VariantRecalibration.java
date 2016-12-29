@@ -60,7 +60,7 @@ public class VariantRecalibration extends ToolsRunner{
 		job.setInputFormatClass(VCFMultipleInputFormat.class);
 
 		Path statictisOutput = new Path(options.getOutputPath() + "/tmp");
-		job.setOutputFormatClass(KeyIgnoringVCFOutputFormat.class);
+		job.setOutputFormatClass(VariantRecalibrationOutputFormat.class);
 		FileOutputFormat.setOutputPath(job, statictisOutput);
 		
 		return job.waitForCompletion(true) ? 0 : 1;

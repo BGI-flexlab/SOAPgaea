@@ -134,7 +134,7 @@ public class RecalibratorDatum {
 	}
 
 	public double expectedErrors() {
-		return this.numBases * QualityUtils.qualityToErrorProbility(this.estimatedQuality);
+		return this.numBases * QualityUtils.qualityToErrorProbability(this.estimatedQuality);
 	}
 
 	public String toString() {

@@ -5,7 +5,9 @@ import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocationParser;
 import org.bgi.flexlab.gaea.tools.mapreduce.variantrecalibratioin.VariantRecalibrationOptions;
 import org.bgi.flexlab.gaea.tools.variantrecalibratioin.model.VariantDataManager;
+import org.bgi.flexlab.gaea.util.MathUtils;
 import org.bgi.flexlab.gaea.util.QualityUtils;
+import org.bgi.flexlab.gaea.util.RandomUtils;
 
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.VariantContextUtils;
@@ -131,7 +133,7 @@ public class VariantDatumMessenger{
 		
 		private VariantRecalibrationOptions options;
 		
-		private TrainDataManager manager;
+		private ResourceManager manager;
 				
 		private VariantContext vc;
 				
@@ -148,7 +150,7 @@ public class VariantDatumMessenger{
 			this.worstAnnotation = 0;
 		}
 		
-		public Builder(TrainDataManager manager, VariantContext vc, VariantRecalibrationOptions options) {
+		public Builder(ResourceManager manager, VariantContext vc, VariantRecalibrationOptions options) {
 		// TODO Auto-generated constructor stub
 			this();
 			this.vc = vc;
@@ -156,10 +158,8 @@ public class VariantDatumMessenger{
 			this.manager = manager;
 		}
 		
-		public Builder setAnnotations() {
-			manager.decodeAnnotations(vc, true);
-			this.annotations = manager.getAnnotations();
-			this.isNull = manager.getIsNull();
+		public Builder decodeAnnotations() {
+			decodeAnnotations(vc, true);
 			return this;
 		}
 		
@@ -169,7 +169,7 @@ public class VariantDatumMessenger{
 			if(checkFlag(this.flag, VariantDatumMessenger.isSNP) && VariantContextUtils.isTransition(vc))
 				this.flag = (this.flag |= VariantDatumMessenger.isTransition);
 
-			flag = parseTrainingSets(flag, options.isTrustAllPolymorphic());
+			parseTrainingSets(flag, options.isTrustAllPolymorphic());
 			return this;
 		}
 		
@@ -179,7 +179,7 @@ public class VariantDatumMessenger{
 		}
 		
 		public Builder setPrior() {
-			double priorFactor = QualityUtils.qualToProb(this.prior);
+			double priorFactor = QualityUtils.qualityToProbability(this.prior);
 			this.prior = Math.log10( priorFactor ) - Math.log10( 1.0 - priorFactor );
 			return this;
 		}
@@ -189,6 +189,35 @@ public class VariantDatumMessenger{
 			return this;
 		}
 		
+		private void decodeAnnotations( final VariantContext vc, final boolean jitter ) {
+	        int iii = 0;
+	        for( final String key : options.getUseAnnotations() ) {
+	            isNull[iii] = false;
+	            annotations[iii] = decodeAnnotation( key, vc, jitter );
+	            if( Double.isNaN(annotations[iii]) ) { isNull[iii] = true; }
+	            iii++;
+	        }
+	    }
+
+	    private static double decodeAnnotation( final String annotationKey, final VariantContext vc, final boolean jitter ) {
+	        double value;
+
+	        try {
+	            value = vc.getAttributeAsDouble( annotationKey, Double.NaN );
+	            if( Double.isInfinite(value) ) { value = Double.NaN; }
+	            if( jitter && annotationKey.equalsIgnoreCase("HRUN") ) { // Integer valued annotations must be jittered a bit to work in this GMM
+	                  value += -0.25 + 0.5 * RandomUtils.getRandomGenerator().nextDouble();
+	            }
+
+	            if( jitter && annotationKey.equalsIgnoreCase("HaplotypeScore") && MathUtils.compareDoubles(value, 0.0, 0.0001) == 0 ) { value = -0.2 + 0.4*RandomUtils.getRandomGenerator().nextDouble(); }
+	            if( jitter && annotationKey.equalsIgnoreCase("FS") && MathUtils.compareDoubles(value, 0.0, 0.001) == 0 ) { value = -0.2 + 0.4*RandomUtils.getRandomGenerator().nextDouble(); }
+	        } catch( Exception e ) {
+	            value = Double.NaN; // The VQSR works with missing data by marginalizing over the missing dimension when evaluating the Gaussian mixture model
+	        }
+
+	        return value;
+	    }
+	    
 	    private byte parseTrainingSets(byte flag, final boolean TRUST_ALL_POLYMORPHIC ) throws IOException {
 	        byte result = flag;
 	    	for( final TrainData trainingData : manager.getTrainDataSet() ) {
@@ -216,7 +245,7 @@ public class VariantDatumMessenger{
 	    }
 	    
 	    private boolean isValidVariant( final VariantContext evalVC, final VariantContext trainVC, final boolean TRUST_ALL_POLYMORPHIC) {
-	        return trainVC != null && trainVC.isNotFiltered() && trainVC.isVariant() && TrainDataManager.checkVariationClass( evalVC, trainVC ) &&
+	        return trainVC != null && trainVC.isNotFiltered() && trainVC.isVariant() && ResourceManager.checkVariationClass( evalVC, trainVC ) &&
 	                        (TRUST_ALL_POLYMORPHIC || !trainVC.hasGenotypes() || trainVC.isPolymorphicInSamples());
 	    }
 	    

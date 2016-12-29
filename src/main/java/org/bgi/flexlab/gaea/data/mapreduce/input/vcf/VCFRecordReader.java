@@ -12,6 +12,7 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.bgi.flexlab.gaea.data.mapreduce.util.HdfsFileManager;
+import org.bgi.flexlab.gaea.data.structure.header.GaeaVCFHeader;
 import org.bgi.flexlab.gaea.data.structure.header.MultipleVCFHeader;
 import org.seqdoop.hadoop_bam.VariantContextWritable;
 
@@ -50,8 +51,7 @@ public class VCFRecordReader extends RecordReader<LongWritable, VariantContextWr
 //  used for reading multiple vcf file but not proceed sorting
 	public VCFRecordReader(Configuration conf, boolean sort) {
 		this.conf = conf;
-		mVcfHeader = new MultipleVCFHeader();
-		mVcfHeader.loadVcfHeader(false, conf);
+		mVcfHeader = (MultipleVCFHeader) GaeaVCFHeader.loadVcfHeader(false, conf);
 		this.sort = sort;
 	}
 	

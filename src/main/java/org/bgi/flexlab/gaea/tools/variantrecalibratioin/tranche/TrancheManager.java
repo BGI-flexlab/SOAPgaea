@@ -115,7 +115,7 @@ public class TrancheManager {
 
 	        List<Tranche> tranches = new ArrayList<Tranche>();
 	        for ( double trancheThreshold : trancheThresholds ) {
-	            Tranche t = findTranche(data, metric, trancheThreshold, model);
+	            Tranche t = findTranche(data, metric, trancheThreshold, model, tranches);
 
 	            if ( t == null ) {
 	                if ( tranches.size() == 0 )
@@ -145,14 +145,14 @@ public class TrancheManager {
 	        }
 	    }
 
-	    public static Tranche findTranche( final List<VariantDatum> data, final SelectionMetric metric, final double trancheThreshold, final VariantRecalibrationOptions.Mode model ) {
+	    public static Tranche findTranche( final List<VariantDatum> data, final SelectionMetric metric, final double trancheThreshold, final VariantRecalibrationOptions.Mode model, List<Tranche> tranches ) {
 
 	        double metricThreshold = metric.getThreshold(trancheThreshold);
 	        int n = data.size();
-	        for ( int i = 0; i < n; i++ ) {
+	        for (int i = 0 ; i < n; i++ ) {
 	            if ( metric.getRunningMetric(i) >= metricThreshold ) {
 	                // we've found the largest group of variants with sensitivity >= our target truth sensitivity
-	                Tranche t = trancheOfVariants(data, i, trancheThreshold, model);
+	                Tranche t = trancheOfVariants(data, i, trancheThreshold, model, tranches);
 	                return t;
 	            }
 	        }
@@ -160,25 +160,31 @@ public class TrancheManager {
 	        return null;
 	    }
 
-	    public static Tranche trancheOfVariants( final List<VariantDatum> data, int minI, double ts, final VariantRecalibrationOptions.Mode model ) {
-	        int numKnown = 0, numNovel = 0, knownTi = 0, knownTv = 0, novelTi = 0, novelTv = 0;
-
+	    public static Tranche trancheOfVariants( final List<VariantDatum> data, int minI, double ts, final VariantRecalibrationOptions.Mode model, List<Tranche> tranches ) {
+	        Tranche lastTranche = tranches.size() == 0 ? null : tranches.get(tranches.size() - 1);
+	        int knownTi = 0, knownTv = 0, novelTi = 0, novelTv = 0;
+	        if(lastTranche != null) {
+	        	knownTi = lastTranche.knownTi;
+	        	knownTv = lastTranche.knownTv;
+	        	novelTi = lastTranche.novelTi;
+	        	novelTv = lastTranche.novelTv;
+	        }
+	       
 	        double minLod = data.get(minI).lod;
 	        for ( final VariantDatum datum : data ) {
 	            if ( datum.lod >= minLod ) {
 	                //if( ! datum.isKnown ) System.out.println(datum.pos);
 	                if ( datum.isKnown ) {
-	                    numKnown++;
 	                    if( datum.isSNP ) {
 	                        if ( datum.isTransition ) { knownTi++; } else { knownTv++; }
 	                    }
 	                } else {
-	                    numNovel++;
 	                    if( datum.isSNP ) {
 	                        if ( datum.isTransition ) { novelTi++; } else { novelTv++; }
 	                    }
 	                }
 	            }
+	            data.remove(datum);
 	        }
 
 	        double knownTiTv = knownTi / Math.max(1.0 * knownTv, 1.0);
@@ -187,7 +193,7 @@ public class TrancheManager {
 	        int accessibleTruthSites = countCallsAtTruth(data, Double.NEGATIVE_INFINITY);
 	        int nCallsAtTruth = countCallsAtTruth(data, minLod);
 
-	        return new Tranche(ts, minLod, numKnown, knownTiTv, numNovel, novelTiTv, accessibleTruthSites, nCallsAtTruth, model);
+	        return new Tranche(ts, minLod, knownTi, knownTv, knownTiTv, novelTi, novelTv, novelTiTv, accessibleTruthSites, nCallsAtTruth, model);
 	    }
 
 	    public static double fdrToTiTv(double desiredFDR, double targetTiTv) {

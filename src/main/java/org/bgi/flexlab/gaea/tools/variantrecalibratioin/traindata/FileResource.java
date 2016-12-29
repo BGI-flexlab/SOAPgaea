@@ -35,8 +35,6 @@ public class FileResource implements ResourceType{
 		long start = share.getStartPosition(winNum);
 		try {
 			ArrayList<VariantContext> vcl = loader.query(loc.getContig(), start, loc.getStop());
-			if(vcl == null)
-				return new ArrayList<VariantContext>();
 			return vcl;
 		} catch (IOException e) {
 			throw new RuntimeException(e);

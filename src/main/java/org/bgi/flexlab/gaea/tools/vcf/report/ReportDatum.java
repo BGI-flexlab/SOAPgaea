@@ -1,4 +1,4 @@
-package org.bgi.flexlab.gaea.tools.mapreduce.vcf.report;
+package org.bgi.flexlab.gaea.tools.vcf.report;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -6,7 +6,7 @@ import java.util.Set;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.VariantContextUtils;
 
-public class VariantInformation {
+public class ReportDatum {
 	private int snpCount;
 	private int indelCount;
 	private int ti;
@@ -15,7 +15,7 @@ public class VariantInformation {
 	private static Set<String> snpChrs = new HashSet<>();
 	private String indelChr;
 	private static Set<String> indelChrs = new HashSet<>();
-	private VariantInformation(Builder builder) {
+	private ReportDatum(Builder builder) {
 		this.snpCount = builder.snpCount;
 		this.indelCount = builder.indelCount;
 		this.ti = builder.ti;
@@ -38,7 +38,7 @@ public class VariantInformation {
 		return builder.toString();
 	}
 	
-	public String formatTable() {
+	public String formatReport() {
 		StringBuilder tbBuilder = new StringBuilder();
 		tbBuilder.append("SNP counts: " + snpCount);tbBuilder.append("\n");
 		tbBuilder.append("Indel counts: " + indelCount);tbBuilder.append("\n");
@@ -48,7 +48,7 @@ public class VariantInformation {
 		return tbBuilder.toString();
 	}
 	
-	public VariantInformation combine(VariantInformation vi) {
+	public ReportDatum combine(ReportDatum vi) {
 		this.snpCount += vi.getSnpCount();
 		this.indelCount += vi.getIndelCount();
 		this.ti += vi.getTi();
@@ -122,7 +122,7 @@ public class VariantInformation {
 			return this;
 		}
 		
-		public VariantInformation buildFrom(String context) {
+		public ReportDatum buildFrom(String context) {
 			String[] info = context.split("\t");
 			snpCount = Integer.parseInt(info[0]);
 			ti = Integer.parseInt(info[1]);
@@ -130,11 +130,11 @@ public class VariantInformation {
 			indelCount = Integer.parseInt(info[3]);
 			snpChr = info[4];
 			indelChr = info[5];
-			return new VariantInformation(this);
+			return new ReportDatum(this);
 		}
 		
-		public VariantInformation build() {
-			return new VariantInformation(this);
+		public ReportDatum build() {
+			return new ReportDatum(this);
 		}
 	}
 }

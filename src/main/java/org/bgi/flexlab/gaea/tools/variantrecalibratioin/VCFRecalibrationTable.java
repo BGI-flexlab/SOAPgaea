@@ -127,35 +127,55 @@ public class VCFRecalibrationTable {
         System.out.println(Tranche.tranchesString( tranches ));
 	}
 	
-	/**
-	 * get recal data
-	 * @param chrName
-	 * @param start
-	 * @param end
-	 * @return recal table in chr:start-end
-	 */
-    public List<VariantContext> getData(String chrName, int start, int end) {
-    	List<VariantContext> vcs = new ArrayList<VariantContext>();
+//	/**
+//	 * get recal data
+//	 * @param chrName
+//	 * @param start
+//	 * @param end
+//	 * @return recal table in chr:start-end
+//	 */
+//    public List<VariantContext> getData(String chrName, int start, int end) {
+//    	List<VariantContext> vcs = new ArrayList<VariantContext>();
+//    	ArrayList<Integer> index = dataIndex.get(chrName).get(start);
+//    	if(index == null)
+//    		return null;
+//    	for(int i : index) {
+//    		VariantDatum datum = data.get(i);
+//    		if(datum.loc.getStart() == start && datum.loc.getStop() <= end) {
+//    			attributes.put(VCFConstants.END_KEY, datum.loc.getStop());
+//                attributes.put(VariantRecalibration.VQS_LOD_KEY, String.format("%.4f", datum.lod));
+//                attributes.put(VariantRecalibration.CULPRIT_KEY, (datum.worstAnnotation != -1 ? options.getUseAnnotations().get(datum.worstAnnotation) : "NULL"));
+//
+//                VariantContextBuilder builder = new VariantContextBuilder("VQSR", datum.loc.getContig(), datum.loc.getStart(), datum.loc.getStop(), alleles).attributes(attributes);
+//                vcs.add(builder.make());
+//    		}
+//    		else if(datum.loc.getStart() > start)
+//    			break;
+//    	}
+//    	return vcs;
+//    }
+    
+	public VariantContext getData(String chrName, int start, int end) {
     	ArrayList<Integer> index = dataIndex.get(chrName).get(start);
     	if(index == null)
     		return null;
     	for(int i : index) {
     		VariantDatum datum = data.get(i);
-    		if(datum.loc.getStart() == start && datum.loc.getStop() <= end) {
+    		if(datum.loc.getStart() == start && datum.loc.getStop() == end) {
     			attributes.put(VCFConstants.END_KEY, datum.loc.getStop());
                 attributes.put(VariantRecalibration.VQS_LOD_KEY, String.format("%.4f", datum.lod));
                 attributes.put(VariantRecalibration.CULPRIT_KEY, (datum.worstAnnotation != -1 ? options.getUseAnnotations().get(datum.worstAnnotation) : "NULL"));
 
                 VariantContextBuilder builder = new VariantContextBuilder("VQSR", datum.loc.getContig(), datum.loc.getStart(), datum.loc.getStop(), alleles).attributes(attributes);
-                vcs.add(builder.make());
+                return builder.make();
     		}
     		else if(datum.loc.getStart() > start)
     			break;
     	}
-    	return vcs;
+    	return null;
     }
-    
-    public void IndexData() {
+		
+    public void indexData() {
     	dataIndex = new HashMap<String, Map<Integer,ArrayList<Integer>>>();
     	int i = 0;
     	while(i < data.size()) {

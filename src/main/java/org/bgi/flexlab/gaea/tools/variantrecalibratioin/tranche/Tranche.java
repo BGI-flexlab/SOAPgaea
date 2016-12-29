@@ -19,20 +19,27 @@ import org.bgi.flexlab.gaea.data.exception.MalformedFile;
 import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.tools.mapreduce.variantrecalibratioin.VariantRecalibrationOptions;
 import org.bgi.flexlab.gaea.tools.mapreduce.variantrecalibratioin.VariantRecalibrationOptions.Mode;
-import org.bgi.flexlab.gaea.util.XReadLines;
 
 
 public class Tranche {
 	private static final int CURRENT_VERSION = 5;
 
     public double ts, minVQSLod, knownTiTv, novelTiTv;
-    public int numKnown,numNovel;
+    public int knownTi,knownTv,numKnown,novelTi,novelTv,numNovel;
     public String name;
     public VariantRecalibrationOptions.Mode model;
 
     int accessibleTruthSites = 0;
     int callsAtTruthSites = 0;
 
+    public Tranche(double ts, double minVQSLod, int knownTi, int knownTv, double knownTiTv, int novelTi, int novelTv, double novelTiTv, int accessibleTruthSites, int callsAtTruthSites, VariantRecalibrationOptions.Mode model) {	
+    	this(ts, minVQSLod, knownTi + knownTv, knownTiTv, novelTi + novelTv, novelTiTv, accessibleTruthSites, callsAtTruthSites, model);
+    	this.knownTi = knownTi;
+    	this.knownTv = knownTv;
+    	this.novelTi = novelTi;
+    	this.novelTv = novelTv;
+    }
+    
     public Tranche(double ts, double minVQSLod, int numKnown, double knownTiTv, int numNovel, double novelTiTv, int accessibleTruthSites, int callsAtTruthSites, VariantRecalibrationOptions.Mode model) {
         this(ts, minVQSLod, numKnown, knownTiTv, numNovel, novelTiTv, accessibleTruthSites, callsAtTruthSites, model, "anonymous");
     }

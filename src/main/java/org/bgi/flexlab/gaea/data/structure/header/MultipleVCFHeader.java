@@ -179,19 +179,6 @@ public class MultipleVCFHeader extends  GaeaVCFHeader implements Serializable{
 		return true;
 	}
 	
-	@Override
-	public void copy(GaeaVCFHeader header){
-		MultipleVCFHeader multiHeader = (MultipleVCFHeader) header;
-		fileName2ID = multiHeader.fileName2ID;
-		ID2SingleVcfHeader = multiHeader.ID2SingleVcfHeader;
-		id = multiHeader.id;
-	}
-	
-	@Override
-	public GaeaVCFHeader initializeHeader(){
-		return new MultipleVCFHeader();
-	}
-	
 	public int getFileNum() {
 		return fileName2ID.size();
 	}

@@ -29,7 +29,6 @@ public class VariantDataManager {
     private final double[] meanVector;
     private final double[] varianceVector; // this is really the standard deviation
     public final List<String> annotationKeys;
-    protected final static Logger logger = Logger.getLogger(VariantDataManager.class);
     VariantRecalibrationOptions options;
 
     public VariantDataManager( final List<String> annotationKeys, VariantRecalibrationOptions options) {
@@ -73,7 +72,6 @@ public class VariantDataManager {
         for( int iii = 0; iii < meanVector.length; iii++ ) {
             final double theMean = mean(iii);
             final double theSTD = standardDeviation(theMean, iii);
-            logger.info( annotationKeys.get(iii) + String.format(": \t mean = %.2f\t standard deviation = %.2f", theMean, theSTD) );
             if( Double.isNaN(theMean) ) {
                 throw new UserException.BadInput("Values for " + annotationKeys.get(iii) + " annotation not detected for ANY training variant in the input callset. VariantAnnotator may be used to add these annotations.");
             }
@@ -107,10 +105,7 @@ public class VariantDataManager {
                 trainingData.add( datum );
             }
         }
-        logger.info( "Training with " + trainingData.size() + " variants after standard deviation thresholding." );
-        if( trainingData.size() < options.getMinNumBadVariants() ) {
-            logger.warn( "WARNING: Training with very few variant sites! Please check the model reporting PDF to ensure the quality of the model is reliable." );
-        }
+        
         return trainingData;
     }
 
@@ -125,7 +120,6 @@ public class VariantDataManager {
             }
         }
         final int numBadSitesAdded = trainingData.size();
-        logger.info( "Found " + numBadSitesAdded + " variants overlapping bad sites training tracks." );
 
         // Next sort the variants by the LOD coming from the positive model and add to the list the bottom X percent of variants
         Collections.sort( data, new VariantDatum.VariantDatumLODComparator() );
@@ -133,7 +127,6 @@ public class VariantDataManager {
         if( numToAdd > data.size() ) {
             throw new UserException.BadInput( "Error during negative model training. Minimum number of variants to use in training is larger than the whole call set. One can attempt to lower the --minNumBadVariants arugment but this is unsafe." );
         } else if( numToAdd == minimumNumber - trainingData.size() ) {
-            logger.warn( "WARNING: Training with very few variant sites! Please check the model reporting PDF to ensure the quality of the model is reliable." );
             bottomPercentage = ((float) numToAdd) / ((float) data.size());
         }
         int index = 0, numAdded = 0;
@@ -145,7 +138,6 @@ public class VariantDataManager {
                 numAdded++;
             }
         }
-        logger.info( "Additionally training with worst " + String.format("%.3f", (float) bottomPercentage * 100.0f) + "% of passing data --> " + (trainingData.size() - numBadSitesAdded) + " variants with LOD <= " + String.format("%.4f", data.get(index).lod) + "." );
         return trainingData;
     }
 

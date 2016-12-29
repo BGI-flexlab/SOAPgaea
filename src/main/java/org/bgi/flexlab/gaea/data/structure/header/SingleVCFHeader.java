@@ -144,18 +144,6 @@ public class SingleVCFHeader extends GaeaVCFHeader implements Serializable{
 		return sampleNames.get(index);
 	} 
 	
-	@Override 
-	public void copy(GaeaVCFHeader header) {
-		SingleVCFHeader singleHeader = (SingleVCFHeader) header;
-		sampleNames = singleHeader.getSampleNames();
-		headerInfo = singleHeader.getHeaderInfo();
-	}
-	
-	@Override
-	public GaeaVCFHeader initializeHeader(){
-		return new SingleVCFHeader();
-	}
-	
 	public List<String> getSampleNames() {
 		return sampleNames;
 	}

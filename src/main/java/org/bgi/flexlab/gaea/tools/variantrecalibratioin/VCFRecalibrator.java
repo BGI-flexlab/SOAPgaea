@@ -15,11 +15,12 @@ import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Reducer.Context;
 import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.data.mapreduce.util.HdfsFileManager;
+import org.bgi.flexlab.gaea.data.structure.header.GaeaVCFHeader;
 import org.bgi.flexlab.gaea.data.structure.header.MultipleVCFHeader;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocationParser;
 import org.bgi.flexlab.gaea.tools.mapreduce.variantrecalibratioin.VariantRecalibration;
 import org.bgi.flexlab.gaea.tools.mapreduce.variantrecalibratioin.VariantRecalibrationOptions;
-import org.bgi.flexlab.gaea.tools.variantrecalibratioin.traindata.TrainDataManager;
+import org.bgi.flexlab.gaea.tools.variantrecalibratioin.traindata.ResourceManager;
 import org.bgi.flexlab.gaea.tools.variantrecalibratioin.traindata.VariantDatumMessenger;
 import org.bgi.flexlab.gaea.tools.variantrecalibratioin.tranche.Tranche;
 import org.seqdoop.hadoop_bam.VariantContextWritable;
@@ -66,11 +67,6 @@ public class VCFRecalibrator {
     private MultipleVCFHeader headers;
     
     /**
-     * genome loc
-     */
-    private GenomeLocationParser genomeLocParser;
-    
-    /**
      * hadoop job Configuration file
      */
     private Configuration conf;
@@ -84,8 +80,7 @@ public class VCFRecalibrator {
     public VCFRecalibrator(VariantRecalibrationOptions options, Configuration conf) throws IOException {
     	this.conf = conf;
         this.options = options;
-        headers = new MultipleVCFHeader();
-    	headers.loadVcfHeader(false, this.conf);
+        headers = (MultipleVCFHeader) GaeaVCFHeader.loadVcfHeader(false, this.conf);
         recalTable = new VCFRecalibrationTable(options);
         if (options.getIgnoreInputFilters() != null) {
             ignoreInputFilterSet.addAll(options.getIgnoreInputFilters());
@@ -102,10 +97,10 @@ public class VCFRecalibrator {
      * @throws InterruptedException 
      * @throws IOException
      */
-    public void recalVCF(int id, List<VariantContext> data, Context context) throws IOException, InterruptedException{
+    public void recalVCF(int id, Context context) throws IOException, InterruptedException{
     	
     	recalTable.getRecalibrationTable();
-    	recalTable.IndexData();
+    	recalTable.indexData();
     	for (final Tranche t : recalTable.getTranches()) {
             if (t.ts >= options.getTSFilterLevel()) {
                 tranches.add(t);
@@ -113,50 +108,16 @@ public class VCFRecalibrator {
         }
     	// this algorithm wants the tranches ordered from best (lowest truth sensitivity) to worst (highest truth sensitivity)
         Collections.reverse(tranches); 
-    	
-    	VCFHeader header = headers.getVcfHeader(id);
-		for(VCFHeaderLine headerLine : getAddingHeader()) {
+    }
+
+    public VCFHeader addHeaderLine(VCFHeader header) {
+    	for(VCFHeaderLine headerLine : getAddingHeader()) {
 			header.addMetaDataLine(headerLine);
 		}
-
-		VCFCodec codec = new VCFCodec();
-		codec.setVCFHeader(header, VCFHeaderVersion.VCF4_2);
-		finalHeader = header;
-		InputStream is = HdfsFileManager.getInputStream(new Path(headers.getFile(id)), context.getConfiguration());
-		AsciiLineReaderIterator iterator = new AsciiLineReaderIterator(new AsciiLineReader(is));
-		while(iterator.hasNext()) {
-			VariantContext vc = codec.decode(iterator.next());
-			if(vc == null)
-				continue;
-			vc = recal(vc);
-			VariantContextWritable vcWritable = new VariantContextWritable();
-			vcWritable.set(vc);
-			context.write(NullWritable.get(), vcWritable);
-		}
-		iterator.close();
+    	finalHeader = header;
+    	return header;
     }
- 
-    /**
-     * get output path of recaled vcf file
-     * @param inVCF
-     * @return
-     */
-    private String getOutVCFPath(String inVCF) {
-		int index = inVCF.lastIndexOf("/");
-		String fileName = inVCF.substring(index + 1);
-		if(fileName.endsWith(".vcf"))
-			fileName = fileName.substring(0, fileName.length() - 4);
-		if(fileName.endsWith(".vcf.gz"))
-			fileName = fileName.substring(0, fileName.length() - 7);
-		
-		StringBuilder sb = new StringBuilder();
-		sb.append(options.getOutputPath());
-		sb.append(System.getProperty("file.separation"));
-		sb.append(fileName);
-		sb.append(".recaled.vcf");
-		return sb.toString();
-	}
-
+    
     /**
      * headers for vqsr
      * @return
@@ -206,7 +167,7 @@ public class VCFRecalibrator {
         hInfo.add(VCFStandardHeaderLines.getInfoLine(VCFConstants.END_KEY));
         hInfo.add(new VCFInfoHeaderLine(VariantRecalibration.VQS_LOD_KEY, 1,
                 VCFHeaderLineType.Float,
-                "Log odds ratio of being a true variant versus being false under the trained gaussian mixture model"));
+                "Log odds of being a true variant versus being false under the trained gaussian mixture model"));
         hInfo.add(new VCFInfoHeaderLine(VariantRecalibration.CULPRIT_KEY, 1,
                 VCFHeaderLineType.String,
                 "The annotation which was the worst performing in the Gaussian mixture model, likely the reason why the variant was filtered out"));
@@ -218,16 +179,16 @@ public class VCFRecalibrator {
      * @return
      * @throws IOException
      */
-    public VariantContext recal(VariantContext vc) throws IOException {
+    public VariantContext applyRecalibration(VariantContext vc) throws IOException {
         if (vc == null) { // For some reason RodWalkers get map calls with null trackers
             return null;
         }
 
-        final List<VariantContext> recals = recalTable.getData(vc.getChr(), vc.getStart(), vc.getEnd());
+        final VariantContext recalDatum = recalTable.getData(vc.getChr(), vc.getStart(), vc.getEnd());
 
-        if (TrainDataManager.checkVariationClass(vc, options.getMode()) && (vc.isNotFiltered() ||
+        if (ResourceManager.checkVariationClass(vc, options.getMode()) && (vc.isNotFiltered() ||
         ignoreInputFilterSet.containsAll(vc.getFilters()))) {
-        	final VariantContext recalDatum = getMatchingRecalVC(vc, recals);
+//        	final VariantContext recalDatum = getMatchingRecalVC(vc, recals);
 
         	if (recalDatum == null) {
         		throw new UserException(
@@ -290,22 +251,22 @@ public class VCFRecalibrator {
         }
     }
 
-    /**
-     * get right data from recal data
-     * @param target
-     * @param recalVCs
-     * @return
-     */
-    private static VariantContext getMatchingRecalVC( final VariantContext target, final List<VariantContext> recalVCs) {
-        if(recalVCs == null)
-        	System.err.println(target.toString());
-    	for (final VariantContext recalVC : recalVCs) {
-            if (target.getEnd() == recalVC.getEnd()) {
-                return recalVC;
-            }
-        }
-
-        return null;
-    }
+//    /**
+//     * get right data from recal data
+//     * @param target
+//     * @param recalVCs
+//     * @return
+//     */
+//    private static VariantContext getMatchingRecalVC( final VariantContext target, final List<VariantContext> recalVCs) {
+//        if(recalVCs == null)
+//        	System.err.println(target.toString());
+//    	for (final VariantContext recalVC : recalVCs) {
+//            if (target.getEnd() == recalVC.getEnd()) {
+//                return recalVC;
+//            }
+//        }
+//
+//        return null;
+//    }
   
 }

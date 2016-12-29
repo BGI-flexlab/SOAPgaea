@@ -18,6 +18,7 @@ public class HardFilterOptions extends GaeaOptions implements HadoopOptions{
 	public HardFilterOptions() {
 		addOption("i", "input", true, "input VCF or VCFs(separated by comma)", true);
 		addOption("o", "output", true, "output path for the resultant VCF file", true);
+		addOption("r", "report", true, "output path for vcf report", true);
 		addOption("f", "filterName", true, "filter name");
 		addOption("s", "snpFilter", true, "hard filters, snp filter parameter, eg:MQ>10");
 		addOption("d", "indelFilter", true, "hard filters, indel filter parameter, eg:\"MQ<10||FS>8.0\"\n");
@@ -34,6 +35,7 @@ public class HardFilterOptions extends GaeaOptions implements HadoopOptions{
 	
 	private String indelFilter;
 	
+	private String report;
 	@Override
 	public void setHadoopConf(String[] args, Configuration conf) {
 		// TODO Auto-generated method stub
@@ -82,9 +84,16 @@ public class HardFilterOptions extends GaeaOptions implements HadoopOptions{
 		
 		indelFilter = getOptionValue("d", null);
 		
+		report = getOptionValue("r", null);
+		
 		filterName = getOptionValue("f", "GaeaFilter");
 	}
 
+	
+	public String getReportPath() {
+		return report;
+	}
+	
 	public String getInput() {
 		return input;
 	}
