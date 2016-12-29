@@ -19,6 +19,26 @@ public class Pileup implements PileupInterface<PileupReadInfo>{
 	 */
 	private int position;
 
+	/**
+	 * count of next base is deletion
+	 */
+	private int nextMatchCount;
+
+	/**
+	 * count of next base is insertion
+	 */
+	private int nextInsertionCount;
+
+	/**
+	 * count of next base is deletion
+	 */
+	private int nextDeletionCount;
+
+	/**
+	 * count of deletion base
+	 */
+	private int deletionCount;
+
 	public Pileup() {
 		position = -1;
 		plp = new ArrayList<>();
@@ -46,16 +66,6 @@ public class Pileup implements PileupInterface<PileupReadInfo>{
 		}
 	}
 
-	@Override
-	public void calculateQposition(){
-		if(position != Integer.MAX_VALUE){
-			for(int i = 0; i < plp.size(); i++) {
-				PileupReadInfo posRead= plp.get(i);
-				posRead.calculateQueryPosition(position);
-			}
-		}
-	}
-
 	/**
 	 * remove proccessed reads
 	 * */
@@ -77,6 +87,27 @@ public class Pileup implements PileupInterface<PileupReadInfo>{
 
 		if(isEmpty())
 			position = Integer.MAX_VALUE;
+	}
+
+	@Override
+	public void calculateBaseInfo(){
+		deletionCount = 0;
+		nextDeletionCount = 0;
+		nextInsertionCount = 0;
+		if(position != Integer.MAX_VALUE){
+			for(int i = 0; i < plp.size(); i++) {
+				PileupReadInfo posRead= plp.get(i);
+				posRead.calculateQueryPosition(position);
+				if(posRead.isDeletionBase())
+					deletionCount++;
+				if(posRead.isNextDeletionBase())
+					nextDeletionCount++;
+				if(posRead.isNextInsertBase())
+					nextInsertionCount++;
+				if(posRead.isNextMatchBase())
+					nextMatchCount++;
+			}
+		}
 	}
 
 	/**
@@ -109,6 +140,22 @@ public class Pileup implements PileupInterface<PileupReadInfo>{
 	 */
 	public ArrayList<PileupReadInfo> getPlp() {
 		return plp;
+	}
+
+	public int getDeletionCount() {
+		return deletionCount;
+	}
+
+	public int getNextDeletionCount() {
+		return nextDeletionCount;
+	}
+
+	public int getNextInsertionCount() {
+		return nextInsertionCount;
+	}
+
+	public double getNextIndelRate() {
+		return (nextDeletionCount + nextInsertionCount) / (double) nextMatchCount ;
 	}
 }
 

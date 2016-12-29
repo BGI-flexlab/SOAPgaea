@@ -107,6 +107,18 @@ public abstract class GaeaOptions {
 			return Long.parseLong(cmdLine.getOptionValue(opt));
 		return defaultValue;
 	}
+
+	protected byte getOptionByteValue(String opt, byte defaultValue) {
+		if (cmdLine.hasOption(opt))
+			return Byte.parseByte(cmdLine.getOptionValue(opt));
+		return defaultValue;
+	}
+
+	protected short getOptionShortValue(String opt, short defaultValue) {
+		if (cmdLine.hasOption(opt))
+			return Short.parseShort(cmdLine.getOptionValue(opt));
+		return defaultValue;
+	}
 	
 	public Options getOptions(){
 		return this.options;

@@ -8,7 +8,7 @@ import java.util.ArrayList;
  * Created by zhangyong on 2016/12/26.
  */
 public interface PileupInterface<T extends PileupReadInfo> {
-    void calculateQposition();
+    void calculateBaseInfo();
 
     void remove();
 

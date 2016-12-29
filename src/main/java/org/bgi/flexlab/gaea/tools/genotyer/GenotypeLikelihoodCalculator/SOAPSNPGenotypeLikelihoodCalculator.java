@@ -1,13 +1,12 @@
-package org.bgi.flexlab.gaea.tools.genotyer.genotypelikelihoodcalculator;
+package org.bgi.flexlab.gaea.tools.genotyer.GenotypeLikelihoodCalculator;
 
-import htsjdk.variant.variantcontext.GenotypesContext;
-import org.bgi.flexlab.gaea.data.structure.pileup.Pileup;
+import org.bgi.flexlab.gaea.tools.mapreduce.genotyper.GenotyperOptions;
 
 /**
  * Created by zhangyong on 2016/12/21.
  */
-public class SOAPSNPGenotypeLikelihoodCalculator extends GenotypeLikelihoodCalculator {
-    public GenotypesContext genotypeLikelihoodCalculate(Pileup pileup) {
-
+public class SOAPSNPGenotypeLikelihoodCalculator extends SNPGenotypeLikelihoodCalculator {
+    public SOAPSNPGenotypeLikelihoodCalculator(GenotyperOptions options, double pcrErrorRate) {
+        super(options, pcrErrorRate);
     }
 }

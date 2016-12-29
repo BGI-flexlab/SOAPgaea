@@ -4,6 +4,18 @@ public class QualityUtils {
 	public final static byte MAXIMUM_USABLE_QUALITY_SCORE = 93;
 	public final static byte MINIMUM_USABLE_QUALITY_SCORE = 6;
 
+	public static double[] QUALITY_PROB = new double[MAXIMUM_USABLE_QUALITY_SCORE + 1];
+	public static double[] QUALITY_PROB_LOG10 = new double[MAXIMUM_USABLE_QUALITY_SCORE + 1];
+	public static double[] MINUS_QUALITY_PROB_LOG10 = new double[MAXIMUM_USABLE_QUALITY_SCORE + 1];
+
+	static {
+		for(byte quality = 0; quality < MAXIMUM_USABLE_QUALITY_SCORE + 1; quality++) {
+			QUALITY_PROB[quality] = qualityToErrorProbility(quality);
+			QUALITY_PROB_LOG10[quality] = Math.log(qualityToErrorProbility(quality));
+			MINUS_QUALITY_PROB_LOG10[quality] = Math.log(1 - qualityToErrorProbility(quality));
+		}
+	}
+
 	private static double qualityToErrorProbilityCache[] = new double[256];
 	static {
 		for (int i = 0; i < 256; i++)
