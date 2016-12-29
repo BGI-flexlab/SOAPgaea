@@ -38,7 +38,7 @@ public class QualityInterval implements Comparable<QualityInterval> {
 
 	public double getErrorRate() {
 		if (hasFixQuality())
-			return QualityUtils.qualityToErrorProbility(fixQ);
+			return QualityUtils.qualityToErrorProbability(fixQ);
 		else if (obervation == 0)
 			return 0.0;
 		return (error + 1) / ((double) (obervation + 1));
@@ -46,7 +46,7 @@ public class QualityInterval implements Comparable<QualityInterval> {
 
 	public byte getQual() {
 		if (!hasFixQuality())
-			return QualityUtils.probilityToQuality(1 - getErrorRate(), 0);
+			return QualityUtils.probabilityToQuality(1 - getErrorRate(), 0);
 		else
 			return (byte) (fixQ & 0xff);
 	}

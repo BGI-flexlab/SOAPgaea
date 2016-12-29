@@ -1,4 +1,4 @@
-package org.bgi.flexlab.gaea.tools.vcf.sort;
+package org.bgi.flexlab.gaea.tools.mapreduce.vcf.sort;
 
 
 import java.io.IOException;
@@ -11,6 +11,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.InputSplit;
+import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.JobContext;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.RecordReader;
@@ -58,7 +59,7 @@ public class VCFSort extends ToolsRunner{
 			
 			SortUilts.configureSampling(new Path(options.getTempOutput()), conf, options);
 
-			MultipleVCFHeader mVcfHeader = mergeHeader(options, conf);
+			MultipleVCFHeader mVcfHeader = mergeHeader(options, job);
 			
 			initChrOrder(conf);
 			
@@ -110,9 +111,9 @@ public class VCFSort extends ToolsRunner{
 		return 0;
 	}
 	
-	private MultipleVCFHeader mergeHeader(VCFSortOptions options, Configuration conf) {
+	private MultipleVCFHeader mergeHeader(VCFSortOptions options, Job job) {
 		MultipleVCFHeader mVcfHeader = new MultipleVCFHeader();
-		mVcfHeader.mergeHeader(new Path(options.getInput()), options.getOutputPath(), conf, false);
+		mVcfHeader.mergeHeader(new Path(options.getInput()), options.getOutputPath(), job, false);
 		return mVcfHeader;
 	}
 	

@@ -9,9 +9,8 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.hdfs.DFSClient.Conf;
 
-public abstract class GaeaVCFHeader implements Serializable {
+public class GaeaVCFHeader implements Serializable {
 	/**
 	 * 
 	 */
@@ -39,7 +38,7 @@ public abstract class GaeaVCFHeader implements Serializable {
 		return true;
 	}
 
-	public GaeaVCFHeader readFromFile(String file) throws IOException, ClassNotFoundException {
+	public static GaeaVCFHeader readFromFile(String file) throws IOException, ClassNotFoundException {
 		Configuration conf = new Configuration();
 		Path path = new Path(file);
 		FileSystem fs = path.getFileSystem(conf);
@@ -50,8 +49,8 @@ public abstract class GaeaVCFHeader implements Serializable {
 		return vcfHeader;
 	}
 
-	public void loadVcfHeader(boolean cache, Configuration conf){
-		GaeaVCFHeader vcfHeaderTmp = initializeHeader();
+	public static GaeaVCFHeader loadVcfHeader(boolean cache, Configuration conf){
+		GaeaVCFHeader vcfHeaderTmp = null;
 		try {
 			if(cache){//distribute cache
 				vcfHeaderTmp = readFromFile("VcfHeaderObj");
@@ -65,10 +64,6 @@ public abstract class GaeaVCFHeader implements Serializable {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		copy(vcfHeaderTmp);
+		return vcfHeaderTmp;
 	}
-
-	abstract void copy(GaeaVCFHeader header);
-	
-	abstract GaeaVCFHeader initializeHeader();
 }

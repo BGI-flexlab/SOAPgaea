@@ -18,7 +18,7 @@ import org.apache.hadoop.mapreduce.filecache.DistributedCache;
 import org.apache.hadoop.mapreduce.lib.partition.TotalOrderPartitioner;
 import org.bgi.flexlab.gaea.data.structure.header.MultipleVCFHeader;
 import org.bgi.flexlab.gaea.data.structure.header.SingleVCFHeader;
-import org.bgi.flexlab.gaea.tools.vcf.sort.VCFSortOptions;
+import org.bgi.flexlab.gaea.tools.mapreduce.vcf.sort.VCFSortOptions;
 
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
 import htsjdk.variant.variantcontext.writer.VariantContextWriterBuilder;
@@ -62,7 +62,7 @@ public class SortUilts {
 			
 		    final VariantContextWriterBuilder builder = new VariantContextWriterBuilder();
 			VariantContextWriter writer;
-			Map<Integer, SingleVCFHeader> id2VcfHeader = mVcfHeader.getID2SignelVcfHeader();
+			Map<Integer, SingleVCFHeader> id2VcfHeader = mVcfHeader.getID2SingleVcfHeader();
             for( int id : multiOutputs.keySet()){
             	VCFHeader newHeader = id2VcfHeader.get(id).getHeader();
             	writer = builder.setOutputStream(
