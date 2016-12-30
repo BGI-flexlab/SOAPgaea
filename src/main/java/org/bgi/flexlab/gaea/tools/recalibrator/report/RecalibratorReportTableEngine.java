@@ -30,7 +30,7 @@ public class RecalibratorReportTableEngine {
 	
 	private void getReportTables(){
 		RecalibratorTableCombiner combiner = new RecalibratorTableCombiner(option,header);
-		combiner.combineTable(option.getInputString());
+		combiner.combineTable(option.getInputString());// warning
 		RecalibratorTable table = combiner.getRecalibratorTable();
 		
 		reportTables = new ArrayList<RecalibratorReportTable>();

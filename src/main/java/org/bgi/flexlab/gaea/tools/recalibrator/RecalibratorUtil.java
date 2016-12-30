@@ -21,9 +21,9 @@ public class RecalibratorUtil {
 	 * table column name
 	 */
 	public final static String ARGUMENT_VALUE_COLUMN_NAME = "Value";
-	public final static String QUALITY_SCORE_COLUMN_NAME = "QualityScore";
-	public final static String QUALITY_VALUE_COLUMN_NAME = "QuantizedScore";
-	public static final String QUALITY_COUNT_COLUMN_NAME = "Count";
+	public final static String QUANTIZED_SCORE_COLUMN_NAME = "QualityScore";
+	public final static String QUANTIZED_VALUE_COLUMN_NAME = "QuantizedScore";
+	public static final String QUANTIZED_COUNT_COLUMN_NAME = "Count";
 	public final static String COVARIATE_VALUE_COLUMN_NAME = "CovariateValue";
 	public final static String COVARIATE_NAME_COLUMN_NAME = "CovariateName";
 	public final static String NUMBER_OBSERVATIONS_COLUMN_NAME = "Observations";
@@ -209,11 +209,16 @@ public class RecalibratorUtil {
 
 	public static ReadCovariates computeCovariates(final GaeaSamRecord read, final Covariate[] covariates) {
 		final ReadCovariates readCovariates = new ReadCovariates(read.getReadLength(), covariates.length);
+		computeCovariates(read, covariates, readCovariates);
+		return readCovariates;
+	}
+
+	public static void computeCovariates(final GaeaSamRecord read, final Covariate[] covariates,
+			ReadCovariates readCovariates) {
 		for (int i = 0; i < covariates.length; i++) {
 			readCovariates.setCovariateIndex(i);
 			covariates[i].recordValues(read, readCovariates);
 		}
-		return readCovariates;
 	}
 
 	public static boolean isSOLiDRead(GaeaSamRecord read) {

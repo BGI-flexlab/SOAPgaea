@@ -420,13 +420,13 @@ public class RecalibratorReportTable {
 	private static RecalibratorReportTable reportTableBuilder(List<Long> empiricalCounts, List<Byte> quantizedCounts) {
 		RecalibratorReportTable quantizedTable = new RecalibratorReportTable(RecalibratorUtil.QUANTIZED_TABLE_NAME,
 				"Quality quantization map", 3);
-		quantizedTable.addColumn(RecalibratorUtil.QUALITY_SCORE_COLUMN_NAME);
-		quantizedTable.addColumn(RecalibratorUtil.QUALITY_COUNT_COLUMN_NAME);
-		quantizedTable.addColumn(RecalibratorUtil.QUALITY_VALUE_COLUMN_NAME);
+		quantizedTable.addColumn(RecalibratorUtil.QUANTIZED_SCORE_COLUMN_NAME);
+		quantizedTable.addColumn(RecalibratorUtil.QUANTIZED_COUNT_COLUMN_NAME);
+		quantizedTable.addColumn(RecalibratorUtil.QUANTIZED_VALUE_COLUMN_NAME);
 		for (int qual = 0; qual <= QualityUtils.MAXIMUM_USABLE_QUALITY_SCORE; qual++) {
-			quantizedTable.set(qual, RecalibratorUtil.QUALITY_SCORE_COLUMN_NAME, qual);
-			quantizedTable.set(qual, RecalibratorUtil.QUALITY_COUNT_COLUMN_NAME, empiricalCounts.get(qual));
-			quantizedTable.set(qual, RecalibratorUtil.QUALITY_VALUE_COLUMN_NAME, quantizedCounts.get(qual));
+			quantizedTable.set(qual, RecalibratorUtil.QUANTIZED_SCORE_COLUMN_NAME, qual);
+			quantizedTable.set(qual, RecalibratorUtil.QUANTIZED_COUNT_COLUMN_NAME, empiricalCounts.get(qual));
+			quantizedTable.set(qual, RecalibratorUtil.QUANTIZED_VALUE_COLUMN_NAME, quantizedCounts.get(qual));
 		}
 		return quantizedTable;
 	}

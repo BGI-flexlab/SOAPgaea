@@ -7,7 +7,6 @@ import org.apache.commons.cli.ParseException;
 import org.apache.hadoop.conf.Configuration;
 import org.bgi.flexlab.gaea.data.mapreduce.options.HadoopOptions;
 import org.bgi.flexlab.gaea.data.options.GaeaOptions;
-import org.bgi.flexlab.gaea.tools.mapreduce.realigner.RealignerOptions.AlternateConsensusModel;
 
 public class RealignerExtendOptions extends GaeaOptions implements HadoopOptions{
 	public final static String SOFTWARE_NAME = "Realigner";
@@ -15,6 +14,9 @@ public class RealignerExtendOptions extends GaeaOptions implements HadoopOptions
 	
 	private RealignerOptions realignerOptions = new RealignerOptions();
 	private RecalibratorOptions bqsrOptions = new RecalibratorOptions();
+	
+	private boolean realignment;
+	private boolean recalibration;
 	
 	public RealignerExtendOptions(){
 		addOption("a", "defaultPlatform", true, "If a read has no platform then default to the provided String."
@@ -87,6 +89,22 @@ public class RealignerExtendOptions extends GaeaOptions implements HadoopOptions
 			FormatHelpInfo(SOFTWARE_NAME, SOFTWARE_VERSION);
 			System.exit(1);
 		}
+		
+		if(!isValid()){
+			throw new RuntimeException("must set more than one algorithm!");
+		}
+	}
+	
+	private boolean isValid(){
+		return realignment && recalibration;
+	}
+	
+	public boolean isRealignment(){
+		return this.realignment;
+	}
+	
+	public boolean isRecalibration(){
+		return this.recalibration;
 	}
 	
 	public RealignerOptions getRealignerOptions(){

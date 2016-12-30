@@ -71,7 +71,7 @@ public class RecalibratorDatum {
 
 		final double estimatedQReported = hasEstimatedColumn
 				? (Double) reportTable.get(row, RecalibratorUtil.ESTIMATED_Q_REPORTED_COLUMN_NAME)
-				: Byte.parseByte((String) reportTable.get(row, RecalibratorUtil.QUALITY_SCORE_COLUMN_NAME));
+				: Byte.parseByte((String) reportTable.get(row, RecalibratorUtil.QUANTIZED_SCORE_COLUMN_NAME));
 
 		RecalibratorDatum datum = new RecalibratorDatum(nObservations, nErrors, (byte) 1);
 		datum.setEstimatedQReported(estimatedQReported);
