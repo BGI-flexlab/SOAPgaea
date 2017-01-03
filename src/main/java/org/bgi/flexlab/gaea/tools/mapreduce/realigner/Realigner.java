@@ -14,7 +14,10 @@ import org.bgi.flexlab.gaea.data.mapreduce.writable.WindowsBasedWritable;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.BioJob;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.ToolsRunner;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.WindowsBasedMapper;
+import org.bgi.flexlab.gaea.tools.recalibrator.report.RecalibratorReportTableEngine;
 import org.seqdoop.hadoop_bam.SAMFormat;
+
+import htsjdk.samtools.SAMFileHeader;
 
 public class Realigner extends ToolsRunner {
 
@@ -23,26 +26,32 @@ public class Realigner extends ToolsRunner {
 	}
 
 	private SAMFormat format = SAMFormat.BAM;
+	
+	private RealignerExtendOptions options = null;
 	private RealignerOptions option = null;
 
-	public int runRealigner(String[] args) throws IOException, ClassNotFoundException, InterruptedException {
+	private int runRealigner(String[] args) throws IOException, ClassNotFoundException, InterruptedException {
 		BioJob job = BioJob.getInstance();
 		Configuration conf = job.getConfiguration();
 		String[] remainArgs = remainArgs(args, conf);
 
-		option = new RealignerOptions();
-		option.parse(remainArgs);
+		options = new RealignerExtendOptions();
+		options.parse(remainArgs);
+
+		option = options.getRealignerOptions();
 
 		job.setJobName("GaeaRealigner");
 
 		option.setHadoopConf(remainArgs, conf);
 
 		// merge header and set to configuration
-		job.setHeader(new Path(option.getRealignerInput()), new Path(option.getRealignerHeaderOutput()));
+		SAMFileHeader header = job.setHeader(new Path(option.getRealignerInput()),
+				new Path(option.getRealignerHeaderOutput()));
 
 		job.setAnySamInputFormat(option.getInputFormat());
 		job.setOutputFormatClass(GaeaBamOutputFormat.class);
-		job.setOutputKeyValue(WindowsBasedWritable.class, SamRecordWritable.class, NullWritable.class,SamRecordWritable.class);
+		job.setOutputKeyValue(WindowsBasedWritable.class, SamRecordWritable.class, NullWritable.class,
+				SamRecordWritable.class);
 
 		job.setJarByClass(Realigner.class);
 		job.setWindowsBasicMapperClass(WindowsBasedMapper.class, option.getWindowsSize());
@@ -52,11 +61,15 @@ public class Realigner extends ToolsRunner {
 		FileInputFormat.setInputPaths(job, new Path(option.getRealignerInput()));
 		FileOutputFormat.setOutputPath(job, new Path(option.getRealignerOutput()));
 
-		return job.waitForCompletion(true) ? 0 : 1;
+		if (job.waitForCompletion(true)) {
+			if(options.isRecalibration())
+				return mergeReportTable(options.getBqsrOptions(),header,null);
+			return 0;
+		}
+		return 1;
 	}
 
-	public int runFixMate(String[] args) throws IOException, ClassNotFoundException, InterruptedException {
-
+	private int runFixMate(String[] args) throws IOException, ClassNotFoundException, InterruptedException {
 		BioJob job = BioJob.getInstance();
 		job.setJobName("GaeaFixMate");
 
@@ -80,6 +93,13 @@ public class Realigner extends ToolsRunner {
 		FileOutputFormat.setOutputPath(job, new Path(option.getFixmateOutput()));
 
 		return job.waitForCompletion(true) ? 0 : 1;
+	}
+
+	private int mergeReportTable(RecalibratorOptions option, SAMFileHeader header, String out) {
+		RecalibratorHdfsReportWriter writer = new RecalibratorHdfsReportWriter(out);
+		RecalibratorReportTableEngine engine = new RecalibratorReportTableEngine(option, header, writer);
+		engine.writeReportTable();
+		return 0;
 	}
 
 	@Override

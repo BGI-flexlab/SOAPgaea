@@ -17,51 +17,50 @@ import org.bgi.flexlab.gaea.tools.recalibrator.RecalibratorUtil.SolidNocallStrat
 import org.bgi.flexlab.gaea.tools.recalibrator.RecalibratorUtil.SolidRecallMode;
 import org.bgi.flexlab.gaea.tools.recalibrator.report.RecalibratorReportTable;
 import org.bgi.flexlab.gaea.util.QualityUtils;
+import org.seqdoop.hadoop_bam.SAMFormat;
 
 public class RecalibratorOptions extends GaeaOptions implements HadoopOptions {
 	private final static String SOFTWARE_NAME = "BaseRecalibration";
 	private final static String SOFTWARE_VERSION = "1.0";
 
 	public RecalibratorOptions() {
-		addOption("i", "input", true, "input bam or bams or sam(separated by comma)", true);
-		addOption("t", "inputType", true, "bam:0 sam:1(default:0");
-		addOption("o", "output", true, "output path", true);
-		addOption("T", "programType", true, "program type.[ALL|BR|CM].BR:run base recalibration in "
-				+ "hadoop.CM:combinar the hadoop result  as one table.(default:ALL)");
-		addOption("r", "reference", true, "reference", true);
-		addOption("k", "knownSites", true, "know  variant site,for example dbsnp!");
-		addOption("b", "bintag", true, "the binary tag covariate name if using it");
-		addOption("d", "defaultPlatform", true, "If a read has no platform then default to the provided String."
+		addOption("a", "defaultPlatform", true, "If a read has no platform then default to the provided String."
 				+ " Valid options are illumina, 454, and solid.");
-		addOption("f", "forcePlatform", true, "If provided, the platform of EVERY read will be forced to be the "
-				+ "provided String. Valid options are illumina, 454, and solid.");
-		addOption("c", "covariates", true,
+		addOption("A", "covariates", true,
 				"One or more(separated by comma) covariates to be used in the recalibration.");
-		addOption("e", "mcs", true, "size of the k-mer context to be used for base mismatches.(default:2)");
-		addOption("f", "ics", true,
-				"size of the k-mer context to be used for base insertions and deletions.(default:3)");
+		addOption("b", "bintag", true, "the binary tag covariate name if using it");
+		addOption("C", "CachedRef", false, "cache reference");
+		addOption("D", "ddq", true, "default quality for the base deletions covariate.(default:45)");
 		addOption("E", "mdq", true, "default quality for the base mismatches covariate.(default:-1)");
 		addOption("F", "idq", true, "default quality for the base insertions covariate.（default:45)");
-		addOption("D", "ddq", true, "default quality for the base deletions covariate.(default:45)");
-		addOption("L", "lqt", true,
-				"minimum quality for the bases in the tail of the reads to be considered.(default:2)");
-		addOption("P", "muq", true, "minimum quality for the bases to be preserved.");
-		addOption("Q", "ql", true, "number of distinct quality scores in the quantized output.(default:16)");
+		addOption("f", "forcePlatform", true, "If provided, the platform of EVERY read will be forced to be the "
+				+ "provided String. Valid options are illumina, 454, and solid.");
+		addOption("g", "mcs", true, "size of the k-mer context to be used for base mismatches.(default:2)");
+		addOption("G", "ics", true,
+				"size of the k-mer context to be used for base insertions and deletions.(default:3)");
+		addOption("i", "input", true, "input bam or bams or sam(separated by comma)", true);
+		addOption("k", "knownSites", true, "know  variant site,for example dbsnp!");
+		addOption("K", "ls", false, "If specified, just list the available covariates and exit.");
+		addOption("M", "MultiSample", false, "multiple sample list");
 		addOption("n", "reducerNumber", true, "number of reducer.(default:30)");
-		addOption("w", "winSize", true, "window size.(default:10000)");
-		addOption("l", "ls", false, "If specified, just list the available covariates and exit.");
 		addOption("N", "noStandard", false,
 				"If specified, do not use the standard set of covariates, but rather just the "
 						+ "ones listed using the -cov argument.");
-		addOption("p", "sMode", true,
+		addOption("o", "output", true, "output path", true);
+		addOption("p", "muq", true, "minimum quality for the bases to be preserved.");
+		addOption("P", "sMode", true,
 				"How should we recalibrate solid bases in which the reference was inserted? Options = DO_NOTHING, SET_Q_ZERO, "
 						+ "SET_Q_ZERO_BASE_N, or REMOVE_REF_BIAS.");
-		addOption("s", "solid_nocall_strategy", true,
+		addOption("Q", "ql", true, "number of distinct quality scores in the quantized output.(default:16)");
+		addOption("r", "reference", true, "reference", true);
+		addOption("s", "samformat", false, "input file is sam format");
+		addOption("S", "solid_nocall_strategy", true,
 				"Defines the behavior of the recalibrator when it encounters no calls in the color space. "
 						+ "Options = THROW_EXCEPTION, LEAVE_READ_UNRECALIBRATED, or PURGE_READ.");
-		addOption("C", "CachedRef", false, "cache reference");
-		addOption("m", "MultiSample", false, "multiple sample list");
-		addOption("h", "help", false, "help information");
+		addOption("T", "lqt", true,
+				"minimum quality for the bases in the tail of the reads to be considered.(default:2)");
+		addOption("w", "winSize", true, "window size.(default:10000)");
+		FormatHelpInfo(SOFTWARE_NAME,SOFTWARE_VERSION);
 	}
 
 	public boolean LIST_ONLY = false;
@@ -116,13 +115,11 @@ public class RecalibratorOptions extends GaeaOptions implements HadoopOptions {
 
 	private int reducerN;
 
-	private int inputType;
-
-	private String TYPE;
-
 	private boolean isCachedRef;
 
 	private boolean multiSample;
+
+	private SAMFormat format = SAMFormat.BAM;
 
 	@Override
 	public void setHadoopConf(String[] args, Configuration conf) {
@@ -212,7 +209,8 @@ public class RecalibratorOptions extends GaeaOptions implements HadoopOptions {
 
 		output = getOptionValue("o", null);
 
-		inputType = getOptionIntValue("t", 0);
+		if (getOptionBooleanValue("s", false))
+			format = SAMFormat.SAM;
 
 		reference = getOptionValue("r", null);
 
@@ -222,15 +220,15 @@ public class RecalibratorOptions extends GaeaOptions implements HadoopOptions {
 
 		BINARY_TAG_NAME = getOptionValue("b", null);
 
-		DEFAULT_PLATFORM = getOptionValue("d", null);
+		DEFAULT_PLATFORM = getOptionValue("a", null);
 
 		FORCE_PLATFORM = getOptionValue("f", null);
 
-		COVARIATES = getOptionValue("c", null) == null ? null : getOptionValue("c", null).split(",");
+		COVARIATES = getOptionValue("A", null) == null ? null : getOptionValue("c", null).split(",");
 
-		MISMATCHES_CONTEXT_SIZE = getOptionIntValue("e", 2);
+		MISMATCHES_CONTEXT_SIZE = getOptionIntValue("g", 2);
 
-		INDELS_CONTEXT_SIZE = getOptionIntValue("f", 3);
+		INDELS_CONTEXT_SIZE = getOptionIntValue("G", 3);
 
 		MISMATCHES_DEFAULT_QUALITY = (byte) getOptionIntValue("E", -1);
 
@@ -238,9 +236,9 @@ public class RecalibratorOptions extends GaeaOptions implements HadoopOptions {
 
 		DELETIONS_DEFAULT_QUALITY = (byte) getOptionIntValue("D", 45);
 
-		LOW_QUAL_TAIL = (byte) getOptionIntValue("L", 2);
+		LOW_QUAL_TAIL = (byte) getOptionIntValue("T", 2);
 
-		PRESERVE_QSCORES_LESS_THAN = getOptionIntValue("P", QualityUtils.MINIMUM_USABLE_QUALITY_SCORE);
+		PRESERVE_QSCORES_LESS_THAN = getOptionIntValue("p", QualityUtils.MINIMUM_USABLE_QUALITY_SCORE);
 
 		QUANTIZING_LEVELS = getOptionIntValue("Q", 16);
 
@@ -248,19 +246,17 @@ public class RecalibratorOptions extends GaeaOptions implements HadoopOptions {
 
 		winSize = getOptionIntValue("w", 1000000);
 
-		LIST_ONLY = getOptionBooleanValue("l", false);
+		LIST_ONLY = getOptionBooleanValue("K", false);
 
 		DO_NOT_USE_STANDARD_COVARIATES = getOptionBooleanValue("N", false);
 
 		setSOLID_RECAL_MODE(getOptionValue("P", null));
 
-		setSOLID_NOCALL_STRATEGY(getOptionValue("s", null));
-
-		TYPE = getOptionValue("T", "ALL");
+		setSOLID_NOCALL_STRATEGY(getOptionValue("S", null));
 
 		isCachedRef = getOptionBooleanValue("C", false);
 
-		multiSample = getOptionBooleanValue("m", false);
+		multiSample = getOptionBooleanValue("M", false);
 	}
 
 	public String getReferenceSequencePath() {
@@ -275,8 +271,8 @@ public class RecalibratorOptions extends GaeaOptions implements HadoopOptions {
 		return inputList;
 	}
 
-	public int getInputType() {
-		return inputType;
+	public SAMFormat getInputType() {
+		return format;
 	}
 
 	public SolidRecallMode getSOLID_RECAL_MODE() {
@@ -333,10 +329,6 @@ public class RecalibratorOptions extends GaeaOptions implements HadoopOptions {
 
 	public int getWindowsSize() {
 		return winSize;
-	}
-
-	public String getTYPE() {
-		return TYPE;
 	}
 
 	public boolean isCachedRef() {

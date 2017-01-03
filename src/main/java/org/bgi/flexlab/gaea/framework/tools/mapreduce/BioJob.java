@@ -14,6 +14,8 @@ import org.bgi.flexlab.gaea.data.mapreduce.partitioner.WindowsBasedSort;
 import org.bgi.flexlab.gaea.data.structure.bam.filter.SamRecordFilter;
 import org.seqdoop.hadoop_bam.SAMFormat;
 
+import htsjdk.samtools.SAMFileHeader;
+
 public class BioJob extends Job {
 
 	@SuppressWarnings("deprecation")
@@ -89,9 +91,9 @@ public class BioJob extends Job {
 		setInputFormatClass(GaeaAnySAMInputFormat.class);
 	}
 	
-	public void setHeader(Path input,Path output){
+	public SAMFileHeader setHeader(Path input,Path output){
 		try {
-			SamHdfsFileHeader.loadHeader(input,conf,output);
+			return SamHdfsFileHeader.loadHeader(input,conf,output);
 		} catch (IOException e) {
 			throw new RuntimeException(e.toString());
 		}
