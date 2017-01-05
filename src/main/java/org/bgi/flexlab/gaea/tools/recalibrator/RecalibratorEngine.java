@@ -2,6 +2,7 @@ package org.bgi.flexlab.gaea.tools.recalibrator;
 
 import java.util.ArrayList;
 
+import org.apache.hadoop.mapreduce.Reducer.Context;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.SamRecordWritable;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.bam.filter.BaseRecalibrationFilter;
@@ -29,14 +30,20 @@ public class RecalibratorEngine {
 	private Covariate[] covariates = null;
 	private RecalibratorTable recalibratorTables = null;
 
+	private Context context = null;
+
 	public RecalibratorEngine(RecalibratorOptions option, ReferenceShare chrInfo, SAMFileHeader mHeader) {
 		this.option = option;
 		this.chrInfo = chrInfo;
 		this.mHeader = mHeader;
 		information = new BaseAndSNPInformation();
 		filter = new BaseRecalibrationFilter();
-		recalibratorTables = new RecalibratorTable(CovariateUtil.initializeCovariates(option, mHeader),
-				mHeader.getReadGroups().size());
+		this.covariates = CovariateUtil.initializeCovariates(option, mHeader);
+		recalibratorTables = new RecalibratorTable(this.covariates, mHeader.getReadGroups().size());
+	}
+
+	public void setContext(Context ctx) {
+		this.context = ctx;
 	}
 
 	private void setWindows(String chrName, int winNum) {
@@ -45,9 +52,10 @@ public class RecalibratorEngine {
 		information.set(chrInfo, chrName, start, end);
 	}
 
-	public void mapReads(ArrayList<GaeaSamRecord> records, Iterable<SamRecordWritable> iterator,String chrName,int winNum) {
-		setWindows(chrName,winNum);
-		
+	public void mapReads(ArrayList<GaeaSamRecord> records, Iterable<SamRecordWritable> iterator, String chrName,
+			int winNum) {
+		setWindows(chrName, winNum);
+
 		if (records != null) {
 			for (GaeaSamRecord sam : records) {
 				baseQualityStatistics(sam);
@@ -80,21 +88,27 @@ public class RecalibratorEngine {
 
 		Consistent consistent = null;
 		ReadCovariates rcovariate = null;
-		for (int i = read.getAlignmentStart(); i < end; i++) {
-			int qpos = readOffsets[i];
+		int start = read.getAlignmentStart();
+		for (int i = start; i < end; i++) {
+			int qpos = readOffsets[i - start];
 			if (!information.getSNP(i)) {
+				context.getCounter("DEBUG", "no snp").increment(1);
 				if (consistent == null) {
 					consistent = isColorSpaceConsistent(read);
-					if (consistent.isColorSpaceConsistent())
+					if (!consistent.isColorSpaceConsistent()) {
+						context.getCounter("DEBUG", "is color space consistent").increment(1);
 						return;
+					}
 					rcovariate = RecalibratorUtil.computeCovariates(read, covariates);
 				}
-				if (qpos < 0 || quals[qpos] < option.PRESERVE_QSCORES_LESS_THAN
+				if (qpos < 0 || quals[qpos] < option.PRESERVE_QSCORES_LESS_THAN || rcovariate == null
 						|| !consistent.isColorSpaceConsistent(qpos, read.getReadNegativeStrandFlag())) {
 					continue;
 				}
+				context.getCounter("DEBUG", "data update").increment(1);
 				dataUpdate(qpos, (byte) bases[qpos], quals[qpos], (byte) information.getBase(i), rcovariate);
-			}
+			} else
+				context.getCounter("DEBUG", "is snp").increment(1);
 		}
 	}
 

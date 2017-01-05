@@ -22,15 +22,15 @@ public class RecalibratorReportTableEngine {
 		this.writer = writer;
 	}
 	
-	public void writeReportTable(){
-		getReportTables();
+	public void writeReportTable(String input){
+		getReportTables(input);
 		print();
 		clear();
 	}
 	
-	private void getReportTables(){
+	private void getReportTables(String input){
 		RecalibratorTableCombiner combiner = new RecalibratorTableCombiner(option,header);
-		combiner.combineTable(option.getInputString());// warning
+		combiner.combineTable(input);
 		RecalibratorTable table = combiner.getRecalibratorTable();
 		
 		reportTables = new ArrayList<RecalibratorReportTable>();

@@ -42,12 +42,14 @@ public class RealignerReducer
 	private RecalibratorContextWriter writer = null;
 
 	private RecalibratorEngine recalEngine = null;
-	private RealignerExtendOptions extendOption = null;
+	private RealignerExtendOptions extendOption = new RealignerExtendOptions();
 
 	@Override
 	protected void setup(Context context) throws IOException {
 		Configuration conf = context.getConfiguration();
-		option.getOptionsFromHadoopConf(conf);
+		extendOption.getOptionsFromHadoopConf(conf);
+		option = extendOption.getRealignerOptions();
+		
 		mHeader = SamHdfsFileHeader.getHeader(conf);
 
 		if (mHeader == null) {
@@ -65,6 +67,11 @@ public class RealignerReducer
 		writer = new RecalibratorContextWriter(context, true);
 
 		engine = new RealignerEngine(option, genomeShare, dbsnpShare, loader, mHeader, writer);
+		
+		if(extendOption.isRecalibration()){
+			recalEngine = new RecalibratorEngine(extendOption.getBqsrOptions(),genomeShare,mHeader);
+			recalEngine.setContext(context);
+		}
 	}
 
 	private boolean unmappedWindows(int chrIndex) {
@@ -107,6 +114,7 @@ public class RealignerReducer
 				continue;
 			}
 
+			context.getCounter("ERROR", "iterator count").increment(1);
 			records.add(sam);
 
 			windowsReadsCounter++;
@@ -184,7 +192,6 @@ public class RealignerReducer
 			RecalibratorTable table = recalEngine.getTables();
 			writer.write(table);
 		}
-
 		writer.close();
 	}
 }

@@ -1,17 +1,19 @@
 package org.bgi.flexlab.gaea.tools.recalibrator.table;
 
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.PathFilter;
 import org.bgi.flexlab.gaea.data.mapreduce.util.HdfsFilesReader;
+import org.bgi.flexlab.gaea.tools.mapreduce.realigner.RecalibratorContextWriter;
 import org.bgi.flexlab.gaea.tools.mapreduce.realigner.RecalibratorOptions;
 import org.bgi.flexlab.gaea.tools.recalibrator.RecalibratorDatum;
 import org.bgi.flexlab.gaea.tools.recalibrator.covariate.Covariate;
 import org.bgi.flexlab.gaea.tools.recalibrator.covariate.CovariateUtil;
-import org.bgi.flexlab.gaea.util.GaeaFilesReader;
 import org.bgi.flexlab.gaea.util.NestedObjectArray;
 
 import htsjdk.samtools.SAMFileHeader;
 
 public class RecalibratorTableCombiner {
-	private GaeaFilesReader reader = null;
+	private HdfsFilesReader reader = null;
 	private RecalibratorTable tables = null;
 	private Covariate[] covariates = null;
 
@@ -19,17 +21,27 @@ public class RecalibratorTableCombiner {
 		covariates = CovariateUtil.initializeCovariates(option, header);
 		tables = new RecalibratorTable(covariates, header.getReadGroups().size());
 	}
+	
+	private class RecalibratorPathFilter implements PathFilter {
+		@Override
+		public boolean accept(Path path) {
+			if (path.getName().startsWith(RecalibratorContextWriter.RECALIBRATOR_TABLE_TAG))
+				return true;
+			return false;
+		}
+	} 
 
 	public void combineTable(String path) {
 		reader = new HdfsFilesReader();
-		reader.traversal(path);
+		reader.traversal(path,new RecalibratorPathFilter());
 
 		String line = null;
-		if (reader.hasNext()) {
+		while (reader.hasNext()) {
 			line = reader.next();
 			tableLineParser(line.split("\t"));
 		}
 		
+		reader.delete();
 		reader.clear();
 	}
 
@@ -61,7 +73,7 @@ public class RecalibratorTableCombiner {
 		final NestedObjectArray<RecalibratorDatum> table = tables.getTable(index);
 		final RecalibratorDatum currDatum = table.get(keys);
 		if (currDatum == null)
-			table.put(datum, keys[0], keys[1]);
+			table.put(datum, keys);
 		else {
 			if (index == 0)
 				currDatum.combine(datum);

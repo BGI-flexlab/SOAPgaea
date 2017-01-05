@@ -113,7 +113,7 @@ public class RecalibratorOptions extends GaeaOptions implements HadoopOptions {
 
 	private int winSize;
 
-	private int reducerN;
+	private int reducerNumber;
 
 	private boolean isCachedRef;
 
@@ -242,7 +242,7 @@ public class RecalibratorOptions extends GaeaOptions implements HadoopOptions {
 
 		QUANTIZING_LEVELS = getOptionIntValue("Q", 16);
 
-		reducerN = getOptionIntValue("n", 30);
+		reducerNumber = getOptionIntValue("n", 30);
 
 		winSize = getOptionIntValue("w", 1000000);
 
@@ -299,11 +299,11 @@ public class RecalibratorOptions extends GaeaOptions implements HadoopOptions {
 	}
 
 	public int getReducerNumber() {
-		return reducerN;
+		return reducerNumber;
 	}
 
 	public void setReducerNum(int reducerN) {
-		this.reducerN = reducerN;
+		this.reducerNumber = reducerN;
 	}
 
 	public String getInputString() {

@@ -17,6 +17,8 @@ public class RealignerExtendOptions extends GaeaOptions implements HadoopOptions
 
 	private boolean realignment;
 	private boolean recalibration;
+	
+	private String reportOutput = null;
 
 	public RealignerExtendOptions() {
 		addOption("a", "defaultPlatform", true, "If a read has no platform then default to the provided String."
@@ -109,6 +111,9 @@ public class RealignerExtendOptions extends GaeaOptions implements HadoopOptions
 				realignment = true;
 		}
 		
+		if(cmdLine.hasOption("o"))
+			this.reportOutput = cmdLine.getOptionValue("o");
+		
 		if (!isValid()) {
 			throw new RuntimeException("must set at least one algorithm!");
 		}
@@ -129,15 +134,17 @@ public class RealignerExtendOptions extends GaeaOptions implements HadoopOptions
 			}
 		}
 		
-		realignerOptions.parse((String[])realigner.toArray(new String[realigner.size()]));
-		bqsrOptions.parse((String[])bqsr.toArray(new String[bqsr.size()]));
+		if(realignment)
+			realignerOptions.parse((String[])realigner.toArray(new String[realigner.size()]));
+		if(recalibration)
+			bqsrOptions.parse((String[])bqsr.toArray(new String[bqsr.size()]));
 		
 		realigner.clear();
 		bqsr.clear();
 	}
 
 	private boolean isValid() {
-		return realignment && recalibration;
+		return realignment || recalibration;
 	}
 
 	public boolean isRealignment() {
@@ -154,5 +161,12 @@ public class RealignerExtendOptions extends GaeaOptions implements HadoopOptions
 
 	public RecalibratorOptions getBqsrOptions() {
 		return this.bqsrOptions;
+	}
+	
+	public String getReportOutput(){
+		if(this.reportOutput.endsWith("/"))
+			return this.reportOutput;
+		else
+			return this.reportOutput+"/";
 	}
 }

@@ -68,7 +68,7 @@ public abstract class GenotypeLikelihoodCalculator {
     public static Map<String, GenotypeLikelihoodCalculator> getGenotypeLikelihoodsCalculatorObject(GenotyperOptions options) {
         List<Class<? extends GenotypeLikelihoodCalculator>> glmClasses = new ArrayList<>();
         glmClasses.add(SNPGenotypeLikelihoodCalculator.class);
-        glmClasses.add(INDELGenotypeLikelihoodCalcultor.class);
+        //glmClasses.add(INDELGenotypeLikelihoodCalcultor.class);
         glmClasses.add(SOAPSNPGenotypeLikelihoodCalculator.class);
         for (int i = 0; i < glmClasses.size(); i++) {
             final Class<? extends GenotypeLikelihoodCalculator> glmClass = glmClasses.get(i);

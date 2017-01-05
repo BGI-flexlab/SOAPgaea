@@ -22,7 +22,7 @@ public class RecalibratorHdfsReportWriter implements RecalibratorReportWriter{
 	@Override
 	public void write(RecalibratorReportTable table) {
 		try {
-			stream.writeUTF(table.toString());
+			stream.write(table.toString().getBytes());
 		} catch (IOException e) {
 			throw new RuntimeException(e.toString());
 		}

@@ -129,6 +129,7 @@ public class WindowsBasedMapper
 			}
 			setKey(sam, winNums[i]);
 			context.write(keyout, outputValue);
+			context.getCounter("DEBUG", "valid reads").increment(1);
 		}
 	}
 

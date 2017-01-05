@@ -13,8 +13,7 @@ import org.bgi.flexlab.gaea.tools.recalibrator.RecalibratorWriter;
 import org.bgi.flexlab.gaea.tools.recalibrator.table.RecalibratorTable;
 
 public class RecalibratorContextWriter extends RealignerWriter implements RecalibratorWriter {
-	public final static String RECALIBRATOR_TABLE_TAG = "bqsr.table.tag";
-	public final static String REALIGNER_TAG = "realigner.tag";
+	public final static String RECALIBRATOR_TABLE_TAG = "bqsr";
 	
 	@SuppressWarnings("rawtypes")
 	private Context context = null;
@@ -25,9 +24,7 @@ public class RecalibratorContextWriter extends RealignerWriter implements Recali
 	public RecalibratorContextWriter(Context ctx,boolean multiple) {
 		if(multiple)
 			mos = new MultipleOutputs<NullWritable, Text>(ctx);
-		else
-			this.context = ctx;
-		
+		this.context = ctx;
 		value = new SamRecordWritable();
 	}
 	
@@ -38,11 +35,14 @@ public class RecalibratorContextWriter extends RealignerWriter implements Recali
 	@SuppressWarnings("unchecked")
 	@Override
 	public void write(RecalibratorTable table) {
+		context.getCounter("DEBUG", "table writing").increment(1);
 		for (String str : table.valueStrings()) {
+			context.getCounter("DEBUG", "table string").increment(1);
 			try {
-				if(context != null){
+				if(mos == null){
 					context.write(NullWritable.get(), new Text(str));
 				}else{
+					context.getCounter("DEBUG", "table string writing").increment(1);
 					mos.write(RECALIBRATOR_TABLE_TAG, NullWritable.get(), new Text(str));
 				}
 			} catch (IOException e) {
@@ -73,10 +73,13 @@ public class RecalibratorContextWriter extends RealignerWriter implements Recali
 		try {
 			if(context != null)
 				context.write(NullWritable.get(), value);
-			else
-				mos.write(REALIGNER_TAG, NullWritable.get(), value);
 		} catch (IOException | InterruptedException e) {
 			throw new RuntimeException(e.toString());
 		}
+	}
+	
+	@SuppressWarnings("rawtypes")
+	public Context getContext(){
+		return this.context;
 	}
 }
