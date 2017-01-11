@@ -49,7 +49,7 @@ public class RecalibratorTableCombiner {
 		int[] keys = null;
 		int length = 2;
 		int index = Integer.parseInt(array[0]);
-		if (index <= 2)
+		if (index < 2)
 			length += index;
 		else
 			length = 4;

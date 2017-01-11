@@ -36,4 +36,13 @@ public class RecalibratorHdfsReportWriter implements RecalibratorReportWriter{
 			throw new RuntimeException(e.toString());
 		}
 	}
+
+	@Override
+	public void write(String header) {
+		try {
+			stream.write(header.getBytes());
+		} catch (IOException e) {
+			throw new RuntimeException(e.toString());
+		}
+	}
 }

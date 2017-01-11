@@ -4,6 +4,8 @@ import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.sequenceplatform.NGSPlatform;
 import org.bgi.flexlab.gaea.tools.recalibrator.covariate.Covariate;
+import org.bgi.flexlab.gaea.tools.recalibrator.covariate.QualityCovariate;
+import org.bgi.flexlab.gaea.tools.recalibrator.covariate.ReadGroupCovariate;
 import org.bgi.flexlab.gaea.util.BaseUtils;
 import org.bgi.flexlab.gaea.util.ReadUtils;
 
@@ -21,7 +23,8 @@ public class RecalibratorUtil {
 	 * table column name
 	 */
 	public final static String ARGUMENT_VALUE_COLUMN_NAME = "Value";
-	public final static String QUANTIZED_SCORE_COLUMN_NAME = "QualityScore";
+	public final static String QUANTIZED_SCORE_COLUMN_NAME = QualityCovariate.class.getSimpleName()
+			.split("Covariate")[0];
 	public final static String QUANTIZED_VALUE_COLUMN_NAME = "QuantizedScore";
 	public static final String QUANTIZED_COUNT_COLUMN_NAME = "Count";
 	public final static String COVARIATE_VALUE_COLUMN_NAME = "CovariateValue";
@@ -31,7 +34,7 @@ public class RecalibratorUtil {
 	public final static String EVENT_TYPE_COLUMN_NAME = "EventType";
 	public final static String EMPIRICAL_QUALITY_COLUMN_NAME = "EmpiricalQuality";
 	public final static String ESTIMATED_Q_REPORTED_COLUMN_NAME = "EstimatedQReported";
-	public final static String READGROUP_COLUMN_NAME = "ReadGroup";
+	public final static String READGROUP_COLUMN_NAME = ReadGroupCovariate.class.getSimpleName().split("Covariate")[0];
 
 	public enum SolidNocallStrategy {
 		THROW_EXCEPTION, LEAVE_READ_UNRECALIBRATED, PURGE_READ;

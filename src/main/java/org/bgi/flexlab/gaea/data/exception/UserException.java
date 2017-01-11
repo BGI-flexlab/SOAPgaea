@@ -122,7 +122,7 @@ public class UserException extends RuntimeException {
         }
 		
 		public BadArgumentValueException(int value,int min,int max){
-			super(String.format("Argument must in [%d,%d],but user is set to %d", min,max,value));
+			super(String.format("Argument must in (%d,%d),but user is set to %d", min,max,value));
 		}
     }
     

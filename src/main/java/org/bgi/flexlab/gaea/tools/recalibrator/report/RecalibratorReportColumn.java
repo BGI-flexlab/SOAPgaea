@@ -84,6 +84,6 @@ public class RecalibratorReportColumn {
 		if (isRightAlignment)
 			return "%" + maxWidth + "s";
 		else
-			return "%s-" + maxWidth + "s";
+			return "%-" + maxWidth + "s";
 	}
 }

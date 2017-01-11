@@ -30,8 +30,6 @@ public class RecalibratorEngine {
 	private Covariate[] covariates = null;
 	private RecalibratorTable recalibratorTables = null;
 
-	private Context context = null;
-
 	public RecalibratorEngine(RecalibratorOptions option, ReferenceShare chrInfo, SAMFileHeader mHeader) {
 		this.option = option;
 		this.chrInfo = chrInfo;
@@ -42,13 +40,9 @@ public class RecalibratorEngine {
 		recalibratorTables = new RecalibratorTable(this.covariates, mHeader.getReadGroups().size());
 	}
 
-	public void setContext(Context ctx) {
-		this.context = ctx;
-	}
-
 	private void setWindows(String chrName, int winNum) {
-		int start = winNum > 0 ? (winNum - 1) * option.getWindowsSize() : 0;
-		int end = (winNum + 2) * option.getWindowsSize() - 1;
+		int start = winNum > 0 ? (winNum - 1) * option.getWindowsSize()+1 : 1;
+		int end = (winNum + 2) * option.getWindowsSize();
 		information.set(chrInfo, chrName, start, end);
 	}
 
@@ -89,14 +83,12 @@ public class RecalibratorEngine {
 		Consistent consistent = null;
 		ReadCovariates rcovariate = null;
 		int start = read.getAlignmentStart();
-		for (int i = start; i < end; i++) {
+		for (int i = start; i <= end; i++) {
 			int qpos = readOffsets[i - start];
 			if (!information.getSNP(i)) {
-				context.getCounter("DEBUG", "no snp").increment(1);
 				if (consistent == null) {
 					consistent = isColorSpaceConsistent(read);
 					if (!consistent.isColorSpaceConsistent()) {
-						context.getCounter("DEBUG", "is color space consistent").increment(1);
 						return;
 					}
 					rcovariate = RecalibratorUtil.computeCovariates(read, covariates);
@@ -105,14 +97,12 @@ public class RecalibratorEngine {
 						|| !consistent.isColorSpaceConsistent(qpos, read.getReadNegativeStrandFlag())) {
 					continue;
 				}
-				context.getCounter("DEBUG", "data update").increment(1);
 				dataUpdate(qpos, (byte) bases[qpos], quals[qpos], (byte) information.getBase(i), rcovariate);
-			} else
-				context.getCounter("DEBUG", "is snp").increment(1);
+			}
 		}
 	}
 
-	public void dataUpdate(final int offset, final byte base, final byte quality, final byte refBase,
+	public boolean dataUpdate(final int offset, final byte base, final byte quality, final byte refBase,
 			final ReadCovariates readCovariates) {
 		final boolean isError = !BaseUtils.basesAreEqual(base, refBase);
 		final EventType eventType = EventType.SNP;
@@ -147,6 +137,8 @@ public class RecalibratorEngine {
 			else
 				covPreviousDatum.increment(isError);
 		}
+		
+		return isError;
 	}
 
 	private void baseQualityStatistics(GaeaSamRecord read) {

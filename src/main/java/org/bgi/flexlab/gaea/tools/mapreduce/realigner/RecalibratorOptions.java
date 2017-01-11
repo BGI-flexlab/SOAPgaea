@@ -132,8 +132,7 @@ public class RecalibratorOptions extends GaeaOptions implements HadoopOptions {
 		this.parse(args);
 	}
 
-	public RecalibratorOptions parse(RecalibratorReportTable argsTable) {
-		RecalibratorOptions option = new RecalibratorOptions();
+	public void parse(RecalibratorReportTable argsTable) {
 
 		for (int i = 0; i < argsTable.getRowNumber(); i++) {
 			final String argument = argsTable.get(i, "Argument").toString();
@@ -142,56 +141,54 @@ public class RecalibratorOptions extends GaeaOptions implements HadoopOptions {
 				value = null;
 
 			if (argument.equals("covariate") && value != null)
-				option.COVARIATES = value.toString().split(",");
+				COVARIATES = value.toString().split(",");
 
 			else if (argument.equals("standard_covs"))
-				option.DO_NOT_USE_STANDARD_COVARIATES = Boolean.parseBoolean((String) value);
+				DO_NOT_USE_STANDARD_COVARIATES = Boolean.parseBoolean((String) value);
 
 			else if (argument.equals("solid_recal_mode"))
-				option.SOLID_RECAL_MODE = RecalibratorUtil.SolidRecallMode.recalModeFromString((String) value);
+				SOLID_RECAL_MODE = RecalibratorUtil.SolidRecallMode.recalModeFromString((String) value);
 
 			else if (argument.equals("solid_nocall_strategy"))
-				option.SOLID_NOCALL_STRATEGY = RecalibratorUtil.SolidNocallStrategy
+				SOLID_NOCALL_STRATEGY = RecalibratorUtil.SolidNocallStrategy
 						.nocallStrategyFromString((String) value);
 
 			else if (argument.equals("mismatches_context_size"))
-				option.MISMATCHES_CONTEXT_SIZE = Integer.parseInt((String) value);
+				MISMATCHES_CONTEXT_SIZE = Integer.parseInt((String) value);
 
 			else if (argument.equals("indels_context_size"))
-				option.INDELS_CONTEXT_SIZE = Integer.parseInt((String) value);
+				INDELS_CONTEXT_SIZE = Integer.parseInt((String) value);
 
 			else if (argument.equals("mismatches_default_quality"))
-				option.MISMATCHES_DEFAULT_QUALITY = Byte.parseByte((String) value);
+				MISMATCHES_DEFAULT_QUALITY = Byte.parseByte((String) value);
 
 			else if (argument.equals("insertions_default_quality"))
-				option.INSERTIONS_DEFAULT_QUALITY = Byte.parseByte((String) value);
+				INSERTIONS_DEFAULT_QUALITY = Byte.parseByte((String) value);
 
 			else if (argument.equals("deletions_default_quality"))
-				option.DELETIONS_DEFAULT_QUALITY = Byte.parseByte((String) value);
+				DELETIONS_DEFAULT_QUALITY = Byte.parseByte((String) value);
 
 			else if (argument.equals("low_quality_tail"))
-				option.LOW_QUAL_TAIL = Byte.parseByte((String) value);
+				LOW_QUAL_TAIL = Byte.parseByte((String) value);
 
 			else if (argument.equals("default_platform"))
-				option.DEFAULT_PLATFORM = (String) value;
+				DEFAULT_PLATFORM = (String) value;
 
 			else if (argument.equals("force_platform"))
-				option.FORCE_PLATFORM = (String) value;
+				FORCE_PLATFORM = (String) value;
 
 			else if (argument.equals("quantizing_levels"))
-				option.QUANTIZING_LEVELS = Integer.parseInt((String) value);
+				QUANTIZING_LEVELS = Integer.parseInt((String) value);
 
 			else if (argument.equals("keep_intermediate_files"))
-				option.KEEP_INTERMEDIATE_FILES = Boolean.parseBoolean((String) value);
+				KEEP_INTERMEDIATE_FILES = Boolean.parseBoolean((String) value);
 
 			else if (argument.equals("no_plots"))
-				option.NO_PLOTS = Boolean.parseBoolean((String) value);
+				NO_PLOTS = Boolean.parseBoolean((String) value);
 
 			else if (argument.equals("binary_tag_name"))
-				option.BINARY_TAG_NAME = (value == null) ? null : (String) value;
+				BINARY_TAG_NAME = (value == null) ? null : (String) value;
 		}
-
-		return option;
 	}
 
 	@Override

@@ -72,7 +72,7 @@ public class RecalibratorReportTable {
 
 	public RecalibratorReportTable(GaeaFilesReader reader) {
 		String[] tableData = null, tableNameData = null;
-		if (reader.hasNext()) {
+		if(reader.hasNext()){
 			tableData = reader.next().split(SEPARATOR);
 		}
 		if (reader.hasNext()) {

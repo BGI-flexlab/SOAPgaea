@@ -15,12 +15,15 @@ public class BaseAndSNPInformation {
 		set(chrInfo, start, end);
 	}
 
-	public void set(ChromosomeInformationShare chrInfo, int start, int end) {
-		this.start = start;
-		byte[] bases = chrInfo.getBytes(start, end);
+	public void set(ChromosomeInformationShare chrInfo, int _start, int _end) {
+		_start--;
+		_end--;
 
-		sequences = chrInfo.getBaseSequence(bases, start, end);
-		snps = chrInfo.isSNPs(bases, start, end);
+		this.start = _start;
+		byte[] bases = chrInfo.getBytes(_start, _end);
+
+		sequences = chrInfo.getBaseSequence(bases, _start, _end);
+		snps = chrInfo.isSNPs(bases, _start, _end);
 	}
 
 	public boolean[] getSNPs() {
@@ -28,7 +31,7 @@ public class BaseAndSNPInformation {
 	}
 
 	public boolean getSNP(int pos) {
-		int index = pos - start;
+		int index = pos - 1 - start;
 		if (index >= snps.length)
 			throw new OutOfBoundException(pos, start + snps.length);
 
@@ -39,8 +42,13 @@ public class BaseAndSNPInformation {
 		return sequences;
 	}
 
+	public String getSequences(int _start, int length) {
+		int index = _start - 1 - start;
+		return sequences.substring(index, index + length);
+	}
+
 	public char getBase(int pos) {
-		int index = pos - start;
+		int index = pos - 1 - start;
 		if (index >= sequences.length())
 			throw new OutOfBoundException(pos, start + sequences.length());
 

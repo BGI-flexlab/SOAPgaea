@@ -70,7 +70,6 @@ public class RealignerReducer
 		
 		if(extendOption.isRecalibration()){
 			recalEngine = new RecalibratorEngine(extendOption.getBqsrOptions(),genomeShare,mHeader);
-			recalEngine.setContext(context);
 		}
 	}
 
