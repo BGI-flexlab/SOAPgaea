@@ -75,7 +75,7 @@ public class RealignerEngine {
 			knowIndels = indelFilter.loadFilter(loader, referenceName, startPosition, end);
 	}
 
-	public int reduce() {
+	public void reduce() {
 		IdentifyRegionsCreator creator = new IdentifyRegionsCreator(option, filterRecords, mHeader, chrInfo,
 				knowIndels);
 		creator.regionCreator();
@@ -83,6 +83,6 @@ public class RealignerEngine {
 		filterRecords.clear();
 
 		indelRealigner.setIntervals(intervals);
-		return indelRealigner.traversals(records, writer);
+		indelRealigner.traversals(records, writer);
 	}
 }

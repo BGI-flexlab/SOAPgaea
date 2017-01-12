@@ -13,8 +13,8 @@ public class QualityCovariate implements RequiredCovariate {
 	@Override
 	public void recordValues(final GaeaSamRecord read, final ReadCovariates values) {
 		final byte[] baseQualities = read.getBaseQualities();
-		final byte[] baseInsertionQualities = read.getBaseInsertionQualities();
-		final byte[] baseDeletionQualities = read.getBaseDeletionQualities();
+		final byte[] baseInsertionQualities = read.getBaseInsertionQualities(true);
+		final byte[] baseDeletionQualities = read.getBaseDeletionQualities(true);
 
 		for (int i = 0; i < baseQualities.length; i++) {
 			values.addCovariate(baseQualities[i], baseInsertionQualities[i], baseDeletionQualities[i], i);

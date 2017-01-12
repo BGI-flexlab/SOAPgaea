@@ -45,8 +45,7 @@ public class GaeaBamSplitGuesser {
 
 	private final static int SHORTEST_POSSIBLE_BAM_RECORD = 4 * 9 + 1 + 1 + 1;
 
-	public GaeaBamSplitGuesser(SeekableStream ss, Configuration conf)
-			throws IOException {
+	public GaeaBamSplitGuesser(SeekableStream ss, Configuration conf) throws IOException {
 		this(ss, ss, conf);
 
 		ss.seek(0);
@@ -54,16 +53,13 @@ public class GaeaBamSplitGuesser {
 			throw new SAMFormatException("Does not seem like a BAM file");
 	}
 
-	public GaeaBamSplitGuesser(SeekableStream ss, InputStream headerStream,
-			Configuration conf) throws IOException {
+	public GaeaBamSplitGuesser(SeekableStream ss, InputStream headerStream, Configuration conf) throws IOException {
 		inFile = ss;
 
 		buf = ByteBuffer.allocate(8);
 		buf.order(ByteOrder.LITTLE_ENDIAN);
 
-		referenceSequenceCount = SAMHeaderReader
-				.readSAMHeaderFrom(headerStream, conf).getSequenceDictionary()
-				.size();
+		referenceSequenceCount = SAMHeaderReader.readSAMHeaderFrom(headerStream, conf).getSequenceDictionary().size();
 
 		bamCodec = new BAMRecordCodec(null, new LazyBAMRecordFactory());
 	}
@@ -308,7 +304,8 @@ public class GaeaBamSplitGuesser {
 				}
 
 				if ((id < -1 || id > referenceSequenceCount) || pos < -1) {
-					if (pos == -2 && validRecord(cpVirt, up, nameLength) != 0) {
+					if (id < -1 || id > referenceSequenceCount
+							|| (pos == -2 && validRecord(cpVirt, up, nameLength) != 0)) {
 						++up;
 						continue;
 					}
@@ -400,8 +397,7 @@ public class GaeaBamSplitGuesser {
 		return (int) buf.getShort(idx) & 0xffff;
 	}
 
-	public int validRecord(final long cpVirt, final int up, int nameLength)
-			throws IOException {
+	public int validRecord(final long cpVirt, final int up, int nameLength) throws IOException {
 
 		this.bgzf.seek(cpVirt | up + 16);
 		this.bgzf.read(this.buf.array(), 0, 4);

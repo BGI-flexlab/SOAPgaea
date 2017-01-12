@@ -241,10 +241,10 @@ public class IndelRealigner {
 
 	private void write(RealignerWriter writer) {
 		if (writer instanceof RealignerContextWriter) {
-			((RealignerContextWriter) writer).getContext().getCounter("ERROR", "clean reads")
+			((RealignerContextWriter) writer).getContext().getCounter("REALIGNER", "clean reads")
 					.increment(needRealignementReads.size());
 		} else if (writer instanceof RecalibratorContextWriter) {
-			((RecalibratorContextWriter) writer).getContext().getCounter("ERROR", "clean reads")
+			((RecalibratorContextWriter) writer).getContext().getCounter("REALIGNER", "clean reads")
 					.increment(needRealignementReads.size());
 		}
 		if (needRealignementReads.getReads() != null)
@@ -257,14 +257,12 @@ public class IndelRealigner {
 		effectiveNotCleanReadCount = 0;
 	}
 
-	public int traversals(ArrayList<GaeaSamRecord> records, RealignerWriter writer) {
+	public void traversals(ArrayList<GaeaSamRecord> records, RealignerWriter writer) {
 		updateWindowByInterval();
 
 		ArrayList<VariantContext> overlapKnowIndels = null;
 
-		int cnt = 0;
 		for (GaeaSamRecord sam : records) {
-			cnt++;
 			overlapKnowIndels = filterKnowIndels(sam);
 			pending(overlapKnowIndels, sam, writer);
 		}
@@ -275,7 +273,5 @@ public class IndelRealigner {
 			}
 			write(writer);
 		}
-
-		return cnt;
 	}
 }

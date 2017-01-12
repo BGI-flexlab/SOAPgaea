@@ -114,7 +114,6 @@ public class RealignerReducer
 				continue;
 			}
 
-			context.getCounter("ERROR", "iterator count").increment(1);
 			records.add(sam);
 
 			windowsReadsCounter++;
@@ -173,8 +172,7 @@ public class RealignerReducer
 				}
 			} else {
 				engine.set(win, records, filteredRecords);
-				int cnt = engine.reduce();
-				context.getCounter("ERROR", "reads input count").increment(cnt);
+				engine.reduce();
 
 				if (extendOption.isRecalibration()) {
 					this.recalEngine.mapReads(records, null, win.getContigName(), winNum);

@@ -243,8 +243,8 @@ public class RecalibratorReport {
 					qaulities[offset] = recalibratedQualityScore;
 				}
 			}
-			if(errorModel == EventType.SNP)
-				read.setBaseQualities(qaulities, errorModel);
+			
+			read.setBaseQualities(qaulities, errorModel);
 		}
 	}
 
