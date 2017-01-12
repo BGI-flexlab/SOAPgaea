@@ -1,6 +1,7 @@
 package org.bgi.flexlab.gaea.data.options;
 
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -14,7 +15,7 @@ public abstract class GaeaOptions {
 	protected CommandLine cmdLine;
 	protected CommandLineParser parser = new PosixParser();
 	protected HelpFormatter helpInfo = new HelpFormatter();
-	protected HashMap<String,Boolean> shortOptionSet = new HashMap<String,Boolean>();
+	protected List<Option> optionsList = new ArrayList<Option>();
 
 	/**
 	 * parse parameter
@@ -77,8 +78,12 @@ public abstract class GaeaOptions {
 			String description, boolean required) {
 		Option option = new Option(opt, longOpt, hasArg, description);
 		option.setRequired(required);
+		addOption(option);
+	}
+	
+	protected void addOption(Option option){
 		options.addOption(option);
-		shortOptionSet.put(opt,hasArg);
+		optionsList.add(option);
 	}
 
 	protected String getOptionValue(String opt, String defaultValue) {
@@ -128,7 +133,7 @@ public abstract class GaeaOptions {
 		return this.options;
 	}
 	
-	public HashMap<String,Boolean> getShortOptionSet(){
-		return this.shortOptionSet;
+	public List<Option> getOptionList(){
+		return this.optionsList;
 	}
 }

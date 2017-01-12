@@ -49,7 +49,7 @@ public class RealignerReducer
 		Configuration conf = context.getConfiguration();
 		extendOption.getOptionsFromHadoopConf(conf);
 		option = extendOption.getRealignerOptions();
-		
+
 		mHeader = SamHdfsFileHeader.getHeader(conf);
 
 		if (mHeader == null) {
@@ -67,9 +67,10 @@ public class RealignerReducer
 		writer = new RecalibratorContextWriter(context, true);
 
 		engine = new RealignerEngine(option, genomeShare, dbsnpShare, loader, mHeader, writer);
-		
-		if(extendOption.isRecalibration()){
-			recalEngine = new RecalibratorEngine(extendOption.getBqsrOptions(),genomeShare,mHeader);
+
+		if (extendOption.isRecalibration()) {
+			recalEngine = new RecalibratorEngine(extendOption.getBqsrOptions(), genomeShare, mHeader,
+					extendOption.isRealignment(), writer);
 		}
 	}
 

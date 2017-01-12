@@ -2,13 +2,13 @@ package org.bgi.flexlab.gaea.tools.recalibrator;
 
 import java.util.ArrayList;
 
-import org.apache.hadoop.mapreduce.Reducer.Context;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.SamRecordWritable;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.bam.filter.BaseRecalibrationFilter;
 import org.bgi.flexlab.gaea.data.structure.reference.BaseAndSNPInformation;
 import org.bgi.flexlab.gaea.data.structure.reference.ReferenceShare;
 import org.bgi.flexlab.gaea.tools.mapreduce.realigner.RecalibratorOptions;
+import org.bgi.flexlab.gaea.tools.realigner.RealignerWriter;
 import org.bgi.flexlab.gaea.tools.recalibrator.RecalibratorUtil.Consistent;
 import org.bgi.flexlab.gaea.tools.recalibrator.RecalibratorUtil.SolidRecallMode;
 import org.bgi.flexlab.gaea.tools.recalibrator.covariate.Covariate;
@@ -29,8 +29,10 @@ public class RecalibratorEngine {
 	private BaseRecalibrationFilter filter = null;
 	private Covariate[] covariates = null;
 	private RecalibratorTable recalibratorTables = null;
+	private RealignerWriter writer = null;
+	private boolean isRealigment = false;
 
-	public RecalibratorEngine(RecalibratorOptions option, ReferenceShare chrInfo, SAMFileHeader mHeader) {
+	public RecalibratorEngine(RecalibratorOptions option, ReferenceShare chrInfo, SAMFileHeader mHeader,boolean isRealigment,RealignerWriter writer) {
 		this.option = option;
 		this.chrInfo = chrInfo;
 		this.mHeader = mHeader;
@@ -38,6 +40,8 @@ public class RecalibratorEngine {
 		filter = new BaseRecalibrationFilter();
 		this.covariates = CovariateUtil.initializeCovariates(option, mHeader);
 		recalibratorTables = new RecalibratorTable(this.covariates, mHeader.getReadGroups().size());
+		this.isRealigment = isRealigment;
+		this.writer = writer;
 	}
 
 	private void setWindows(String chrName, int winNum) {
@@ -63,6 +67,10 @@ public class RecalibratorEngine {
 			int readWinNum = writable.get().getAlignmentStart() / option.getWindowsSize();
 			GaeaSamRecord sam = new GaeaSamRecord(mHeader, writable.get(), readWinNum == winNum);
 			baseQualityStatistics(sam);
+			
+			if(!isRealigment){
+				writer.writeRead(sam);
+			}
 		}
 	}
 

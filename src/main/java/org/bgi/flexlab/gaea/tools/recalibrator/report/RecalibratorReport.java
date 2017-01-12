@@ -59,7 +59,7 @@ public class RecalibratorReport {
 	}
 
 	public RecalibratorReport(String input, SAMFileHeader header, int quanLevels, int preserveQualityLessThan) {
-		this(input, header, quanLevels, preserveQualityLessThan, true, false);
+		this(input, header, quanLevels, preserveQualityLessThan, false, false);
 	}
 
 	private void initialize(String input, SAMFileHeader header) {
@@ -243,7 +243,8 @@ public class RecalibratorReport {
 					qaulities[offset] = recalibratedQualityScore;
 				}
 			}
-			read.setBaseQualities(qaulities, errorModel);
+			if(errorModel == EventType.SNP)
+				read.setBaseQualities(qaulities, errorModel);
 		}
 	}
 

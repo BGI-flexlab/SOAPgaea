@@ -35,14 +35,11 @@ public class RecalibratorContextWriter extends RealignerWriter implements Recali
 	@SuppressWarnings("unchecked")
 	@Override
 	public void write(RecalibratorTable table) {
-		context.getCounter("DEBUG", "table writing").increment(1);
 		for (String str : table.valueStrings()) {
-			context.getCounter("DEBUG", "table string").increment(1);
 			try {
 				if(mos == null){
 					context.write(NullWritable.get(), new Text(str));
 				}else{
-					context.getCounter("DEBUG", "table string writing").increment(1);
 					mos.write(RECALIBRATOR_TABLE_TAG, NullWritable.get(), new Text(str));
 				}
 			} catch (IOException e) {
