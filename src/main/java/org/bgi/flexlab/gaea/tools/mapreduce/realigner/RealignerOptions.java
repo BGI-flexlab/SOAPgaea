@@ -51,11 +51,11 @@ public class RealignerOptions extends GaeaOptions implements HadoopOptions{
 	}
 	
 	public RealignerOptions(){
-		addOption("c","consensusModel",true,"Determines how to compute the possible alternate consenses.model:DBSNP,READS.[READS]");
-		addOption("d","LOD",true,"LOD threshold above which the cleaner will clean [5.0].");
+		addOption("c", "consensusModel",true,"Determines how to compute the possible alternate consenses.model:DBSNP,READS.[READS]");
+		addOption("d", "LOD",true,"LOD threshold above which the cleaner will clean [5.0].");
 		addOption("e", "windowExtendSize", true, "window extend size[500]");
 		addOption("i", "input", true, "input directory", true);
-		addOption("I","MaxInsertSize",true,"maximum insert size of read pairs that we attempt to realign [3000].");
+		addOption("I", "insertSize",true,"maximum insert size of read pairs that we attempt to realign [3000].");
 		addOption("k", "knowSite", true, "known snp/indel file,the format is VCF4");
 		addOption("l", "minReads", true, "minimum reads at a locus to enable using the entropy calculation[4].");
 		addOption("L", "intervalLength", true, "max interval length[500].");

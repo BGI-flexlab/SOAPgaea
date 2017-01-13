@@ -374,7 +374,7 @@ public class RecalibratorReportTable {
 		argsTable.set("insertions_default_quality", RecalibratorUtil.ARGUMENT_VALUE_COLUMN_NAME,
 				option.INSERTIONS_DEFAULT_QUALITY);
 		argsTable.addRowID("low_quality_tail", true);
-		argsTable.set("low_quality_tail", RecalibratorUtil.ARGUMENT_VALUE_COLUMN_NAME, option.LOW_QUAL_TAIL);
+		argsTable.set("low_quality_tail", RecalibratorUtil.ARGUMENT_VALUE_COLUMN_NAME, option.LOW_QUALITY_TAIL);
 		argsTable.addRowID("default_platform", true);
 		argsTable.set("default_platform", RecalibratorUtil.ARGUMENT_VALUE_COLUMN_NAME, option.DEFAULT_PLATFORM);
 		argsTable.addRowID("force_platform", true);

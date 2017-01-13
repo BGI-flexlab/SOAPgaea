@@ -1,6 +1,7 @@
 package org.bgi.flexlab.gaea.tools.mapreduce.realigner;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import org.apache.commons.cli.Option;
@@ -15,6 +16,13 @@ public class RealignerExtendOptions extends GaeaOptions implements HadoopOptions
 
 	private RealignerOptions realignerOptions = new RealignerOptions();
 	private RecalibratorOptions bqsrOptions = new RecalibratorOptions();
+	
+	private final static HashSet<String> SHARE_ARGUMENT = new HashSet<String>();
+	static{
+		SHARE_ARGUMENT.add("k");
+		SHARE_ARGUMENT.add("w");
+		SHARE_ARGUMENT.add("r");
+	}
 
 	private boolean realignment;
 	private boolean recalibration;
@@ -39,6 +47,8 @@ public class RealignerExtendOptions extends GaeaOptions implements HadoopOptions
 		}
 		
 		for(Option opt : bOptions){
+			if(SHARE_ARGUMENT.contains(opt.getOpt()))
+				continue;
 			addOption(opt);
 		}
 	}
