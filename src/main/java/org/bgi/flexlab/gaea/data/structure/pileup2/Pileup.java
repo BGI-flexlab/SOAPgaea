@@ -157,5 +157,9 @@ public class Pileup implements PileupInterface<PileupReadInfo>{
 	public double getNextIndelRate() {
 		return (nextDeletionCount + nextInsertionCount) / (double) nextMatchCount ;
 	}
+	
+	public int getNumberOfElements(){
+		return plp.size();
+	}
 }
 

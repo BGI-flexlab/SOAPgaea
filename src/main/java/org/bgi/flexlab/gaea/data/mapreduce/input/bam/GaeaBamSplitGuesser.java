@@ -304,6 +304,7 @@ public class GaeaBamSplitGuesser {
 				}
 
 				if ((id < -1 || id > referenceSequenceCount) || pos < -1) {
+					// valid record when position = -2
 					if (id < -1 || id > referenceSequenceCount
 							|| (pos == -2 && validRecord(cpVirt, up, nameLength) != 0)) {
 						++up;

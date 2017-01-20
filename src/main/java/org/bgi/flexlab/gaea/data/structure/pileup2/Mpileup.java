@@ -197,5 +197,9 @@ public class Mpileup implements MpileupInterface<Pileup>{
 	public int getSize() {
 		return pileups.size();
 	}
+	
+	public void clear(){
+		pileups.clear();
+	}
 }
 

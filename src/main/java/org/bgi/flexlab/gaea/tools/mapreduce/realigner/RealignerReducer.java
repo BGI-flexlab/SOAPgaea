@@ -90,7 +90,7 @@ public class RealignerReducer
 		int stop = (winNum + 1) * winSize - 1 < mHeader.getSequence(chrName).getSequenceLength()
 				? (winNum + 1) * winSize - 1 : mHeader.getSequence(chrName).getSequenceLength();
 
-		return new Window(chrName, start, stop);
+		return new Window(chrName,chrIndex, start, stop);
 	}
 
 	private int getSamRecords(Iterable<SamRecordWritable> values, ArrayList<GaeaSamRecord> records,

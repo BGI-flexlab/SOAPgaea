@@ -19,7 +19,7 @@ public class PileupReadInfo {
 	/**
 	 * cigar state for cigar analysis
 	 */
-	protected CigarState cigarState;
+	protected CigarState cigarState = new CigarState();
 
 	/**
 	 * end for reads
