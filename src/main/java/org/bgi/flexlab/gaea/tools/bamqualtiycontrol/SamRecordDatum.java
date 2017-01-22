@@ -2,12 +2,14 @@
  * Copyright (c) 2011, BGI and/or its affiliates. All rights reserved.
  * BGI PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
-package org.bgi.flexlab.gaea.data.structure.reads;
+package org.bgi.flexlab.gaea.tools.bamqualtiycontrol;
 
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.bam.ParseSAMBasic;
 import org.bgi.flexlab.gaea.data.structure.bam.SAMInformationBasic;
 import org.bgi.flexlab.gaea.util.CigarState;
+
+import htsjdk.samtools.SAMRecord;
 
 
 /**
@@ -15,7 +17,7 @@ import org.bgi.flexlab.gaea.util.CigarState;
  * @author ZhangYong
  *
  */
-public class ReadInformationForBamQC extends SAMInformationBasic {
+public class SamRecordDatum extends SAMInformationBasic {
 	/**
 	 * Read ID
 	 */
@@ -143,7 +145,7 @@ public class ReadInformationForBamQC extends SAMInformationBasic {
 	/**
 	 * @return the isrepeat
 	 */
-	public boolean isIsrepeat() {
+	public boolean isRepeat() {
 		return isrepeat;
 	}
 

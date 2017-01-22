@@ -194,7 +194,6 @@ public class VariantRecalibrationOptions extends GaeaOptions implements HadoopOp
 		try {
 			String[] otherArgs = new GenericOptionsParser(args).getRemainingArgs();
 			conf.setStrings("args", otherArgs);
-			conf.setInt("num.key.fields.for.partition", 1);
 			conf.set("mapred.child.java.opts", "-Xmx10240m");
 			conf.set(GaeaVCFHeader.VCF_HEADER_PROPERTY, setOutputURI("vcfHeader.obj"));
 		} catch(IOException e) {

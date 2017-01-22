@@ -101,7 +101,7 @@ public class SingleRegion {
 	}
 	
 	private Integer[] updateChrInterval(Regiondata lastRegionData, Regiondata regionData, Integer[] chrInterval) { 
-		if(lastRegionData.getChrName().equals(regionData.chrName)) {//����Ϊ��ȣ������д��ǰ��
+		if(lastRegionData.getChrName().equals(regionData.chrName)) {
 			chrInterval[1]++;
 		} else {
 			updateChrNameInterval(chrInterval, lastRegionData);

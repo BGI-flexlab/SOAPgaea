@@ -4,7 +4,6 @@ import java.io.IOException;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocationParser;
 import org.bgi.flexlab.gaea.tools.mapreduce.variantrecalibratioin.VariantRecalibrationOptions;
-import org.bgi.flexlab.gaea.tools.variantrecalibratioin.model.VariantDataManager;
 import org.bgi.flexlab.gaea.util.MathUtils;
 import org.bgi.flexlab.gaea.util.QualityUtils;
 import org.bgi.flexlab.gaea.util.RandomUtils;

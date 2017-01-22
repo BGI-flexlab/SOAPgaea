@@ -4,6 +4,7 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
@@ -129,10 +130,9 @@ final class HardFilterReducer extends Reducer<IntWritable, VariantContextWritabl
 	
 	@Override
 	public void cleanup(Context context) throws IOException {
-		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(HdfsFileManager.getOutputStream(
-				new Path(options.getReportPath()), context.getConfiguration())));
-		writer.write(report.formatReport());
-		writer.close();
+		FSDataOutputStream os = HdfsFileManager.getOutputStream(new Path(options.getReportPath()), context.getConfiguration());
+		os.write(report.formatReport().getBytes());
+		os.close();
 	}
 }
 

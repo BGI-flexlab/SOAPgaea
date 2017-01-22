@@ -10,18 +10,17 @@ import org.bgi.flexlab.gaea.data.structure.positioninformation.depth.PositionDep
 import org.bgi.flexlab.gaea.data.structure.positioninformation.other.PositionDeletionBaseInformation;
 import org.bgi.flexlab.gaea.data.structure.positioninformation.other.PositionIndelInformation;
 import org.bgi.flexlab.gaea.data.structure.positioninformation.other.PositionMismatchInformation;
-import org.bgi.flexlab.gaea.data.structure.reads.ReadInformationForBamQC;
-import org.bgi.flexlab.gaea.data.structure.reads.ReadInformationForBamToDepth;
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
 //import org.bgi.flexlab.gaea.tools.bam.depth.Bam2Depth;
+import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.SamRecordDatum;
 
-public class PositionDepth implements CalculateWindowInformationInterface<ReadInformationForBamQC>{
+public class PositionDepth implements CalculateWindowInformationInterface<SamRecordDatum>{
 	
 	private PositionDepthSamtools[] depths = null;
 
 	private PositionDepthNormal posDepth = null;
 	
-	private PositionDepthRemoveDuplication posRMDupDeepth = null;
+	private PositionDepthRemoveDuplication posRMDupDepth = null;
 	
 	private PositionDepthCNV cnvUsedDepth = null;
 	
@@ -55,7 +54,7 @@ public class PositionDepth implements CalculateWindowInformationInterface<ReadIn
 	public PositionDepth(int windowSize, boolean isGenderDepth, int laneSize) {
 		this(windowSize, true);
 //		if(isDupDepth)
-		posRMDupDeepth = new PositionDepthRemoveDuplication(windowSize);
+		posRMDupDepth = new PositionDepthRemoveDuplication(windowSize);
 		if(isGenderDepth) {
 			genderUesdDepth = new PositionDepthGender(windowSize);
 		}
@@ -69,11 +68,11 @@ public class PositionDepth implements CalculateWindowInformationInterface<ReadIn
 	 * @return
 	 */
 	@Override
-	public boolean add(CompoundInformation<ReadInformationForBamQC> winInfo) {
+	public boolean add(CompoundInformation<SamRecordDatum> winInfo) {
 		if(winInfo.getReadInfo() == null) {
 			return false;
 		}
-		ReadInformationForBamQC readInfo = winInfo.getReadInfo();
+		SamRecordDatum readInfo = winInfo.getReadInfo();
 		ChromosomeInformationShare chrInfo = winInfo.getChrInfo();
 		int winStart = winInfo.getWindowStart();
 		
@@ -83,7 +82,7 @@ public class PositionDepth implements CalculateWindowInformationInterface<ReadIn
 			}
 			int coord = readInfo.getCigarState().resolveCigar(j, readInfo.getPosition());
 			
-			CompoundInformation<ReadInformationForBamQC> posInfo = new CompoundInformation<ReadInformationForBamQC>(readInfo, chrInfo, winStart, j, coord);
+			CompoundInformation<SamRecordDatum> posInfo = new CompoundInformation<SamRecordDatum>(readInfo, chrInfo, winStart, j, coord);
 			isIndel.add(posInfo);
 			
 			if( coord < 0) {//deletion
@@ -100,8 +99,8 @@ public class PositionDepth implements CalculateWindowInformationInterface<ReadIn
 			if(posDepth != null) {
 				posDepth.add(posInfo);
 			}
-			if(posRMDupDeepth != null) {
-				posRMDupDeepth.add(posInfo);
+			if(posRMDupDepth != null) {
+				posRMDupDepth.add(posInfo);
 			}
 			if(genderUesdDepth != null) {
 				genderUesdDepth.add(posInfo);
@@ -118,7 +117,7 @@ public class PositionDepth implements CalculateWindowInformationInterface<ReadIn
 	 * @return
 	 */
 	@SuppressWarnings("rawtypes")
-	public boolean add(int winStart, int sampleIndex, ReadInformationForBamToDepth readInfo) {
+	public boolean add(int winStart, int sampleIndex, SamRecordDatum readInfo) {
 		if(readInfo == null) {
 			return false;
 		}
@@ -151,12 +150,12 @@ public class PositionDepth implements CalculateWindowInformationInterface<ReadIn
 		return posDepth;
 	}
 	
-	public int getRMDupPosDeepth(int i) {
-		return posRMDupDeepth.get(i);
+	public int getRMDupPosDepth(int i) {
+		return posRMDupDepth.get(i);
 	}
 	
 	public IntPositionInformation getRMDupPosDepth() {
-		return posRMDupDeepth;
+		return posRMDupDepth;
 	}
 
 	public int getGenderUesdDepth(int pos) {

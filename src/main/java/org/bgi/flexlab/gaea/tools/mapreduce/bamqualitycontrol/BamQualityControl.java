@@ -1,0 +1,66 @@
+package org.bgi.flexlab.gaea.tools.mapreduce.bamqualitycontrol;
+
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.NullWritable;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
+import org.bgi.flexlab.gaea.data.mapreduce.input.bam.GaeaAnySAMInputFormat;
+import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamHdfsFileHeader;
+import org.bgi.flexlab.gaea.data.structure.reference.ReferenceShare;
+import org.bgi.flexlab.gaea.framework.tools.mapreduce.BioJob;
+import org.bgi.flexlab.gaea.framework.tools.mapreduce.ToolsRunner;
+import org.seqdoop.hadoop_bam.VariantContextWritable;
+
+public class BamQualityControl extends ToolsRunner{
+	
+	public final static int WINDOW_SIZE = 1000000; 
+	
+	public BamQualityControl() {
+			this.toolsDescription = "Gaea bam quality control\n"
+					+ "The purpose of bam quality control is to attain statistics information"
+					+ "of the bam file";
+	}
+	 
+	private BamQualityControlOptions options;
+	
+	@Override
+	public int run(String[] args) throws Exception {
+		BioJob job = BioJob.getInstance();
+		Configuration conf = job.getConfiguration();
+		
+		options = new BamQualityControlOptions();
+		options.parse(args);
+		options.setHadoopConf(args, conf);
+		
+		if(options.isDistributeCache()) {
+			ReferenceShare.distributeCache(options.getReferenceSequencePath(), job);
+		}
+		SamHdfsFileHeader.loadHeader(new Path(options.getAlignmentFilePath()), conf, new Path(options.getOutputPath()));
+		
+		job.setJarByClass(BamQualityControl.class);
+		job.setMapperClass(BamQualityControlMapper.class);
+		job.setReducerClass(BamQualityControlReducer.class);
+		job.setOutputKeyValue(IntWritable.class, Text.class, 
+				NullWritable.class, VariantContextWritable.class);
+		job.setNumReduceTasks(options.getReducerNum());
+		
+		FileInputFormat.addInputPaths(job, options.getAlignmentFilePath());
+		job.setInputFormatClass(GaeaAnySAMInputFormat.class);
+
+		Path statictisOutput = new Path(options.getOutputPath() + "/tmp");
+		job.setOutputFormatClass(TextOutputFormat.class);
+		
+		FileOutputFormat.setOutputPath(job, new Path(options.getTempPath()));
+		// 等待完成作业,后续统计depth,coverage和insert size分布
+		if(job.waitForCompletion(true)) {
+//			bamReport.getOutput(parameter, conf, options.getTempPath());
+		} else {
+			return 1;
+		}
+		return 0;
+	}
+}

@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.io.OutputStreamWriter;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.NullWritable;
@@ -80,10 +81,9 @@ public class VariantRecalibrationReducer extends Reducer<IntWritable, Text, Null
     
     @Override
     public void cleanup(Context context) throws IOException {
-    	BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(HdfsFileManager.getOutputStream(new Path(options.getReportPath()),
-    			context.getConfiguration())));
-    	writer.write(report.formatReport());
-    	writer.close();
+    	FSDataOutputStream os = HdfsFileManager.getOutputStream(new Path(options.getReportPath()), context.getConfiguration());
+		os.write(report.formatReport().getBytes());
+		os.close();
     }
     
     public void statistic(VariantContext vc) {

@@ -97,6 +97,26 @@ public class SamRecordUtils {
 				+ offsetCount, Byte.MAX_VALUE);
 	}
 	
+	public static String getReadGroup(SAMRecord record)
+	{
+		String sam = record.getSAMString();
+		String temp;
+		int index = sam.indexOf("RG:Z:");
+		if(index > 0)
+		{
+			temp = sam.substring(index);
+			index = temp.indexOf("\t");
+			if(index < 0) {
+				temp = temp.trim();
+				index = temp.length();
+			}
+			temp = temp.substring(0, index);
+			String[] splite = temp.split(":");
+			return splite[2];
+		}else
+			return null;
+	}
+	
 	public static boolean isUnmapped(SAMRecord sam) {
 		if (sam.getReadUnmappedFlag() || sam.getReferenceIndex() == -1
 				|| sam.getAlignmentStart() < 0)
