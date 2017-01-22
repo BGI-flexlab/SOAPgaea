@@ -135,6 +135,16 @@
 			<artifactId>xz</artifactId>
 			<version>1.5</version>
 		</dependency>
+		<dependency>
+			<groupId>gov.nist.math</groupId>
+			<artifactId>jama</artifactId>
+			<version>1.0.3</version>
+		</dependency>
+		<dependency>
+			<groupId>colt</groupId>
+			<artifactId>colt</artifactId>
+			<version>1.2.0</version>
+		</dependency>
 	</dependencies>
 
 	<repositories>

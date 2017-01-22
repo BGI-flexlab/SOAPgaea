@@ -4,29 +4,33 @@ public class QualityUtils {
 	public final static byte MAXIMUM_USABLE_QUALITY_SCORE = 93;
 	public final static byte MINIMUM_USABLE_QUALITY_SCORE = 6;
 
+	private static double qualityToErrorProbabilityCache[] = new double[256];
 	public static double[] QUALITY_PROB = new double[MAXIMUM_USABLE_QUALITY_SCORE + 1];
 	public static double[] QUALITY_PROB_LOG10 = new double[MAXIMUM_USABLE_QUALITY_SCORE + 1];
 	public static double[] MINUS_QUALITY_PROB_LOG10 = new double[MAXIMUM_USABLE_QUALITY_SCORE + 1];
 
 	static {
 		for(byte quality = 0; quality < MAXIMUM_USABLE_QUALITY_SCORE + 1; quality++) {
-			QUALITY_PROB[quality] = qualityToErrorProbility(quality);
-			QUALITY_PROB_LOG10[quality] = Math.log(qualityToErrorProbility(quality));
-			MINUS_QUALITY_PROB_LOG10[quality] = Math.log(1 - qualityToErrorProbility(quality));
+			QUALITY_PROB[quality] = qualityToErrorProbability(quality);
+			QUALITY_PROB_LOG10[quality] = Math.log(qualityToErrorProbability(quality));
+			MINUS_QUALITY_PROB_LOG10[quality] = Math.log(1 - qualityToErrorProbability(quality));
 		}
 	}
 
-	private static double qualityToErrorProbilityCache[] = new double[256];
 	static {
 		for (int i = 0; i < 256; i++)
-			qualityToErrorProbilityCache[i] = qualityToErrorProbility(i);
+			qualityToErrorProbabilityCache[i] = qualityToErrorProbability(i);
 	}
 
-	public static double qualityToErrorProbility(final double qual) {
+	public static double qualityToErrorProbability(final double qual) {
 		return Math.pow(10.0, ((double) qual) / -10.0);
 	}
+	
+	static public double qualityToProbability(double qual) {
+        return 1.0 - qualityToErrorProbability(qual);
+    }
 
-	public static byte probilityToQuality(double prob, double eps) {
+	public static byte probabilityToQuality(double prob, double eps) {
 		double lp = Math.round(-10.0 * Math.log10(1.0 - prob + eps));
 		return boundQuality((int) lp);
 	}

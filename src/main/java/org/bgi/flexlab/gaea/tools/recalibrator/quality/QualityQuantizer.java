@@ -31,7 +31,7 @@ public class QualityQuantizer {
 		final TreeSet<QualityInterval> intervals = new TreeSet<QualityInterval>();
 		for (int qStart = 0; qStart < observationNumbers.size(); qStart++) {
 			final long nObs = observationNumbers.get(qStart);
-			final double errorRate = QualityUtils.qualityToErrorProbility((byte) qStart);
+			final double errorRate = QualityUtils.qualityToErrorProbability((byte) qStart);
 			final double nErrors = nObs * errorRate;
 			final QualityInterval qi = new QualityInterval(qStart, 0, nObs, (int) Math.floor(nErrors));
 			intervals.add(qi);

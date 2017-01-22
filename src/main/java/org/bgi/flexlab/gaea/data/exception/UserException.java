@@ -3,7 +3,6 @@ package org.bgi.flexlab.gaea.data.exception;
 import java.io.File;
 
 
-
 import htsjdk.samtools.SAMRecord;
 
 public class UserException extends RuntimeException {

@@ -1,8 +1,8 @@
 package org.bgi.flexlab.gaea.data.structure.positioninformation;
 
 import org.bgi.flexlab.gaea.data.structure.bam.SAMInformationBasic;
-import org.bgi.flexlab.gaea.data.structure.reads.ReadInformationForBamQC;
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
+import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.SamRecordDatum;
 import org.bgi.flexlab.gaea.util.CigarState;
 import org.bgi.flexlab.gaea.util.SystemConfiguration;
 
@@ -58,7 +58,7 @@ public class CompoundInformation<T extends SAMInformationBasic> {
 	}
 
 	public int getRgIndex() {
-		return ((ReadInformationForBamQC) readInfo).getRgIndex();
+		return ((SamRecordDatum) readInfo).getRgIndex();
 	}
 	
 	public int getMappingQual() {

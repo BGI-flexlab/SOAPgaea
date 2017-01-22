@@ -1,13 +1,17 @@
 package org.bgi.flexlab.gaea.data.structure.region;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.bgi.flexlab.gaea.util.ChromosomeUtils;
+import org.bgi.flexlab.gaea.util.FileIterator;
 
-public class BasicRegion extends Region {
+public class TargetRegion extends Region {
 
 	
 	/**
@@ -17,7 +21,7 @@ public class BasicRegion extends Region {
 
 	protected FlankRegion flankRegion;
 	
-	public BasicRegion() {
+	public TargetRegion() {
 		super();
 		chrsSize = new ConcurrentHashMap<String, Integer>();
 		flankRegion = new FlankRegion();
@@ -172,6 +176,76 @@ public class BasicRegion extends Region {
 		}
 	}
 	
+	public void parseBedFileFromHDFS(String bedFilePath, boolean isWithFlank) throws IOException {
+		FileIterator it = new FileIterator(bedFilePath);
+		while(it.hasNext()) {
+			parseBedRegion(it, isWithFlank);
+		}
+		it.close();
+		//System.err.println("region size:" + regionSize);
+	}
+	
+	protected void parseBedRegion(FileIterator it, boolean isWithFlank) {
+		String line=it.next().toString().trim();
+		String[] splitArray = line.split("\\s+");
+		if(line.equals("") || line == null) {
+			return;
+		}
+		
+		boolean skipLine = parseBedFileLine(splitArray, this);
+		if(skipLine) {
+			return;
+		} else {
+			addChrSize(chrName, calRegionSize(start, end));
+		}
+		
+		if(isWithFlank) {
+			while(it.hasNext()) {
+				line=it.next().toString().trim();
+				splitArray = line.split("\t");
+				skipLine = parseBedFileLine(splitArray, flankRegion);
+				if(skipLine) {
+					continue;
+				} else {
+					addChrSize(flankRegion.getChrName(), calRegionSize(flankRegion.getStart(), flankRegion.getEnd()));
+				}
+				
+				processWindow();
+			}
+			//处理最后一个窗口
+			processWindow(start, end, chrName);
+		}
+	}
+	
+	@Deprecated
+	public void parseBedFile(String bedFilePath, boolean isWithFlank) throws IOException {
+		BufferedReader br = new BufferedReader(new FileReader(bedFilePath));
+		String line = "";
+		String[] splitArray;
+
+		while((line = br.readLine()) != null) {
+			splitArray = line.split("\t");
+			boolean skipLine = parseBedFileLine(splitArray, this);
+			if(skipLine) {
+				continue;
+			}
+			if(isWithFlank) {
+				while((line = br.readLine()) != null) {
+					splitArray = line.split("\t");
+					skipLine = parseBedFileLine(splitArray, flankRegion);
+					if(skipLine) {
+						continue;
+					}
+					processWindow();
+				}
+				//处理最后一个窗口
+				processWindow(start, end, chrName);
+			}
+		}
+		
+		br.close();
+	}
+	
 	protected boolean parseBedFileLine(String[] splitArray, Region region){
 		if(splitArray.length == 1) {
 			System.out.println("region value is the whole chromosome:" + splitArray[0]);
@@ -235,6 +309,10 @@ public class BasicRegion extends Region {
 	
 	public  Map<String, ArrayList<Integer[]>> getFlankIndex() {
 		return flankRegion.getIndex();
+	}
+	
+	public FlankRegion getFlankRegion() {
+		return flankRegion;
 	}
 	
 	public int getRegionFlankSize() {

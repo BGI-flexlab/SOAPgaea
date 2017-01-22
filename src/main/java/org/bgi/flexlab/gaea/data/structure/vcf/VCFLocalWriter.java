@@ -28,13 +28,10 @@ public class VCFLocalWriter extends VCFFileWriter {
 	}
 	
 	public final EnumSet<OutputType> FILE_TYPES = EnumSet.allOf(OutputType.class);
-	
-	private OutputType outputType;
-	
+		
 	public VCFLocalWriter(String filePath, boolean doNotWriteGenotypes,
 			final boolean allowMissingFieldsInHeader) throws IOException {
 		super(filePath, doNotWriteGenotypes, allowMissingFieldsInHeader, null);
-		this.outputType = determineOutputTypeFromFile(filePath);
 	}
 /**
  * htsjdk for now only support BlockCompressedOutputStream for local file system rather than hdfs.
@@ -43,7 +40,7 @@ public class VCFLocalWriter extends VCFFileWriter {
 	public void initOutputStream(String filePath, Configuration conf) {
 		// TODO Auto-generated method stub
 		
-		OutputType typeTobuild = this.outputType;
+		OutputType typeTobuild = determineOutputTypeFromFile(filePath);
 		try {
 			switch (typeTobuild) {
 			case VCF:

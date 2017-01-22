@@ -2,52 +2,90 @@ package org.bgi.flexlab.gaea.util;
 
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
-import java.util.Collection;
 
 public class MathUtils {
+
     public static DecimalFormat doubleformat = new DecimalFormat("0.000");
     public final static double LOG10_P_OF_ZERO = -1000000.0;
-
-
+    
+    /**
+     * Private constructor.  No instantiating this class!
+     */
+    private MathUtils() {
+    }
+    
+    
+    static {
+		doubleformat.setRoundingMode(RoundingMode.HALF_UP);
+	}
+    
     public static int fastRound(double d) {
         return (d > 0.0) ? (int) (d + 0.5d) : (int) (d - 0.5d);
-    }
-	
-	/*
-	 * add two array and return a new array
-	 * */
-	public static int[] addArrays(int[] a, int[] b) {
-        int[] c = new int[a.length];
-        for (int i = 0; i < a.length; i++){
-            c[i] = a[i] + b[i];
-        }
-        return c;
-    }
-	
-	public static double sum(Collection<? extends Number> numbers) {
-        return sum(numbers, false);
-    }
-
-    public static double sum(Collection<? extends Number> numbers, boolean ignoreNan) {
-        double sum = 0;
-        for (Number n : numbers) {
-            if (!ignoreNan || !Double.isNaN(n.doubleValue())) {
-                sum += n.doubleValue();
-            }
-        }
-
-        return sum;
     }
     
     public static int sum(byte[] x) {
         int total = 0;
-        for (byte v : x){
+        for (byte v : x)
             total += (int)v;
-        }
         return total;
     }
     
-	static {
+    public static int[] addArrays(int[] a, int[] b) {
+        int[] c = new int[a.length];
+        for (int i = 0; i < a.length; i++)
+            c[i] = a[i] + b[i];
+        return c;
+    }
+    
+    public static byte compareDoubles(double a, double b) {
+        return compareDoubles(a, b, 1e-6);
+    }
+
+    public static byte compareDoubles(double a, double b, double epsilon) {
+        if (Math.abs(a - b) < epsilon) {
+            return 0;
+        }
+        if (a > b) {
+            return -1;
+        }
+        return 1;
+    }
+    
+    public static double arrayMax(final double[] array, final int endIndex) {
+        return array[maxElementIndex(array, endIndex)];
+    }
+    
+    public static double log10sumLog10(double[] log10values) {
+        return log10sumLog10(log10values, 0);
+    }
+    
+    public static double log10sumLog10(double[] log10p, int start) {
+        return log10sumLog10(log10p, start, log10p.length);
+    }
+    
+    public static double log10sumLog10(double[] log10p, int start, int finish) {
+        double sum = 0.0;
+
+        double maxValue = arrayMax(log10p, finish);
+        if(maxValue == Double.NEGATIVE_INFINITY)
+            return maxValue;
+
+        for (int i = start; i < finish; i++) {
+            sum += Math.pow(10.0, log10p[i] - maxValue);
+        }
+
+        return Math.log10(sum) + maxValue;
+    }
+    
+    public static double distanceSquared(final double[] x, final double[] y) {
+        double dist = 0.0;
+        for (int iii = 0; iii < x.length; iii++) {
+            dist += (x[iii] - y[iii]) * (x[iii] - y[iii]);
+        }
+        return dist;
+    }
+
+    static {
 		doubleformat.setRoundingMode(RoundingMode.HALF_UP);
 	}
 
