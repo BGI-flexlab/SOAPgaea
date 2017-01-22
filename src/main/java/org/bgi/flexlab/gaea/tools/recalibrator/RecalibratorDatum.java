@@ -3,6 +3,7 @@ package org.bgi.flexlab.gaea.tools.recalibrator;
 import java.util.Random;
 
 import org.bgi.flexlab.gaea.data.exception.UserException;
+import org.bgi.flexlab.gaea.tools.recalibrator.report.RecalibratorReportTable;
 import org.bgi.flexlab.gaea.util.QualityUtils;
 
 public class RecalibratorDatum {
@@ -47,7 +48,7 @@ public class RecalibratorDatum {
 		this.numBases = clone.getBasesNumber();
 		this.numMismatches = clone.numMismatches;
 		this.estimatedQuality = clone.getEstimatedQuality();
-		this.empiricalQuality = clone.getEmporocalQuality();
+		this.empiricalQuality = clone.getEmpiricalQuality();
 	}
 
 	public static RecalibratorDatum build(byte quality, boolean isError) {
@@ -62,17 +63,33 @@ public class RecalibratorDatum {
 		return new RecalibratorDatum(nObservations, nErrors, (byte) qual);
 	}
 
+	public static RecalibratorDatum build(RecalibratorReportTable reportTable, final int row,
+			final boolean hasEstimatedColumn) {
+		final long nObservations = (Long) reportTable.get(row, RecalibratorUtil.NUMBER_OBSERVATIONS_COLUMN_NAME);
+		final long nErrors = (Long) reportTable.get(row, RecalibratorUtil.NUMBER_ERRORS_COLUMN_NAME);
+		final double empiricalQuality = (Double) reportTable.get(row, RecalibratorUtil.EMPIRICAL_QUALITY_COLUMN_NAME);
+
+		final double estimatedQReported = hasEstimatedColumn
+				? (Double) reportTable.get(row, RecalibratorUtil.ESTIMATED_Q_REPORTED_COLUMN_NAME)
+				: Byte.parseByte((String) reportTable.get(row, RecalibratorUtil.QUANTIZED_SCORE_COLUMN_NAME));
+
+		RecalibratorDatum datum = new RecalibratorDatum(nObservations, nErrors, (byte) 1);
+		datum.setEstimatedQReported(estimatedQReported);
+		datum.setEmpiricalQuality(empiricalQuality);
+		return datum;
+	}
+
 	public void combine(RecalibratorDatum other) {
 		double combineErrors = this.expectedErrors() + other.expectedErrors();
 		addBaseNumber(other.getBasesNumber());
 		this.estimatedQuality = -10 * Math.log10(combineErrors / this.numBases);
 		addMismatchNumber(other.numMismatches);
 	}
-	
-	public void increment(RecalibratorDatum other){
-		if(other == null)
+
+	public void increment(RecalibratorDatum other) {
+		if (other == null)
 			throw new UserException("recalibrator datum cann't be null !");
-		
+
 		addBaseNumber(other.getBasesNumber());
 		addMismatchNumber(other.getMismatchNumber());
 	}
@@ -112,10 +129,14 @@ public class RecalibratorDatum {
 		return this.estimatedQuality;
 	}
 
-	public double getEmporocalQuality() {
+	public double getEmpiricalQuality() {
 		if (this.empiricalQuality == DEFAULT_DOUBLE)
 			calcEmpiricalQuality();
 		return this.empiricalQuality;
+	}
+
+	public void setEmpiricalQuality(double empir) {
+		this.empiricalQuality = empir;
 	}
 
 	private final void calcEmpiricalQuality() {

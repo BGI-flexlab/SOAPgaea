@@ -8,6 +8,7 @@ import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.PathFilter;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.util.LineReader;
 import org.bgi.flexlab.gaea.data.exception.FileNotExistException;
@@ -27,10 +28,16 @@ public class HdfsFilesReader extends GaeaFilesReader{
 	public HdfsFilesReader(Configuration conf){
 		this.conf = conf;
 		files = new ArrayList<Path>();
+		currentFileIndex = 0;
+		currentLine = null;
 	}
 
 	@Override
-	public void traversal(String path) {
+	public void traversal(String path){
+		traversal(path,new HeaderPathFilter());
+	}
+	
+	public void traversal(String path,PathFilter pathFilter) {
 		Path p = new Path(path);
 		
 		fs = HdfsFileManager.getFileSystem(p, conf);
@@ -47,14 +54,14 @@ public class HdfsFilesReader extends GaeaFilesReader{
 		}else{
 			FileStatus[] stats = null;
 			try{
-				stats = fs.listStatus(p,new HeaderPathFilter());
+				stats = fs.listStatus(p,pathFilter);
 			}catch(IOException e){
 				throw new RuntimeException(e.toString());
 			}
 
 			for (FileStatus file : stats) {
 				if(!file.isFile()){
-					traversal(file.toString());
+					traversal(file.toString(),pathFilter);
 				}else{
 					if(!filter(file.getPath().getName()))
 						files.add(file.getPath());
@@ -71,7 +78,6 @@ public class HdfsFilesReader extends GaeaFilesReader{
 		} catch (IOException e) {
 			throw new RuntimeException(e.toString());
 		}
-		
 	}
 
 	@Override
@@ -79,7 +85,7 @@ public class HdfsFilesReader extends GaeaFilesReader{
 		if(lineReader != null){
 			Text line = new Text();
 			try {
-				if(lineReader.readLine(line) > 0 && line.getLength() != 0){
+				if(lineReader.readLine(line) > 0){
 					currentLine = line.toString();
 					return true;
 				}else{
@@ -89,7 +95,7 @@ public class HdfsFilesReader extends GaeaFilesReader{
 					if(currentFileIndex < size()){
 						FSDataInputStream currInput = fs.open(files.get(currentFileIndex));
 						lineReader = new LineReader(currInput,conf);
-						if(lineReader.readLine(line) > 0 && line.getLength() != 0){
+						if(lineReader.readLine(line) > 0){
 							currentLine = line.toString();
 							return true;
 						}
@@ -102,6 +108,17 @@ public class HdfsFilesReader extends GaeaFilesReader{
 		
 		currentLine = null;
 		return false;
+	}
+	
+	public void delete(){
+		for(Path path : files){
+			fs = HdfsFileManager.getFileSystem(path, conf);
+			try {
+				fs.deleteOnExit(path);
+			} catch (IOException e) {
+				throw new RuntimeException(e.toString());
+			}
+		}
 	}
 
 	@Override

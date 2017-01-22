@@ -572,21 +572,26 @@ public class GaeaSamRecord extends SAMRecord {
 		case SNP:
 			return getBaseQualities();
 		case Insertion:
-			return getBaseInsertionQualities();
+			return getBaseInsertionQualities(true);
 		case Deletion:
-			return getBaseDeletionQualities();
+			return getBaseDeletionQualities(true);
 		default:
 			throw new RuntimeException("Unrecognized Base Recalibration type: "
 					+ errorModel);
 		}
 	}
-
+	
 	public byte[] getBaseDeletionQualities() {
+		return getBaseDeletionQualities(false);
+	}
+
+	public byte[] getBaseDeletionQualities(boolean disableAttribute) {
 		byte[] quals = getExistingBaseDeletionQualities();
 		if (quals == null) {
 			quals = new byte[getBaseQualities().length];
-			Arrays.fill(quals, (byte) 45); 
-			setBaseQualities(quals, EventType.Deletion);
+			Arrays.fill(quals, (byte) 45);
+			if(!disableAttribute)
+				setBaseQualities(quals, EventType.Deletion);
 		}
 		return quals;
 	}
@@ -597,15 +602,16 @@ public class GaeaSamRecord extends SAMRecord {
 	}
 
 	public byte[] getBaseInsertionQualities() {
+		return getBaseInsertionQualities(false);
+	}
+	
+	public byte[] getBaseInsertionQualities(boolean disableAttribute){
 		byte[] quals = getExistingBaseInsertionQualities();
 		if (quals == null) {
 			quals = new byte[getBaseQualities().length];
-			Arrays.fill(quals, (byte) 45); // Some day in the future when base
-											// insertion and base deletion quals
-											// exist the samtools API will
-			// be updated and the original quals will be pulled here, but for
-			// now we assume the original quality is a flat Q45
-			setBaseQualities(quals, EventType.Insertion);
+			Arrays.fill(quals, (byte) 45);
+			if(!disableAttribute)
+				setBaseQualities(quals, EventType.Insertion);
 		}
 		return quals;
 	}

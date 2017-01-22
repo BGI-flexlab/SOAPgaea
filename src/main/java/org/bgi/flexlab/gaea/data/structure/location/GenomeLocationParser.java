@@ -17,8 +17,7 @@ public class GenomeLocationParser {
 	private CachingSequenceDictionary getContigInfo() {
 		if (contigInfoPerThread.get() == null) {
 			// initialize for this thread
-			contigInfoPerThread.set(new CachingSequenceDictionary(
-					SINGLE_MASTER_SEQUENCE_DICTIONARY));
+			contigInfoPerThread.set(new CachingSequenceDictionary(SINGLE_MASTER_SEQUENCE_DICTIONARY));
 		}
 
 		assert contigInfoPerThread.get() != null;
@@ -46,8 +45,7 @@ public class GenomeLocationParser {
 
 		// @Requires("contig != null")
 		public final boolean hasContig(final String contig) {
-			return contig.equals(lastContig)
-					|| dict.getSequence(contig) != null;
+			return contig.equals(lastContig) || dict.getSequence(contig) != null;
 		}
 
 		// @Requires("index >= 0")
@@ -98,11 +96,9 @@ public class GenomeLocationParser {
 		 * contig name, and index.
 		 */
 		private SAMSequenceRecord updateCache(final String contig, int index) {
-			SAMSequenceRecord rec = contig == null ? dict.getSequence(index)
-					: dict.getSequence(contig);
+			SAMSequenceRecord rec = contig == null ? dict.getSequence(index) : dict.getSequence(contig);
 			if (rec == null) {
-				throw new UserException("BUG: requested unknown contig="
-						+ contig + " index=" + index);
+				throw new UserException("BUG: requested unknown contig=" + contig + " index=" + index);
 			} else {
 				lastSSR = rec;
 				lastContig = rec.getSequenceName();
@@ -142,11 +138,18 @@ public class GenomeLocationParser {
 	 */
 	public final SAMSequenceRecord getContigInfo(final String contig) {
 		if (contig == null || !contigIsInDictionary(contig))
-			throw new UserException(
-					String.format(
-							"Contig %s given as location, but this contig isn't present in the Fasta sequence dictionary",
-							contig));
+			throw new UserException(String.format(
+					"Contig %s given as location, but this contig isn't present in the Fasta sequence dictionary",
+					contig));
 		return getContigInfo().getSequence(contig);
+	}
+
+	public final SAMSequenceRecord getContigInfo(final int index) {
+		if (!indexIsInDictionary(index))
+			throw new UserException(String.format(
+					"Contig index %s given as location, but this contig isn't present in the Fasta sequence dictionary",
+					index));
+		return getContigInfo().getSequence(index);
 	}
 
 	/**
@@ -172,95 +175,74 @@ public class GenomeLocationParser {
 	/**
 	 * create a genome location, given the contig name, start, and stop
 	 */
-	public GenomeLocation createGenomeLocation(String contig, final int start,
-			final int stop) {
+	public GenomeLocation createGenomeLocation(String contig, final int start, final int stop) {
 		return createGenomeLocation(contig, getContigIndex(contig), start, stop);
 	}
 
-	public GenomeLocation createGenomeLocation(String contig, final int start,
-			final int stop, boolean mustBeOnReference) {
-		return createGenomeLocation(contig, getContigIndex(contig), start,
-				stop, mustBeOnReference);
+	public GenomeLocation createGenomeLocation(String contig, final int start, final int stop,
+			boolean mustBeOnReference) {
+		return createGenomeLocation(contig, getContigIndex(contig), start, stop, mustBeOnReference);
 	}
 
-	public GenomeLocation createGenomeLocation(String contig, int index,
-			final int start, final int stop) {
+	public GenomeLocation createGenomeLocation(String contig, int index, final int start, final int stop) {
 		return createGenomeLocation(contig, index, start, stop, false);
 	}
 
-	public GenomeLocation createGenomeLocation(String contig, int index,
-			final int start, final int stop, boolean mustBeOnReference) {
-		validateGenomeLocation(contig, index, start, stop, mustBeOnReference,
-				true);
+	public GenomeLocation createGenomeLocation(String contig, int index, final int start, final int stop,
+			boolean mustBeOnReference) {
+		validateGenomeLocation(contig, index, start, stop, mustBeOnReference, true);
 		return new GenomeLocation(contig, index, start, stop);
 	}
 
 	/**
 	 * validate a position or interval on the genome as valid
 	 */
-	private boolean validateGenomeLocation(String contig, int contigIndex,
-			int start, int stop, boolean mustBeOnReference,
-			boolean exceptOnError) {
+	private boolean validateGenomeLocation(String contig, int contigIndex, int start, int stop,
+			boolean mustBeOnReference, boolean exceptOnError) {
 		if (!getContigInfo().hasContig(contig))
-			return vglHelper(exceptOnError,
-					String.format("Unknown contig %s", contig));
+			return vglHelper(exceptOnError, String.format("Unknown contig %s", contig));
 
 		if (stop < start)
-			return vglHelper(exceptOnError, String.format(
-					"The stop position %d is less than start %d in contig %s",
-					stop, start, contig));
+			return vglHelper(exceptOnError,
+					String.format("The stop position %d is less than start %d in contig %s", stop, start, contig));
 
 		if (contigIndex < 0)
-			return vglHelper(exceptOnError, String.format(
-					"The contig index %d is less than 0", contigIndex));
+			return vglHelper(exceptOnError, String.format("The contig index %d is less than 0", contigIndex));
 
 		if (contigIndex >= getContigInfo().getNSequences())
-			return vglHelper(
-					exceptOnError,
-					String.format(
-							"The contig index %d is greater than the stored sequence count (%d)",
-							contigIndex, getContigInfo().getNSequences()));
+			return vglHelper(exceptOnError,
+					String.format("The contig index %d is greater than the stored sequence count (%d)", contigIndex,
+							getContigInfo().getNSequences()));
 
 		if (mustBeOnReference) {
 			if (start < 1)
-				return vglHelper(exceptOnError, String.format(
-						"The start position %d is less than 1", start));
+				return vglHelper(exceptOnError, String.format("The start position %d is less than 1", start));
 
 			if (stop < 1)
-				return vglHelper(exceptOnError, String.format(
-						"The stop position %d is less than 1", stop));
+				return vglHelper(exceptOnError, String.format("The stop position %d is less than 1", stop));
 
-			int contigSize = getContigInfo().getSequence(contigIndex)
-					.getSequenceLength();
+			int contigSize = getContigInfo().getSequence(contigIndex).getSequenceLength();
 			if (start > contigSize || stop > contigSize)
-				return vglHelper(
-						exceptOnError,
-						String.format(
-								"The genome loc coordinates %d-%d exceed the contig size (%d)",
-								start, stop, contigSize));
+				return vglHelper(exceptOnError, String.format(
+						"The genome loc coordinates %d-%d exceed the contig size (%d)", start, stop, contigSize));
 		}
 
 		// we passed
 		return true;
 	}
 
-	public boolean isValidGenomeLocation(String contig, int start, int stop,
-			boolean mustBeOnReference) {
-		return validateGenomeLocation(contig,
-				getContigIndexWithoutException(contig), start, stop,
-				mustBeOnReference, false);
+	public boolean isValidGenomeLocation(String contig, int start, int stop, boolean mustBeOnReference) {
+		return validateGenomeLocation(contig, getContigIndexWithoutException(contig), start, stop, mustBeOnReference,
+				false);
 	}
 
 	public boolean isValidGenomeLocation(String contig, int start, int stop) {
-		return validateGenomeLocation(contig,
-				getContigIndexWithoutException(contig), start, stop, true,
-				false);
+		return validateGenomeLocation(contig, getContigIndexWithoutException(contig), start, stop, true, false);
 	}
 
 	private boolean vglHelper(boolean exceptOnError, String msg) {
 		if (exceptOnError)
-			throw new UserException(
-					"Parameters to GenomeLocParser are incorrect:" + msg);
+			throw new UserException("Parameters to GenomeLocParser are incorrect:" + msg);
 		else
 			return false;
 	}
@@ -284,38 +266,32 @@ public class GenomeLocationParser {
 			try {
 				if (dashIndex == -1) {
 					if (str.charAt(str.length() - 1) == '+') {
-						start = parsePosition(str.substring(colonIndex + 1,
-								str.length() - 1)); // chr:1+
+						start = parsePosition(str.substring(colonIndex + 1, str.length() - 1)); // chr:1+
 						stop = Integer.MAX_VALUE;
 					} else {
 						start = parsePosition(str.substring(colonIndex + 1)); // chr1:1
 						stop = start;
 					}
 				} else {
-					start = parsePosition(str.substring(colonIndex + 1,
-							dashIndex)); // chr1:1-1
+					start = parsePosition(str.substring(colonIndex + 1, dashIndex)); // chr1:1-1
 					stop = parsePosition(str.substring(dashIndex + 1));
 				}
 			} catch (Exception e) {
-				throw new UserException(
-						"Failed to parse Genome Location string: " + str, e);
+				throw new UserException("Failed to parse Genome Location string: " + str, e);
 			}
 		}
 
 		// is the contig valid?
 		if (!contigIsInDictionary(contig))
-			throw new UserException(
-					"Contig '"
-							+ contig
-							+ "' does not match any contig in the GATK sequence dictionary derived from the reference; "
-							+ "are you sure you are using the correct reference fasta file?");
+			throw new UserException("Contig '" + contig
+					+ "' does not match any contig in the GATK sequence dictionary derived from the reference; "
+					+ "are you sure you are using the correct reference fasta file?");
 
 		if (stop == Integer.MAX_VALUE)
 			// lookup the actually stop position!
 			stop = getContigInfo(contig).getSequenceLength();
 
-		return createGenomeLocation(contig, getContigIndex(contig), start,
-				stop, true);
+		return createGenomeLocation(contig, getContigIndex(contig), start, stop, true);
 	}
 
 	/**
@@ -323,8 +299,7 @@ public class GenomeLocationParser {
 	 */
 	private int parsePosition(final String pos) {
 		if (pos.indexOf('-') != -1) {
-			throw new NumberFormatException("Position: '" + pos
-					+ "' can't contain '-'.");
+			throw new NumberFormatException("Position: '" + pos + "' can't contain '-'.");
 		}
 
 		if (pos.indexOf(',') != -1) {
@@ -335,8 +310,7 @@ public class GenomeLocationParser {
 				if (c == ',') {
 					continue;
 				} else if (c < '0' || c > '9') {
-					throw new NumberFormatException("Position: '" + pos
-							+ "' contains invalid chars.");
+					throw new NumberFormatException("Position: '" + pos + "' contains invalid chars.");
 				} else {
 					buffer.append(c);
 				}
@@ -361,15 +335,13 @@ public class GenomeLocationParser {
 			// to reads that are entirely within an insertion as start-1)
 			int end = read.getReadUnmappedFlag() ? read.getAlignmentStart()
 					: Math.max(read.getAlignmentEnd(), read.getAlignmentStart());
-			return createGenomeLocation(read.getReferenceName(),
-					read.getReferenceIndex(), read.getAlignmentStart(), end,
-					false);
+			return createGenomeLocation(read.getReferenceName(), read.getReferenceIndex(), read.getAlignmentStart(),
+					end, false);
 		}
 	}
 
 	public GenomeLocation createGenomeLocation(final Feature feature) {
-		return createGenomeLocation(feature.getContig(), feature.getStart(),
-				feature.getEnd());
+		return createGenomeLocation(feature.getContig(), feature.getStart(), feature.getEnd());
 	}
 
 	/**
@@ -378,8 +350,7 @@ public class GenomeLocationParser {
 	 * of the created genome loc will be the value of the END info field key, if
 	 * it exists, or vc.getEnd() if not.
 	 */
-	public GenomeLocation createGenomeLocation(final VariantContext vc,
-			boolean includeSymbolicEndIfPossible) {
+	public GenomeLocation createGenomeLocation(final VariantContext vc, boolean includeSymbolicEndIfPossible) {
 		if (includeSymbolicEndIfPossible && vc.isSymbolic()) {
 			int end = vc.getAttributeAsInt(VCFConstants.END_KEY, vc.getEnd());
 			return createGenomeLocation(vc.getContig(), vc.getStart(), end);
@@ -399,20 +370,19 @@ public class GenomeLocationParser {
 		return createGenomeLocation(contig, getContigIndex(contig), pos, pos);
 	}
 
+	public GenomeLocation createGenomeLocation(final int index, final int pos) {
+		return createGenomeLocation(getContigInfo(index).getSequenceName(), index, pos, pos);
+	}
+
 	/**
 	 * create a new genome loc from an existing loc, with a new start position
-	 * Note that this function will NOT explicitly check the ending offset, in
-	 * case someone wants to set the start of a new GenomeLoc pertaining to a
-	 * read that goes off the end of the contig.
 	 */
 	public GenomeLocation setStart(GenomeLocation loc, int start) {
-		return createGenomeLocation(loc.getContig(), loc.getContigIndex(),
-				start, loc.getStop());
+		return createGenomeLocation(loc.getContig(), loc.getContigIndex(), start, loc.getStop());
 	}
 
 	public GenomeLocation setStop(GenomeLocation loc, int stop) {
-		return createGenomeLocation(loc.getContig(), loc.getContigIndex(),
-				loc.getStart(), stop);
+		return createGenomeLocation(loc.getContig(), loc.getContigIndex(), loc.getStart(), stop);
 	}
 
 	/**
@@ -426,8 +396,7 @@ public class GenomeLocationParser {
 	 * return a new genome location, with an incremented position
 	 */
 	public GenomeLocation incPos(GenomeLocation loc, int by) {
-		return createGenomeLocation(loc.getContig(), loc.getContigIndex(),
-				loc.getStart() + by, loc.getStop() + by);
+		return createGenomeLocation(loc.getContig(), loc.getContigIndex(), loc.getStart() + by, loc.getStop() + by);
 	}
 
 	/**
@@ -435,16 +404,14 @@ public class GenomeLocationParser {
 	 */
 	public GenomeLocation createOverEntireContig(String contigName) {
 		SAMSequenceRecord contig = getContigInfo().getSequence(contigName);
-		return createGenomeLocation(contigName, contig.getSequenceIndex(), 1,
-				contig.getSequenceLength(), true);
+		return createGenomeLocation(contigName, contig.getSequenceIndex(), 1, contig.getSequenceLength(), true);
 	}
 
 	/**
-	 * Creates a location to the left (starting at the location start + 1) of maxBasePairs
-	 * size.
+	 * Creates a location to the left (starting at the location start + 1) of
+	 * maxBasePairs size.
 	 */
-	public GenomeLocation createGenomeLocAtStart(GenomeLocation loc,
-			int maxBasePairs) {
+	public GenomeLocation createGenomeLocAtStart(GenomeLocation loc, int maxBasePairs) {
 		if (GenomeLocation.isUnmapped(loc))
 			return null;
 		String contigName = loc.getContig();
@@ -466,13 +433,11 @@ public class GenomeLocationParser {
 	 * Creates a location padded in both directions by maxBasePairs size (if
 	 * possible).
 	 */
-	public GenomeLocation createPaddedGenomeLoc(final GenomeLocation loc,
-			final int padding) {
+	public GenomeLocation createPaddedGenomeLoc(final GenomeLocation loc, final int padding) {
 		if (GenomeLocation.isUnmapped(loc))
 			return loc;
 		final String contigName = loc.getContig();
-		final SAMSequenceRecord contig = getContigInfo()
-				.getSequence(contigName);
+		final SAMSequenceRecord contig = getContigInfo().getSequence(contigName);
 		final int contigIndex = contig.getSequenceIndex();
 		final int contigLength = contig.getSequenceLength();
 
@@ -483,11 +448,10 @@ public class GenomeLocationParser {
 	}
 
 	/**
-	 * Creates a location to the right (starting at the loc stop + 1) of maxBasePairs
-	 * size.
+	 * Creates a location to the right (starting at the loc stop + 1) of
+	 * maxBasePairs size.
 	 */
-	public GenomeLocation createGenomeLocAtStop(GenomeLocation loc,
-			int maxBasePairs) {
+	public GenomeLocation createGenomeLocAtStop(GenomeLocation loc, int maxBasePairs) {
 		if (GenomeLocation.isUnmapped(loc))
 			return null;
 		String contigName = loc.getContig();

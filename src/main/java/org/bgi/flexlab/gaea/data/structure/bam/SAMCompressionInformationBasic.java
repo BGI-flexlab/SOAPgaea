@@ -66,7 +66,7 @@ public abstract class SAMCompressionInformationBasic extends ReadBasicCompressio
 
 		readBases = SAMUtils.bytesToCompressedBasesGaea(samRecord.getReadBases());
 
-		qualities = samRecord.getOriginalBaseQualities();
+		qualities = samRecord.getBaseQualities();
 
 		parseOtherInfo(samRecord);
 

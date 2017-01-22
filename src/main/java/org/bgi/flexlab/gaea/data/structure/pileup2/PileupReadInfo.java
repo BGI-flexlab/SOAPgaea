@@ -19,7 +19,7 @@ public class PileupReadInfo {
 	/**
 	 * cigar state for cigar analysis
 	 */
-	protected CigarState cigarState;
+	protected CigarState cigarState = new CigarState();
 
 	/**
 	 * end for reads
@@ -30,16 +30,6 @@ public class PileupReadInfo {
 	 * sample info
 	 */
 	protected String sample;
-
-	/**
-	 * is deletion base
-	 */
-	private boolean isDeletionBase = false;
-
-	/**
-	 * next is insertion base
-	 */
-	private boolean isNextInsertBase = false;
 
 	/**
 	 * constructor
@@ -68,14 +58,6 @@ public class PileupReadInfo {
 	 */
 	public void calculateQueryPosition(int refPos) {
 		qpos = cigarState.resolveCigar(refPos, readInfo.getPosition());
-		if(qpos == -1)
-			isDeletionBase = true;
-		else
-			isDeletionBase = false;
-		if(qpos == -2)
-			isNextInsertBase = true;
-		else
-			isNextInsertBase = false;
 	}
 	
 	
@@ -134,7 +116,7 @@ public class PileupReadInfo {
 	 */
 	public byte getBaseQuality() {
 		if(qpos < 0)
-			return 0;
+			return -1;
 		return readInfo.getBaseQuality(qpos);
 	}
 
@@ -171,11 +153,19 @@ public class PileupReadInfo {
 	}
 
 	public boolean isDeletionBase() {
-		return isDeletionBase;
+		return cigarState.isDeletionBase();
+	}
+
+	public boolean isNextDeletionBase() {
+		return cigarState.isNextDeletionBase();
 	}
 
 	public boolean isNextInsertBase() {
-		return isNextInsertBase;
+		return cigarState.isNextInsertionBase();
+	}
+
+	public boolean isNextMatchBase() {
+		return cigarState.isNextMatchBase();
 	}
 }
 

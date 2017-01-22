@@ -8,6 +8,7 @@ import org.bgi.flexlab.gaea.data.structure.bam.filter.BaseRecalibrationFilter;
 import org.bgi.flexlab.gaea.data.structure.reference.BaseAndSNPInformation;
 import org.bgi.flexlab.gaea.data.structure.reference.ReferenceShare;
 import org.bgi.flexlab.gaea.tools.mapreduce.realigner.RecalibratorOptions;
+import org.bgi.flexlab.gaea.tools.realigner.RealignerWriter;
 import org.bgi.flexlab.gaea.tools.recalibrator.RecalibratorUtil.Consistent;
 import org.bgi.flexlab.gaea.tools.recalibrator.RecalibratorUtil.SolidRecallMode;
 import org.bgi.flexlab.gaea.tools.recalibrator.covariate.Covariate;
@@ -28,26 +29,31 @@ public class RecalibratorEngine {
 	private BaseRecalibrationFilter filter = null;
 	private Covariate[] covariates = null;
 	private RecalibratorTable recalibratorTables = null;
+	private RealignerWriter writer = null;
+	private boolean isRealigment = false;
 
-	public RecalibratorEngine(RecalibratorOptions option, ReferenceShare chrInfo, SAMFileHeader mHeader) {
+	public RecalibratorEngine(RecalibratorOptions option, ReferenceShare chrInfo, SAMFileHeader mHeader,boolean isRealigment,RealignerWriter writer) {
 		this.option = option;
 		this.chrInfo = chrInfo;
 		this.mHeader = mHeader;
 		information = new BaseAndSNPInformation();
 		filter = new BaseRecalibrationFilter();
-		recalibratorTables = new RecalibratorTable(CovariateUtil.initializeCovariates(option, mHeader),
-				mHeader.getReadGroups().size());
+		this.covariates = CovariateUtil.initializeCovariates(option, mHeader);
+		recalibratorTables = new RecalibratorTable(this.covariates, mHeader.getReadGroups().size());
+		this.isRealigment = isRealigment;
+		this.writer = writer;
 	}
 
 	private void setWindows(String chrName, int winNum) {
-		int start = winNum > 0 ? (winNum - 1) * option.getWindowsSize() : 0;
-		int end = (winNum + 2) * option.getWindowsSize() - 1;
+		int start = winNum > 0 ? (winNum - 1) * option.getWindowsSize()+1 : 1;
+		int end = (winNum + 2) * option.getWindowsSize();
 		information.set(chrInfo, chrName, start, end);
 	}
 
-	public void mapReads(ArrayList<GaeaSamRecord> records, Iterable<SamRecordWritable> iterator,String chrName,int winNum) {
-		setWindows(chrName,winNum);
-		
+	public void mapReads(ArrayList<GaeaSamRecord> records, Iterable<SamRecordWritable> iterator, String chrName,
+			int winNum) {
+		setWindows(chrName, winNum);
+
 		if (records != null) {
 			for (GaeaSamRecord sam : records) {
 				baseQualityStatistics(sam);
@@ -61,6 +67,10 @@ public class RecalibratorEngine {
 			int readWinNum = writable.get().getAlignmentStart() / option.getWindowsSize();
 			GaeaSamRecord sam = new GaeaSamRecord(mHeader, writable.get(), readWinNum == winNum);
 			baseQualityStatistics(sam);
+			
+			if(!isRealigment){
+				writer.writeRead(sam);
+			}
 		}
 	}
 
@@ -80,16 +90,18 @@ public class RecalibratorEngine {
 
 		Consistent consistent = null;
 		ReadCovariates rcovariate = null;
-		for (int i = read.getAlignmentStart(); i < end; i++) {
-			int qpos = readOffsets[i];
+		int start = read.getAlignmentStart();
+		for (int i = start; i <= end; i++) {
+			int qpos = readOffsets[i - start];
 			if (!information.getSNP(i)) {
 				if (consistent == null) {
 					consistent = isColorSpaceConsistent(read);
-					if (consistent.isColorSpaceConsistent())
+					if (!consistent.isColorSpaceConsistent()) {
 						return;
+					}
 					rcovariate = RecalibratorUtil.computeCovariates(read, covariates);
 				}
-				if (qpos < 0 || quals[qpos] < option.PRESERVE_QSCORES_LESS_THAN
+				if (qpos < 0 || quals[qpos] < option.PRESERVE_QSCORES_LESS_THAN || rcovariate == null
 						|| !consistent.isColorSpaceConsistent(qpos, read.getReadNegativeStrandFlag())) {
 					continue;
 				}
@@ -98,7 +110,7 @@ public class RecalibratorEngine {
 		}
 	}
 
-	public void dataUpdate(final int offset, final byte base, final byte quality, final byte refBase,
+	public boolean dataUpdate(final int offset, final byte base, final byte quality, final byte refBase,
 			final ReadCovariates readCovariates) {
 		final boolean isError = !BaseUtils.basesAreEqual(base, refBase);
 		final EventType eventType = EventType.SNP;
@@ -133,6 +145,8 @@ public class RecalibratorEngine {
 			else
 				covPreviousDatum.increment(isError);
 		}
+		
+		return isError;
 	}
 
 	private void baseQualityStatistics(GaeaSamRecord read) {

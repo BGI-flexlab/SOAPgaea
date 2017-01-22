@@ -11,17 +11,17 @@ public class Mpileup implements MpileupInterface<Pileup>{
 	/**
 	 * reads pool list
 	 */
-	protected ReadsPool readsPool;
+	private ReadsPool readsPool;
 
 	/**
 	 * sample -> pileup
 	 */
-	protected Map<String, Pileup> pileups = new HashMap<>();
+	private Map<String, Pileup> pileups = new HashMap<>();
 
 	/**
 	 * end of pileup position
 	 */
-	protected int end;
+	private int end;
 
 	/**
 	 * position
@@ -31,13 +31,13 @@ public class Mpileup implements MpileupInterface<Pileup>{
 	/**
 	 * tmp read
 	 */
-	protected AlignmentsBasic tmpRead = null;
+	private AlignmentsBasic tmpRead = null;
 
 	/**
-	 *
-	 * @param readsPool
-	 * @param position
-	 * @param end
+	 * constructor
+	 * @param readsPool reads
+	 * @param position start
+	 * @param end end
 	 */
 	public Mpileup(ReadsPool readsPool, int position, int end) {
 		this.readsPool = readsPool;
@@ -45,7 +45,11 @@ public class Mpileup implements MpileupInterface<Pileup>{
 		this.end = end;
 	}
 
-
+	/**
+	 * add reads
+	 * @param read read
+	 * @param pos position
+	 */
 	protected void addReads2Pileup(AlignmentsBasic read, int pos) {
 		Pileup pileup = pileups.get(read.getSample());
 		if (pileup == null) {
@@ -58,7 +62,7 @@ public class Mpileup implements MpileupInterface<Pileup>{
 
 	/**
 	 *
-	 * @return
+	 * @return is Empty of all sample pileup
 	 */
 	public boolean allEmpty() {
 		boolean allEmpty = true;
@@ -190,5 +194,12 @@ public class Mpileup implements MpileupInterface<Pileup>{
 		return position;
 	}
 
+	public int getSize() {
+		return pileups.size();
+	}
+	
+	public void clear(){
+		pileups.clear();
+	}
 }
 

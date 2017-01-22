@@ -4,12 +4,38 @@ import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.sequenceplatform.NGSPlatform;
 import org.bgi.flexlab.gaea.tools.recalibrator.covariate.Covariate;
+import org.bgi.flexlab.gaea.tools.recalibrator.covariate.QualityCovariate;
+import org.bgi.flexlab.gaea.tools.recalibrator.covariate.ReadGroupCovariate;
 import org.bgi.flexlab.gaea.util.BaseUtils;
 import org.bgi.flexlab.gaea.util.ReadUtils;
 
 import htsjdk.samtools.SAMReadGroupRecord;
 
 public class RecalibratorUtil {
+	/**
+	 * table name
+	 */
+	public final static String ARGUMENT_TABLE_NAME = "Argument";
+	public final static String QUANTIZED_TABLE_NAME = "Quantized";
+	public final static String[] RECALIBRATOR_TABLE_NAME = { "ReadGroupTable", "QualityScoreTable", "CovariateTable" };
+
+	/**
+	 * table column name
+	 */
+	public final static String ARGUMENT_VALUE_COLUMN_NAME = "Value";
+	public final static String QUANTIZED_SCORE_COLUMN_NAME = QualityCovariate.class.getSimpleName()
+			.split("Covariate")[0];
+	public final static String QUANTIZED_VALUE_COLUMN_NAME = "QuantizedScore";
+	public static final String QUANTIZED_COUNT_COLUMN_NAME = "Count";
+	public final static String COVARIATE_VALUE_COLUMN_NAME = "CovariateValue";
+	public final static String COVARIATE_NAME_COLUMN_NAME = "CovariateName";
+	public final static String NUMBER_OBSERVATIONS_COLUMN_NAME = "Observations";
+	public final static String NUMBER_ERRORS_COLUMN_NAME = "Errors";
+	public final static String EVENT_TYPE_COLUMN_NAME = "EventType";
+	public final static String EMPIRICAL_QUALITY_COLUMN_NAME = "EmpiricalQuality";
+	public final static String ESTIMATED_Q_REPORTED_COLUMN_NAME = "EstimatedQReported";
+	public final static String READGROUP_COLUMN_NAME = ReadGroupCovariate.class.getSimpleName().split("Covariate")[0];
+
 	public enum SolidNocallStrategy {
 		THROW_EXCEPTION, LEAVE_READ_UNRECALIBRATED, PURGE_READ;
 
@@ -186,11 +212,16 @@ public class RecalibratorUtil {
 
 	public static ReadCovariates computeCovariates(final GaeaSamRecord read, final Covariate[] covariates) {
 		final ReadCovariates readCovariates = new ReadCovariates(read.getReadLength(), covariates.length);
+		computeCovariates(read, covariates, readCovariates);
+		return readCovariates;
+	}
+
+	public static void computeCovariates(final GaeaSamRecord read, final Covariate[] covariates,
+			ReadCovariates readCovariates) {
 		for (int i = 0; i < covariates.length; i++) {
 			readCovariates.setCovariateIndex(i);
 			covariates[i].recordValues(read, readCovariates);
 		}
-		return readCovariates;
 	}
 
 	public static boolean isSOLiDRead(GaeaSamRecord read) {

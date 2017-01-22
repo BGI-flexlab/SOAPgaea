@@ -2,6 +2,7 @@ package org.bgi.flexlab.gaea.util;
 
 public class Window {
 	private String contigName;
+	private int chrIndex;
 	private int start;
 	private int stop;
 	
@@ -10,8 +11,9 @@ public class Window {
 		this.stop=stop;
 	}
 	
-	public Window(String contigName,int start,int stop) {
+	public Window(String contigName,int index,int start,int stop) {
 		this.contigName=contigName;
+		this.chrIndex = index;
 		this.start=start;
 		this.stop=stop;
 	}
@@ -51,5 +53,9 @@ public class Window {
 		sb.append("-");
 		sb.append(stop);
 		return sb.toString();
+	}
+	
+	public int getChrIndex(){
+		return this.chrIndex;
 	}
 }

@@ -25,10 +25,20 @@ public class CigarState {
 	 * 2->y: the query coordinate of the start of k.
 	 */
 	private int[] cigarState = new int[3];
+
+	/**
+	 * flag represents the stats of the precess position. we cloud put it in the class that use this class,
+	 * but it will need more functions to get the stat.
+	 * 0x01 is deletion base
+	 * 0x02 is next deletion base
+	 * 0x04 is next insertion base
+	 */
+	private byte flag;
 	
 	public CigarState() {
 		cigarState[0] = -1;
 		cigarState[2] = 0;
+		flag = 0;
 	}
 	
 	public void parseCigar(String cigarv) {
@@ -135,16 +145,28 @@ public class CigarState {
 		if(cigarState[0] >= cigar.size()) {
 			throw new RuntimeException("\tk:" + cigarState[0] + "\tx:" + cigarState[1] + "\ty:" + cigarState[2]);
 		}
-		int op;
-		op = cigar.get(cigarState[0]) & 0xf; 
-		
+		int op, l;
+		op = cigar.get(cigarState[0]) & 0xf;
+		l = (cigar.get(cigarState[0]) >> 4);
 		//System.err.println("2k:" + cigarState[0] + "\tx:" + cigarState[1] + "\ty:" + cigarState[2]);
 
 		if (op == SystemConfiguration.BAM_CMATCH || op == SystemConfiguration.BAM_CEQUAL || op == SystemConfiguration.BAM_CDIFF) {
 			qpos = (int) (cigarState[2] + (pos - cigarState[1]));
 		} else if (op == SystemConfiguration.BAM_CDEL || op == SystemConfiguration.BAM_CREF_SKIP) {
 			qpos = - 1; // FIXME: distinguish D and N!!!!!
+			flag =  (byte) (flag | 0x01);
 		} // cannot be other operations; otherwise a bug
+
+		if(pos - cigarState[1] == l -1 && cigarState[0] + 1 < cigar.size()) {
+			int nextOP = cigar.get(cigarState[0] + 1) & 0xf;
+			if (nextOP == SystemConfiguration.BAM_CDEL)
+				flag = (byte) (flag | 0x02);
+			if (nextOP == SystemConfiguration.BAM_CINS)
+				flag = (byte) (flag | 0x04);
+			if (op == SystemConfiguration.BAM_CMATCH || op == SystemConfiguration.BAM_CEQUAL || op == SystemConfiguration.BAM_CDIFF) {
+				flag = (byte) (flag | 0x08);
+			}
+		}
 		
 		return qpos;
 	}
@@ -224,7 +246,7 @@ public class CigarState {
 					
 			} else if (op == SystemConfiguration.BAM_CREF_SKIP) {
 				cigarState[1] += l;
-			} else if (op == SystemConfiguration.BAM_CINS) { 
+			} else if (op == SystemConfiguration.BAM_CINS || op == SystemConfiguration.BAM_CSOFT_CLIP) { 
 				cigarState[2] += l;
 			}
 		}
@@ -238,6 +260,37 @@ public class CigarState {
 	
 	public int getCurrentCigar() {
 		return cigar.get(cigarState[0]);
+	}
+
+	public int getNextCigar() {
+		if(cigarState[0] + 1 < cigar.size())
+			return cigar.get(cigarState[0] + 1);
+		else
+			return -1;
+	}
+
+	public boolean isDeletionBase() {
+		if((flag & 0x01) != 0)
+			return true;
+		return false;
+	}
+
+	public boolean isNextDeletionBase() {
+		if((flag & 0x02) != 0)
+			return true;
+		return false;
+	}
+
+	public boolean isNextInsertionBase() {
+		if((flag & 0x04) != 0)
+			return true;
+		return false;
+	}
+
+	public boolean isNextMatchBase() {
+		if((flag & 0x08) != 0)
+			return true;
+		return false;
 	}
 
 	public ArrayList<Integer> getCigar() {

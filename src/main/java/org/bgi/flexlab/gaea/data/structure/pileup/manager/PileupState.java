@@ -55,7 +55,7 @@ public class PileupState {
 				addReadToState(records.remove());
 			}
 		}
-		// set loction
+		// set location
 		location = getLocation();
 		while (!records.isEmpty()) {
 			if (records.peek().getReferenceIndex() == location.getContigIndex()

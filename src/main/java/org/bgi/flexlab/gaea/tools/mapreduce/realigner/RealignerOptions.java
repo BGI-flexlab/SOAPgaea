@@ -7,6 +7,9 @@ import org.bgi.flexlab.gaea.data.options.GaeaOptions;
 import org.seqdoop.hadoop_bam.SAMFormat;
 
 public class RealignerOptions extends GaeaOptions implements HadoopOptions{
+	private final static String SOFTWARE_NAME = "Realignment";
+	private final static String SOFTWARE_VERSION = "1.0";
+	
 	private int winSize;
 	private int reducerNumbers;
 	private int maxReadsAtWindows;
@@ -48,23 +51,24 @@ public class RealignerOptions extends GaeaOptions implements HadoopOptions{
 	}
 	
 	public RealignerOptions(){
-		addOption("i", "input", true, "input directory", true);
-		addOption("o", "output", true, "output directory", true);
-		addOption("r", "reference", true, "reference index(generation by GaeaIndex) file path", true);
-		addOption("W", "window", true, "window size for calculating entropy or SNP clusters[10]");
-		addOption("w", "keyWindow", true, "window size for key[10000]");
+		addOption("c", "consensusModel",true,"Determines how to compute the possible alternate consenses.model:DBSNP,READS.[READS]");
+		addOption("d", "LOD",true,"LOD threshold above which the cleaner will clean [5.0].");
 		addOption("e", "windowExtendSize", true, "window extend size[500]");
-		addOption("n", "reducer", true, "reducer numbers[30]");
+		addOption("i", "input", true, "input directory", true);
+		addOption("I", "insertSize",true,"maximum insert size of read pairs that we attempt to realign [3000].");
 		addOption("k", "knowSite", true, "known snp/indel file,the format is VCF4");
-		addOption("M", "multiSample", false, "mutiple sample realignment[false]");
-		addOption("s", "samformat", false, "input file is sam format");
-		addOption("m", "maxReadsAtWindows", true, "max reads numbers at on windows[1000000]");
-		addOption("t", "mismatch", true, "fraction of base qualities needing to mismatch for a position to have high entropy[0]");
-		addOption("d","LOD",true,"LOD threshold above which the cleaner will clean [5.0].");
 		addOption("l", "minReads", true, "minimum reads at a locus to enable using the entropy calculation[4].");
 		addOption("L", "intervalLength", true, "max interval length[500].");
-		addOption("c","consensusModel",true,"Determines how to compute the possible alternate consenses.model:DBSNP,READS.[READS]");
-		addOption("I","MaxInsertSize",true,"maximum insert size of read pairs that we attempt to realign [3000].");
+		addOption("M", "multiSample", false, "mutiple sample realignment[false]");
+		addOption("m", "maxReadsAtWindows", true, "max reads numbers at on windows[1000000]");
+		addOption("n", "reducer", true, "reducer numbers[30]");
+		addOption("o", "output", true, "output directory", true);
+		addOption("r", "reference", true, "reference index(generation by GaeaIndex) file path", true);
+		addOption("s", "samformat", false, "input file is sam format");		
+		addOption("t", "mismatch", true, "fraction of base qualities needing to mismatch for a position to have high entropy[0]");
+		addOption("w", "keyWindow", true, "window size for key[10000]");
+		addOption("W", "window", true, "window size for calculating entropy or SNP clusters[10]");
+		FormatHelpInfo(SOFTWARE_NAME,SOFTWARE_VERSION);
 	}
 
 	@Override

@@ -20,6 +20,8 @@ import org.bgi.flexlab.gaea.data.structure.reference.ReferenceShare;
 import org.bgi.flexlab.gaea.data.structure.reference.index.VcfIndex;
 import org.bgi.flexlab.gaea.data.structure.vcf.VCFLocalLoader;
 import org.bgi.flexlab.gaea.tools.realigner.RealignerEngine;
+import org.bgi.flexlab.gaea.tools.recalibrator.RecalibratorEngine;
+import org.bgi.flexlab.gaea.tools.recalibrator.table.RecalibratorTable;
 import org.bgi.flexlab.gaea.util.SamRecordUtils;
 import org.bgi.flexlab.gaea.util.Window;
 
@@ -37,12 +39,17 @@ public class RealignerReducer
 	private DbsnpShare dbsnpShare = null;
 	private VCFLocalLoader loader = null;
 	private RealignerEngine engine = null;
-	private RealignerContextWriter writer = null;
+	private RecalibratorContextWriter writer = null;
+
+	private RecalibratorEngine recalEngine = null;
+	private RealignerExtendOptions extendOption = new RealignerExtendOptions();
 
 	@Override
 	protected void setup(Context context) throws IOException {
 		Configuration conf = context.getConfiguration();
-		option.getOptionsFromHadoopConf(conf);
+		extendOption.getOptionsFromHadoopConf(conf);
+		option = extendOption.getRealignerOptions();
+
 		mHeader = SamHdfsFileHeader.getHeader(conf);
 
 		if (mHeader == null) {
@@ -54,12 +61,17 @@ public class RealignerReducer
 
 		dbsnpShare = new DbsnpShare(option.getKnowVariant(), option.getReference());
 		dbsnpShare.loadChromosomeList(option.getKnowVariant() + VcfIndex.INDEX_SUFFIX);
-		;
 
 		loader = new VCFLocalLoader(option.getKnowVariant());
 
-		writer = new RealignerContextWriter(context);
+		writer = new RecalibratorContextWriter(context, true);
+
 		engine = new RealignerEngine(option, genomeShare, dbsnpShare, loader, mHeader, writer);
+
+		if (extendOption.isRecalibration()) {
+			recalEngine = new RecalibratorEngine(extendOption.getBqsrOptions(), genomeShare, mHeader,
+					extendOption.isRealignment(), writer);
+		}
 	}
 
 	private boolean unmappedWindows(int chrIndex) {
@@ -78,7 +90,7 @@ public class RealignerReducer
 		int stop = (winNum + 1) * winSize - 1 < mHeader.getSequence(chrName).getSequenceLength()
 				? (winNum + 1) * winSize - 1 : mHeader.getSequence(chrName).getSequenceLength();
 
-		return new Window(chrName, start, stop);
+		return new Window(chrName,chrIndex, start, stop);
 	}
 
 	private int getSamRecords(Iterable<SamRecordWritable> values, ArrayList<GaeaSamRecord> records,
@@ -86,23 +98,8 @@ public class RealignerReducer
 		int windowsReadsCounter = 0;
 		for (SamRecordWritable samWritable : values) {
 			int readWinNum = samWritable.get().getAlignmentStart() / option.getWindowsSize();
-			
-			GaeaSamRecord sam = new GaeaSamRecord(mHeader, samWritable.get(), readWinNum == winNum);
-			windowsReadsCounter++;
 
-			if (windowsReadsCounter > option.getMaxReadsAtWindows()) {
-				try {
-					if (sam.needToOutput()) {
-						samWritable.get().setHeader(mHeader);
-						context.write(NullWritable.get(), samWritable);
-					}
-				} catch (IOException e) {
-					throw new RuntimeException(e.toString());
-				} catch (InterruptedException e) {
-					throw new RuntimeException(e.toString());
-				}
-				continue;
-			}
+			GaeaSamRecord sam = new GaeaSamRecord(mHeader, samWritable.get(), readWinNum == winNum);
 
 			if (SamRecordUtils.isUnmapped(sam)) {
 				context.getCounter("ERROR", "unexpect unmapped reads").increment(1);
@@ -119,6 +116,13 @@ public class RealignerReducer
 
 			records.add(sam);
 
+			windowsReadsCounter++;
+
+			if (windowsReadsCounter > option.getMaxReadsAtWindows()) {
+				windowsReadsCounter = Integer.MAX_VALUE;
+				break;
+			}
+
 			if (!filter.filter(sam, null))
 				filteredRecords.add(sam);
 		}
@@ -133,7 +137,6 @@ public class RealignerReducer
 	@Override
 	public void reduce(WindowsBasedWritable key, Iterable<SamRecordWritable> values, Context context)
 			throws IOException, InterruptedException {
-
 		int chrIndex = key.getChromosomeIndex();
 		int winNum = key.getWindowsNumber();
 		boolean unmapped = unmappedWindows(chrIndex);
@@ -148,24 +151,45 @@ public class RealignerReducer
 			clear();
 			return;
 		}
+		Window win = setWindows(chrIndex, winNum);
 
-		int windowsReadsCounter = getSamRecords(values, records, filteredRecords, key.getWindowsNumber(), context);
+		if (extendOption.isRealignment()) {
+			int windowsReadsCounter = getSamRecords(values, records, filteredRecords, key.getWindowsNumber(), context);
 
-		if (windowsReadsCounter > option.getMaxReadsAtWindows()) {
-			for (SAMRecord sam : records) {
-				outputValue.set(sam);
-				context.write(NullWritable.get(), outputValue);
+			if (windowsReadsCounter == Integer.MAX_VALUE) {
+				if (extendOption.isRecalibration()) {
+					this.recalEngine.mapReads(records, values, win.getContigName(), winNum);
+				}
+
+				for (GaeaSamRecord sam : records) {
+					writer.writeRead(sam);
+				}
+
+				for (SamRecordWritable samw : values) {
+					int readWinNum = samw.get().getAlignmentStart() / option.getWindowsSize();
+					GaeaSamRecord sam = new GaeaSamRecord(mHeader, samw.get(), readWinNum == winNum);
+					writer.writeRead(sam);
+				}
+			} else {
+				engine.set(win, records, filteredRecords);
+				engine.reduce();
+
+				if (extendOption.isRecalibration()) {
+					this.recalEngine.mapReads(records, null, win.getContigName(), winNum);
+				}
 			}
-		} else {
-			Window win = setWindows(chrIndex, winNum);
-			engine.set(win, records, filteredRecords);
-			int cnt = engine.reduce();
-			context.getCounter("ERROR", "reads input count").increment(cnt);
+		} else if (extendOption.isRecalibration()) {
+			this.recalEngine.mapReads(null, values, win.getContigName(), winNum);
 		}
 		clear();
 	}
 
 	@Override
 	protected void cleanup(Context context) throws IOException, InterruptedException {
+		if (extendOption.isRecalibration()) {
+			RecalibratorTable table = recalEngine.getTables();
+			writer.write(table);
+		}
+		writer.close();
 	}
 }

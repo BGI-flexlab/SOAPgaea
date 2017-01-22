@@ -24,6 +24,7 @@ import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
 import org.bgi.flexlab.gaea.data.variant.filter.VariantRegionFilter;
 import org.bgi.flexlab.gaea.tools.mapreduce.realigner.RealignerContextWriter;
 import org.bgi.flexlab.gaea.tools.mapreduce.realigner.RealignerOptions;
+import org.bgi.flexlab.gaea.tools.mapreduce.realigner.RecalibratorContextWriter;
 import org.bgi.flexlab.gaea.tools.realigner.alternateconsensus.AlternateConsensus;
 import org.bgi.flexlab.gaea.tools.realigner.alternateconsensus.AlternateConsensusEngine;
 import org.bgi.flexlab.gaea.util.AlignmentUtil;
@@ -240,12 +241,15 @@ public class IndelRealigner {
 
 	private void write(RealignerWriter writer) {
 		if (writer instanceof RealignerContextWriter) {
-			((RealignerContextWriter) writer).getContext().getCounter("ERROR", "clean reads")
+			((RealignerContextWriter) writer).getContext().getCounter("REALIGNER", "clean reads")
+					.increment(needRealignementReads.size());
+		} else if (writer instanceof RecalibratorContextWriter) {
+			((RecalibratorContextWriter) writer).getContext().getCounter("REALIGNER", "clean reads")
 					.increment(needRealignementReads.size());
 		}
-		if(needRealignementReads.getReads() != null)
+		if (needRealignementReads.getReads() != null)
 			notNeedRealignementReads.addAll(needRealignementReads.getReads());
-		
+
 		writer.writeReadList(notNeedRealignementReads);
 		needRealignementReads.clear();
 		notNeedRealignementReads.clear();
@@ -253,14 +257,12 @@ public class IndelRealigner {
 		effectiveNotCleanReadCount = 0;
 	}
 
-	public int traversals(ArrayList<GaeaSamRecord> records, RealignerWriter writer) {
+	public void traversals(ArrayList<GaeaSamRecord> records, RealignerWriter writer) {
 		updateWindowByInterval();
 
 		ArrayList<VariantContext> overlapKnowIndels = null;
 
-		int cnt = 0;
 		for (GaeaSamRecord sam : records) {
-			cnt++;
 			overlapKnowIndels = filterKnowIndels(sam);
 			pending(overlapKnowIndels, sam, writer);
 		}
@@ -271,7 +273,5 @@ public class IndelRealigner {
 			}
 			write(writer);
 		}
-
-		return cnt;
 	}
 }

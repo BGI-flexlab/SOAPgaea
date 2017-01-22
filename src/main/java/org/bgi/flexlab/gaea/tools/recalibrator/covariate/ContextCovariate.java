@@ -35,7 +35,7 @@ public class ContextCovariate implements OptionalCovariate {
 		if (iContextSize <= 0 || mContextSize > MAX_DNA_CONTEXT)
 			throw new UserException.BadArgumentValueException(iContextSize, 0, MAX_DNA_CONTEXT);
 
-		lowQuality = option.LOW_QUAL_TAIL;
+		lowQuality = option.LOW_QUALITY_TAIL;
 
 		mismatchesMask = createMask(mContextSize);
 		indelsMask = createMask(iContextSize);

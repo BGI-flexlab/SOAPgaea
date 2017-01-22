@@ -1,5 +1,8 @@
 package org.bgi.flexlab.gaea.data.options;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -12,6 +15,7 @@ public abstract class GaeaOptions {
 	protected CommandLine cmdLine;
 	protected CommandLineParser parser = new PosixParser();
 	protected HelpFormatter helpInfo = new HelpFormatter();
+	protected List<Option> optionsList = new ArrayList<Option>();
 
 	/**
 	 * parse parameter
@@ -74,7 +78,12 @@ public abstract class GaeaOptions {
 			String description, boolean required) {
 		Option option = new Option(opt, longOpt, hasArg, description);
 		option.setRequired(required);
+		addOption(option);
+	}
+	
+	protected void addOption(Option option){
 		options.addOption(option);
+		optionsList.add(option);
 	}
 
 	protected String getOptionValue(String opt, String defaultValue) {
@@ -107,8 +116,24 @@ public abstract class GaeaOptions {
 			return Long.parseLong(cmdLine.getOptionValue(opt));
 		return defaultValue;
 	}
+
+	protected byte getOptionByteValue(String opt, byte defaultValue) {
+		if (cmdLine.hasOption(opt))
+			return Byte.parseByte(cmdLine.getOptionValue(opt));
+		return defaultValue;
+	}
+
+	protected short getOptionShortValue(String opt, short defaultValue) {
+		if (cmdLine.hasOption(opt))
+			return Short.parseShort(cmdLine.getOptionValue(opt));
+		return defaultValue;
+	}
 	
 	public Options getOptions(){
 		return this.options;
+	}
+	
+	public List<Option> getOptionList(){
+		return this.optionsList;
 	}
 }
