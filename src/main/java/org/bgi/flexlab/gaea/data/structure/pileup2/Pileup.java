@@ -1,13 +1,12 @@
 package org.bgi.flexlab.gaea.data.structure.pileup2;
 
-
 import org.bgi.flexlab.gaea.data.structure.alignment.AlignmentsBasic;
 
 import java.util.ArrayList;
 
-public class Pileup implements PileupInterface<PileupReadInfo>{
+public class Pileup implements PileupInterface<PileupReadInfo> {
 
-	public static int MAX_DEPTH = 500;
+	public static int MAX_DEPTH = 50000;
 
 	/**
 	 * pileup struct;
@@ -50,17 +49,19 @@ public class Pileup implements PileupInterface<PileupReadInfo>{
 
 	/**
 	 * add readInfo to pileup
-	 * @param readInfo read info in AlignmentsBasic
+	 * 
+	 * @param readInfo
+	 *            read info in AlignmentsBasic
 	 */
 	public void addReads(AlignmentsBasic readInfo) {
 		PileupReadInfo read = new PileupReadInfo(readInfo);
-		if(position >= read.getPosition() && position <= read.getEnd() && plp.size() < MAX_DEPTH) {
+		if (position >= read.getPosition() && position <= read.getEnd() && plp.size() < MAX_DEPTH) {
 			plp.add(read);
 		} else {
-			if(plp.size() == 0) {
+			if (plp.size() == 0) {
 				position = read.getPosition();
 				plp.add(read);
-			} else {
+			} else if (position < read.getPosition() || position > read.getEnd()) {
 				throw new RuntimeException("add read to plp error.");
 			}
 		}
@@ -68,12 +69,12 @@ public class Pileup implements PileupInterface<PileupReadInfo>{
 
 	/**
 	 * remove proccessed reads
-	 * */
-	public void remove(){
-		for(int i = 0; i < plp.size(); i++) {
+	 */
+	public void remove() {
+		for (int i = 0; i < plp.size(); i++) {
 			PileupReadInfo posRead = plp.get(i);
 
-			if(position > posRead.getEnd()) {
+			if (position > posRead.getEnd()) {
 				plp.remove(i);
 				i--;
 			}
@@ -85,26 +86,26 @@ public class Pileup implements PileupInterface<PileupReadInfo>{
 
 		remove();
 
-		if(isEmpty())
+		if (isEmpty())
 			position = Integer.MAX_VALUE;
 	}
 
 	@Override
-	public void calculateBaseInfo(){
+	public void calculateBaseInfo() {
 		deletionCount = 0;
 		nextDeletionCount = 0;
 		nextInsertionCount = 0;
-		if(position != Integer.MAX_VALUE){
-			for(int i = 0; i < plp.size(); i++) {
-				PileupReadInfo posRead= plp.get(i);
+		if (position != Integer.MAX_VALUE) {
+			for (int i = 0; i < plp.size(); i++) {
+				PileupReadInfo posRead = plp.get(i);
 				posRead.calculateQueryPosition(position);
-				if(posRead.isDeletionBase())
+				if (posRead.isDeletionBase())
 					deletionCount++;
-				if(posRead.isNextDeletionBase())
+				if (posRead.isNextDeletionBase())
 					nextDeletionCount++;
-				if(posRead.isNextInsertBase())
+				if (posRead.isNextInsertBase())
 					nextInsertionCount++;
-				if(posRead.isNextMatchBase())
+				if (posRead.isNextMatchBase())
 					nextMatchCount++;
 			}
 		}
@@ -112,6 +113,7 @@ public class Pileup implements PileupInterface<PileupReadInfo>{
 
 	/**
 	 * is plp empty
+	 * 
 	 * @return
 	 */
 	public boolean isEmpty() {
@@ -120,6 +122,7 @@ public class Pileup implements PileupInterface<PileupReadInfo>{
 
 	/**
 	 * get position
+	 * 
 	 * @return
 	 */
 	public int getPosition() {
@@ -128,7 +131,9 @@ public class Pileup implements PileupInterface<PileupReadInfo>{
 
 	/**
 	 * set position
-	 * @param position position
+	 * 
+	 * @param position
+	 *            position
 	 */
 	public void setPosition(int position) {
 		this.position = position;
@@ -155,11 +160,10 @@ public class Pileup implements PileupInterface<PileupReadInfo>{
 	}
 
 	public double getNextIndelRate() {
-		return (nextDeletionCount + nextInsertionCount) / (double) nextMatchCount ;
+		return (nextDeletionCount + nextInsertionCount) / (double) nextMatchCount;
 	}
-	
-	public int getNumberOfElements(){
+
+	public int getNumberOfElements() {
 		return plp.size();
 	}
 }
-
