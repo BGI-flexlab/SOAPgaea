@@ -22,6 +22,14 @@ public class QualityUtils {
 			qualityToErrorProbabilityCache[i] = qualityToErrorProbability(i);
 	}
 
+	static public double qualToProbLog10(byte qual) {
+		return MINUS_QUALITY_PROB_LOG10[(int)qual & 0xff];
+	}
+
+	static public double qualToErrorProbLog10(byte qual) {
+		return QUALITY_PROB_LOG10[(int)qual & 0xff]; // Map: 127 -> 127; -128 -> 128; -1 -> 255; etc.
+	}
+
 	public static double qualityToErrorProbability(final double qual) {
 		return Math.pow(10.0, ((double) qual) / -10.0);
 	}
