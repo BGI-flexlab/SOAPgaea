@@ -95,7 +95,8 @@ public abstract class SAMCompressionInformationBasic extends ReadBasicCompressio
 				end += cigarLength;
 			}
 		}
-		return end;
+		//return end;
+		return end - 1;
 	}
 
 	/**

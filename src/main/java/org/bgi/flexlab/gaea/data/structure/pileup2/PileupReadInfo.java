@@ -147,6 +147,10 @@ public class PileupReadInfo {
 	public int getEnd() {
 		return end;
 	}
+	
+	public int getAlignmentEnd(){
+		return end+1;
+	}
 
 	public String getSample() {
 		return sample;
