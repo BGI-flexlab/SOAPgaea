@@ -84,7 +84,7 @@ public class GenomeLocation implements Comparable<GenomeLocation>,
 		else if (throughEndOfContig() || getStart() == getStop())
 			return String.format("%s:%d", getContig(), getStart());
 		else
-			return String.format("%s:%d-%d", getContigIndex(), getStart(),
+			return String.format("%s:%d-%d", getContig(), getStart(),
 					getStop());
 	}
 

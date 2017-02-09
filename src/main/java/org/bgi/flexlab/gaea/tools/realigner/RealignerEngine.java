@@ -31,6 +31,9 @@ public class RealignerEngine {
 	private RealignerWriter writer = null;
 	private DbsnpShare dbsnpShare = null;
 
+	private int start;
+	private int end;
+
 	public RealignerEngine(RealignerOptions option, ReferenceShare genomeShare, DbsnpShare dbsnpShare,
 			VCFLocalLoader loader, SAMFileHeader mHeader, RealignerWriter writer) {
 		this.option = option;
@@ -64,21 +67,22 @@ public class RealignerEngine {
 		String referenceName = win.getContigName();
 		int WINDOWS_EXTEND = option.getExtendSize();
 
-		int start = (win.getStart() - WINDOWS_EXTEND) > 0 ? (win.getStart() - WINDOWS_EXTEND) : 0;
-		int end = (win.getStop() + WINDOWS_EXTEND) < mHeader.getSequence(referenceName).getSequenceLength()
+		start = (win.getStart() - WINDOWS_EXTEND) > 0 ? (win.getStart() - WINDOWS_EXTEND) : 0;
+		end = (win.getStop() + WINDOWS_EXTEND) < mHeader.getSequence(referenceName).getSequenceLength()
 				? (win.getStop() + WINDOWS_EXTEND) : mHeader.getSequence(referenceName).getSequenceLength();
 
 		long startPosition = dbsnpShare.getStartPosition(referenceName, start / VcfIndex.WINDOW_SIZE,
 				VcfIndex.WINDOW_SIZE);
-		
-		if(startPosition >= 0)
+
+		if (startPosition >= 0)
 			knowIndels = indelFilter.loadFilter(loader, referenceName, startPosition, end);
 	}
 
 	public void reduce() {
 		IdentifyRegionsCreator creator = new IdentifyRegionsCreator(option, filterRecords, mHeader, chrInfo,
 				knowIndels);
-		creator.regionCreator();
+		creator.regionCreator(win.getChrIndex(), 0, Integer.MAX_VALUE);
+
 		ArrayList<GenomeLocation> intervals = creator.getIntervals();
 		filterRecords.clear();
 

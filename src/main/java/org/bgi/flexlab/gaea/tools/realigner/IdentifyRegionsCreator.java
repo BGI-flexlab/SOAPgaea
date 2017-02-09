@@ -1,21 +1,23 @@
 package org.bgi.flexlab.gaea.tools.realigner;
 
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.variant.variantcontext.VariantContext;
-
 import java.util.ArrayList;
+import java.util.Map;
 
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocationParser;
-import org.bgi.flexlab.gaea.data.structure.pileup.Pileup;
-import org.bgi.flexlab.gaea.data.structure.pileup.PileupElement;
-import org.bgi.flexlab.gaea.data.structure.pileup.manager.PileupState;
+import org.bgi.flexlab.gaea.data.structure.pileup2.Mpileup;
+import org.bgi.flexlab.gaea.data.structure.pileup2.Pileup;
+import org.bgi.flexlab.gaea.data.structure.pileup2.PileupReadInfo;
+import org.bgi.flexlab.gaea.data.structure.pileup2.ReadsPool;
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
 import org.bgi.flexlab.gaea.tools.mapreduce.realigner.RealignerOptions;
 import org.bgi.flexlab.gaea.tools.realigner.event.Event;
-import org.bgi.flexlab.gaea.tools.realigner.event.Event.EVENT_TYPE;
 import org.bgi.flexlab.gaea.tools.realigner.event.EventPair;
+import org.bgi.flexlab.gaea.tools.realigner.event.Event.EVENT_TYPE;
+
+import htsjdk.samtools.SAMFileHeader;
+import htsjdk.variant.variantcontext.VariantContext;
 
 public class IdentifyRegionsCreator {
 	private RealignerOptions option = null;
@@ -26,8 +28,7 @@ public class IdentifyRegionsCreator {
 	private ArrayList<GenomeLocation> intervals = null;
 	private int maxIntervalSize = 500;
 
-	public IdentifyRegionsCreator(RealignerOptions option,
-			ArrayList<GaeaSamRecord> records, SAMFileHeader mHeader,
+	public IdentifyRegionsCreator(RealignerOptions option, ArrayList<GaeaSamRecord> records, SAMFileHeader mHeader,
 			ChromosomeInformationShare chr, ArrayList<VariantContext> knowIndels) {
 		this.records = records;
 		this.knowIndels = knowIndels;
@@ -38,50 +39,49 @@ public class IdentifyRegionsCreator {
 		maxIntervalSize = option.getMaxInterval();
 	}
 
-	public Event getEvent(VariantState state, Pileup pileup) {
+	public Event getEvent(VariantState state, int chrIndex, Pileup pileup, int position) {
 		boolean hasIndel = state.isIndel();
 		boolean hasInsertion = state.isInsertion();
 		boolean hasSNP = state.isSNP();
 		int furthestPosition = state.getFurthestPosition();
 
-		GenomeLocation location = pileup.getLocation();
-		byte refBase = chr.getBinaryBase(location.getStart() - 1);
+		byte refBase = chr.getBinaryBase(position - 1);
 
-		boolean lookForMismatchEntropy = option.getMismatchThreshold() > 0
-				&& option.getMismatchThreshold() <= 1 ? true : false;
+		boolean lookForMismatchEntropy = option.getMismatchThreshold() > 0 && option.getMismatchThreshold() <= 1 ? true
+				: false;
 
 		long totalQuality = 0, mismatchQuality = 0;
+		
+		pileup.calculateBaseInfo();
 
-		for (PileupElement p : pileup) {
-			furthestPosition = Math.max(furthestPosition, p.getRead()
-					.getAlignmentEnd());
+		for (PileupReadInfo p : pileup.getPlp()) {
+			furthestPosition = Math.max(furthestPosition, p.getAlignmentEnd());
 
-			if (p.isDeletion() || p.isBeforeInsertion()) {
+			if (p.isDeletionBase() || p.isNextInsertBase()) {
 				hasIndel = true;
-				if (p.isBeforeInsertion())
+				if (p.isNextInsertBase())
 					hasInsertion = true;
 			} else if (lookForMismatchEntropy) {
-				totalQuality += p.getQuality();
+				totalQuality += p.getBaseQuality();
 				if (p.getBase() != refBase)
-					mismatchQuality += p.getQuality();
+					mismatchQuality += p.getBaseQuality();
 			}
 		}
 
-		if (lookForMismatchEntropy
-				&& pileup.getNumberOfElements() >= option.getMinReads()
-				&& (double) mismatchQuality / (double) totalQuality >= option
-						.getMismatchThreshold())
+		if (lookForMismatchEntropy && pileup.getNumberOfElements() >= option.getMinReads()
+				&& (double) mismatchQuality / (double) totalQuality >= option.getMismatchThreshold()){
 			hasSNP = true;
+		}
 
-		if ((!hasIndel && !hasSNP) || (furthestPosition == -1))
+		if ((!hasIndel && !hasSNP) || (furthestPosition == -1)){
 			return null;
+		}
 
+		GenomeLocation location = parser.createGenomeLocation(chrIndex, position);
 		if (hasInsertion)
-			location = parser.createGenomeLocation(location.getContig(),
-					location.getStart(), location.getStart() + 1);
+			location = parser.createGenomeLocation(location.getContig(), location.getStart(), location.getStart() + 1);
 
-		EVENT_TYPE type = hasSNP ? (hasIndel ? EVENT_TYPE.BOTH
-				: EVENT_TYPE.POINT_EVENT) : EVENT_TYPE.INDEL_EVENT;
+		EVENT_TYPE type = hasSNP ? (hasIndel ? EVENT_TYPE.BOTH : EVENT_TYPE.POINT_EVENT) : EVENT_TYPE.INDEL_EVENT;
 
 		return new Event(location, furthestPosition, type);
 	}
@@ -111,35 +111,55 @@ public class IdentifyRegionsCreator {
 	}
 
 	public void setIntervals(EventPair pair) {
-		if (pair.getLeft() != null
-				&& pair.getLeft().isValidEvent(parser, maxIntervalSize))
+		if (pair.getLeft() != null && pair.getLeft().isValidEvent(parser, maxIntervalSize))
 			pair.getIntervals().add(pair.getLeft().getLocation());
-		if (pair.getRight() != null
-				&& pair.getRight().isValidEvent(parser, maxIntervalSize))
+		if (pair.getRight() != null && pair.getRight().isValidEvent(parser, maxIntervalSize))
 			pair.getIntervals().add(pair.getRight().getLocation());
 
 		for (GenomeLocation location : pair.getIntervals())
 			intervals.add(location);
 	}
-	
-	public ArrayList<GenomeLocation> getIntervals(){
+
+	public ArrayList<GenomeLocation> getIntervals() {
 		return intervals;
 	}
 
-	public void regionCreator() {
+	public void regionCreator(int chrIndex,int start, int end) {
+		if(records .size() == 0)
+			return;
+		
 		EventPair pair = new EventPair(null, null);
-		PileupState pState = new PileupState(records, parser);
-		Pileup pileup = null;
-		while (pState.hasNext()) {
-			pileup = pState.next();
-			VariantState state = new VariantState();
-			state.filterVariant(knowIndels, pileup.getLocation().getStart());
-			pair = setEventPair(pair, getEvent(state, pileup));
+		ReadsPool pool = new ReadsPool(records.iterator(), null);
+		
+		int regionStart = records.get(0).getAlignmentStart();
+		Mpileup mpileup = new Mpileup(pool, regionStart, end-1);
+
+		Map<String, Pileup> pileups = mpileup.getNextPosPileup();
+		
+		if(pileups == null)
+			return;
+
+		if (pileups.size() != 1) {
+			throw new RuntimeException("realigner pileup is more than one sample?");
 		}
-		
-		pState = null;
-		pileup = null;
-		
+
+		while (pileups != null) {
+			int currPosition = mpileup.getPosition()+1;
+			if(currPosition < start){
+				pileups = mpileup.getNextPosPileup();
+				continue;
+			}
+			for (String key : pileups.keySet()) {
+				VariantState state = new VariantState();
+				state.filterVariant(knowIndels, currPosition);
+				pair = setEventPair(pair, getEvent(state,chrIndex, pileups.get(key), currPosition));
+			}
+			pileups = mpileup.getNextPosPileup();
+		}
+
+		mpileup.clear();
+
 		setIntervals(pair);
 	}
 }
+
