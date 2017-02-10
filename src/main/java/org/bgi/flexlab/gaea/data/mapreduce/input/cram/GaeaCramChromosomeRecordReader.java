@@ -44,7 +44,11 @@ public class GaeaCramChromosomeRecordReader extends GaeaCramRecordReader {
 		boolean res = super.nextKeyValue();
 		int currSequenceId = record.get().getReferenceIndex();
 		
-		if(prevSeqId == sequenceId && currSequenceId != sequenceId){
+		if(prevSeqId == -1){
+			if(currSequenceId != sequenceId)
+				throw new RuntimeException("Error index start!!");
+			prevSeqId = currSequenceId;
+		}else if(prevSeqId == sequenceId && currSequenceId != sequenceId){
 			return false;
 		}
 

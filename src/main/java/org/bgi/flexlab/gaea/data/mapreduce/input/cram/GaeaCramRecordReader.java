@@ -50,9 +50,6 @@ public class GaeaCramRecordReader extends
 		final Path file = fileSplit.getPath();
 
 		String refSourcePath = conf.get(INPUTFORMAT_REFERENCE);
-		/*ReferenceSource refSource = new ReferenceSource(
-				refSourcePath == null ? null : Paths.get(URI
-						.create(refSourcePath)));*/
 
 		ReferenceSource refSource = new ReferenceSource(new File(refSourcePath));
 		
