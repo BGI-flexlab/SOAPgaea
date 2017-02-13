@@ -11,8 +11,6 @@ import java.util.Map;
 
 import org.bgi.flexlab.gaea.data.exception.UnsortedException;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
-import org.bgi.flexlab.gaea.data.structure.pileup.Pileup;
-import org.bgi.flexlab.gaea.data.structure.pileup.PileupElement;
 
 public class FragmentUtils {
 
@@ -32,14 +30,6 @@ public class FragmentUtils {
 		@Override
 		public GaeaSamRecord get(final GaeaSamRecord object) {
 			return object;
-		}
-	};
-
-	/** Gets the SAMRecord in a PileupElement */
-	private final static ReadGetter<PileupElement> PileupElementGetter = new ReadGetter<PileupElement>() {
-		@Override
-		public GaeaSamRecord get(final PileupElement object) {
-			return object.getRead();
 		}
 	};
 
@@ -105,10 +95,6 @@ public class FragmentUtils {
 		}
 
 		return new FragmentCollection<T>(singletons, overlapping);
-	}
-
-	public final static FragmentCollection<PileupElement> create(Pileup pileup) {
-		return create(pileup, pileup.getNumberOfElements(), PileupElementGetter);
 	}
 
 	public final static FragmentCollection<GaeaSamRecord> create(
