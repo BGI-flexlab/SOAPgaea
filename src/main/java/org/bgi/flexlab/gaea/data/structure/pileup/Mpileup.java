@@ -1,4 +1,4 @@
-package org.bgi.flexlab.gaea.data.structure.pileup2;
+package org.bgi.flexlab.gaea.data.structure.pileup;
 
 import java.util.HashMap;
 import java.util.Iterator;

@@ -2,7 +2,7 @@ package org.bgi.flexlab.gaea.tools.genotyer.GenotypeLikelihoodCalculator;
 
 import htsjdk.variant.variantcontext.VariantContext;
 import org.bgi.flexlab.gaea.data.exception.UserException;
-import org.bgi.flexlab.gaea.data.structure.pileup2.Mpileup;
+import org.bgi.flexlab.gaea.data.structure.pileup.Mpileup;
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
 import org.bgi.flexlab.gaea.tools.mapreduce.genotyper.GenotyperOptions;
 

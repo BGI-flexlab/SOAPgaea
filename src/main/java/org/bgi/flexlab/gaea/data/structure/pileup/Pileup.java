@@ -1,124 +1,169 @@
 package org.bgi.flexlab.gaea.data.structure.pileup;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import org.bgi.flexlab.gaea.data.structure.alignment.AlignmentsBasic;
 
-import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
-import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
-import org.bgi.flexlab.gaea.data.structure.pileup.filter.PileupElementFilter;
-import org.bgi.flexlab.gaea.util.FragmentCollection;
+import java.util.ArrayList;
 
-public interface Pileup extends Iterable<PileupElement>{
-    /**
-     * Gets a pileup consisting of all those elements passed by a given filter.
-     */
-    public Pileup getFilteredPileup(PileupElementFilter filter);
-    
-    public Pileup getOverlappingFragmentFilteredPileup() ;
+public class Pileup implements PileupInterface<PileupReadInfo> {
 
-    /**
-     * Gets a collection of all the read groups represented in this pileup.
-     */
-    public Collection<String> getReadGroups();
+	public static int MAX_DEPTH = 50000;
 
-    /**
-     * Gets a collection of *names* of all the samples stored in this pileup.
-     */
-    public Collection<String> getSamples();
+	/**
+	 * pileup struct;
+	 */
+	private ArrayList<PileupReadInfo> plp;
 
-    /**
-     * Gets the particular subset of this pileup for all the given sample names.
-     */
-    public Pileup getPileupForSamples(Collection<String> sampleNames);
+	/**
+	 * position
+	 */
+	private int position;
 
-    /**
-     * Gets the particular subset of this pileup for each given sample name.
-     * Same as calling getPileupForSample for all samples, but in O(n) instead of O(n^2).
-     */
-    public Map<String, Pileup> getPileupsForSamples(Collection<String> sampleNames);
+	/**
+	 * count of next base is deletion
+	 */
+	private int nextMatchCount;
 
+	/**
+	 * count of next base is insertion
+	 */
+	private int nextInsertionCount;
 
-    /**
-     * Gets the particular subset of this pileup with the given sample name.
-     */
-    public Pileup getPileupForSample(String sampleName);
-    
-    /**
-     * Simple useful routine to count the number of deletion bases in this pileup
-     */
-    public int getNumberOfDeletions();
+	/**
+	 * count of next base is deletion
+	 */
+	private int nextDeletionCount;
 
-    /**
-     * Simple useful routine to count the number of deletion bases in at the next position this pileup
-     */
-    public int getNumberOfDeletionsAfterThisElement();
+	/**
+	 * count of deletion base
+	 */
+	private int deletionCount;
 
-    /**
-     * Simple useful routine to count the number of insertions right after this pileup
-     */
-    public int getNumberOfInsertionsAfterThisElement();
+	public Pileup() {
+		position = -1;
+		plp = new ArrayList<>();
+	}
 
-    public int getNumberOfMappingQualityZeroReads();
+	public ArrayList<PileupReadInfo> getFinalPileup() {
+		return plp;
+	}
 
-    /**
-     * the number of physical elements in this pileup (a reduced read is counted just once)
-     */
-    public int getNumberOfElements();
+	/**
+	 * add readInfo to pileup
+	 * 
+	 * @param readInfo
+	 *            read info in AlignmentsBasic
+	 */
+	public void addReads(AlignmentsBasic readInfo) {
+		PileupReadInfo read = new PileupReadInfo(readInfo);
+		if (position >= read.getPosition() && position <= read.getEnd() && plp.size() < MAX_DEPTH) {
+			plp.add(read);
+		} else {
+			if (plp.size() == 0) {
+				position = read.getPosition();
+				plp.add(read);
+			} else if (position < read.getPosition() || position > read.getEnd()) {
+				throw new RuntimeException("add read to plp error.");
+			}
+		}
+	}
 
-    /**
-     * the number of abstract elements in this pileup (reduced reads are expanded to count all reads that they represent)
-     */
-    public int depthOfCoverage();
+	/**
+	 * remove proccessed reads
+	 */
+	public void remove() {
+		for (int i = 0; i < plp.size(); i++) {
+			PileupReadInfo posRead = plp.get(i);
 
-    /**
-     * true if there are 0 elements in the pileup, false otherwise
-     */
-    public boolean isEmpty();
+			if (position > posRead.getEnd()) {
+				plp.remove(i);
+				i--;
+			}
+		}
+	}
 
-    /**
-     * Get counts of A, C, G, T in order, which returns a int[4] vector with counts according
-     * to BaseUtils.simpleBaseToBaseIndex for each base.
-     */
-    public int[] getBaseCounts();
+	public void forwardPosition(int size) {
+		position += size;
 
-    /**
-     * return the string for the pileup 
-     * */
-    public String toString(Character ref);
+		remove();
 
-    /**
-     * Returns a list of the reads in this pileup.
-     */
-    public List<GaeaSamRecord> getReads();
+		if (isEmpty())
+			position = Integer.MAX_VALUE;
+	}
 
-    /**
-     * Returns a list of the offsets in this pileup. 
-     */
-    public List<Integer> getOffsets();
+	@Override
+	public void calculateBaseInfo() {
+		deletionCount = 0;
+		nextDeletionCount = 0;
+		nextInsertionCount = 0;
+		if (position != Integer.MAX_VALUE) {
+			for (int i = 0; i < plp.size(); i++) {
+				PileupReadInfo posRead = plp.get(i);
+				posRead.calculateQueryPosition(position);
+				if (posRead.isDeletionBase())
+					deletionCount++;
+				if (posRead.isNextDeletionBase())
+					nextDeletionCount++;
+				if (posRead.isNextInsertBase())
+					nextInsertionCount++;
+				if (posRead.isNextMatchBase())
+					nextMatchCount++;
+			}
+		}
+	}
 
-    /**
-     * Returns an array of the bases in this pileup. 
-     */
-    public byte[] getBases();
+	/**
+	 * is plp empty
+	 * 
+	 * @return
+	 */
+	public boolean isEmpty() {
+		return plp.size() == 0;
+	}
 
-    /**
-    * Returns an array of the quals in this pileup. 
-    */
-    public byte[] getQualities();
+	/**
+	 * get position
+	 * 
+	 * @return
+	 */
+	public int getPosition() {
+		return position;
+	}
 
-    /**
-     * Get an array of the mapping qualities
-     */
-    public byte[] getMappingQualities();
+	/**
+	 * set position
+	 * 
+	 * @param position
+	 *            position
+	 */
+	public void setPosition(int position) {
+		this.position = position;
+	}
 
-    /**
-     * Converts this pileup into a FragmentCollection (see FragmentUtils for documentation)
-     */
-    public FragmentCollection<PileupElement> toFragments();
-    
-    /**/
-    public boolean hasReads();
-    
-    public GenomeLocation getLocation();
+	/**
+	 *
+	 * @return plp array list.
+	 */
+	public ArrayList<PileupReadInfo> getPlp() {
+		return plp;
+	}
+
+	public int getDeletionCount() {
+		return deletionCount;
+	}
+
+	public int getNextDeletionCount() {
+		return nextDeletionCount;
+	}
+
+	public int getNextInsertionCount() {
+		return nextInsertionCount;
+	}
+
+	public double getNextIndelRate() {
+		return (nextDeletionCount + nextInsertionCount) / (double) nextMatchCount;
+	}
+
+	public int getNumberOfElements() {
+		return plp.size();
+	}
 }

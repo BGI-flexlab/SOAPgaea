@@ -1,4 +1,4 @@
-package org.bgi.flexlab.gaea.data.structure.pileup2;
+package org.bgi.flexlab.gaea.data.structure.pileup;
 
 import htsjdk.samtools.SAMFileHeader;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.AlignmentBasicWritable;

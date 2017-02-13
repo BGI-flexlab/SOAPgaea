@@ -1,9 +1,10 @@
 package org.bgi.flexlab.gaea.tools.genotyer.GenotypeLikelihoodCalculator;
 
 import htsjdk.variant.variantcontext.*;
-import org.bgi.flexlab.gaea.data.structure.pileup2.Mpileup;
-import org.bgi.flexlab.gaea.data.structure.pileup2.Pileup;
-import org.bgi.flexlab.gaea.data.structure.pileup2.PileupReadInfo;
+
+import org.bgi.flexlab.gaea.data.structure.pileup.Mpileup;
+import org.bgi.flexlab.gaea.data.structure.pileup.Pileup;
+import org.bgi.flexlab.gaea.data.structure.pileup.PileupReadInfo;
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
 import org.bgi.flexlab.gaea.tools.genotyer.VariantCallingEngine;
 import org.bgi.flexlab.gaea.tools.mapreduce.genotyper.GenotyperOptions;
