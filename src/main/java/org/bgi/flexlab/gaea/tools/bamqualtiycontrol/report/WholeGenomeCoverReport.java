@@ -6,17 +6,23 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.bgi.flexlab.gaea.data.structure.positioninformation.depth.PositionDepth;
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
-import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report.CounterProperty.BaseType;
-import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report.CounterProperty.Depth;
-import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report.CounterProperty.DepthType;
-import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report.CounterProperty.Interval;
-import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report.Tracker.BaseTracker;
+import org.bgi.flexlab.gaea.data.structure.reference.ReferenceShare;
+import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.BaseCounter;
+import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.CounterProperty.BaseType;
+import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.CounterProperty.Depth;
+import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.CounterProperty.DepthType;
+import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.CounterProperty.Interval;
+import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.Tracker;
+import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.Tracker.BaseTracker;
 
-public class CoverReport{
+
+
+public class WholeGenomeCoverReport{
 
 	private BaseTracker bTracker;
 	
@@ -24,10 +30,11 @@ public class CoverReport{
 	
 	private static String chrName;
 	
-	private static Map<String, CoverReport> coverReports;
+	private static Map<String, WholeGenomeCoverReport> coverReports;
 	
-	private CoverReport(ChromosomeInformationShare chrInfo) {
-		super();
+	private WholeGenomeCoverReport(ChromosomeInformationShare chrInfo) {
+		bTracker = new Tracker.BaseTracker();
+		register();
 		this.chrInfo = chrInfo;
 		this.chrName = chrInfo.getChromosomeName();
 		coverReports = new ConcurrentHashMap<>();
@@ -54,13 +61,12 @@ public class CoverReport{
 		coverString.append("Cover Information:\n");
 		coverString.append(chrName);
 		coverString.append("\t");
-		coverString.append(bTracker.getBaseCount(BaseType.COVERED));
-		coverString.append("\t");
-		coverString.append(bTracker.getTotalDepth(Interval.WHOLEGENOME, Depth.TOTALDEPTH, DepthType.NORMAL));
-		coverString.append("\t");
-		coverString.append(bTracker.getBaseCount(BaseType.INDELREF));
-		coverString.append("\t");
-		coverString.append(bTracker.getBaseCount(BaseType.MISMATCHREF));
+		for(Entry<String, BaseCounter> counter : bTracker.getCounterMap().entrySet()) {
+			coverString.append(counter.getKey());
+			coverString.append(" ");
+			coverString.append(counter.getValue().getProperty());
+			coverString.append("\t");
+		}
 		coverString.append("\n");
 		
 		return coverString.toString();
@@ -84,6 +90,44 @@ public class CoverReport{
 		coverString.append("%\n\n");
 		
 		return coverString.toString();
+	}
+	
+	public void parse(String line, ReferenceShare genome) {
+		String[] splitArray = line.split("\t");
+		WholeGenomeCoverReport coverReport = null;
+		for(String keyValue : splitArray) {
+			if(keyValue.split(" ").length == 1) {
+				String chrName = keyValue;
+				if(!coverReports.containsKey(chrName)) {
+					ChromosomeInformationShare chrInfo = genome.getChromosomeInfo(chrName);
+					coverReport = new WholeGenomeCoverReport(chrInfo);
+					coverReports.put(chrName, coverReport);
+				} else {
+					coverReport = coverReports.get(chrName);
+				}
+			} else {
+				parseKeyValue(keyValue, genome, coverReport);
+			}
+		}
+	}
+	
+	private void parseKeyValue(String keyValue, ReferenceShare genome, WholeGenomeCoverReport coverReport) {
+		String key = keyValue.split(" ")[0];
+		String value = keyValue.split(" ")[1];
+		BaseCounter bCounter = null;
+		if((bCounter = coverReport.getBasetTracker().getCounterMap().get(key)) != null) {
+			if(!key.contains(Depth.TOTALDEPTH.toString())) {
+				bCounter.setBaseCount(Long.parseLong(value));
+			} else {
+				bCounter.setTotalDepth(Long.parseLong(value));
+			}
+		} else {
+			throw new RuntimeException("Can not idenity counter with name " + key);
+		}
+	}
+	
+	public BaseTracker getBasetTracker() {
+		return bTracker;
 	}
 	
 	public double getCoverage() {
@@ -119,24 +163,24 @@ public class CoverReport{
 		return counters;
 	}
 	
-	public static Map<String, CoverReport>getCoverReports() {
+	public static Map<String, WholeGenomeCoverReport>getCoverReports() {
 		return coverReports;
 	}
 	
-	public static CoverReport getCoverReport(ChromosomeInformationShare chrInfo) {
+	public static WholeGenomeCoverReport getCoverReport(ChromosomeInformationShare chrInfo) {
 		if(!coverReports.containsKey(chrInfo.getChromosomeName())) {
-			CoverReport coverInfo = new CoverReport(chrInfo);
+			WholeGenomeCoverReport coverInfo = new WholeGenomeCoverReport(chrInfo);
 			coverReports.put(chrInfo.getChromosomeName(), coverInfo);
 		}
 		return coverReports.get(chrInfo.getChromosomeName());
 	}
 	
-	public static CoverReport getCoverReport(String chrName) {
+	public static WholeGenomeCoverReport getCoverReport(String chrName) {
 		return coverReports.get(chrName);
 	}
 	
 	public static void addCoverReport(ChromosomeInformationShare chrInfo) {
-		CoverReport coverInfo = new CoverReport(chrInfo);
+		WholeGenomeCoverReport coverInfo = new WholeGenomeCoverReport(chrInfo);
 		coverReports.put(chrName, coverInfo);
 	}
 

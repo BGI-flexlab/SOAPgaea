@@ -3,7 +3,8 @@ package org.bgi.flexlab.gaea.tools.variantrecalibratioin.traindata;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.bgi.flexlab.gaea.tools.mapreduce.variantrecalibratioin.VariantRecalibrationOptions;
+import org.bgi.flexlab.gaea.tools.mapreduce.vcfqualitycontrol.VCFQualityControlOptions;
+
 import htsjdk.variant.variantcontext.VariantContext;
 
 public class ResourceManager {
@@ -12,9 +13,9 @@ public class ResourceManager {
     public final List<String> annotationKeys;
     //protected final List<TrainingSet> trainingSets;
     protected final List<TrainData> trainingSets;
-    VariantRecalibrationOptions options;
+    VCFQualityControlOptions options;
     
-    public ResourceManager( VariantRecalibrationOptions options) {
+    public ResourceManager(VCFQualityControlOptions options) {
         this.annotationKeys = new ArrayList<String>( options.getUseAnnotations() );
         annotations = new double[annotationKeys.size()];
         isNull = new boolean[annotationKeys.size()];
@@ -63,17 +64,17 @@ public class ResourceManager {
         switch( trainVC.getType() ) {
             case SNP:
             case MNP:
-                return checkVariationClass( evalVC, VariantRecalibrationOptions.Mode.SNP );
+                return checkVariationClass( evalVC, VCFQualityControlOptions.Mode.SNP );
             case INDEL:
             case MIXED:
             case SYMBOLIC:
-                return checkVariationClass( evalVC, VariantRecalibrationOptions.Mode.INDEL );
+                return checkVariationClass( evalVC, VCFQualityControlOptions.Mode.INDEL );
             default:
                 return false;
         }
     }
 
-    public static boolean checkVariationClass( final VariantContext evalVC, final VariantRecalibrationOptions.Mode mode ) {
+    public static boolean checkVariationClass( final VariantContext evalVC, final VCFQualityControlOptions.Mode mode ) {
         switch( mode ) {
             case SNP:
                 return evalVC.isSNP() || evalVC.isMNP();

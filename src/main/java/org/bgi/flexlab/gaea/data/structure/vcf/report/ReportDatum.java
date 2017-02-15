@@ -1,4 +1,4 @@
-package org.bgi.flexlab.gaea.tools.vcf.report;
+package org.bgi.flexlab.gaea.data.structure.vcf.report;
 
 import java.util.HashSet;
 import java.util.Set;

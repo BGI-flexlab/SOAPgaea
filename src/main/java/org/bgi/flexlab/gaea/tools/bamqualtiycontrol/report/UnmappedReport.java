@@ -8,7 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.hadoop.io.Text;
 import org.bgi.flexlab.gaea.data.structure.region.TargetRegion;
-import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report.CounterProperty.ReadType;
+import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.CounterProperty.ReadType;
 
 public class UnmappedReport {
 	
@@ -30,6 +30,10 @@ public class UnmappedReport {
 			}
 		}
 		return info.toString();
+	}
+	
+	public Map<String, ArrayList<Long>> getUnmappedSites() {
+		return unmappedSites;
 	}
 	
 	public ArrayList<Long> getUnmappedSites(String chrName) {

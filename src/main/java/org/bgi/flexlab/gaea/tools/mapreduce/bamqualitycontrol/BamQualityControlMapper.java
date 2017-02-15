@@ -11,7 +11,7 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamHdfsFileHeader;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
-import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.SamRecordDatum;
+import org.bgi.flexlab.gaea.util.SamRecordDatum;
 import org.bgi.flexlab.gaea.util.SamRecordUtils;
 import org.seqdoop.hadoop_bam.SAMRecordWritable;
 

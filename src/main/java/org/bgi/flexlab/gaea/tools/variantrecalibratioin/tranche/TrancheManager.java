@@ -8,10 +8,8 @@ import java.util.Collections;
 import java.util.List;
 
 import org.bgi.flexlab.gaea.data.exception.UserException;
-import org.bgi.flexlab.gaea.tools.mapreduce.variantrecalibratioin.VariantRecalibrationOptions;
+import org.bgi.flexlab.gaea.tools.mapreduce.vcfqualitycontrol.VCFQualityControlOptions;
 import org.bgi.flexlab.gaea.tools.variantrecalibratioin.traindata.VariantDatum;
-
-
 
 public class TrancheManager {
 	 public static abstract class SelectionMetric {
@@ -102,11 +100,11 @@ public class TrancheManager {
 	        }
 	    }
 
-	    public static List<Tranche> findTranches( final ArrayList<VariantDatum> data, final double[] tranches, final SelectionMetric metric, final VariantRecalibrationOptions.Mode model ) {
+	    public static List<Tranche> findTranches( final ArrayList<VariantDatum> data, final double[] tranches, final SelectionMetric metric, final VCFQualityControlOptions.Mode model ) {
 	        return findTranches( data, tranches, metric, model, null );
 	    }
 
-	    public static List<Tranche> findTranches( final ArrayList<VariantDatum> data, final double[] trancheThresholds, final SelectionMetric metric, final VariantRecalibrationOptions.Mode model, final File debugFile ) {
+	    public static List<Tranche> findTranches( final ArrayList<VariantDatum> data, final double[] trancheThresholds, final SelectionMetric metric, final VCFQualityControlOptions.Mode model, final File debugFile ) {
 
 	        Collections.sort( data, new VariantDatum.VariantDatumLODComparator() );
 	        metric.calculateRunningMetric(data);
@@ -145,7 +143,7 @@ public class TrancheManager {
 	        }
 	    }
 
-	    public static Tranche findTranche( final List<VariantDatum> data, final SelectionMetric metric, final double trancheThreshold, final VariantRecalibrationOptions.Mode model, List<Tranche> tranches ) {
+	    public static Tranche findTranche( final List<VariantDatum> data, final SelectionMetric metric, final double trancheThreshold, final VCFQualityControlOptions.Mode model, List<Tranche> tranches ) {
 
 	        double metricThreshold = metric.getThreshold(trancheThreshold);
 	        int n = data.size();
@@ -160,7 +158,7 @@ public class TrancheManager {
 	        return null;
 	    }
 
-	    public static Tranche trancheOfVariants( final List<VariantDatum> data, int minI, double ts, final VariantRecalibrationOptions.Mode model, List<Tranche> tranches ) {
+	    public static Tranche trancheOfVariants( final List<VariantDatum> data, int minI, double ts, final VCFQualityControlOptions.Mode model, List<Tranche> tranches ) {
 	        Tranche lastTranche = tranches.size() == 0 ? null : tranches.get(tranches.size() - 1);
 	        int knownTi = 0, knownTv = 0, novelTi = 0, novelTv = 0;
 	        if(lastTranche != null) {

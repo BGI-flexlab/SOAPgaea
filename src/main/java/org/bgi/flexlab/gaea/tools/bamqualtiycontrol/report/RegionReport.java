@@ -9,16 +9,19 @@ import java.util.Map.Entry;
 
 import org.bgi.flexlab.gaea.data.structure.positioninformation.depth.PositionDepth;
 import org.bgi.flexlab.gaea.data.structure.region.TargetRegion;
+import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.BaseCounter;
+import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.ReadsCounter;
+import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.Tracker;
+import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.CounterProperty.BaseType;
+import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.CounterProperty.Depth;
+import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.CounterProperty.DepthType;
+import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.CounterProperty.Interval;
+import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.CounterProperty.ReadType;
+import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.Tracker.BaseTracker;
+import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.Tracker.ReadsTracker;
 import org.bgi.flexlab.gaea.data.structure.region.FlankRegion;
 import org.bgi.flexlab.gaea.data.structure.region.Region;
-import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.SamRecordDatum;
-import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report.CounterProperty.BaseType;
-import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report.CounterProperty.Depth;
-import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report.CounterProperty.DepthType;
-import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report.CounterProperty.Interval;
-import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report.CounterProperty.ReadType;
-import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report.Tracker.BaseTracker;
-import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report.Tracker.ReadsTracker;
+import org.bgi.flexlab.gaea.util.SamRecordDatum;
 
 public class RegionReport{
 	
@@ -96,6 +99,35 @@ public class RegionReport{
 		}
 		regionString.append("\n");
 		return regionString.toString();
+	}
+	
+	public void parse(String line) {
+		String[] splitArray = line.split("\t");
+		for(String keyValue : splitArray)
+			parseKeyValue(keyValue);
+	}
+	
+	
+	private void parseKeyValue(String keyValue) {
+		String key = keyValue.split(" ")[0];
+		String value = keyValue.split(" ")[1];
+		ReadsCounter rCounter = null;
+		BaseCounter bCounter = null;
+		if((rCounter = rTracker.getCounterMap().get(key)) != null)
+			rCounter.setReadsCount(Long.parseLong(value));
+		else if((bCounter = bTracker.getCounterMap().get(key)) != null) {
+			if(!key.contains(Depth.TOTALDEPTH.toString())) {
+				if(key.contains(DepthType.WITHOUT_PCR.toString()))
+					bCounter.setBaseWithoutPCRDupCount(Long.parseLong(value));
+				if(key.contains(DepthType.NORMAL.toString()))
+					bCounter.setBaseCount(Long.parseLong(value));
+			} else {
+				bCounter.setTotalDepth(Long.parseLong(value));
+			}
+		} else {
+			throw new RuntimeException("Can not idenity counter with name " + key);
+		}
+			
 	}
 	
 	public String toString(BasicReport basicReport) {

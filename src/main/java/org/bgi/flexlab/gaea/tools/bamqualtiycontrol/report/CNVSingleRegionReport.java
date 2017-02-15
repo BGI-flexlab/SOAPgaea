@@ -1,4 +1,4 @@
-package org.bgi.flexlab.gaea.data.structure.region.report;
+package org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report;
 
 import java.util.ArrayList;
 import java.util.Collections;

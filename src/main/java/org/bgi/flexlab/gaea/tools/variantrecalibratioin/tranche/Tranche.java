@@ -17,8 +17,8 @@ import java.util.Map;
 
 import org.bgi.flexlab.gaea.data.exception.MalformedFile;
 import org.bgi.flexlab.gaea.data.exception.UserException;
-import org.bgi.flexlab.gaea.tools.mapreduce.variantrecalibratioin.VariantRecalibrationOptions;
-import org.bgi.flexlab.gaea.tools.mapreduce.variantrecalibratioin.VariantRecalibrationOptions.Mode;
+import org.bgi.flexlab.gaea.tools.mapreduce.vcfqualitycontrol.VCFQualityControlOptions;
+import org.bgi.flexlab.gaea.tools.mapreduce.vcfqualitycontrol.VCFQualityControlOptions.Mode;
 
 
 public class Tranche {
@@ -27,12 +27,12 @@ public class Tranche {
     public double ts, minVQSLod, knownTiTv, novelTiTv;
     public int knownTi,knownTv,numKnown,novelTi,novelTv,numNovel;
     public String name;
-    public VariantRecalibrationOptions.Mode model;
+    public Mode model;
 
     int accessibleTruthSites = 0;
     int callsAtTruthSites = 0;
 
-    public Tranche(double ts, double minVQSLod, int knownTi, int knownTv, double knownTiTv, int novelTi, int novelTv, double novelTiTv, int accessibleTruthSites, int callsAtTruthSites, VariantRecalibrationOptions.Mode model) {	
+    public Tranche(double ts, double minVQSLod, int knownTi, int knownTv, double knownTiTv, int novelTi, int novelTv, double novelTiTv, int accessibleTruthSites, int callsAtTruthSites, VCFQualityControlOptions.Mode model) {	
     	this(ts, minVQSLod, knownTi + knownTv, knownTiTv, novelTi + novelTv, novelTiTv, accessibleTruthSites, callsAtTruthSites, model);
     	this.knownTi = knownTi;
     	this.knownTv = knownTv;
@@ -40,11 +40,11 @@ public class Tranche {
     	this.novelTv = novelTv;
     }
     
-    public Tranche(double ts, double minVQSLod, int numKnown, double knownTiTv, int numNovel, double novelTiTv, int accessibleTruthSites, int callsAtTruthSites, VariantRecalibrationOptions.Mode model) {
+    public Tranche(double ts, double minVQSLod, int numKnown, double knownTiTv, int numNovel, double novelTiTv, int accessibleTruthSites, int callsAtTruthSites, VCFQualityControlOptions.Mode model) {
         this(ts, minVQSLod, numKnown, knownTiTv, numNovel, novelTiTv, accessibleTruthSites, callsAtTruthSites, model, "anonymous");
     }
 
-    public Tranche(double ts, double minVQSLod, int numKnown, double knownTiTv, int numNovel, double novelTiTv, int accessibleTruthSites, int callsAtTruthSites, VariantRecalibrationOptions.Mode model, String name ) {
+    public Tranche(double ts, double minVQSLod, int numKnown, double knownTiTv, int numNovel, double novelTiTv, int accessibleTruthSites, int callsAtTruthSites, VCFQualityControlOptions.Mode model, String name ) {
         this.ts = ts;
         this.minVQSLod = minVQSLod;
         this.novelTiTv = novelTiTv;

@@ -6,7 +6,7 @@ import java.util.Map;
 
 import org.bgi.flexlab.gaea.data.structure.positioninformation.CalculatePositionInforamtionInterface;
 import org.bgi.flexlab.gaea.data.structure.positioninformation.CompoundInformation;
-import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.SamRecordDatum;
+import org.bgi.flexlab.gaea.util.SamRecordDatum;
 
 public class PositionDepthCNV implements CalculatePositionInforamtionInterface<SamRecordDatum>{
 	private ArrayList<PositionDepthCNVLane> cnvUsedDepth = new ArrayList<PositionDepthCNVLane>();

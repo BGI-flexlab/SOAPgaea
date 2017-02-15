@@ -13,11 +13,11 @@ import htsjdk.variant.vcf.VCFFilterHeaderLine;
 import htsjdk.variant.vcf.VCFHeader;
 import htsjdk.variant.vcf.VCFHeaderLine;
 
-public class FilterEngine {
+public class HardFilter {
 	private List<JexlVCMatchExp> snpFilter = null;
 	private List<JexlVCMatchExp> indelFilter = null;
 	protected Boolean FAIL_MISSING_VALUES = false;
-	public FilterEngine(String filterName, String snpFilter, String indelFilter) {
+	public HardFilter(String filterName, String snpFilter, String indelFilter) {
 		if(snpFilter != null)
 			this.snpFilter = VariantContextUtils.initializeMatchExps(new String[]{filterName+"snp"}, new String[]{snpFilter});
 		if(indelFilter != null)

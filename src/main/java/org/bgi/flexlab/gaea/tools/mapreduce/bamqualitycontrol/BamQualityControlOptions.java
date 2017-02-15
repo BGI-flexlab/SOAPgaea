@@ -26,6 +26,8 @@ public class BamQualityControlOptions extends GaeaOptions implements HadoopOptio
 		addOption("a", "anRegion", true, "annotation regions");
 		addOption("c", "cnvRegion", true, "cnv regions in bed format");
 		addOption("n", "minDepth", true, "minimum depth for single region statistics");
+		addOption("I", "insertSize", true, "insert size");
+		addOption("P", "insertSizeWithoutDup", true, "insert size without duplication");
 		addBooleanOption("C", "cnvDepth", "output the cnv depth file");
 		addBooleanOption("x", "gender", "inhibit gender prediction");
 		addBooleanOption("m", "unmapped", "inhibit unmapped region output");
@@ -97,6 +99,10 @@ public class BamQualityControlOptions extends GaeaOptions implements HadoopOptio
 	private boolean outputUnmapped;
 	
 	private String cnvRegion;
+	
+	private int intsertSize;
+	
+	private int insertSizeWithoutDup;
 
 	@Override
 	public void setHadoopConf(String[] args, Configuration conf) {
@@ -144,6 +150,8 @@ public class BamQualityControlOptions extends GaeaOptions implements HadoopOptio
 		reducerNum = getOptionIntValue("r", 30);
 		region = getOptionValue("R", null);
 		bedfile = getOptionValue("B", null);
+		intsertSize = getOptionIntValue("I", 2000);
+		insertSizeWithoutDup = getOptionIntValue("P", 2000);
 	}
 	
 	/**
@@ -352,6 +360,14 @@ public class BamQualityControlOptions extends GaeaOptions implements HadoopOptio
 	 */
 	public void setCnvRegion(String cnvRegion) {
 		this.cnvRegion = cnvRegion;
+	}
+	
+	public int getInsertSzie() {
+		return intsertSize;
+	}
+	
+	public int getInsertSzieWithoutDup() {
+		return insertSizeWithoutDup;
 	}
 	
 	public boolean isGenderDepth() {

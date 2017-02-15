@@ -7,20 +7,16 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 
-import org.apache.log4j.Logger;
 import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.data.structure.header.VCFConstants;
-import org.bgi.flexlab.gaea.tools.mapreduce.variantrecalibratioin.VariantRecalibration;
-import org.bgi.flexlab.gaea.tools.mapreduce.variantrecalibratioin.VariantRecalibrationOptions;
-import org.bgi.flexlab.gaea.tools.variantrecalibratioin.traindata.TrainData;
+import org.bgi.flexlab.gaea.tools.mapreduce.vcfqualitycontrol.VCFQualityControl;
+import org.bgi.flexlab.gaea.tools.mapreduce.vcfqualitycontrol.VCFQualityControlOptions;
 import org.bgi.flexlab.gaea.tools.variantrecalibratioin.traindata.VariantDatum;
 import org.bgi.flexlab.gaea.tools.variantrecalibratioin.traindata.VariantDatumMessenger;
 import org.bgi.flexlab.gaea.util.ExpandingArrayList;
-import org.bgi.flexlab.gaea.util.MathUtils;
 import org.bgi.flexlab.gaea.util.RandomUtils;
 
 import htsjdk.variant.variantcontext.Allele;
-import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.VariantContextBuilder;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
 
@@ -29,9 +25,9 @@ public class VariantDataManager {
     private final double[] meanVector;
     private final double[] varianceVector; // this is really the standard deviation
     public final List<String> annotationKeys;
-    VariantRecalibrationOptions options;
+    private VCFQualityControlOptions options;
 
-    public VariantDataManager( final List<String> annotationKeys, VariantRecalibrationOptions options) {
+    public VariantDataManager( final List<String> annotationKeys, VCFQualityControlOptions options) {
         this.data = new ExpandingArrayList<VariantDatum>();
         this.annotationKeys = new ArrayList<String>( annotationKeys );
         meanVector = new double[this.annotationKeys.size()];
@@ -119,8 +115,6 @@ public class VariantDataManager {
                 trainingData.add( datum );
             }
         }
-        final int numBadSitesAdded = trainingData.size();
-
         // Next sort the variants by the LOD coming from the positive model and add to the list the bottom X percent of variants
         Collections.sort( data, new VariantDatum.VariantDatumLODComparator() );
         final int numToAdd = Math.max( minimumNumber - trainingData.size(), Math.round((float)bottomPercentage * data.size()) );
@@ -196,8 +190,8 @@ public class VariantDataManager {
 
         for( final VariantDatum datum : data ) {
             attributes.put(VCFConstants.END_KEY, datum.loc.getStop());
-            attributes.put(VariantRecalibration.VQS_LOD_KEY, String.format("%.4f", datum.lod));
-            attributes.put(VariantRecalibration.CULPRIT_KEY, (datum.worstAnnotation != -1 ? annotationKeys.get(datum.worstAnnotation) : "NULL"));
+            attributes.put(VCFQualityControl.VQS_LOD_KEY, String.format("%.4f", datum.lod));
+            attributes.put(VCFQualityControl.CULPRIT_KEY, (datum.worstAnnotation != -1 ? annotationKeys.get(datum.worstAnnotation) : "NULL"));
 
             VariantContextBuilder builder = new VariantContextBuilder("VQSR", datum.loc.getContig(), datum.loc.getStart(), datum.loc.getStop(), alleles).attributes(attributes);
             recalWriter.add(builder.make());

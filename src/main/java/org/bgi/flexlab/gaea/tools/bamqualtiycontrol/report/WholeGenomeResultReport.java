@@ -1,24 +1,30 @@
 package org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.TreeSet;
 
+import org.apache.hadoop.fs.FSDataOutputStream;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.util.LineReader;
 import org.bgi.flexlab.gaea.data.structure.positioninformation.depth.PositionDepth;
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
+import org.bgi.flexlab.gaea.data.structure.reference.ReferenceShare;
 import org.bgi.flexlab.gaea.tools.mapreduce.bamqualitycontrol.BamQualityControlOptions;
 
-public class WholeGenome extends OutputType{
+public class WholeGenomeResultReport extends ResultReport{
 	
-	private CoverReport coverReport;
+	private WholeGenomeCoverReport coverReport;
 	
-	public WholeGenome(BamQualityControlOptions options) throws IOException {
+	public WholeGenomeResultReport(BamQualityControlOptions options) throws IOException {
 		super(options);
 	}
 	
 	public boolean initCoverReport(ChromosomeInformationShare chrInfo) {
 		if(null == chrInfo)
 			return false;
-		coverReport = CoverReport.getCoverReport(chrInfo);
+		coverReport = WholeGenomeCoverReport.getCoverReport(chrInfo);
 		return true;
 	}
 	
@@ -52,8 +58,8 @@ public class WholeGenome extends OutputType{
 		info.append(basicReport.toReducerString());
 		if(!unmappedRegion) {
 			info.append(regionCoverReport.toReducerString());
-			for(String key : CoverReport.getCoverReports().keySet()) {
-				CoverReport cover = CoverReport.getCoverReport(key);
+			for(String key : WholeGenomeCoverReport.getCoverReports().keySet()) {
+				WholeGenomeCoverReport cover = WholeGenomeCoverReport.getCoverReport(key);
 				info.append(cover.toReducerString());
 			}
 			info.append("insert size information:\n");
@@ -73,4 +79,37 @@ public class WholeGenome extends OutputType{
 		return info.toString();
 	}
 	
+	@Override
+	public void parseReport(LineReader lineReader, Text line, ReferenceShare genome) throws IOException {
+		super.parseReport(lineReader, line, genome);
+		String lineString = line.toString();
+		if(lineString.contains("Cover Information")) {
+			if(lineReader.readLine(line) > 0 && line.getLength() != 0) {
+				coverReport.parse(line.toString(), genome);
+			}
+		}
+		
+	}
+	
+	@Override
+	public void write(FileSystem fs, String sampleName) throws IOException {
+		super.write(fs, sampleName);
+		StringBuffer reportFilePath = new StringBuffer();
+		reportFilePath.append(options.getOutputPath());
+		reportFilePath.append("/");
+		reportFilePath.append(sampleName);
+		reportFilePath.append(".bam.report.txt");
+		Path reportPath = new Path(reportFilePath.toString());
+		FSDataOutputStream reportwriter = fs.create(reportPath);
+		StringBuffer info = new StringBuffer();
+		info.append(basicReport.toString());
+		info.append("coverage information:\n");
+		TreeSet<String> keys = new TreeSet<String>(WholeGenomeCoverReport.getCoverReports().keySet());
+		for(String key : keys) {
+			WholeGenomeCoverReport cover = WholeGenomeCoverReport.getCoverReports().get(key);
+			info.append(cover.toString());
+		}
+		reportwriter.write(info.toString().getBytes());
+		reportwriter.close();
+	}
 }

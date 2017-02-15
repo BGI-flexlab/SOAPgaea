@@ -8,6 +8,7 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocationParser;
+import org.bgi.flexlab.gaea.tools.mapreduce.vcfqualitycontrol.VCFQualityControlOptions;
 import org.bgi.flexlab.gaea.tools.variantrecalibratioin.traindata.DBResource;
 import org.bgi.flexlab.gaea.tools.variantrecalibratioin.traindata.FileResource;
 import org.bgi.flexlab.gaea.tools.variantrecalibratioin.traindata.TrainData;
@@ -20,7 +21,7 @@ import htsjdk.variant.variantcontext.VariantContext;
 
 public class VariantRecalibrationMapper extends Mapper<LongWritable, VariantContextWritable, IntWritable, Text>{
 
-	private VariantRecalibrationOptions options;
+	private VCFQualityControlOptions options;
 	
 	private ResourceManager manager;
 	
@@ -31,7 +32,7 @@ public class VariantRecalibrationMapper extends Mapper<LongWritable, VariantCont
 	 */
 	@Override
 	protected void setup(Context context) throws IOException, InterruptedException {
-		options = new VariantRecalibrationOptions();
+		options = new VCFQualityControlOptions();
 		options.getOptionsFromHadoopConf(context.getConfiguration());
 		
 		FastaSequenceFile ref = new FastaSequenceFile(new File(options.getReference()), true);

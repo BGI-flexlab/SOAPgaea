@@ -1,7 +1,7 @@
-package org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report;
+package org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter;
 
-import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report.CounterProperty.Interval;
-import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report.CounterProperty.ReadType;
+import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.CounterProperty.Interval;
+import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.CounterProperty.ReadType;
 
 public class ReadsCounter {
 	
@@ -41,6 +41,10 @@ public class ReadsCounter {
 		for(CounterProperty property : properties)
 			key += property.toString();
 		return key;
+	}
+	
+	public void setReadsCount(long count) {
+		this.count += count;
 	}
 	
 	public long getReadsCount() {

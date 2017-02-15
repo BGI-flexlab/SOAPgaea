@@ -8,24 +8,22 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.bgi.flexlab.gaea.data.structure.positioninformation.depth.PositionDepth;
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
 import org.bgi.flexlab.gaea.data.structure.reference.ReferenceShare;
-import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.SamRecordDatum;
-import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report.OutputType;
-import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report.Region;
+import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report.ResultReport;
+import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report.RegionResultReport;
 import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report.ReportBuilder;
-import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report.WholeGenome;
+import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report.WholeGenomeResultReport;
+import org.bgi.flexlab.gaea.util.SamRecordDatum;
 
 public class BamQualityControlReducer extends Reducer<Text, Text, NullWritable, Text>{
 	
 	private BamQualityControlOptions options;
 		
-	private OutputType reportType;
+	private ResultReport reportType;
 	
 	private ReportBuilder reportBuilder;
 		
 	private PositionDepth deep;
-		
-	private ReferenceShare genome;
-		
+				
 	@Override
 	protected void setup(Context context) throws IOException {
 		Configuration conf = context.getConfiguration();
@@ -33,16 +31,10 @@ public class BamQualityControlReducer extends Reducer<Text, Text, NullWritable, 
 		
 		reportBuilder = new ReportBuilder();
 		if ((options.getRegion() != null) || (options.getBedfile() != null))
-			reportType = new Region(options, conf);
+			reportType = new RegionResultReport(options, conf);
 		else
-			reportType = new WholeGenome(options);
+			reportType = new WholeGenomeResultReport(options);
 	
-		genome = new ReferenceShare();
-		if(options.isDistributeCache()) {
-			genome.loadChromosomeList();
-		} else {
-			genome.loadChromosomeList(options.getReferenceSequencePath());
-		}
 	}
 	
 	
@@ -52,27 +44,27 @@ public class BamQualityControlReducer extends Reducer<Text, Text, NullWritable, 
 		String sampleName = keySplit[0];	//样品名
 		String chrName = keySplit[1];					// 染色体名称
 		long winNum = Long.parseLong(keySplit[2]);		// 窗口编号
-		if(reportType instanceof Region)
-			((Region) reportType).initCNVDepthReport(sampleName);
+		if(reportType instanceof RegionResultReport)
+			((RegionResultReport) reportType).initCNVDepthReport(sampleName);
 		
 		reportBuilder.setReportChoice(reportType);
 		
 		// 按名称获取染色体信息
 		if(reportBuilder.unmappedReport(winNum, chrName, values)) {
-			OutputType report = reportBuilder.build();
+			ResultReport report = reportBuilder.build();
 			context.write(NullWritable.get(), new Text(report.toReducerString(sampleName, chrName, true)));
 			return;
 		}
 		
-		ChromosomeInformationShare chrInfo = genome.getChromosomeInfo(chrName);
+		ChromosomeInformationShare chrInfo = reportType.getReference().getChromosomeInfo(chrName);
 		
-		if(reportType instanceof WholeGenome)
+		if(reportType instanceof WholeGenomeResultReport)
 			if(!reportBuilder.initCoverReport(chrInfo)) {
 				context.getCounter("Exception", "no available chromosome info").increment(1);
 				return;
 			}
 		
-		if(reportType instanceof Region)
+		if(reportType instanceof RegionResultReport)
 			reportBuilder.initCNVDepthReport(sampleName);
 		
 		long start = winNum * BamQualityControl.WINDOW_SIZE; // 窗口起始坐标
@@ -116,7 +108,7 @@ public class BamQualityControlReducer extends Reducer<Text, Text, NullWritable, 
 			if(datum.isRepeat()) 
 				continue;
 			
-			if (!reportBuilder.mappedReport(datum, genome, chrName, context)) 
+			if (!reportBuilder.mappedReport(datum, chrName, context)) 
 				continue;
 				
 			reportBuilder.insertReport(datum);
@@ -126,7 +118,6 @@ public class BamQualityControlReducer extends Reducer<Text, Text, NullWritable, 
 			long pos = winStart + i;
 			//深度和覆盖度统计
 			int depth = deep.getPosDepth(i);
-			int noPCRdepth = deep.getRMDupPosDepth(i);
 			if(depth < 0) {
 				throw new RuntimeException("sample:" + sampleName + " chr:" + chrName + " windSize:" + winSize + " position:" + i + " winStart:" + winStart + " depth:" + depth + " < 0.");
 			}
@@ -142,7 +133,7 @@ public class BamQualityControlReducer extends Reducer<Text, Text, NullWritable, 
 		reportBuilder.singleRegionReports(chrName, winStart, winSize, deep);
 		
 		//write reducer
-		OutputType report = reportBuilder.build();
+		ResultReport report = reportBuilder.build();
 		context.write(NullWritable.get(), new Text(report.toReducerString(sampleName, chrName, false)));
 	} 
 

@@ -4,25 +4,26 @@ import java.io.IOException;
 
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer.Context;
+import org.apache.hadoop.util.LineReader;
 import org.bgi.flexlab.gaea.data.structure.positioninformation.depth.PositionDepth;
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
 import org.bgi.flexlab.gaea.data.structure.reference.ReferenceShare;
-import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.SamRecordDatum;
+import org.bgi.flexlab.gaea.util.SamRecordDatum;
 
 public class ReportBuilder {
 	
-	OutputType report;
+	ResultReport report;
 	
-	public void setReportChoice(OutputType report) {
+	public void setReportChoice(ResultReport report) {
 		this.report = report;
 	}
 	
 	public void initCNVDepthReport(String sampleName) throws IOException {
-		((Region) report).initCNVDepthReport(sampleName);
+		((RegionResultReport) report).initCNVDepthReport(sampleName);
 	}
 	
 	public boolean initCoverReport(ChromosomeInformationShare chrInfo) {
-		return ((WholeGenome) report).initCoverReport(chrInfo);
+		return ((WholeGenomeResultReport) report).initCoverReport(chrInfo);
 	}
 	
 	public boolean unmappedReport(long winNum, String chrName, Iterable<Text> values) {
@@ -33,8 +34,8 @@ public class ReportBuilder {
 		report.finalizeUnmappedReport(chrName);
 	}
 	
-	public boolean mappedReport(SamRecordDatum datum, ReferenceShare genome, String chrName, Context context) {
-		return report.mappedReport(datum, genome, chrName, context);
+	public boolean mappedReport(SamRecordDatum datum, String chrName, Context context) {
+		return report.mappedReport(datum, chrName, context);
 	}
 	
 	public void depthReport(PositionDepth pd, int i, String chrName, long pos) {
@@ -50,10 +51,14 @@ public class ReportBuilder {
 	}
 	
 	public int getSampleLaneSzie(String sample) {
-		return report instanceof Region ? ((Region) report).getSampleLaneSize(sample) : 0;
+		return report instanceof RegionResultReport ? ((RegionResultReport) report).getSampleLaneSize(sample) : 0;
 	}
 	
-	public OutputType build() {
+	public void parseReport(LineReader lineReader, Text line, ReferenceShare genome) throws IOException {
+		report.parseReport(lineReader, line, genome);
+	}
+	
+	public ResultReport build() {
 		return report;
 	}
 }

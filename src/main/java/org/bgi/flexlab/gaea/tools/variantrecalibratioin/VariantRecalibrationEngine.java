@@ -2,7 +2,7 @@ package org.bgi.flexlab.gaea.tools.variantrecalibratioin;
 
 import java.util.List;
 
-import org.bgi.flexlab.gaea.tools.mapreduce.variantrecalibratioin.VariantRecalibrationOptions;
+import org.bgi.flexlab.gaea.tools.mapreduce.vcfqualitycontrol.VCFQualityControlOptions;
 import org.bgi.flexlab.gaea.tools.variantrecalibratioin.model.GaussianMixtureModel;
 import org.bgi.flexlab.gaea.tools.variantrecalibratioin.traindata.VariantDatum;
 import org.bgi.flexlab.gaea.util.RandomUtils;
@@ -12,7 +12,7 @@ public class VariantRecalibrationEngine {
 	public final static double MIN_ACCEPTABLE_LOD_SCORE = -20000.0;
 
     // the unified argument collection
-    final private VariantRecalibrationOptions options;
+    final private VCFQualityControlOptions options;
 
     private final static double MIN_PROB_CONVERGENCE = 2E-2;
 
@@ -20,7 +20,7 @@ public class VariantRecalibrationEngine {
     // Public Methods to interface with the Engine
     /////////////////////////////
 
-    public VariantRecalibrationEngine( final VariantRecalibrationOptions options ) {
+    public VariantRecalibrationEngine( final VCFQualityControlOptions options ) {
         this.options = options;
     }
 

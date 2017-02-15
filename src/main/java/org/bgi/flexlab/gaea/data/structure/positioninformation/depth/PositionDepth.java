@@ -11,8 +11,7 @@ import org.bgi.flexlab.gaea.data.structure.positioninformation.other.PositionDel
 import org.bgi.flexlab.gaea.data.structure.positioninformation.other.PositionIndelInformation;
 import org.bgi.flexlab.gaea.data.structure.positioninformation.other.PositionMismatchInformation;
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
-//import org.bgi.flexlab.gaea.tools.bam.depth.Bam2Depth;
-import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.SamRecordDatum;
+import org.bgi.flexlab.gaea.util.SamRecordDatum;
 
 public class PositionDepth implements CalculateWindowInformationInterface<SamRecordDatum>{
 	

@@ -2,12 +2,11 @@
  * Copyright (c) 2011, BGI and/or its affiliates. All rights reserved.
  * BGI PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
-package org.bgi.flexlab.gaea.tools.bamqualtiycontrol;
+package org.bgi.flexlab.gaea.util;
 
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.bam.ParseSAMBasic;
 import org.bgi.flexlab.gaea.data.structure.bam.SAMInformationBasic;
-import org.bgi.flexlab.gaea.util.CigarState;
 
 import htsjdk.samtools.SAMRecord;
 

@@ -1,4 +1,4 @@
-package org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report;
+package org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter;
 
 public interface CounterProperty {
 	

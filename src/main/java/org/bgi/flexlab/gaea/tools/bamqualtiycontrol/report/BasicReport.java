@@ -9,11 +9,14 @@ import java.util.Map.Entry;
 import org.apache.hadoop.mapreduce.Reducer.Context;
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
 import org.bgi.flexlab.gaea.data.structure.reference.ReferenceShare;
-import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.SamRecordDatum;
-import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report.CounterProperty.BaseType;
-import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report.CounterProperty.ReadType;
-import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report.Tracker.BaseTracker;
-import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report.Tracker.ReadsTracker;
+import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.BaseCounter;
+import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.ReadsCounter;
+import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.Tracker;
+import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.CounterProperty.BaseType;
+import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.CounterProperty.ReadType;
+import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.Tracker.BaseTracker;
+import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.Tracker.ReadsTracker;
+import org.bgi.flexlab.gaea.util.SamRecordDatum;
 
 public class BasicReport{
 	
@@ -141,6 +144,28 @@ public class BasicReport{
 			}
 		}
 		return isMismatch;
+	}
+	
+	public void parse(String line) {
+		String[] splitArray = line.split("\t");
+		for(String keyValue : splitArray)
+			parseKeyValue(keyValue);
+	}
+	
+	
+	private void parseKeyValue(String keyValue) {
+		String key = keyValue.split("\t")[0];
+		String value = keyValue.split("\t")[1];
+		ReadsCounter rCounter = null;
+		BaseCounter bCounter = null;
+		if((rCounter = rTracker.getCounterMap().get(key)) != null)
+			rCounter.setReadsCount(Long.parseLong(value));
+		else if((bCounter = bTracker.getCounterMap().get(key)) != null)
+			bCounter.setBaseCount(Long.parseLong(value));
+		else {
+			throw new RuntimeException("Can not idenity counter with name " + key);
+		}
+			
 	}
 	
 	public void register() {

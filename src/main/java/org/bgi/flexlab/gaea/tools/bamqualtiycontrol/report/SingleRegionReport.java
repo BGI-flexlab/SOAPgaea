@@ -1,4 +1,4 @@
-package org.bgi.flexlab.gaea.data.structure.region.report;
+package org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -68,6 +68,10 @@ public abstract class SingleRegionReport<T extends SingleRegionStatistic> {
 	}
 	public Map<Regiondata, T> getResult() {
 		return result;
+	}
+	
+	public SingleRegion getRegion() {
+		return singleReigon;
 	}
 	
 	public abstract String getWholeRegionInfo(IntPositionInformation deep, int start, int end);

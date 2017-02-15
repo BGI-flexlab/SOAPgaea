@@ -18,8 +18,8 @@ import org.bgi.flexlab.gaea.data.mapreduce.util.HdfsFileManager;
 import org.bgi.flexlab.gaea.data.structure.header.GaeaVCFHeader;
 import org.bgi.flexlab.gaea.data.structure.header.MultipleVCFHeader;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocationParser;
-import org.bgi.flexlab.gaea.tools.mapreduce.variantrecalibratioin.VariantRecalibration;
-import org.bgi.flexlab.gaea.tools.mapreduce.variantrecalibratioin.VariantRecalibrationOptions;
+import org.bgi.flexlab.gaea.tools.mapreduce.vcfqualitycontrol.VCFQualityControl;
+import org.bgi.flexlab.gaea.tools.mapreduce.vcfqualitycontrol.VCFQualityControlOptions;
 import org.bgi.flexlab.gaea.tools.variantrecalibratioin.traindata.ResourceManager;
 import org.bgi.flexlab.gaea.tools.variantrecalibratioin.traindata.VariantDatumMessenger;
 import org.bgi.flexlab.gaea.tools.variantrecalibratioin.tranche.Tranche;
@@ -54,7 +54,7 @@ public class VCFRecalibrator {
     /**
      * options
      */
-    private VariantRecalibrationOptions options;
+    private VCFQualityControlOptions options;
     
     /**
      * recal table which store recal table data
@@ -77,7 +77,7 @@ public class VCFRecalibrator {
      * @param conf
      * @throws IOException
      */
-    public VCFRecalibrator(VariantRecalibrationOptions options, Configuration conf) throws IOException {
+    public VCFRecalibrator(VCFQualityControlOptions options, Configuration conf) throws IOException {
     	this.conf = conf;
         this.options = options;
         headers = (MultipleVCFHeader) GaeaVCFHeader.loadVcfHeader(false, this.conf);
@@ -165,10 +165,10 @@ public class VCFRecalibrator {
      */
     public static void addVQSRStandardHeaderLines(final Set<VCFHeaderLine> hInfo) {
         hInfo.add(VCFStandardHeaderLines.getInfoLine(VCFConstants.END_KEY));
-        hInfo.add(new VCFInfoHeaderLine(VariantRecalibration.VQS_LOD_KEY, 1,
+        hInfo.add(new VCFInfoHeaderLine(VCFQualityControl.VQS_LOD_KEY, 1,
                 VCFHeaderLineType.Float,
                 "Log odds of being a true variant versus being false under the trained gaussian mixture model"));
-        hInfo.add(new VCFInfoHeaderLine(VariantRecalibration.CULPRIT_KEY, 1,
+        hInfo.add(new VCFInfoHeaderLine(VCFQualityControl.CULPRIT_KEY, 1,
                 VCFHeaderLineType.String,
                 "The annotation which was the worst performing in the Gaussian mixture model, likely the reason why the variant was filtered out"));
     }
@@ -192,10 +192,10 @@ public class VCFRecalibrator {
 
         	if (recalDatum == null) {
         		throw new UserException(
-                    "Encountered input variant which isn't found in the input recal file. Please make sure VariantRecalibration and ApplyRecalibration were run on the same set of input variants. First seen at: " + vc);
+                    "Encountered input variant which isn't found in the input recal file. Please make sure VCFQualityControl and ApplyRecalibration were run on the same set of input variants. First seen at: " + vc);
                 }
 
-        	final String lodString = recalDatum.getAttributeAsString(VariantRecalibration.VQS_LOD_KEY, null);
+        	final String lodString = recalDatum.getAttributeAsString(VCFQualityControl.VQS_LOD_KEY, null);
 
         	if (lodString == null) {
         		throw new UserException(
@@ -215,9 +215,9 @@ public class VCFRecalibrator {
         	String filterString = null;
 
         	// Annotate the new record with its VQSLOD and the worst performing annotation
-        	builder.attribute(VariantRecalibration.VQS_LOD_KEY, lod);
-        	builder.attribute(VariantRecalibration.CULPRIT_KEY,
-        	recalDatum.getAttribute(VariantRecalibration.CULPRIT_KEY));
+        	builder.attribute(VCFQualityControl.VQS_LOD_KEY, lod);
+        	builder.attribute(VCFQualityControl.CULPRIT_KEY,
+        	recalDatum.getAttribute(VCFQualityControl.CULPRIT_KEY));
 
         	for (int i = tranches.size() - 1; i >= 0; i--) {
         		final Tranche tranche = tranches.get(i);

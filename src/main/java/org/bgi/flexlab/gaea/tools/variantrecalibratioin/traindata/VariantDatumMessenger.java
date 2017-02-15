@@ -3,7 +3,7 @@ package org.bgi.flexlab.gaea.tools.variantrecalibratioin.traindata;
 import java.io.IOException;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocationParser;
-import org.bgi.flexlab.gaea.tools.mapreduce.variantrecalibratioin.VariantRecalibrationOptions;
+import org.bgi.flexlab.gaea.tools.mapreduce.vcfqualitycontrol.VCFQualityControlOptions;
 import org.bgi.flexlab.gaea.util.MathUtils;
 import org.bgi.flexlab.gaea.util.QualityUtils;
 import org.bgi.flexlab.gaea.util.RandomUtils;
@@ -130,7 +130,7 @@ public class VariantDatumMessenger{
 		private GenomeLocation loc;
 		private int worstAnnotation;
 		
-		private VariantRecalibrationOptions options;
+		private VCFQualityControlOptions options;
 		
 		private ResourceManager manager;
 				
@@ -149,7 +149,7 @@ public class VariantDatumMessenger{
 			this.worstAnnotation = 0;
 		}
 		
-		public Builder(ResourceManager manager, VariantContext vc, VariantRecalibrationOptions options) {
+		public Builder(ResourceManager manager, VariantContext vc, VCFQualityControlOptions options) {
 		// TODO Auto-generated constructor stub
 			this();
 			this.vc = vc;

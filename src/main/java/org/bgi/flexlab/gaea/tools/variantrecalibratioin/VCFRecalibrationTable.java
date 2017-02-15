@@ -9,8 +9,8 @@ import java.util.Map;
 
 import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.data.structure.header.VCFConstants;
-import org.bgi.flexlab.gaea.tools.mapreduce.variantrecalibratioin.VariantRecalibration;
-import org.bgi.flexlab.gaea.tools.mapreduce.variantrecalibratioin.VariantRecalibrationOptions;
+import org.bgi.flexlab.gaea.tools.mapreduce.vcfqualitycontrol.VCFQualityControl;
+import org.bgi.flexlab.gaea.tools.mapreduce.vcfqualitycontrol.VCFQualityControlOptions;
 import org.bgi.flexlab.gaea.tools.variantrecalibratioin.model.GaussianMixtureModel;
 import org.bgi.flexlab.gaea.tools.variantrecalibratioin.model.VariantDataManager;
 import org.bgi.flexlab.gaea.tools.variantrecalibratioin.traindata.VariantDatum;
@@ -27,7 +27,7 @@ public class VCFRecalibrationTable {
 	/**
 	 * parameter
 	 */
-    private VariantRecalibrationOptions options; 
+    private VCFQualityControlOptions options; 
     
     /**
      * engine that generate recal table
@@ -66,7 +66,7 @@ public class VCFRecalibrationTable {
 	 * @param options
 	 * @throws IOException
 	 */
-	public VCFRecalibrationTable(VariantRecalibrationOptions options) throws IOException {
+	public VCFRecalibrationTable(VCFQualityControlOptions options) throws IOException {
 		this.options = options;
     	engine = new VariantRecalibrationEngine(options);
 		dataManager = new VariantDataManager( options.getUseAnnotations(), options );
@@ -163,8 +163,8 @@ public class VCFRecalibrationTable {
     		VariantDatum datum = data.get(i);
     		if(datum.loc.getStart() == start && datum.loc.getStop() == end) {
     			attributes.put(VCFConstants.END_KEY, datum.loc.getStop());
-                attributes.put(VariantRecalibration.VQS_LOD_KEY, String.format("%.4f", datum.lod));
-                attributes.put(VariantRecalibration.CULPRIT_KEY, (datum.worstAnnotation != -1 ? options.getUseAnnotations().get(datum.worstAnnotation) : "NULL"));
+                attributes.put(VCFQualityControl.VQS_LOD_KEY, String.format("%.4f", datum.lod));
+                attributes.put(VCFQualityControl.CULPRIT_KEY, (datum.worstAnnotation != -1 ? options.getUseAnnotations().get(datum.worstAnnotation) : "NULL"));
 
                 VariantContextBuilder builder = new VariantContextBuilder("VQSR", datum.loc.getContig(), datum.loc.getStart(), datum.loc.getStop(), alleles).attributes(attributes);
                 return builder.make();

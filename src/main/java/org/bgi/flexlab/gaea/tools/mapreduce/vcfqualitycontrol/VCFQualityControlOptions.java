@@ -1,4 +1,4 @@
-package org.bgi.flexlab.gaea.tools.mapreduce.variantrecalibratioin;
+package org.bgi.flexlab.gaea.tools.mapreduce.vcfqualitycontrol;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -7,47 +7,63 @@ import java.util.List;
 
 import org.apache.commons.cli.ParseException;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.util.GenericOptionsParser;
 import org.bgi.flexlab.gaea.data.mapreduce.options.HadoopOptions;
 import org.bgi.flexlab.gaea.data.options.GaeaOptions;
 import org.bgi.flexlab.gaea.data.structure.header.GaeaVCFHeader;
+import org.seqdoop.hadoop_bam.KeyIgnoringVCFOutputFormat;
+import org.seqdoop.hadoop_bam.VCFOutputFormat;
 
-public class VariantRecalibrationOptions extends GaeaOptions implements HadoopOptions {
-	private final static String SOFTWARE_NAME = "VariantRecalibration";
+public class VCFQualityControlOptions extends GaeaOptions implements HadoopOptions{
+	private final static String SOFTWARE_NAME = "VCFQualityControl";
 	private final static String SOFTWARE_VERSION = "1.0";
 	
-	public VariantRecalibrationOptions() {
+	public VCFQualityControlOptions() {
+		// TODO Auto-generated constructor stub
+		addOption("m", "mode", true, "VQSR:The mode employed to perform vcf quality control(\"1\" is vcf recalibration."
+				+ "\"2\" is hard filter. Default:1");
 		addOption("i", "input", true, "The raw input variants to be recalibrated.", true);
-		addOption("r", "reference", true, "reference in fasta format.", true);
-		addOption("R", "resource", true, "A list of sites for which to apply a prior probability of"
+		addOption("r", "reference", true, "VQSR:reference in fasta format.", true);
+		addOption("R", "resource", true, "VQSR:A list of sites for which to apply a prior probability of"
 				+ " being correct but which aren't used by the algorithm, separated by ':'.", true);
 		addOption("o", "output", true, "The output local path.", true);
-		addOption("e", "report", true, "The output path of vcf qc report", true);
-		addOption("t", "titv", true, "the expected novel Ti/Tv ratio to use when calculating FDR tranches"
+		addOption("t", "titv", true, "VQSR:the expected novel Ti/Tv ratio to use when calculating FDR tranches"
 				+ " and for display on the optimization curve output figures. (approx 2.15 for whole genome"
 				+ " experiments). ONLY USED FOR PLOTTING PURPOSES!");
-		addOption("a", "an", true, "The names of the annotations which should used for calculations, separated by comma.");
-		addOption("T", "TStranche", true, "The levels of novel false discovery rate (FDR, implied by ti/tv) at which to slice the data. (in percent, that is 1.0 for 1 percent)");
-		addOption("I", "ignoreFilter", true, "If specified the variant recalibrator will use variants even if the specified filter name is marked in the input VCF file, separated by comma.");
-		addOption("f", "tsFilterLevel", true, "The truth sensitivity level at which to start filtering, used here to indicate filtered variants in the model reporting plots");
-		addOption("c", "trustAllPolymorphic", false, "Trust that all the input training sets' unfiltered records contain only polymorphic sites to drastically speed up the computation.");
-		addOption("m", "mode", true, "Recalibration mode to employ: 1.) SNP for recalibrating only snps (emitting indels untouched in the output VCF); 2.) INDEL for indels; and 3.) BOTH "
+		addOption("a", "an", true, "VQSR:The names of the annotations which should used for calculations, separated by comma.");
+		addOption("T", "TStranche", true, "VQSR:The levels of novel false discovery rate (FDR, implied by ti/tv) at which to slice the data. (in percent, that is 1.0 for 1 percent)");
+		addOption("I", "ignoreFilter", true, "VQSR:If specified the variant recalibrator will use variants even if the specified filter name is marked in the input VCF file, separated by comma.");
+		addOption("f", "tsFilterLevel", true, "VQSR:The truth sensitivity level at which to start filtering, used here to indicate filtered variants in the model reporting plots");
+		addOption("c", "trustAllPolymorphic", false, "VQSR:Trust that all the input training sets' unfiltered records contain only polymorphic sites to drastically speed up the computation.");
+		addOption("M", "mode", true, "VQSR:Recalibration mode to employ: 1.) SNP for recalibrating only snps (emitting indels untouched in the output VCF); 2.) INDEL for indels; and 3.) BOTH "
 				+ "for recalibrating both snps and indels simultaneously.");
-		addOption("g", "maxGaussians", true, "The maximum number of Gaussians to try during variational Bayes algorithm");
-		addOption("C", "maxIterations", true, "The maximum number of VBEM iterations to be performed in variational Bayes algorithm. Procedure will normally end when convergence is detected.");
-		addOption("k", "numKMeans", true, "The number of k-means iterations to perform in order to initialize the means of the Gaussians in the Gaussian mixture model.");
-		addOption("s", "stdThreshold", true, "If a variant has annotations more than -std standard deviations away from mean then don't use it for building the Gaussian mixture model.");
-		addOption("q", "qualThreshold", true, "If a known variant has raw QUAL value less than -qual then don't use it for building the Gaussian mixture model.");
-		addOption("S", "shrinkage", true, "The shrinkage parameter in the variational Bayes algorithm.");
-		addOption("d", "dirichlet", true, "The dirichlet parameter in the variational Bayes algorithm.");
-		addOption("p", "priorCounts", true, "The number of prior counts to use in the variational Bayes algorithm.");
-		addOption("P", "percentBadVariants", true, "What percentage of the worst scoring variants to use when building the Gaussian mixture model of bad variants. 0.07 means bottom 7 percent.");
-		addOption("b", "minNumBadVariants", true, "The minimum amount of worst scoring variants to use when building the Gaussian mixture model of bad variants. Will override -percentBad argument if necessary.");
-		addOption("O", "hdfsOutputPath", true, "hdfs Output Path.");
-		addOption("l", "tmpPath", true, "temp local Path.");
-		addOption("H", "hasRscript", true, "do Rscript");
+		addOption("g", "maxGaussians", true, "VQSR:The maximum number of Gaussians to try during variational Bayes algorithm");
+		addOption("C", "maxIterations", true, "VQSR:The maximum number of VBEM iterations to be performed in variational Bayes algorithm. Procedure will normally end when convergence is detected.");
+		addOption("k", "numKMeans", true, "VQSR:The number of k-means iterations to perform in order to initialize the means of the Gaussians in the Gaussian mixture model.");
+		addOption("s", "stdThreshold", true, "VQSR:If a variant has annotations more than -std standard deviations away from mean then don't use it for building the Gaussian mixture model.");
+		addOption("q", "qualThreshold", true, "VQSR:If a known variant has raw QUAL value less than -qual then don't use it for building the Gaussian mixture model.");
+		addOption("G", "shrinkage", true, "VQSR:The shrinkage parameter in the variational Bayes algorithm.");
+		addOption("d", "dirichlet", true, "VQSR:The dirichlet parameter in the variational Bayes algorithm.");
+		addOption("p", "priorCounts", true, "VQSR:The number of prior counts to use in the variational Bayes algorithm.");
+		addOption("P", "percentBadVariants", true, "VQSR:What percentage of the worst scoring variants to use when building the Gaussian mixture model of bad variants. 0.07 means bottom 7 percent.");
+		addOption("b", "minNumBadVariants", true, "VQSR:The minimum amount of worst scoring variants to use when building the Gaussian mixture model of bad variants. Will override -percentBad argument if necessary.");
+		addOption("O", "hdfsOutputPath", true, "VQSR:hdfs Output Path."
+				+ "");
+		addOption("l", "tmpPath", true, "VQSR:temp local Path.");
+		addOption("H", "hasRscript", true, "VQSR:do Rscript");
+		addOption("F", "filterName", true, "Hard Filter:filter name");
+		addOption("S", "snpFilter", true, "Hard Filter:snp filter parameter, eg:MQ>10");
+		addOption("D", "indelFilter", true, "Hard Filter:indel filter parameter, eg:\"MQ<10||FS>8.0\"\n");
 		addOption("h", "help", false, "Display help information.");
 	}
+	
+	/**
+	 * vcf quality control mode
+	 */
+	private int vcfqcMode;
 	
 	/**
 	 * input dir or file
@@ -165,10 +181,13 @@ public class VariantRecalibrationOptions extends GaeaOptions implements HadoopOp
 	 */
 	private int minNumBadVariants;
 	
-	/**
-	 * VCF qc report
-	 */
-	private String report;
+	private List<Path> inputList;
+	
+	private String filterName;
+	
+	private String snpFilter;
+	
+	private String indelFilter;
 	
 	/**
 	 * class of Model
@@ -194,8 +213,9 @@ public class VariantRecalibrationOptions extends GaeaOptions implements HadoopOp
 		try {
 			String[] otherArgs = new GenericOptionsParser(args).getRemainingArgs();
 			conf.setStrings("args", otherArgs);
-			conf.set("mapred.child.java.opts", "-Xmx10240m");
+			conf.set(VCFOutputFormat.OUTPUT_VCF_FORMAT_PROPERTY, "VCF");
 			conf.set(GaeaVCFHeader.VCF_HEADER_PROPERTY, setOutputURI("vcfHeader.obj"));
+			conf.setBoolean(KeyIgnoringVCFOutputFormat.WRITE_HEADER_PROPERTY, false);
 		} catch(IOException e) {
 			throw new RuntimeException(e);
 		}		
@@ -208,15 +228,17 @@ public class VariantRecalibrationOptions extends GaeaOptions implements HadoopOp
 		uri.append(output);
 		return uri.toString();
 	}
-	
+
 	@Override
 	public void getOptionsFromHadoopConf(Configuration conf) {
+		// TODO Auto-generated method stub
 		String[] args = conf.getStrings("args");
 		this.parse(args);
 	}
-	
+
 	@Override
 	public void parse(String[] args) {
+		// TODO Auto-generated method stub
 		try {
 			cmdLine = parser.parse(options, args);
 		} catch (ParseException e) {
@@ -225,53 +247,73 @@ public class VariantRecalibrationOptions extends GaeaOptions implements HadoopOp
 			System.exit(1);
 		}
 		
+		vcfqcMode = getOptionIntValue("m", 1);
+		
 		inputs = getOptionValue("i", null);
-		
-		reference = getOptionValue("r", null);
-		
-		String resource = getOptionValue("R", null); 
-		resources.addAll(Arrays.asList(resource.split(":")));
 		
 		outputPath = getOptionValue("o", null);
 		
-		report = getOptionValue("e", null);
 		
-		TargetTiTv = getOptionDoubleValue("t", 2.15);
-		
-		String an = getOptionValue("a", null);
-		UseAnnotatitions.addAll(Arrays.asList(an.split(",")));
-		
-		TsTranches = getOptionValue("T", null);
-		
-		String ignoreFilters = getOptionValue("I", null);
-		IgnoreInputFilters.addAll(Arrays.asList(ignoreFilters.split(",")));
-		
-		TSFilterLevel = getOptionDoubleValue("f", 99.0);
-		
-		TrustAllPolymorphic = getOptionBooleanValue("c", false);
-		
-		mode = Mode.valueOf((getOptionValue("m", "SNP")));
-		
-		maxGaussians = getOptionIntValue("g", 10);
-		
-		maxIterations = getOptionIntValue("C", 100);
-		
-		numKMeansIterations = getOptionIntValue("k", 30);
-		
-		stdThreshold = getOptionDoubleValue("s", 14.0);
-		
-		qualThreshold = getOptionDoubleValue("q", 80.0);
-		
-		shrinkage = getOptionDoubleValue("S", 1.0);
-		
-		dirichletParamenter = getOptionDoubleValue("d", 0.001);
-		
-		priorCounts = getOptionDoubleValue("p", 20.0);
-		
-		percentBadVariants = getOptionDoubleValue("P", 0.03);
-		
-		minNumBadVariants = getOptionIntValue("b", 2500);
-
+		if(vcfqcMode == 1) {
+			try {
+				reference = getOptionValue("r", null);
+				
+				String resource = getOptionValue("R", null); 
+				resources.addAll(Arrays.asList(resource.split(":")));
+				
+				outputPath = getOptionValue("o", null);
+							
+				TargetTiTv = getOptionDoubleValue("t", 2.15);
+				
+				String an = getOptionValue("a", null);
+				UseAnnotatitions.addAll(Arrays.asList(an.split(",")));
+				
+				TsTranches = getOptionValue("T", null);
+				
+				String ignoreFilters = getOptionValue("I", null);
+				IgnoreInputFilters.addAll(Arrays.asList(ignoreFilters.split(",")));
+				
+				TSFilterLevel = getOptionDoubleValue("f", 99.0);
+				
+				TrustAllPolymorphic = getOptionBooleanValue("c", false);
+				
+				mode = Mode.valueOf((getOptionValue("m", "SNP")));
+				
+				maxGaussians = getOptionIntValue("g", 10);
+				
+				maxIterations = getOptionIntValue("C", 100);
+				
+				numKMeansIterations = getOptionIntValue("k", 30);
+				
+				stdThreshold = getOptionDoubleValue("s", 14.0);
+				
+				qualThreshold = getOptionDoubleValue("q", 80.0);
+				
+				shrinkage = getOptionDoubleValue("G", 1.0);
+				
+				dirichletParamenter = getOptionDoubleValue("d", 0.001);
+				
+				priorCounts = getOptionDoubleValue("p", 20.0);
+				
+				percentBadVariants = getOptionDoubleValue("P", 0.03);
+				
+				minNumBadVariants = getOptionIntValue("b", 2500);
+			} catch(Exception e) {
+				throw new IllegalArgumentException("Unrecognized parameter for VQSR, please refer to the help information");
+			}
+		} else if(vcfqcMode == 2) {
+			try{
+				filterName = getOptionValue("F", null);
+				
+				snpFilter = getOptionValue("S", null);
+				
+				indelFilter = getOptionValue("D", null);
+			} catch(Exception e) {
+				throw new IllegalArgumentException("unrecognized parameter for Hard Filter, please refer to the help information");
+			}
+		} else {
+			throw new RuntimeException("Unvalid mode is employed. Please refer to the help information");
+		}
 	}
 	
 	/**
@@ -293,10 +335,6 @@ public class VariantRecalibrationOptions extends GaeaOptions implements HadoopOp
 	 */
 	public List<String> getResources() {
 		return resources;
-	}
-
-	public String getReportPath() {
-		return report;
 	}
 	
 	/**
@@ -347,7 +385,42 @@ public class VariantRecalibrationOptions extends GaeaOptions implements HadoopOp
 	public void setUseAnnotatitions(List<String> useAnnotatitions) {
 		UseAnnotatitions = useAnnotatitions;
 	}
+	
+	public void traversalInputPath(Path path) {
+		Configuration conf = new Configuration();
+		FileSystem fs = null;
+		try {
+			fs = path.getFileSystem(conf);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		try {
+			if (!fs.exists(path)) {
+				System.err
+						.println("Input File Path is not exist! Please check -I var.");
+				System.exit(-1);
+			}
+			if (fs.isFile(path)) {
+				inputList.add(path);
+			} else {
+				FileStatus stats[] = fs.listStatus(path);
 
+				for (FileStatus file : stats) {
+					Path filePath = file.getPath();
+
+					if (!fs.isFile(filePath)) {
+						traversalInputPath(filePath);
+					} else {
+						inputList.add(filePath);
+					}
+				}
+			}
+		} catch (IOException ioe) {
+			throw new RuntimeException(ioe);
+		}
+	}
+	
 	public double[] getTsTranchesDouble() {
 		double[] TsTranchesDouble = new double[] {100.0, 99.9, 99.0, 90.0};
 		if(TsTranches != null && TsTranches != "") {
@@ -588,4 +661,38 @@ public class VariantRecalibrationOptions extends GaeaOptions implements HadoopOp
 	public void setReference(String reference) {
 		this.reference = reference;
 	}
+	
+	public String getSnpFilter() {
+		return snpFilter;
+	}
+	
+	public void setSnpFilter(String snpFilter) {
+		this.snpFilter = snpFilter;
+	}
+	
+	public String getIndelFilter() {
+		return indelFilter;
+	}
+
+	public void setIndelFilter(String indelFilter) {
+		this.indelFilter = indelFilter;
+	}
+	
+	public List<Path> getInputFiles() {
+		traversalInputPath(new Path(inputs));
+		return inputList;
+	}
+	
+	public String getFilterName() {
+		return filterName;
+	}
+	
+	public String setFilterName() {
+		return filterName;
+	}
+	
+	public boolean isRecal() {
+		return vcfqcMode == 1;
+	}
+	
 }

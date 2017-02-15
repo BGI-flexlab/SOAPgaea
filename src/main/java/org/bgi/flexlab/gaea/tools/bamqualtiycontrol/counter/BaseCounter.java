@@ -1,9 +1,9 @@
-package org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report;
+package org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter;
 
-import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report.CounterProperty.BaseType;
-import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report.CounterProperty.Depth;
-import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report.CounterProperty.DepthType;
-import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report.CounterProperty.Interval;
+import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.CounterProperty.BaseType;
+import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.CounterProperty.Depth;
+import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.CounterProperty.DepthType;
+import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.CounterProperty.Interval;
 
 public class BaseCounter {
 
@@ -73,13 +73,25 @@ public class BaseCounter {
 		return baseCount;
 	}
 	
+	public void setBaseCount(long baseCount) {
+		this.baseCount += baseCount;
+	}
+	
 	public long getBaseWithoutPCRDupCount() {
 		return baseWithoutPCRdupCount;
 	}
 
+	public void setBaseWithoutPCRDupCount(long baseWithoutPCRdupCount) {
+		this.baseWithoutPCRdupCount += baseWithoutPCRdupCount;
+	}
+	
 	public long getTotalDepth() {
 		// TODO Auto-generated method stub
 		return totalDepth;
+	}
+	
+	public void setTotalDepth(long totalDepth) {
+		this.totalDepth += totalDepth;
 	}
 	
 	public long getProperty() {
@@ -103,18 +115,6 @@ public class BaseCounter {
 		for(CounterProperty property : properties)
 			key += property.toString();
 		return key;
-	}
-	
-	public Interval interval() {
-		return region;
-	}
-	
-	public Depth depth() {
-		return depth;
-	}
-	
-	public DepthType type() {
-		return dType;
 	}
 
 }
