@@ -1,4 +1,4 @@
-package org.bgi.flexlab.gaea.tools.variantrecalibratioin.tranche;
+package org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin.tranche;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;

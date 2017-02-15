@@ -1,4 +1,4 @@
-package org.bgi.flexlab.gaea.tools.variantrecalibratioin.model;
+package org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin.model;
 
 import java.util.Arrays;
 import java.util.List;
@@ -6,7 +6,7 @@ import java.util.Random;
 
 import org.apache.commons.math3.special.Gamma;
 import org.bgi.flexlab.gaea.data.exception.UserException;
-import org.bgi.flexlab.gaea.tools.variantrecalibratioin.traindata.VariantDatum;
+import org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin.traindata.VariantDatum;
 import org.bgi.flexlab.gaea.util.ExpandingArrayList;
 import org.bgi.flexlab.gaea.util.MathUtils;
 

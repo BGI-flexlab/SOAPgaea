@@ -1,4 +1,4 @@
-package org.bgi.flexlab.gaea.tools.mapreduce.variantrecalibratioin;
+package org.bgi.flexlab.gaea.tools.mapreduce.vcfqualitycontrol.variantrecalibratioin;
 
 import java.io.File;
 import java.io.IOException;
@@ -16,8 +16,8 @@ import org.bgi.flexlab.gaea.data.structure.header.MultipleVCFHeader;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocationParser;
 import org.bgi.flexlab.gaea.data.structure.vcf.report.ReportDatum;
 import org.bgi.flexlab.gaea.tools.mapreduce.vcfqualitycontrol.VCFQualityControlOptions;
-import org.bgi.flexlab.gaea.tools.variantrecalibratioin.VCFRecalibrator;
-import org.bgi.flexlab.gaea.tools.variantrecalibratioin.traindata.VariantDatumMessenger;
+import org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin.VCFRecalibrator;
+import org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin.traindata.VariantDatumMessenger;
 import org.seqdoop.hadoop_bam.VariantContextWritable;
 
 import htsjdk.samtools.reference.FastaSequenceFile;

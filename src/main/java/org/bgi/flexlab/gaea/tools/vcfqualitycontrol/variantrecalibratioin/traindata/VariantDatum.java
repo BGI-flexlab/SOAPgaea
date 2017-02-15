@@ -1,10 +1,10 @@
-package org.bgi.flexlab.gaea.tools.variantrecalibratioin.traindata;
+package org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin.traindata;
 
 import java.io.Serializable;
 import java.util.Comparator;
 
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
-import org.bgi.flexlab.gaea.tools.variantrecalibratioin.model.MultipleVariateGaussian;
+import org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin.model.MultipleVariateGaussian;
 
 public class VariantDatum {
 	public double[] annotations;

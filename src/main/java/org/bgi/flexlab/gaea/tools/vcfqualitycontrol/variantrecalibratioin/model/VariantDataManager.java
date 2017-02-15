@@ -1,4 +1,4 @@
-package org.bgi.flexlab.gaea.tools.variantrecalibratioin.model;
+package org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin.model;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -11,8 +11,8 @@ import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.data.structure.header.VCFConstants;
 import org.bgi.flexlab.gaea.tools.mapreduce.vcfqualitycontrol.VCFQualityControl;
 import org.bgi.flexlab.gaea.tools.mapreduce.vcfqualitycontrol.VCFQualityControlOptions;
-import org.bgi.flexlab.gaea.tools.variantrecalibratioin.traindata.VariantDatum;
-import org.bgi.flexlab.gaea.tools.variantrecalibratioin.traindata.VariantDatumMessenger;
+import org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin.traindata.VariantDatum;
+import org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin.traindata.VariantDatumMessenger;
 import org.bgi.flexlab.gaea.util.ExpandingArrayList;
 import org.bgi.flexlab.gaea.util.RandomUtils;
 

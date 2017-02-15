@@ -1,4 +1,4 @@
-package org.bgi.flexlab.gaea.tools.variantrecalibratioin.traindata;
+package org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin.traindata;
 
 import java.io.IOException;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;

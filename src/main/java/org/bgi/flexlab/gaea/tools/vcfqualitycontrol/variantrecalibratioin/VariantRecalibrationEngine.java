@@ -1,10 +1,10 @@
-package org.bgi.flexlab.gaea.tools.variantrecalibratioin;
+package org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin;
 
 import java.util.List;
 
 import org.bgi.flexlab.gaea.tools.mapreduce.vcfqualitycontrol.VCFQualityControlOptions;
-import org.bgi.flexlab.gaea.tools.variantrecalibratioin.model.GaussianMixtureModel;
-import org.bgi.flexlab.gaea.tools.variantrecalibratioin.traindata.VariantDatum;
+import org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin.model.GaussianMixtureModel;
+import org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin.traindata.VariantDatum;
 import org.bgi.flexlab.gaea.util.RandomUtils;
 
 public class VariantRecalibrationEngine {

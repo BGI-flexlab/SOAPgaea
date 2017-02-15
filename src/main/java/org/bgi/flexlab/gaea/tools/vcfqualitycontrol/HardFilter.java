@@ -1,4 +1,4 @@
-package org.bgi.flexlab.gaea.tools.hardfilter;
+package org.bgi.flexlab.gaea.tools.vcfqualitycontrol;
 
 import java.util.HashSet;
 import java.util.LinkedHashSet;

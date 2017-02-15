@@ -19,10 +19,10 @@ import org.bgi.flexlab.gaea.data.structure.header.MultipleVCFHeader;
 import org.bgi.flexlab.gaea.data.structure.vcf.report.ReportDatum;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.BioJob;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.ToolsRunner;
-import org.bgi.flexlab.gaea.tools.hardfilter.HardFilter;
-import org.bgi.flexlab.gaea.tools.mapreduce.variantrecalibratioin.VariantRecalibrationMapper;
-import org.bgi.flexlab.gaea.tools.mapreduce.variantrecalibratioin.VariantRecalibrationReducer;
-import org.bgi.flexlab.gaea.tools.variantrecalibratioin.VCFRecalibrator;
+import org.bgi.flexlab.gaea.tools.mapreduce.vcfqualitycontrol.variantrecalibratioin.VariantRecalibrationMapper;
+import org.bgi.flexlab.gaea.tools.mapreduce.vcfqualitycontrol.variantrecalibratioin.VariantRecalibrationReducer;
+import org.bgi.flexlab.gaea.tools.vcfqualitycontrol.HardFilter;
+import org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin.VCFRecalibrator;
 import org.seqdoop.hadoop_bam.KeyIgnoringVCFOutputFormat;
 import org.seqdoop.hadoop_bam.VariantContextWritable;
 

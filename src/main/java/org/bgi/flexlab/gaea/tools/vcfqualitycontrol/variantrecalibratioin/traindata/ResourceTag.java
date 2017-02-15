@@ -1,4 +1,4 @@
-package org.bgi.flexlab.gaea.tools.variantrecalibratioin.traindata;
+package org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin.traindata;
 
 public enum ResourceTag {
 	NAME("name", ""), KNOWN("known", "false"), TRAINING("training", "false"), ANTITRAINING("antiTraining", "false"),

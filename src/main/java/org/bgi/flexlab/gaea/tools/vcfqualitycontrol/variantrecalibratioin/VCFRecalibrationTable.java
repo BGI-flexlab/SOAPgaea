@@ -1,4 +1,4 @@
-package org.bgi.flexlab.gaea.tools.variantrecalibratioin;
+package org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -11,12 +11,12 @@ import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.data.structure.header.VCFConstants;
 import org.bgi.flexlab.gaea.tools.mapreduce.vcfqualitycontrol.VCFQualityControl;
 import org.bgi.flexlab.gaea.tools.mapreduce.vcfqualitycontrol.VCFQualityControlOptions;
-import org.bgi.flexlab.gaea.tools.variantrecalibratioin.model.GaussianMixtureModel;
-import org.bgi.flexlab.gaea.tools.variantrecalibratioin.model.VariantDataManager;
-import org.bgi.flexlab.gaea.tools.variantrecalibratioin.traindata.VariantDatum;
-import org.bgi.flexlab.gaea.tools.variantrecalibratioin.traindata.VariantDatumMessenger;
-import org.bgi.flexlab.gaea.tools.variantrecalibratioin.tranche.Tranche;
-import org.bgi.flexlab.gaea.tools.variantrecalibratioin.tranche.TrancheManager;
+import org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin.model.GaussianMixtureModel;
+import org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin.model.VariantDataManager;
+import org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin.traindata.VariantDatum;
+import org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin.traindata.VariantDatumMessenger;
+import org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin.tranche.Tranche;
+import org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin.tranche.TrancheManager;
 import org.bgi.flexlab.gaea.util.ExpandingArrayList;
 
 import htsjdk.variant.variantcontext.Allele;

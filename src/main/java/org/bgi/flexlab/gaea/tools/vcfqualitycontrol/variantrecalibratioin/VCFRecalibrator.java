@@ -1,4 +1,4 @@
-package org.bgi.flexlab.gaea.tools.variantrecalibratioin;
+package org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,9 +20,9 @@ import org.bgi.flexlab.gaea.data.structure.header.MultipleVCFHeader;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocationParser;
 import org.bgi.flexlab.gaea.tools.mapreduce.vcfqualitycontrol.VCFQualityControl;
 import org.bgi.flexlab.gaea.tools.mapreduce.vcfqualitycontrol.VCFQualityControlOptions;
-import org.bgi.flexlab.gaea.tools.variantrecalibratioin.traindata.ResourceManager;
-import org.bgi.flexlab.gaea.tools.variantrecalibratioin.traindata.VariantDatumMessenger;
-import org.bgi.flexlab.gaea.tools.variantrecalibratioin.tranche.Tranche;
+import org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin.traindata.ResourceManager;
+import org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin.traindata.VariantDatumMessenger;
+import org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin.tranche.Tranche;
 import org.seqdoop.hadoop_bam.VariantContextWritable;
 
 import htsjdk.tribble.readers.AsciiLineReader;

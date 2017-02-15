@@ -1,10 +1,10 @@
-package org.bgi.flexlab.gaea.tools.variantrecalibratioin.model;
+package org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin.model;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.bgi.flexlab.gaea.tools.variantrecalibratioin.traindata.VariantDatum;
+import org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin.traindata.VariantDatum;
 import org.bgi.flexlab.gaea.util.MathUtils;
 import org.bgi.flexlab.gaea.util.RandomUtils;
 
