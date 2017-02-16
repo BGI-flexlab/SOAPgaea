@@ -23,6 +23,7 @@ public class PileupReadInfo {
 
 	/**
 	 * end for reads
+	 * start with zero with reference position
 	 */
 	protected int end;
 
