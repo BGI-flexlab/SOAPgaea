@@ -20,6 +20,7 @@ public class Mpileup implements MpileupInterface<Pileup>{
 
 	/**
 	 * end of pileup position
+	 * test
 	 */
 	private int end;
 
