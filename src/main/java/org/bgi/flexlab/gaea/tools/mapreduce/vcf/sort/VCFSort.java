@@ -57,7 +57,7 @@ public class VCFSort extends ToolsRunner{
 			options.setHadoopConf(args, conf);
 			conf.set(SortOutputFormat.INPUT_PATH_PROP, options.getInputFileList().get(0).toString());
 			
-			SortUilts.configureSampling(new Path(options.getTempOutput()), conf, options);
+			SortUilts.configureSampling(new Path(options.getTempOutput()), job, options);
 
 			MultipleVCFHeader mVcfHeader = mergeHeader(options, job);
 			

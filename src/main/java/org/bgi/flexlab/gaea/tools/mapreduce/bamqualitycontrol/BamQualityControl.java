@@ -13,6 +13,7 @@ import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamHdfsFileHeader;
 import org.bgi.flexlab.gaea.data.structure.reference.ReferenceShare;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.BioJob;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.ToolsRunner;
+import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report.BamReport;
 import org.seqdoop.hadoop_bam.VariantContextWritable;
 
 public class BamQualityControl extends ToolsRunner{
@@ -51,16 +52,20 @@ public class BamQualityControl extends ToolsRunner{
 		FileInputFormat.addInputPaths(job, options.getAlignmentFilePath());
 		job.setInputFormatClass(GaeaAnySAMInputFormat.class);
 
-		Path statictisOutput = new Path(options.getOutputPath() + "/tmp");
 		job.setOutputFormatClass(TextOutputFormat.class);
 		
 		FileOutputFormat.setOutputPath(job, new Path(options.getTempPath()));
 		// 等待完成作业,后续统计depth,coverage和insert size分布
 		if(job.waitForCompletion(true)) {
-//			bamReport.getOutput(parameter, conf, options.getTempPath());
+			BamReport.getOutput(options, conf, new Path(options.getTempPath()));
+			return 0;
 		} else {
 			return 1;
 		}
-		return 0;
+	}
+	
+	public static void main(String[] args) throws Exception {
+		BamQualityControl bamqc = new BamQualityControl();
+		bamqc.run(args);
 	}
 }

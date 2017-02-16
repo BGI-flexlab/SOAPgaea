@@ -18,6 +18,8 @@ import org.apache.hadoop.mapreduce.filecache.DistributedCache;
 import org.apache.hadoop.mapreduce.lib.partition.TotalOrderPartitioner;
 import org.bgi.flexlab.gaea.data.structure.header.MultipleVCFHeader;
 import org.bgi.flexlab.gaea.data.structure.header.SingleVCFHeader;
+import org.bgi.flexlab.gaea.data.structure.reference.ReferenceShare;
+import org.bgi.flexlab.gaea.framework.tools.mapreduce.BioJob;
 import org.bgi.flexlab.gaea.tools.mapreduce.vcf.sort.VCFSortOptions;
 
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
@@ -26,8 +28,9 @@ import htsjdk.variant.vcf.VCFHeader;
 
 public class SortUilts {
 	
-	public static void configureSampling(Path outPath, Configuration conf, VCFSortOptions options) throws IOException{
-    	final Path partition = outPath.getFileSystem(conf).makeQualified(new Path(outPath, "_partitioning" + "VCF"));
+	public static void configureSampling(Path outPath, BioJob job, VCFSortOptions options) throws IOException{
+    	Configuration conf = job.getConfiguration();
+		final Path partition = outPath.getFileSystem(conf).makeQualified(new Path(outPath, "_partitioning" + "VCF"));
     	
     	TotalOrderPartitioner.setPartitionFile(conf, partition);
     	try {
@@ -36,8 +39,7 @@ public class SortUilts {
     		if(partitionURI.getScheme().equals("file"))
     			return;
     		
-    		DistributedCache.addCacheFile(partitionURI, conf);
-    		DistributedCache.createSymlink(conf);
+    		ReferenceShare.distributeCache(partitionURI.toString(), job);
     	} catch (URISyntaxException e) { throw new RuntimeException(e); }
     	
 	}

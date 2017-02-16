@@ -7,7 +7,6 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.bgi.flexlab.gaea.data.structure.positioninformation.depth.PositionDepth;
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
-import org.bgi.flexlab.gaea.data.structure.reference.ReferenceShare;
 import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report.ResultReport;
 import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report.RegionResultReport;
 import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report.ReportBuilder;
@@ -36,7 +35,6 @@ public class BamQualityControlReducer extends Reducer<Text, Text, NullWritable, 
 			reportType = new WholeGenomeResultReport(options);
 	
 	}
-	
 	
 	@Override
 	public void reduce(Text key, Iterable<Text> values,Context context) throws IOException, InterruptedException {
