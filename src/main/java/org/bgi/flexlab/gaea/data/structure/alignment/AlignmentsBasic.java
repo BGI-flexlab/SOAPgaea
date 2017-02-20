@@ -19,6 +19,11 @@ public class AlignmentsBasic extends SAMCompressionInformationBasic {
 		super();
 	}
 
+	public AlignmentsBasic( AlignmentsBasic read) {
+		super(read);
+		this.sampleIndex = read.sampleIndex;
+	}
+
 	public void initId2Sample(List<SAMReadGroupRecord> samReadGroupRecords) {
 		int i = 0;
 		for(SAMReadGroupRecord samReadGroupRecord : samReadGroupRecords) {

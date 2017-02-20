@@ -179,8 +179,7 @@ public class GenomeLocationParser {
 		return createGenomeLocation(contig, getContigIndex(contig), start, stop);
 	}
 
-	public GenomeLocation createGenomeLocation(String contig, final int start, final int stop,
-			boolean mustBeOnReference) {
+	public GenomeLocation createGenomeLocation(String contig, final int start, final int stop, boolean mustBeOnReference) {
 		return createGenomeLocation(contig, getContigIndex(contig), start, stop, mustBeOnReference);
 	}
 

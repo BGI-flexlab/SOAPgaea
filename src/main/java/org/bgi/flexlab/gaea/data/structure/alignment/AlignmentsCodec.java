@@ -61,7 +61,7 @@ public abstract class AlignmentsCodec <T extends SAMCompressionInformationBasic>
 		}
 		dataOutput.writeInt(alignments.getReadLength());
 		dataOutput.write(alignments.getQualities());
-		dataOutput.write(alignments.getreadBases());
+		dataOutput.write(alignments.getReadBases());
 	}
 	
 	private void readBasic() {
