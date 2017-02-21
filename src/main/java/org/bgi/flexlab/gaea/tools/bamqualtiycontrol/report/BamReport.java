@@ -53,11 +53,11 @@ public class BamReport {
 					
 					reportBuilder.setReportChoice(reportType);
 					
-					reportBuilder.parseReport(lineReader, line, genome);
-						
-					lineReader.close();
-					reader.close();
+					reportBuilder.parseReport(lineReader, line, genome);					
+
 				}
+				lineReader.close();
+				reader.close();
 			}	
 		}
 		

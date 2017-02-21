@@ -4,11 +4,8 @@
  */
 package org.bgi.flexlab.gaea.util;
 
-import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.bam.ParseSAMBasic;
 import org.bgi.flexlab.gaea.data.structure.bam.SAMInformationBasic;
-
-import htsjdk.samtools.SAMRecord;
 
 
 /**
@@ -48,56 +45,32 @@ public class SamRecordDatum extends SAMInformationBasic {
 	private int rgIndex;
 	
 	@Override
-	protected void parseOtherInfo(String[] alignmentArray) {
-
-		bestHitCount = ParseSAMBasic.parseBestHitCount(alignmentArray);
-		
-		insertSize = ParseSAMBasic.parseInsertSize(alignmentArray);
-		
-		lenValue = ParseSAMBasic.parseCigar(position, cigarState);
-	}
-
-	public boolean parseBAMQC(String value) {
-		// 该行为空时，不进行解析
-		if (value.isEmpty()) {
+	public boolean parseSam(String samRecord) {
+		String[] alignmentArray = ParseSAMBasic.splitSAM(samRecord);
+		flag = ParseSAMBasic.parseFlag(alignmentArray);
+		if(isUnmapped())
 			return false;
-		}
-
-		// 以制表符分割SAM比对文件的每行字符串
-		String[] alignmentArray = value.split("\t");
-		
-		flag = Integer.parseInt(alignmentArray[0]);
-		
-		readSequence = alignmentArray[1];
-		
-		insertSize = Integer.parseInt(alignmentArray[2]);
-		
-		position = Integer.parseInt(alignmentArray[3]);
-		
-		if(position < 0 ) {
+		id = ParseSAMBasic.parseReadName(alignmentArray, flag, true);
+		chrName = ParseSAMBasic.parseChrName(alignmentArray);
+		position = ParseSAMBasic.parsePosition(alignmentArray, true);
+		if(position < 0)
 			return false;
-		}
-		
-		cigarString = alignmentArray[4];
+		mappingQual = ParseSAMBasic.parseMappingQuality(alignmentArray);
+		cigarString = ParseSAMBasic.parseCigarString(alignmentArray);
+		if(cigarString.equals("*"))
+			return false;
 		cigarState = new CigarState();
 		cigarState.parseCigar(cigarString);
-		
-		bestHitCount = Integer.parseInt(alignmentArray[5]);
-		
-		if(Integer.parseInt(alignmentArray[6]) == 1) {
-			isrepeat = true;
-		}
-		
-		mappingQual = Short.parseShort(alignmentArray[7]);
-		if(alignmentArray.length >= 9) {
-			rgIndex = Integer.parseInt(alignmentArray[8]);
-		}
-		if(alignmentArray.length >= 10) {
-			qualityString = alignmentArray[9];
-		}
+		int softClipStart = ParseSAMBasic.getStartSoftClipLength(cigarState.getCigar());
+		int softClipEnd = ParseSAMBasic.getEndSoftClipLength(cigarState.getCigar());
+		readSequence = ParseSAMBasic.parseSeq(alignmentArray, softClipStart, softClipEnd, false);
+		qualityString = ParseSAMBasic.parseQual(alignmentArray, softClipStart, softClipEnd, false);
+		bestHitCount = ParseSAMBasic.parseBestHitCount(alignmentArray);
+		insertSize = ParseSAMBasic.parseInsertSize(alignmentArray);
 		lenValue = ParseSAMBasic.parseCigar(position, cigarState);
 		return true;
 	}
+	
 
 	/**
 	 * 获取Read比对到参考基因组上的最佳比对次数
@@ -177,8 +150,44 @@ public class SamRecordDatum extends SAMInformationBasic {
 	}
 
 	@Override
-	public boolean parseSAM(GaeaSamRecord samRecord) {
+	public boolean parseBamQC(String value) {
 		// TODO Auto-generated method stub
-		return false;
+		if (value.isEmpty()) {
+			return false;
+		}
+
+		// 以制表符分割SAM比对文件的每行字符串
+		String[] alignmentArray = value.split("\t");
+		
+		flag = Integer.parseInt(alignmentArray[0]);
+		
+		readSequence = alignmentArray[1];
+		
+		insertSize = Integer.parseInt(alignmentArray[2]);
+		
+		position = Integer.parseInt(alignmentArray[3]);
+		
+		if(position < 0 ) {
+			return false;
+		}
+		
+		cigarString = alignmentArray[4];
+		cigarState = new CigarState();
+		cigarState.parseCigar(cigarString);
+		
+		bestHitCount = Integer.parseInt(alignmentArray[5]);
+		
+		if(Integer.parseInt(alignmentArray[6]) == 1) {
+			isrepeat = true;
+		}
+		
+		mappingQual = Short.parseShort(alignmentArray[7]);
+		if(alignmentArray.length >= 9)
+			rgIndex = Integer.parseInt(alignmentArray[8]);
+		if(alignmentArray.length >= 10)
+			qualityString = alignmentArray[9];
+		
+		lenValue = ParseSAMBasic.parseCigar(position, cigarState);
+		return true;
 	}
 }

@@ -150,11 +150,7 @@ public class VCFSort extends ToolsRunner{
 		}
 		options.setMultiOutputs(multiOutputs);
 	}
-	
-	public static void main(String[] args ) throws Exception {
-		int res = ToolRunner.run(new Configuration(), new VCFSort(),  args);
-	    System.exit(res);
-	}
+
 }
 
 final class VCFSortReducer extends Reducer<LongWritable, VariantContextWritable, NullWritable, VariantContextWritable> {

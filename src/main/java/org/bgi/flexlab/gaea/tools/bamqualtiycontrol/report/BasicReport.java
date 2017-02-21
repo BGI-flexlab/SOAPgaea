@@ -63,7 +63,6 @@ public class BasicReport{
 			rTracker.setTrackerAttribute(ReadType.INDEL);
 		}
 			
-		datum.getCigarState().reSetCigarstate();
 		if (isMismatch(datum, chrInfo)) {
 			rTracker.setTrackerAttribute(ReadType.MISMATCH);
 		}
@@ -118,7 +117,7 @@ public class BasicReport{
 		for(Entry<String, BaseCounter> counter : bTracker.getCounterMap().entrySet()) {
 			basicString.append(counter.getKey());
 			basicString.append(" ");
-			basicString.append(counter.getValue().getProperty());
+			basicString.append(counter.getValue().getBaseCount());
 			basicString.append("\t");
 		}
 		basicString.append("\n");
@@ -143,6 +142,7 @@ public class BasicReport{
 				isMismatch = true;
 			}
 		}
+		datum.getCigarState().reSetCigarstate();
 		return isMismatch;
 	}
 	
@@ -154,8 +154,8 @@ public class BasicReport{
 	
 	
 	private void parseKeyValue(String keyValue) {
-		String key = keyValue.split("\t")[0];
-		String value = keyValue.split("\t")[1];
+		String key = keyValue.split(" ")[0];
+		String value = keyValue.split(" ")[1];
 		ReadsCounter rCounter = null;
 		BaseCounter bCounter = null;
 		if((rCounter = rTracker.getCounterMap().get(key)) != null)
@@ -189,14 +189,14 @@ public class BasicReport{
 	
 	public List<BaseCounter> createBaseCounters() {
 		List<BaseCounter> counters = new ArrayList<>();
-		for(BaseType type : BaseType.values())
+		for(BaseType type : BaseType.values()) 
 			counters.add(new BaseCounter(type));
 		return counters;
 	}
 	
 	public List<ReadsCounter> createReadsCounters() {
 		List<ReadsCounter> counters = new ArrayList<>();
-		for(ReadType type : ReadType.values())
+		for(ReadType type : ReadType.values()) 
 			counters.add(new ReadsCounter(type));
 		return counters;
 	}

@@ -5,6 +5,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
+import org.bgi.flexlab.gaea.data.structure.positioninformation.CompoundInformation;
 import org.bgi.flexlab.gaea.data.structure.positioninformation.depth.PositionDepth;
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
 import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report.ResultReport;
@@ -25,6 +26,7 @@ public class BamQualityControlReducer extends Reducer<Text, Text, NullWritable, 
 				
 	@Override
 	protected void setup(Context context) throws IOException {
+		options = new BamQualityControlOptions();
 		Configuration conf = context.getConfiguration();
 		options.getOptionsFromHadoopConf(conf);
 		
@@ -56,14 +58,14 @@ public class BamQualityControlReducer extends Reducer<Text, Text, NullWritable, 
 		
 		ChromosomeInformationShare chrInfo = reportType.getReference().getChromosomeInfo(chrName);
 		
-		if(reportType instanceof WholeGenomeResultReport)
+		if(reportType instanceof WholeGenomeResultReport) {
 			if(!reportBuilder.initCoverReport(chrInfo)) {
 				context.getCounter("Exception", "no available chromosome info").increment(1);
 				return;
 			}
-		
-		if(reportType instanceof RegionResultReport)
+		} else if(reportType instanceof RegionResultReport) {
 			reportBuilder.initCNVDepthReport(sampleName);
+		}
 		
 		long start = winNum * BamQualityControl.WINDOW_SIZE; // 窗口起始坐标
 
@@ -89,7 +91,7 @@ public class BamQualityControlReducer extends Reducer<Text, Text, NullWritable, 
 		for(Text value : values) {
 			SamRecordDatum datum = new SamRecordDatum();
 
-			if(!datum.parseBAMQC(value.toString())) {
+			if(!datum.parseBamQC(value.toString())) {
 				context.getCounter("Exception", "parse mapper output error").increment(1);
 				continue;
 			}
@@ -100,7 +102,7 @@ public class BamQualityControlReducer extends Reducer<Text, Text, NullWritable, 
 				continue;
 			}
 			
-			if(!deep.add((int)winStart, winSize, datum)) 
+			if(!deep.add(new CompoundInformation<SamRecordDatum>((int)winStart, winSize, datum, chrInfo))); 
 				context.getCounter("Exception", "null read info in depth class").increment(1);
 			
 			if(datum.isRepeat()) 

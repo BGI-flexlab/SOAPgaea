@@ -327,7 +327,7 @@ public abstract class ResultReport {
 	private void fillInsertSize(LineReader lineReader, Text line, int[] insertSize) throws RuntimeException, IOException {
 		String[] splitArray = null;
 		while(lineReader.readLine(line) > 0 && line.getLength() != 0) {
-			if(line.toString().contains("insert size without dup information")) {
+			if(line.toString().contains("insert size ")) {
 				break;
 			}
 			splitArray = line.toString().split("\t");
