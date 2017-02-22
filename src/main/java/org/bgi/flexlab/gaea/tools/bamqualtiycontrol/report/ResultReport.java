@@ -12,6 +12,7 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer.Context;
 import org.apache.hadoop.util.LineReader;
 import org.bgi.flexlab.gaea.data.structure.positioninformation.depth.PositionDepth;
+import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
 import org.bgi.flexlab.gaea.data.structure.reference.ReferenceShare;
 import org.bgi.flexlab.gaea.data.structure.region.SingleRegion;
 import org.bgi.flexlab.gaea.data.structure.region.SingleRegion.Regiondata;
@@ -43,8 +44,22 @@ public abstract class ResultReport {
 	
 	protected ReferenceShare genome;
 	
-	public ResultReport(BamQualityControlOptions options) throws IOException {
+	public ResultReport(BamQualityControlOptions options) {
 		this.options = options;
+		genome = new ReferenceShare();
+		loadReference();
+	}
+	
+	private void loadReference() {
+		genome = new ReferenceShare();
+		if(options.isDistributeCache()) {
+			genome.loadChromosomeList();
+		} else {
+			genome.loadChromosomeList(options.getReferenceSequencePath());
+		}
+	}
+	
+	public void initReports() throws IOException {
 		basicReport = new BasicReport();
 		unmappedReport = new UnmappedReport();
 		regionCoverReport = new RegionCoverReport(1000);
@@ -57,20 +72,10 @@ public abstract class ResultReport {
 		}
 		insertSize = new int[options.getInsertSzie()];
 		insertSizeWithoutDup = new int[options.getInsertSzieWithoutDup()];
-		genome = new ReferenceShare();
-		loadReference();
 		Arrays.fill(insertSize, 0);
 		Arrays.fill(insertSizeWithoutDup, 0);
 	}
 	
-	private void loadReference() {
-		genome = new ReferenceShare();
-		if(options.isDistributeCache()) {
-			genome.loadChromosomeList();
-		} else {
-			genome.loadChromosomeList(options.getReferenceSequencePath());
-		}
-	}
 	public boolean unmappedReport(long winNum, String chrName, Iterable<Text> values) {
 		return unmappedReport.constructMapReport(winNum, chrName, values, basicReport);
 	}
@@ -143,7 +148,7 @@ public abstract class ResultReport {
 
 	public abstract String toReducerString(String sample, String chrName, boolean unmappedRegion);
 
-	public void parseReport(LineReader lineReader, Text line, ReferenceShare genome) throws IOException {
+	public void parseReport(String sample, LineReader lineReader, Text line, ReferenceShare genome) throws IOException {
 		String lineString = line.toString();
 		String chrName = "";
 		if(lineString.contains("chrName:")) {

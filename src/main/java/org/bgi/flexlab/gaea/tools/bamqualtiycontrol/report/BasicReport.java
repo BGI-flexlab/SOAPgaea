@@ -189,8 +189,8 @@ public class BasicReport{
 	
 	public List<BaseCounter> createBaseCounters() {
 		List<BaseCounter> counters = new ArrayList<>();
-		for(BaseType type : BaseType.values()) 
-			counters.add(new BaseCounter(type));
+		counters.add(new BaseCounter(BaseType.TOTALBASE));
+		counters.add(new BaseCounter(BaseType.MISMATCH));
 		return counters;
 	}
 	

@@ -35,6 +35,10 @@ public class RegionResultReport extends ResultReport{
 	
 	private SingleRegion cnvRegion;
 	
+	private SingleRegion bedRegion;
+	
+	private SingleRegion genderRegion;
+	
 	private RegionReport regionReport;
 	
 	private BedSingleRegionReport bedSingleRegionReport;
@@ -53,26 +57,27 @@ public class RegionResultReport extends ResultReport{
 		cnvRegion = new SingleRegion();
 		if (options.getRegion() != null) {
 			region.parseRegion(options.getRegion(), true);
-			regionReport = new RegionReport(region);
 		}
 		if (options.getBedfile() != null) {
 			region.parseBedFileFromHDFS(options.getBedfile(), true);
-			regionReport = new RegionReport(region);
-			
-			SingleRegion bedRegion = new SingleRegion();
+			bedRegion = new SingleRegion();
 			bedRegion.parseRegionsFileFromHDFS(options.getBedfile(), true, 0);
-			bedSingleRegionReport = new BedSingleRegionReport(bedRegion);
-			
-			SingleRegion genderRegion = new SingleRegion();
+			genderRegion = new SingleRegion();
 			genderRegion.parseRegionsFileFromHDFS(options.getBedfile(), true, 0);
-			genderSingleRegionReport = new BedSingleRegionReport(genderRegion);
 		}
 		this.conf = conf;
 		if(options.isCnvDepth())
 			initSampleLaneSize(conf);
 	}
 	
-	public void initCNVDepthReport(String sample) throws IOException {
+	public void initReports(String sample) throws IOException {
+		super.initReports();
+		regionReport = new RegionReport(region);
+		if(options.getBedfile() != null){
+			bedSingleRegionReport = new BedSingleRegionReport(bedRegion);
+			genderSingleRegionReport = new BedSingleRegionReport(genderRegion);
+		}
+			
 		if(options.isCnvDepth() && options.getCnvRegion() != null) {
 			cnvRegion = new SingleRegion();
 			cnvRegion.parseRegionsFileFromHDFS(options.getCnvRegion(), true, 0);
@@ -171,8 +176,9 @@ public class RegionResultReport extends ResultReport{
 	}
 	
 	@Override
-	public void parseReport(LineReader lineReader, Text line, ReferenceShare genome) throws IOException {
-		super.parseReport(lineReader, line,genome);
+	public void parseReport(String sample, LineReader lineReader, Text line, ReferenceShare genome) throws IOException {
+		initReports(sample);
+		super.parseReport(sample, lineReader, line,genome);
 		String lineString = line.toString();
 		if(lineString.contains("Target Information")) {
 			if(lineReader.readLine(line) > 0 && line.getLength() != 0) {

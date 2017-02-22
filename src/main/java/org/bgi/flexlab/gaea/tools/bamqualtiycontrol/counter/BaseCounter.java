@@ -5,8 +5,6 @@ import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.CounterProperty.Dept
 import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.CounterProperty.DepthType;
 import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.CounterProperty.Interval;
 
-import com.google.protobuf.Internal;
-
 public class BaseCounter {
 
 	private long baseCount;

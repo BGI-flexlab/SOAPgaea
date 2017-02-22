@@ -44,27 +44,24 @@ public class BamQualityControlReducer extends Reducer<Text, Text, NullWritable, 
 		String sampleName = keySplit[0];	//样品名
 		String chrName = keySplit[1];					// 染色体名称
 		long winNum = Long.parseLong(keySplit[2]);		// 窗口编号
-		if(reportType instanceof RegionResultReport)
-			((RegionResultReport) reportType).initCNVDepthReport(sampleName);
-		
+		ChromosomeInformationShare chrInfo = null;
+		try{
+			chrInfo = reportType.getReference().getChromosomeInfo(chrName);
+		} catch (Exception e) {
+			if(chrName.equals("-1")) {
+//				do nothing, it means unmapped area
+			} else {
+				throw new RuntimeException(e);
+			}
+		}
 		reportBuilder.setReportChoice(reportType);
+		reportBuilder.initReports(sampleName, chrName);
 		
 		// 按名称获取染色体信息
 		if(reportBuilder.unmappedReport(winNum, chrName, values)) {
 			ResultReport report = reportBuilder.build();
 			context.write(NullWritable.get(), new Text(report.toReducerString(sampleName, chrName, true)));
 			return;
-		}
-		
-		ChromosomeInformationShare chrInfo = reportType.getReference().getChromosomeInfo(chrName);
-		
-		if(reportType instanceof WholeGenomeResultReport) {
-			if(!reportBuilder.initCoverReport(chrInfo)) {
-				context.getCounter("Exception", "no available chromosome info").increment(1);
-				return;
-			}
-		} else if(reportType instanceof RegionResultReport) {
-			reportBuilder.initCNVDepthReport(sampleName);
 		}
 		
 		long start = winNum * BamQualityControl.WINDOW_SIZE; // 窗口起始坐标
