@@ -13,14 +13,12 @@ public class ResourceManager {
     public final List<String> annotationKeys;
     //protected final List<TrainingSet> trainingSets;
     protected final List<TrainData> trainingSets;
-    VCFQualityControlOptions options;
     
     public ResourceManager(VCFQualityControlOptions options) {
         this.annotationKeys = new ArrayList<String>( options.getUseAnnotations() );
         annotations = new double[annotationKeys.size()];
         isNull = new boolean[annotationKeys.size()];
         trainingSets = new ArrayList<TrainData>();
-        this.options = options;
     }
 
     public void addTrainingSet( final TrainData trainingSet ) {

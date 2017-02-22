@@ -16,14 +16,12 @@ import org.bgi.flexlab.gaea.tools.mapreduce.bamqualitycontrol.BamQualityControlO
 
 public class BamReport {
 	
-	private ReportBuilder reportBuilder;
-	private ResultReport reportType;
-
-	public void getOutput(BamQualityControlOptions options, Configuration conf, Path oPath) throws IOException {
+	public static void getOutput(BamQualityControlOptions options, Configuration conf, Path oPath) throws IOException {
+		ReportBuilder reportBuilder = new ReportBuilder();
+		ResultReport reportType;
 		ReferenceShare genome = new ReferenceShare();
 		genome.loadChromosomeList(options.getReferenceSequencePath());
 		
-		reportBuilder = new ReportBuilder();
 		if ((options.getRegion() != null) || (options.getBedfile() != null))
 			reportType = new RegionResultReport(options, conf);
 		else

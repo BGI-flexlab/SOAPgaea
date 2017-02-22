@@ -1,14 +1,11 @@
 package org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin.traindata;
 
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
 
 import htsjdk.variant.variantcontext.VariantContext;
 
-public class TrainData implements Iterable<TrainData>{	
+public class TrainData {	
 	
 	private String contextName;
 	
@@ -16,7 +13,6 @@ public class TrainData implements Iterable<TrainData>{
 	
 	private String ref;
 	
-	private List<TrainData> trainingDataSet = new ArrayList<>();
 	/**
 	 * default constructor
 	 */
@@ -114,24 +110,5 @@ public class TrainData implements Iterable<TrainData>{
 	public String getContextName() {
 		return contextName;
 	}
-	
-	public static void main(String[] args) {
-		TrainData td = new TrainData("ref", "name=hapmap,training=true,truth=true,prior=15.0,file=hapmap_3.3.b37.sites.vcf");
-		DBResource db = new DBResource();
-		td.setType(db);
-		td.initialize();
-		System.out.println(td.isKnown());
-	}
 
-	@Override
-	public Iterator<TrainData> iterator() {
-		// TODO Auto-generated method stub
-		return new Iterator<TrainData>() {
-			private int index = 0;
-			public boolean hasNext() {
-				return index < trainingDataSet.size();
-			}
-			public TrainData next() { return trainingDataSet.get(index++); }
-		};
-	}
 }
