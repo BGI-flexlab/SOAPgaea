@@ -2,6 +2,7 @@ package org.bgi.flexlab.gaea.tools.genotyer.GenotypeLikelihoodCalculator;
 
 import htsjdk.variant.variantcontext.VariantContext;
 import org.bgi.flexlab.gaea.data.exception.UserException;
+import org.bgi.flexlab.gaea.data.structure.location.GenomeLocationParser;
 import org.bgi.flexlab.gaea.data.structure.pileup.Mpileup;
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
 import org.bgi.flexlab.gaea.tools.mapreduce.genotyper.GenotyperOptions;
@@ -68,7 +69,7 @@ public abstract class GenotypeLikelihoodCalculator {
     public static Map<String, GenotypeLikelihoodCalculator> getGenotypeLikelihoodsCalculatorObject(GenotyperOptions options) {
         List<Class<? extends GenotypeLikelihoodCalculator>> glmClasses = new ArrayList<>();
         glmClasses.add(SNPGenotypeLikelihoodCalculator.class);
-        //glmClasses.add(INDELGenotypeLikelihoodCalcultor.class);
+        glmClasses.add(INDELGenotypeLikelihoodCalculator.class);
         glmClasses.add(SOAPSNPGenotypeLikelihoodCalculator.class);
         for (int i = 0; i < glmClasses.size(); i++) {
             final Class<? extends GenotypeLikelihoodCalculator> glmClass = glmClasses.get(i);
@@ -251,5 +252,5 @@ public abstract class GenotypeLikelihoodCalculator {
      * @param options options
      * @return variantContext with Likelihoods
      */
-    public abstract VariantContext genotypeLikelihoodCalculate(Mpileup mpileup, ChromosomeInformationShare reference, GenotyperOptions options);
+    public abstract VariantContext genotypeLikelihoodCalculate(Mpileup mpileup, ChromosomeInformationShare reference, GenotyperOptions options, GenomeLocationParser locationParser, Map<String, PerReadAlleleLikelihoodMap> perReadAlleleLikelihoodMap);
 }

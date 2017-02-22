@@ -31,6 +31,19 @@ public class PileupReadInfo {
 	 */
 	protected String sample;
 
+
+	/**
+	 * // what is the length of the event (insertion or deletion) *after* this base
+	 */
+	protected int eventLength = -1;
+
+
+	/**
+	 * if it is a deletion, we do not have information about the actual deleted bases in the read itself, so we fill the string with D's; for insertions we keep actual inserted bases
+	 */
+	protected String eventBases = null;
+
+
 	/**
 	 * constructor
 	 */
@@ -58,13 +71,26 @@ public class PileupReadInfo {
 	 */
 	public void calculateQueryPosition(int refPos) {
 		qpos = cigarState.resolveCigar(refPos, readInfo.getPosition());
+
+		eventLength = cigarState.getEventLength();
+		if (isNextInsertBase())
+			eventBases = readInfo.getReadBases(qpos, eventLength);
+		else
+			eventBases = null;                  // ignore argument in any other case
 	}
-	
+
+	public String getEventBases() {
+		return eventBases;
+	}
+
+	public int getEventLength() {
+		return eventLength;
+	}
 	
 	/**
 	 * @return the readInfo
 	 */
-	public SAMCompressionInformationBasic getReadInfo() {
+	public AlignmentsBasic getReadInfo() {
 		return readInfo;
 	}
 
@@ -170,6 +196,10 @@ public class PileupReadInfo {
 
 	public boolean isNextMatchBase() {
 		return cigarState.isNextMatchBase();
+	}
+
+	public boolean isInsertionAtBeginningOfRead() {
+		return cigarState.isInsertionAtBeginningOfRead();
 	}
 }
 

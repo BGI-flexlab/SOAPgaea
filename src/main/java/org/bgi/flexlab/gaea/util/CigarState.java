@@ -1,5 +1,7 @@
 package org.bgi.flexlab.gaea.util;
 
+import org.bgi.flexlab.gaea.data.exception.UserException;
+
 import java.util.ArrayList;
 
 public class CigarState {
@@ -109,6 +111,37 @@ public class CigarState {
 		int cigarValue = (len << 4) + opIdx;
 		cigar.add(cigarValue);
 		return begin;
+	}
+
+	public int getReadCoordWithRefCoord(int refPosition, int alignmentStartCountSoftClip) {
+		cigarState[1] = alignmentStartCountSoftClip;
+		for(int i = 0; i < cigar.size(); i++) {
+			int op = cigar.get(i) & 0xf;
+			int len = (cigar.get(i) >> 4);
+			cigarState[0] = i;
+
+			if(op == SystemConfiguration.BAM_CSOFT_CLIP || op == SystemConfiguration.BAM_CMATCH ||
+					op == SystemConfiguration.BAM_CDEL || op == SystemConfiguration.BAM_CREF_SKIP ||
+					op == SystemConfiguration.BAM_CEQUAL || op == SystemConfiguration.BAM_CDIFF) {
+				if(refPosition < cigarState[1]) { //current cigar
+					if(op == SystemConfiguration.BAM_CDEL) {
+						return cigarState[2];
+					} else {
+						return cigarState[2] + refPosition - cigarState[1];
+					}
+				}
+
+				cigarState[1] += len;
+				if(op != SystemConfiguration.BAM_CDEL && op != SystemConfiguration.BAM_CREF_SKIP)
+					cigarState[2] += len;
+			} else {
+				if(op == SystemConfiguration.BAM_CINS) {
+					cigarState[2] += len;
+				}
+			}
+		}
+
+		throw new UserException("ref position is beyond alignment end.");
 	}
 
 	/**
@@ -302,6 +335,18 @@ public class CigarState {
 		if ((flag & 0x08) != 0)
 			return true;
 		return false;
+	}
+
+	public boolean isInsertionAtBeginningOfRead() {
+		int op = cigar.get(0) & 0xf;
+		return op == SystemConfiguration.BAM_CINS;
+	}
+
+	public int getEventLength() {
+		if(isNextDeletionBase() || isNextInsertionBase())
+			return (cigar.get(cigarState[0] + 1) >> 4);
+		else
+			return -1;
 	}
 
 	public ArrayList<Integer> getCigar() {
