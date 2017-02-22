@@ -18,12 +18,11 @@ public class ReportBuilder {
 		this.report = report;
 	}
 	
-	public void initCNVDepthReport(String sampleName) throws IOException {
-		((RegionResultReport) report).initCNVDepthReport(sampleName);
-	}
-	
-	public boolean initCoverReport(ChromosomeInformationShare chrInfo) {
-		return ((WholeGenomeResultReport) report).initCoverReport(chrInfo);
+	public void initReports(String sampleName, String chrName) throws IOException {
+		if(report instanceof WholeGenomeResultReport)
+			((WholeGenomeResultReport) report).initReports(chrName);
+		else if(report instanceof RegionResultReport)
+			((RegionResultReport) report).initReports(sampleName);
 	}
 	
 	public boolean unmappedReport(long winNum, String chrName, Iterable<Text> values) {
@@ -54,8 +53,8 @@ public class ReportBuilder {
 		return report instanceof RegionResultReport ? ((RegionResultReport) report).getSampleLaneSize(sample) : 0;
 	}
 	
-	public void parseReport(LineReader lineReader, Text line, ReferenceShare genome) throws IOException {
-		report.parseReport(lineReader, line, genome);
+	public void parseReport(String sample, LineReader lineReader, Text line, ReferenceShare genome) throws IOException {
+		report.parseReport(sample, lineReader, line, genome);
 	}
 	
 	public ResultReport build() {

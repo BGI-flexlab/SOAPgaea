@@ -27,17 +27,13 @@ public class WholeGenomeCoverReport{
 	private BaseTracker bTracker;
 	
 	private ChromosomeInformationShare chrInfo;
-	
-	private static String chrName;
-	
-	private static Map<String, WholeGenomeCoverReport> coverReports;
+		
+	private static Map<String, WholeGenomeCoverReport> coverReports = new ConcurrentHashMap<>();
 	
 	private WholeGenomeCoverReport(ChromosomeInformationShare chrInfo) {
 		bTracker = new Tracker.BaseTracker();
 		register();
 		this.chrInfo = chrInfo;
-		this.chrName = chrInfo.getChromosomeName();
-		coverReports = new ConcurrentHashMap<>();
 	}
 	
 	public void constructDepthReport(PositionDepth deep, int i) {
@@ -56,7 +52,7 @@ public class WholeGenomeCoverReport{
 		}
 	}
 	
-	public String toReducerString() {
+	public String toReducerString(String chrName) {
 		StringBuffer coverString = new StringBuffer();
 		coverString.append("Cover Information:\n");
 		coverString.append(chrName);
@@ -72,7 +68,7 @@ public class WholeGenomeCoverReport{
 		return coverString.toString();
 	}
 	
-	public String toString() {
+	public String toString(String chrName) {
 		DecimalFormat df = new DecimalFormat("0.000");
 		df.setRoundingMode(RoundingMode.HALF_UP);
 		
@@ -92,7 +88,7 @@ public class WholeGenomeCoverReport{
 		return coverString.toString();
 	}
 	
-	public void parse(String line, ReferenceShare genome) {
+	public static void parse(String line, ReferenceShare genome) {
 		String[] splitArray = line.split("\t");
 		WholeGenomeCoverReport coverReport = null;
 		for(String keyValue : splitArray) {
@@ -111,7 +107,7 @@ public class WholeGenomeCoverReport{
 		}
 	}
 	
-	private void parseKeyValue(String keyValue, ReferenceShare genome, WholeGenomeCoverReport coverReport) {
+	private static void parseKeyValue(String keyValue, ReferenceShare genome, WholeGenomeCoverReport coverReport) {
 		String key = keyValue.split(" ")[0];
 		String value = keyValue.split(" ")[1];
 		BaseCounter bCounter = null;
@@ -181,7 +177,7 @@ public class WholeGenomeCoverReport{
 	
 	public static void addCoverReport(ChromosomeInformationShare chrInfo) {
 		WholeGenomeCoverReport coverInfo = new WholeGenomeCoverReport(chrInfo);
-		coverReports.put(chrName, coverInfo);
+		coverReports.put(chrInfo.getChromosomeName(), coverInfo);
 	}
 
 }

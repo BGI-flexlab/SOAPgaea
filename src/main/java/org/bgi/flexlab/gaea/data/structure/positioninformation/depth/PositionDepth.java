@@ -31,27 +31,15 @@ public class PositionDepth implements CalculateWindowInformationInterface<SamRec
 	
 	private PositionDeletionBaseInformation deletionBaseWithNOCover = null;
 	
-	public PositionDepth(int windowSize, boolean forBamqc) {
-		if(forBamqc){
-			posDepth = new PositionDepthNormal(windowSize);
-			isIndel = new PositionIndelInformation(windowSize);
-			isMismatch = new PositionMismatchInformation(windowSize);
-			deletionBaseWithNOCover = new PositionDeletionBaseInformation(windowSize);
-		} else {
-			throw new RuntimeException("To initailze for bam2depth, feed "
-					+ "the constructor with a sample number and remove the boolean parameter");
-		}
-	}
-	
-	public PositionDepth(int sampleNum) {
-		depths = new PositionDepthSamtools[sampleNum];
-		for(int i = 0; i < depths.length; i++) {
-			depths[i] = new PositionDepthSamtools(100000);
-		}
+	public PositionDepth(int windowSize) {
+		posDepth = new PositionDepthNormal(windowSize);
+		isIndel = new PositionIndelInformation(windowSize);
+		isMismatch = new PositionMismatchInformation(windowSize);
+		deletionBaseWithNOCover = new PositionDeletionBaseInformation(windowSize);
 	}
 	
 	public PositionDepth(int windowSize, boolean isGenderDepth, int laneSize) {
-		this(windowSize, true);
+		this(windowSize);
 //		if(isDupDepth)
 		posRMDupDepth = new PositionDepthRemoveDuplication(windowSize);
 		if(isGenderDepth) {
@@ -106,36 +94,6 @@ public class PositionDepth implements CalculateWindowInformationInterface<SamRec
 			}
 			if(cnvUsedDepth != null) {
 				cnvUsedDepth.add(posInfo);
-			}
-		}
-		return true;
-	}
-	
-	/**
-	 * initialize index
-	 * @return
-	 */
-	@SuppressWarnings("rawtypes")
-	public boolean add(int winStart, int sampleIndex, SamRecordDatum readInfo) {
-		if(readInfo == null) {
-			return false;
-		}
-		
-		int readStart = readInfo.getPosition();
-		int readEnd = readInfo.getEnd();
-		for(int j = readStart; j <= readEnd; j++) {
-			if(j < winStart || j >= (winStart + 100000)) {
-				continue;
-			}
-			int coord = readInfo.getCigarState().resolveCigar(j, readStart);
-			
-			if( coord < 0) {//deletion
-				continue;
-			}
-
-			CompoundInformation posInfo = new CompoundInformation(readInfo, null, winStart, j, 0);
-			if(depths[sampleIndex] != null) {
-				depths[sampleIndex].add(posInfo);
 			}
 		}
 		return true;

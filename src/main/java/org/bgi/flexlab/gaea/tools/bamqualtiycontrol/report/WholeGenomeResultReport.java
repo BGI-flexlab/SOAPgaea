@@ -21,11 +21,14 @@ public class WholeGenomeResultReport extends ResultReport{
 		super(options);
 	}
 	
-	public boolean initCoverReport(ChromosomeInformationShare chrInfo) {
-		if(null == chrInfo)
-			return false;
-		coverReport = WholeGenomeCoverReport.getCoverReport(chrInfo);
-		return true;
+	public void initReports(String chrName) throws IOException {
+		super.initReports();
+		if(chrName.equals("-1"))
+			return;
+		else {
+			ChromosomeInformationShare chrInfo = genome.getChromosomeInfo(chrName);
+			coverReport = WholeGenomeCoverReport.getCoverReport(chrInfo);
+		}
 	}
 	
 	@Override
@@ -60,7 +63,7 @@ public class WholeGenomeResultReport extends ResultReport{
 			info.append(regionCoverReport.toReducerString());
 			for(String key : WholeGenomeCoverReport.getCoverReports().keySet()) {
 				WholeGenomeCoverReport cover = WholeGenomeCoverReport.getCoverReport(key);
-				info.append(cover.toReducerString());
+				info.append(cover.toReducerString(key));
 			}
 			info.append("insert size information:\n");
 			insertSizeReportReducerString(info, insertSize);
@@ -80,12 +83,13 @@ public class WholeGenomeResultReport extends ResultReport{
 	}
 	
 	@Override
-	public void parseReport(LineReader lineReader, Text line, ReferenceShare genome) throws IOException {
-		super.parseReport(lineReader, line, genome);
+	public void parseReport(String sample, LineReader lineReader, Text line, ReferenceShare genome) throws IOException {
+		super.initReports();
+		super.parseReport(sample, lineReader, line, genome);
 		String lineString = line.toString();
 		if(lineString.contains("Cover Information")) {
 			if(lineReader.readLine(line) > 0 && line.getLength() != 0) {
-				coverReport.parse(line.toString(), genome);
+				WholeGenomeCoverReport.parse(line.toString(), genome);
 			}
 		}
 		
@@ -107,7 +111,7 @@ public class WholeGenomeResultReport extends ResultReport{
 		TreeSet<String> keys = new TreeSet<String>(WholeGenomeCoverReport.getCoverReports().keySet());
 		for(String key : keys) {
 			WholeGenomeCoverReport cover = WholeGenomeCoverReport.getCoverReports().get(key);
-			info.append(cover.toString());
+			info.append(cover.toString(key));
 		}
 		reportwriter.write(info.toString().getBytes());
 		reportwriter.close();
