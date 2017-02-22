@@ -51,10 +51,8 @@ public class BamReport {
 							reportType = reports.get(sample);
 						}
 					}
-					
 					reportBuilder.setReportChoice(reportType);
 					reportBuilder.parseReport(sample, lineReader, line, genome);					
-			
 				}
 				lineReader.close();
 				reader.close();
