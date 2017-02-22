@@ -63,7 +63,7 @@ public class WholeGenomeResultReport extends ResultReport{
 			info.append(regionCoverReport.toReducerString());
 			for(String key : WholeGenomeCoverReport.getCoverReports().keySet()) {
 				WholeGenomeCoverReport cover = WholeGenomeCoverReport.getCoverReport(key);
-				info.append(cover.toReducerString(key));
+				info.append(cover.toReducerString());
 			}
 			info.append("insert size information:\n");
 			insertSizeReportReducerString(info, insertSize);
@@ -89,7 +89,7 @@ public class WholeGenomeResultReport extends ResultReport{
 		String lineString = line.toString();
 		if(lineString.contains("Cover Information")) {
 			if(lineReader.readLine(line) > 0 && line.getLength() != 0) {
-				WholeGenomeCoverReport.parse(line.toString(), genome);
+				coverReport.parse(line.toString(), genome);
 			}
 		}
 		
@@ -111,7 +111,7 @@ public class WholeGenomeResultReport extends ResultReport{
 		TreeSet<String> keys = new TreeSet<String>(WholeGenomeCoverReport.getCoverReports().keySet());
 		for(String key : keys) {
 			WholeGenomeCoverReport cover = WholeGenomeCoverReport.getCoverReports().get(key);
-			info.append(cover.toString(key));
+			info.append(cover.toString());
 		}
 		reportwriter.write(info.toString().getBytes());
 		reportwriter.close();

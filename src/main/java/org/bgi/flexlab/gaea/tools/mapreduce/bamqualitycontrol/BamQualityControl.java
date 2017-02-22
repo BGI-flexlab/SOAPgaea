@@ -45,8 +45,8 @@ public class BamQualityControl extends ToolsRunner{
 		job.setJarByClass(BamQualityControl.class);
 		job.setMapperClass(BamQualityControlMapper.class);
 		job.setReducerClass(BamQualityControlReducer.class);
-		job.setOutputKeyValue(Text.class, Text.class, 
-				NullWritable.class, Text.class);
+		job.setOutputKeyValue(IntWritable.class, Text.class, 
+				NullWritable.class, VariantContextWritable.class);
 		job.setNumReduceTasks(options.getReducerNum());
 		
 		FileInputFormat.addInputPaths(job, options.getAlignmentFilePath());

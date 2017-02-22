@@ -45,18 +45,27 @@ public class BaseCounter {
 	
 	public void update(Interval region, DepthType depth, DepthType noPCRdepth) {
 		// TODO Auto-generated method stub
-		if(this.region == region) {
-			if(this.depth != Depth.TOTALDEPTH) {
-				if(this.depth == Depth.ABOVE_ZREO && depth.getDepth() == 0) {
-					baseCount++;
-					baseWithoutPCRdupCount++;
-				} else if(this.dType == DepthType.NORMAL && depth.getDepth() >= this.depth.getDepth()) {
-					baseCount++;
-				} else if(this.dType == DepthType.WITHOUT_PCR && noPCRdepth.getDepth() >= this.depth.getDepth()) {
-					baseWithoutPCRdupCount++;
-				}
-			} else if(this.depth == Depth.TOTALDEPTH)
-				totalDepth += depth.getDepth();
+		if(this.region == region)
+			switch (dType) {
+				case NORMAL:
+					update(depth);
+					break;
+				case WITHOUT_PCR:
+					update(noPCRdepth);
+					break;
+				default:
+					break;
+			}
+	}
+
+	private void update(DepthType depth) {
+		if(depth.getDepth() > this.depth.getDepth() && this.depth != Depth.TOTALDEPTH)
+			baseCount++;
+		else if(this.depth == Depth.TOTALDEPTH)
+			totalDepth += depth.getDepth();
+		else if(this.depth == Depth.ABOVE_ZREO && depth.getDepth() == 0) {
+			baseCount++;
+			baseWithoutPCRdupCount++;
 		}
 	}
 
@@ -87,29 +96,22 @@ public class BaseCounter {
 	
 	public long getProperty() {
 		long result = 0;
-		if(properties.length == 1) {
-			result = baseCount;
-			return result;
-		} else {
-			switch (depth) {
-			case TOTALDEPTH:
-				result = totalDepth;
-			default:
-				switch (dType) {
-				case NORMAL:
-					result = baseCount;
-					break;
-				case WITHOUT_PCR:
-					result = baseWithoutPCRdupCount;
-					break;
-				}
+		switch (depth) {
+		case TOTALDEPTH:
+			result = totalDepth;
+		default:
+			switch (dType) {
+			case NORMAL:
+				result = baseCount;
+			case WITHOUT_PCR:
+				result = baseWithoutPCRdupCount;
 			}
-			return result;
 		}
+		return result;
 	}
 	
 	public String formatKey() {
-		String key = "";
+		String key = null;
 		for(CounterProperty property : properties)
 			key += property.toString();
 		return key;

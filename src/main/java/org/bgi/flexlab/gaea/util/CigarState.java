@@ -98,7 +98,7 @@ public class CigarState {
 			}
 		}
 	}
-	
+
 	public void parseCigar(int[] cigarValues) {
 		for (int cigarValue : cigarValues) {
 			cigar.add(cigarValue);
@@ -180,7 +180,6 @@ public class CigarState {
 		}
 		int op, l;
 		op = cigar.get(cigarState[0]) & 0xf;
-		
 		l = (cigar.get(cigarState[0]) >> 4);
 
 		flag = 0; // important
@@ -290,7 +289,7 @@ public class CigarState {
 				}
 			} else if (op == SystemConfiguration.BAM_CREF_SKIP) {
 				cigarState[1] += l;
-			} else if (op == SystemConfiguration.BAM_CINS) {
+			} else if (op == SystemConfiguration.BAM_CINS || op == SystemConfiguration.BAM_CSOFT_CLIP) {
 				cigarState[2] += l;
 			}
 		}

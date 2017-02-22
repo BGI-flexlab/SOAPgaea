@@ -92,7 +92,7 @@ public abstract class SAMCompressionInformationBasic extends ReadBasicCompressio
 		return true;
 	}
 
-	public boolean parseBamQC(String samline) {
+	public boolean parseSAM(String samline) {
 		return true;
 	}
 
