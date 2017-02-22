@@ -1,11 +1,14 @@
 package org.bgi.flexlab.gaea.data.structure.bam;
 
+import com.sun.tools.javac.util.ArrayUtils;
 import htsjdk.samtools.CigarElement;
 import htsjdk.samtools.CigarOperator;
+import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.data.structure.reads.ReadBasicCompressionInformation;
-import org.bgi.flexlab.gaea.util.CigarState;
 import org.bgi.flexlab.gaea.util.SAMUtils;
 import org.bgi.flexlab.gaea.util.SystemConfiguration;
+
+import java.util.Arrays;
 
 public abstract class SAMCompressionInformationBasic extends ReadBasicCompressionInformation implements ParseSAMInterface{
 	/**
@@ -32,6 +35,22 @@ public abstract class SAMCompressionInformationBasic extends ReadBasicCompressio
 	 * cigar in string
 	 */
 	protected int[] cigars;
+
+	public SAMCompressionInformationBasic() {
+		flag = 0;
+		chrNameIndex = -1;
+		position = 0;
+		mappingQual = 0;
+	}
+
+	public SAMCompressionInformationBasic(SAMCompressionInformationBasic read) {
+		super(read);
+		this.flag = read.flag;
+		this.chrNameIndex = read.chrNameIndex;
+		this.position = read.position;
+		this.mappingQual = read.mappingQual;
+		this.cigars = Arrays.copyOf(read.cigars, read.cigars.length);
+	}
 
 	public boolean parseSAM(GaeaSamRecord samRecord) {
 
@@ -97,6 +116,40 @@ public abstract class SAMCompressionInformationBasic extends ReadBasicCompressio
 		}
 		//return end;
 		return end - 1;
+	}
+
+	/**
+	 * get alignment end with soft clip in count
+	 * @return
+	 */
+	public int getSoftEnd() {
+		int end = position;
+		int cigar = cigars[cigars.length - 1];
+		int cigarOp = (cigar & SystemConfiguration.BAM_CIGAR_MASK);
+
+		if(cigarOp == SystemConfiguration.BAM_CSOFT_CLIP) {
+			int cigarLength = cigar >> SystemConfiguration.BAM_CIGAR_SHIFT;
+			end += cigarLength - 1;
+		}
+
+		return end;
+	}
+
+	/**
+	 * get alignment end with soft clip in count
+	 * @return
+	 */
+	public int getSoftStart() {
+		int start = position;
+		int cigar = cigars[0];
+		int cigarOp = (cigar & SystemConfiguration.BAM_CIGAR_MASK);
+
+		if(cigarOp == SystemConfiguration.BAM_CSOFT_CLIP) {
+			int cigarLength = cigar >> SystemConfiguration.BAM_CIGAR_SHIFT;
+			start -= cigarLength;
+		}
+
+		return start;
 	}
 
 	/**
@@ -238,6 +291,5 @@ public abstract class SAMCompressionInformationBasic extends ReadBasicCompressio
 	public int getCigarsLength() {
 		return cigars.length;
 	}
-
 
 }

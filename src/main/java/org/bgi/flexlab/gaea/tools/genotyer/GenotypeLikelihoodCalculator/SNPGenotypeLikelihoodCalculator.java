@@ -5,6 +5,7 @@ import htsjdk.variant.variantcontext.*;
 import org.bgi.flexlab.gaea.data.structure.pileup.Mpileup;
 import org.bgi.flexlab.gaea.data.structure.pileup.Pileup;
 import org.bgi.flexlab.gaea.data.structure.pileup.PileupReadInfo;
+import org.bgi.flexlab.gaea.data.structure.location.GenomeLocationParser;
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
 import org.bgi.flexlab.gaea.tools.genotyer.VariantCallingEngine;
 import org.bgi.flexlab.gaea.tools.mapreduce.genotyper.GenotyperOptions;
@@ -118,7 +119,7 @@ public class SNPGenotypeLikelihoodCalculator extends GenotypeLikelihoodCalculato
      * @param options options
      * @return variant context with likelihoods
      */
-    public VariantContext genotypeLikelihoodCalculate(Mpileup mpileup, ChromosomeInformationShare reference, GenotyperOptions options) {
+    public VariantContext genotypeLikelihoodCalculate(Mpileup mpileup, ChromosomeInformationShare reference, GenotyperOptions options, GenomeLocationParser locationParser, final Map<String, PerReadAlleleLikelihoodMap> perReadAlleleLikelihoodMap) {
         final byte refBase = (byte)reference.getBase(mpileup.getPosition());
         final int indexOfRefBase = BaseUtils.simpleBaseToBaseIndex(refBase);
         // handle non-standard reference bases

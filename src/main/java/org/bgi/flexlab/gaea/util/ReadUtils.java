@@ -21,6 +21,7 @@ import java.util.Map;
 
 import org.bgi.flexlab.gaea.data.exception.OutOfBoundException;
 import org.bgi.flexlab.gaea.data.exception.UserException;
+import org.bgi.flexlab.gaea.data.structure.alignment.AlignmentsBasic;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
 import org.bgi.flexlab.gaea.data.structure.sequenceplatform.NGSPlatform;
@@ -217,6 +218,16 @@ public class ReadUtils {
 			return 0;
 	}
 
+	public final static int getFirstInsertionOffset(AlignmentsBasic read) {
+		int cigar = read.getCigars()[0];
+		int cigarOp = (cigar & SystemConfiguration.BAM_CIGAR_MASK);
+
+		if(cigarOp == SystemConfiguration.BAM_CINS)
+			return (cigar >> SystemConfiguration.BAM_CIGAR_SHIFT);
+		else
+			return 0;
+	}
+
 	/**
 	 * If a read ends in INSERTION, returns the last element length.
 	 *
@@ -228,6 +239,16 @@ public class ReadUtils {
 				read.getCigarLength() - 1);
 		if (e.getOperator() == CigarOperator.I)
 			return e.getLength();
+		else
+			return 0;
+	}
+
+	public final static int getLastInsertionOffset(AlignmentsBasic read) {
+		int cigar = read.getCigars()[read.getCigars().length - 1];
+		int cigarOp = (cigar & SystemConfiguration.BAM_CIGAR_MASK);
+
+		if(cigarOp == SystemConfiguration.BAM_CINS)
+			return (cigar >> SystemConfiguration.BAM_CIGAR_SHIFT);
 		else
 			return 0;
 	}
