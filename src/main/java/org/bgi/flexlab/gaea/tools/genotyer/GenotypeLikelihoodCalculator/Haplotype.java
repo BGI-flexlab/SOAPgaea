@@ -14,6 +14,7 @@ import java.util.*;
 
 /**
  * Created by zhangyong on 2017/2/6.
+ * mainly came from GATK 2.3.9-lite
  */
 public class Haplotype {
     protected final byte[] bases;

@@ -17,6 +17,8 @@ import java.util.Map;
 
 /**
  * Created by zhangyong on 2016/12/29.
+ *
+ * mainly came from GATK 2.3.9-lite
  */
 public class INDELGenotypeLikelihoodCalculator extends GenotypeLikelihoodCalculator {
     private static final int HAPLOTYPE_SIZE = 80;

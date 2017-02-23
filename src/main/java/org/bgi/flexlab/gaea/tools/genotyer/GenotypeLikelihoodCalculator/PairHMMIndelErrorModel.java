@@ -43,6 +43,9 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+/**
+ * mainly came from GATK 2.3.9-lite
+ */
 public class PairHMMIndelErrorModel {
     public static final int BASE_QUAL_THRESHOLD = 20;
 

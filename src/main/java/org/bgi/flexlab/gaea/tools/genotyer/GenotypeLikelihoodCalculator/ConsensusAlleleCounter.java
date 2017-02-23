@@ -15,6 +15,7 @@ import java.util.*;
 
 /**
  * Created by zhangyong on 2017/2/5.
+ * mainly came from GATK 2.3.9-lite
  */
 public class ConsensusAlleleCounter {
     private final int minIndelCountForGenotyping;
