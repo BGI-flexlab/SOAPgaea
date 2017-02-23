@@ -1,9 +1,7 @@
 package org.bgi.flexlab.gaea.data.structure.bam;
 
-import com.sun.tools.javac.util.ArrayUtils;
 import htsjdk.samtools.CigarElement;
 import htsjdk.samtools.CigarOperator;
-import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.data.structure.reads.ReadBasicCompressionInformation;
 import org.bgi.flexlab.gaea.util.SAMUtils;
 import org.bgi.flexlab.gaea.util.SystemConfiguration;

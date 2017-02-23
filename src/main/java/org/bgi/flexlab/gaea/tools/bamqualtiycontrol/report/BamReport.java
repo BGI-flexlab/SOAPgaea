@@ -42,22 +42,20 @@ public class BamReport {
 						continue;
 					}
 					
+					String sample = "";
 					if(lineString.contains("sample:")) {
-						String[] sampleSplit = line.toString().split(":");
-						if(!reports.containsKey(sampleSplit[1])) {
-							reports.put(sampleSplit[1], reportType);
+						sample = line.toString().split(":")[1];
+						if(!reports.containsKey(sample)) {
+							reports.put(sample, reportType);
 						} else {
-							reportType = reports.get(sampleSplit[1]);
+							reportType = reports.get(sample);
 						}
 					}
-					
 					reportBuilder.setReportChoice(reportType);
-					
-					reportBuilder.parseReport(lineReader, line, genome);
-						
-					lineReader.close();
-					reader.close();
+					reportBuilder.parseReport(sample, lineReader, line, genome);					
 				}
+				lineReader.close();
+				reader.close();
 			}	
 		}
 		
