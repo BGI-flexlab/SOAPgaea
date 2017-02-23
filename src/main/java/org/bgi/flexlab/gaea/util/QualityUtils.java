@@ -43,6 +43,10 @@ public class QualityUtils {
 		return boundQuality((int) lp);
 	}
 
+	public static double phredScaleErrorRate(double errorRate) {
+		return Math.abs(-10.0 * Math.log10(errorRate));
+	}
+
 	public static byte boundQuality(int qual) {
 		return boundQuality(qual, MAXIMUM_USABLE_QUALITY_SCORE);
 	}

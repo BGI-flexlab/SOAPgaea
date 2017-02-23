@@ -166,4 +166,13 @@ public class Pileup implements PileupInterface<PileupReadInfo> {
 	public int getNumberOfElements() {
 		return plp.size();
 	}
+
+	/**
+	 * get coverage
+	 * FIXME:: maybe need to be fixed with filters.
+	 * @return coverage depth
+	 */
+	public int depthOfCoverage() {
+		return plp.size();
+	}
 }

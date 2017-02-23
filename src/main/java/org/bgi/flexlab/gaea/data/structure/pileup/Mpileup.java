@@ -190,6 +190,10 @@ public class Mpileup implements MpileupInterface<Pileup>{
 		return minPosition;
 	}
 
+	public Map<String, Pileup> getCurrentPosPileup() {
+		return pileups;
+	}
+
 	public int getPosition() {
 		return position;
 	}

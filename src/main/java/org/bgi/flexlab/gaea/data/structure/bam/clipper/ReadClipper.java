@@ -1,14 +1,12 @@
 package org.bgi.flexlab.gaea.data.structure.bam.clipper;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.data.structure.alignment.AlignmentsBasic;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.bam.clipper.algorithm.ReadClippingAlgorithm;
 import org.bgi.flexlab.gaea.util.CigarState;
-import org.bgi.flexlab.gaea.util.ReadUtils;
 import org.bgi.flexlab.gaea.util.SystemConfiguration;
 
 public class ReadClipper {
