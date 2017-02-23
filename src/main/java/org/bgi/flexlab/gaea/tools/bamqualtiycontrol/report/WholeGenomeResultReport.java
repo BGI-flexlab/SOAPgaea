@@ -21,11 +21,14 @@ public class WholeGenomeResultReport extends ResultReport{
 		super(options);
 	}
 	
-	public boolean initCoverReport(ChromosomeInformationShare chrInfo) {
-		if(null == chrInfo)
-			return false;
-		coverReport = WholeGenomeCoverReport.getCoverReport(chrInfo);
-		return true;
+	public void initReports(String chrName) throws IOException {
+		super.initReports();
+		if(chrName.equals("-1"))
+			return;
+		else {
+			ChromosomeInformationShare chrInfo = genome.getChromosomeInfo(chrName);
+			coverReport = WholeGenomeCoverReport.getCoverReport(chrInfo);
+		}
 	}
 	
 	@Override
@@ -80,8 +83,9 @@ public class WholeGenomeResultReport extends ResultReport{
 	}
 	
 	@Override
-	public void parseReport(LineReader lineReader, Text line, ReferenceShare genome) throws IOException {
-		super.parseReport(lineReader, line, genome);
+	public void parseReport(String sample, LineReader lineReader, Text line, ReferenceShare genome) throws IOException {
+		super.initReports();
+		super.parseReport(sample, lineReader, line, genome);
 		String lineString = line.toString();
 		if(lineString.contains("Cover Information")) {
 			if(lineReader.readLine(line) > 0 && line.getLength() != 0) {
