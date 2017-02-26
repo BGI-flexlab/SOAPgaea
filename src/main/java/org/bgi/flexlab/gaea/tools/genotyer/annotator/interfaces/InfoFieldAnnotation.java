@@ -14,20 +14,18 @@ import java.util.Map;
 public abstract class InfoFieldAnnotation extends VariantAnnotatorAnnotation {
     // return annotations for the given contexts split by sample
     public Map<String, Object> annotate(final VariantDataTracker tracker,
-                                        final AnnotatorCompatible walker,
                                         final ChromosomeInformationShare ref,
                                         final Mpileup mpileup,
                                         final VariantContext vc) {
-        return annotate(tracker, walker, ref, mpileup, vc, null);
+        return annotate(tracker, ref, mpileup, vc, null);
     }
 
     public Map<String, Object> annotate(Map<String, PerReadAlleleLikelihoodMap> perReadAlleleLikelihoodMap, VariantContext vc) {
-        return annotate(null, null, null, null, vc, perReadAlleleLikelihoodMap);
+        return annotate(null, null, null, vc, perReadAlleleLikelihoodMap);
     }
 
 
     public abstract Map<String, Object> annotate(final VariantDataTracker tracker,
-                                                 final AnnotatorCompatible walker,
                                                  final ChromosomeInformationShare ref,
                                                  final Mpileup mpileup,
                                                  final VariantContext vc,

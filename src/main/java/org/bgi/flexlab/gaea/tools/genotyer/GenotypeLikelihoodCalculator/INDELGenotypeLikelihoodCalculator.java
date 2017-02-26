@@ -23,9 +23,9 @@ import java.util.Map;
 public class INDELGenotypeLikelihoodCalculator extends GenotypeLikelihoodCalculator {
     private static final int HAPLOTYPE_SIZE = 80;
 
-    private static int REF_WIN_START = -200;
+    public static int REF_WIN_START = -200;
 
-    private static int REF_WIN_STOP = 200;
+    public static int REF_WIN_STOP = 200;
 
     private boolean ignoreSNPAllelesWhenGenotypingIndels = false;
 

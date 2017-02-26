@@ -26,6 +26,8 @@ import java.util.*;
 
 /**
  * Created by zhangyong on 2016/12/20.
+ *
+ * mainly came from GATK-2.3.9-lite
  */
 public class VariantCallingEngine {
     public static final String LOW_QUAL_FILTER_NAME = "LowQual";
@@ -78,9 +80,9 @@ public class VariantCallingEngine {
     /**
      * genome location parser
      */
-    private GenomeLocationParser genomeLocationParser;
+    public static GenomeLocationParser genomeLocationParser;
 
-    private Set<String> samples;
+    public static Set<String> samples;
 
     private int N;
 

@@ -4,6 +4,7 @@ import org.bgi.flexlab.gaea.data.exception.UserException;
 
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
+import java.util.Collection;
 
 public class MathUtils {
 
@@ -122,6 +123,19 @@ public class MathUtils {
         return maxI;
     }
 
+    public static int minElementIndex(double[] array) {
+        if (array == null || array.length == 0)
+            throw new IllegalArgumentException("Array cannot be null!");
+
+        int minI = 0;
+        for (int i = 1; i < array.length; i++) {
+            if (array[i] < array[minI])
+                minI = i;
+        }
+
+        return minI;
+    }
+
 
     public static double arrayMax(final double[] array) {
         return array[maxElementIndex(array)];
@@ -129,6 +143,9 @@ public class MathUtils {
 
     public static double arrayMax(final double[] array, final int endIndex) {
         return array[maxElementIndex(array, endIndex)];
+    }
+    public static double arrayMin(double[] array) {
+        return array[minElementIndex(array)];
     }
 
     /**
@@ -482,5 +499,91 @@ public class MathUtils {
      */
     public static double binomialProbability(int n, int k, double p) {
         return Math.pow(10, log10BinomialProbability(n, k, Math.log10(p)));
+    }
+
+
+    public static int countOccurrences(char c, String s) {
+        int count = 0;
+        for (int i = 0; i < s.length(); i++) {
+            count += s.charAt(i) == c ? 1 : 0;
+        }
+        return count;
+    }
+
+    /**
+     * calculate the Root Mean Square of an array of integers
+     *
+     * @param x an int[] of numbers
+     * @return the RMS of the specified numbers.
+     */
+    public static double rms(int[] x) {
+        if (x.length == 0)
+            return 0.0;
+
+        double rms = 0.0;
+        for (int i : x)
+            rms += i * i;
+        rms /= x.length;
+        return Math.sqrt(rms);
+    }
+
+    /**
+     * A utility class that computes on the fly average and standard deviation for a stream of numbers.
+     * The number of observations does not have to be known in advance, and can be also very big (so that
+     * it could overflow any naive summation-based scheme or cause loss of precision).
+     * Instead, adding a new number <code>observed</code>
+     * to a sample with <code>add(observed)</code> immediately updates the instance of this object so that
+     * it contains correct mean and standard deviation for all the numbers seen so far. Source: Knuth, vol.2
+     * (see also e.g. http://www.johndcook.com/standard_deviation.html for online reference).
+     */
+    public static class RunningAverage {
+        private double mean = 0.0;
+        private double s = 0.0;
+        private long obs_count = 0;
+
+        public void add(double obs) {
+            obs_count++;
+            double oldMean = mean;
+            mean += (obs - mean) / obs_count; // update mean
+            s += (obs - oldMean) * (obs - mean);
+        }
+
+        public void addAll(Collection<Number> col) {
+            for (Number o : col) {
+                add(o.doubleValue());
+            }
+        }
+
+        public double mean() {
+            return mean;
+        }
+
+        public double stddev() {
+            return Math.sqrt(s / (obs_count - 1));
+        }
+
+        public double var() {
+            return s / (obs_count - 1);
+        }
+
+        public long observationCount() {
+            return obs_count;
+        }
+
+        public RunningAverage clone() {
+            RunningAverage ra = new RunningAverage();
+            ra.mean = this.mean;
+            ra.s = this.s;
+            ra.obs_count = this.obs_count;
+            return ra;
+        }
+
+        public void merge(RunningAverage other) {
+            if (this.obs_count > 0 || other.obs_count > 0) { // if we have any observations at all
+                this.mean = (this.mean * this.obs_count + other.mean * other.obs_count) / (this.obs_count + other.obs_count);
+                this.s += other.s;
+            }
+            this.obs_count += other.obs_count;
+        }
     }
 }

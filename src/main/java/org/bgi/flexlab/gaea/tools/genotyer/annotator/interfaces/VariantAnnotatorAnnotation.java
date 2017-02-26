@@ -12,5 +12,5 @@ public abstract class VariantAnnotatorAnnotation {
     public abstract List<String> getKeyNames();
 
     // initialization method (optional for subclasses, and therefore non-abstract)
-    public void initialize ( AnnotatorCompatible walker,  Set<VCFHeaderLine> headerLines ) { }
+    public void initialize ( Set<VCFHeaderLine> headerLines ) { }
 }
