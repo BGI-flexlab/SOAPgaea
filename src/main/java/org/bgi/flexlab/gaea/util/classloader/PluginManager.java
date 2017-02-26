@@ -5,7 +5,7 @@ package org.bgi.flexlab.gaea.util.classloader;
 
 import org.bgi.flexlab.gaea.data.exception.DynamicClassResolutionException;
 import org.bgi.flexlab.gaea.data.exception.UserException;
-import org.bgi.flexlab.gaea.tools.genotyer.annotator.VariantAnnotatorEngine;
+import org.bgi.flexlab.gaea.tools.genotyer.annotator.*;
 import org.bgi.flexlab.gaea.tools.genotyer.annotator.interfaces.*;
 
 import java.lang.reflect.Constructor;
@@ -36,8 +36,8 @@ public class PluginManager<PluginType> {
     private static List<Class> allClass;
     static{
     	allClass=new ArrayList<Class>();
-    	allClass.add(AlleleBalance.class);
-    	allClass.add(AlleleBalanceBySample.class);
+        allClass.add(AlleleBalance.class);
+        allClass.add(AlleleBalanceBySample.class);
     	allClass.add(BaseCounts.class);
     	allClass.add(BaseQualityRankSumTest.class);
     	allClass.add(ChromosomeCounts.class);
@@ -56,24 +56,23 @@ public class PluginManager<PluginType> {
     	allClass.add(MappingQualityZero.class);
     	allClass.add(MappingQualityZeroBySample.class);
     	allClass.add(MappingQualityZeroFraction.class);
-    	allClass.add(MVLikelihoodRatio.class);
-    	allClass.add(NBaseCount.class);
+    	//allClass.add(MVLikelihoodRatio.class);
+    	//allClass.add(NBaseCount.class);
     	allClass.add(QualByDepth.class);
     	allClass.add(RankSumTest.class);
     	allClass.add(ReadPosRankSumTest.class);
     	allClass.add(RMSMappingQuality.class);
     	allClass.add(SampleList.class);
-    	allClass.add(SnpEff.class);
+    	//allClass.add(SnpEff.class);
     	allClass.add(SpanningDeletions.class);
     	allClass.add(TandemRepeatAnnotator.class);
-    	allClass.add(TechnologyComposition.class);
-    	allClass.add(TransmissionDisequilibriumTest.class);
-    	allClass.add(VariantAnnotator.class);
+    	//allClass.add(TechnologyComposition.class);
+    	//allClass.add(TransmissionDisequilibriumTest.class);
+    	allClass.add(DBsnp.class);
     	allClass.add(VariantAnnotatorEngine.class);
     	allClass.add(ActiveRegionBasedAnnotation.class);
     	allClass.add(AnnotationInterfaceManager.class);
     	allClass.add(AnnotationType.class);
-    	allClass.add(AnnotatorCompatible.class);
     	allClass.add(ExperimentalAnnotation.class);
     	allClass.add(GenotypeAnnotation.class);
     	allClass.add(InfoFieldAnnotation.class);

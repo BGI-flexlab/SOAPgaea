@@ -126,7 +126,7 @@ public abstract class SAMCompressionInformationBasic extends ReadBasicCompressio
 		int cigarOp = (cigar & SystemConfiguration.BAM_CIGAR_MASK);
 
 		if(cigarOp == SystemConfiguration.BAM_CSOFT_CLIP) {
-			int cigarLength = cigar >> SystemConfiguration.BAM_CIGAR_SHIFT;
+			int cigarLength = (cigar >> SystemConfiguration.BAM_CIGAR_SHIFT);
 			end += cigarLength - 1;
 		}
 
@@ -148,6 +148,17 @@ public abstract class SAMCompressionInformationBasic extends ReadBasicCompressio
 		}
 
 		return start;
+	}
+
+	public int getNumHardClippedBases() {
+		int hardClippedBasesNum = 0;
+		for(int cigar : cigars) {
+			int cigarOp = (cigar & SystemConfiguration.BAM_CIGAR_MASK);
+			int cigarLength = cigar >> SystemConfiguration.BAM_CIGAR_SHIFT;
+			if(cigarOp == SystemConfiguration.BAM_CHARD_CLIP)
+				hardClippedBasesNum += cigarLength;
+		}
+		return hardClippedBasesNum;
 	}
 
 	/**
@@ -200,6 +211,9 @@ public abstract class SAMCompressionInformationBasic extends ReadBasicCompressio
 		return false;
 	}
 
+	public boolean isInsertionAtBeginningOfRead() {
+		return (cigars[0] & SystemConfiguration.BAM_CIGAR_MASK) == SystemConfiguration.BAM_CINS;
+	}
 
 	/**
 	 * @return the flag
