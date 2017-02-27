@@ -10,15 +10,15 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamHdfsFileHeader;
+import org.bgi.flexlab.gaea.data.mapreduce.writable.SamRecordWritable;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.util.SamRecordDatum;
 import org.bgi.flexlab.gaea.util.SamRecordUtils;
-import org.seqdoop.hadoop_bam.SAMRecordWritable;
 
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMReadGroupRecord;
 
-public class BamQualityControlMapper extends Mapper<LongWritable, SAMRecordWritable, Text, Text>{
+public class BamQualityControlMapper extends Mapper<LongWritable, SamRecordWritable, Text, Text>{
 	/**
 	 * FileHeader
 	 */
@@ -45,7 +45,7 @@ public class BamQualityControlMapper extends Mapper<LongWritable, SAMRecordWrita
 	}
 
 	@Override
-	public void map(LongWritable key, SAMRecordWritable value,Context context) throws IOException, InterruptedException {
+	public void map(LongWritable key, SamRecordWritable value,Context context) throws IOException, InterruptedException {
 		SamRecordDatum datum = new SamRecordDatum();
 		String rgID = SamRecordUtils.getReadGroup(value.get());
 		GaeaSamRecord record = new GaeaSamRecord(mFileHeader, value.get());
@@ -69,7 +69,7 @@ public class BamQualityControlMapper extends Mapper<LongWritable, SAMRecordWrita
 				randomkey = RandomUtils.nextInt();
 				unmappedReadsNum = 0;
 			}
-			context.write(new Text(formatKey(":-1:-1:", randomkey)), new Text("1"));
+			context.write(new Text(formatKey("-1:-1", randomkey)), new Text("1"));
 			unmappedReadsNum++;
 		}
 	}

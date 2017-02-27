@@ -27,17 +27,13 @@ public class WholeGenomeCoverReport{
 	private BaseTracker bTracker;
 	
 	private ChromosomeInformationShare chrInfo;
-	
-	private static String chrName;
-	
-	private static Map<String, WholeGenomeCoverReport> coverReports;
+		
+	private static Map<String, WholeGenomeCoverReport> coverReports = new ConcurrentHashMap<>();
 	
 	private WholeGenomeCoverReport(ChromosomeInformationShare chrInfo) {
 		bTracker = new Tracker.BaseTracker();
 		register();
 		this.chrInfo = chrInfo;
-		this.chrName = chrInfo.getChromosomeName();
-		coverReports = new ConcurrentHashMap<>();
 	}
 	
 	public void constructDepthReport(PositionDepth deep, int i) {
@@ -59,7 +55,7 @@ public class WholeGenomeCoverReport{
 	public String toReducerString() {
 		StringBuffer coverString = new StringBuffer();
 		coverString.append("Cover Information:\n");
-		coverString.append(chrName);
+		coverString.append(chrInfo.getChromosomeName());
 		coverString.append("\t");
 		for(Entry<String, BaseCounter> counter : bTracker.getCounterMap().entrySet()) {
 			coverString.append(counter.getKey());
@@ -78,7 +74,7 @@ public class WholeGenomeCoverReport{
 		
 		StringBuffer coverString = new StringBuffer();
 		coverString.append("chromsome:\t");
-		coverString.append(chrName);
+		coverString.append(chrInfo.getChromosomeName());
 		coverString.append("\nCoverage:\t");
 		coverString.append(df.format(getCoverage()));
 		coverString.append("%\nMean Depth:\t");
@@ -181,7 +177,7 @@ public class WholeGenomeCoverReport{
 	
 	public static void addCoverReport(ChromosomeInformationShare chrInfo) {
 		WholeGenomeCoverReport coverInfo = new WholeGenomeCoverReport(chrInfo);
-		coverReports.put(chrName, coverInfo);
+		coverReports.put(chrInfo.getChromosomeName(), coverInfo);
 	}
 
 }

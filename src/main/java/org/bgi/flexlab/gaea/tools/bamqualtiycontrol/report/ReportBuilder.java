@@ -25,6 +25,13 @@ public class ReportBuilder {
 			((RegionResultReport) report).initReports(sampleName);
 	}
 	
+	public void initReports(String sampleName) throws IOException {
+		if(report instanceof WholeGenomeResultReport)
+			((WholeGenomeResultReport) report).initReports();
+		else if(report instanceof RegionResultReport)
+			((RegionResultReport) report).initReports(sampleName);
+	}
+	
 	public boolean unmappedReport(long winNum, String chrName, Iterable<Text> values) {
 		return report.unmappedReport(winNum, chrName, values);
 	}
@@ -53,8 +60,8 @@ public class ReportBuilder {
 		return report instanceof RegionResultReport ? ((RegionResultReport) report).getSampleLaneSize(sample) : 0;
 	}
 	
-	public void parseReport(String sample, LineReader lineReader, Text line, ReferenceShare genome) throws IOException {
-		report.parseReport(sample, lineReader, line, genome);
+	public void parseReport(LineReader lineReader, Text line, ReferenceShare genome) throws IOException {
+		report.parseReport(lineReader, line, genome);
 	}
 	
 	public ResultReport build() {

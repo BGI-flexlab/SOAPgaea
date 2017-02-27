@@ -83,9 +83,8 @@ public class WholeGenomeResultReport extends ResultReport{
 	}
 	
 	@Override
-	public void parseReport(String sample, LineReader lineReader, Text line, ReferenceShare genome) throws IOException {
-		super.initReports();
-		super.parseReport(sample, lineReader, line, genome);
+	public void parseReport(LineReader lineReader, Text line, ReferenceShare genome) throws IOException {
+		super.parseReport(lineReader, line, genome);
 		String lineString = line.toString();
 		if(lineString.contains("Cover Information")) {
 			if(lineReader.readLine(line) > 0 && line.getLength() != 0) {

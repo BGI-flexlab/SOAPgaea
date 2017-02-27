@@ -176,9 +176,8 @@ public class RegionResultReport extends ResultReport{
 	}
 	
 	@Override
-	public void parseReport(String sample, LineReader lineReader, Text line, ReferenceShare genome) throws IOException {
-		initReports(sample);
-		super.parseReport(sample, lineReader, line,genome);
+	public void parseReport(LineReader lineReader, Text line, ReferenceShare genome) throws IOException {
+		super.parseReport(lineReader, line,genome);
 		String lineString = line.toString();
 		if(lineString.contains("Target Information")) {
 			if(lineReader.readLine(line) > 0 && line.getLength() != 0) {
