@@ -1,11 +1,20 @@
 package org.bgi.flexlab.gaea.data.structure.pileup;
 
 
+import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.data.structure.alignment.AlignmentsBasic;
 import org.bgi.flexlab.gaea.data.structure.bam.SAMCompressionInformationBasic;
+import org.bgi.flexlab.gaea.util.BaseUtils;
 import org.bgi.flexlab.gaea.util.CigarState;
+import org.bgi.flexlab.gaea.util.SystemConfiguration;
 
 public class PileupReadInfo {
+	public static final byte DELETION_BASE = BaseUtils.D;
+	public static final byte DELETION_QUAL = (byte) 16;
+	public static final byte A_FOLLOWED_BY_INSERTION_BASE = (byte) 87;
+	public static final byte C_FOLLOWED_BY_INSERTION_BASE = (byte) 88;
+	public static final byte T_FOLLOWED_BY_INSERTION_BASE = (byte) 89;
+	public static final byte G_FOLLOWED_BY_INSERTION_BASE = (byte) 90;
 	/**
 	 * read information
 	 */
@@ -77,6 +86,160 @@ public class PileupReadInfo {
 			eventBases = readInfo.getReadBases(qpos, eventLength);
 		else
 			eventBases = null;                  // ignore argument in any other case
+	}
+
+	public int calcAlignmentByteArrayOffset(final int alignmentStart, final int refLocus) {
+		return calcAlignmentByteArrayOffset(isInsertionAtBeginningOfRead(), cigarState.isDeletionBase(), alignmentStart, refLocus);
+	}
+
+	public int calcAlignmentByteArrayOffset(final boolean isInsertionAtBeginningOfRead, final boolean isDeletion,
+											final int alignmentStart, final int refLocus) {
+		int pileupOffset = qpos;
+		int[] cigars = readInfo.getCigars();
+
+		// Special case for reads starting with insertion
+		if (isInsertionAtBeginningOfRead)
+			return 0;
+
+		// Reassign the offset if we are in the middle of a deletion because of the modified representation of the read bases
+		if (isDeletion) {
+			pileupOffset = refLocus - alignmentStart;
+			final int cigar = cigars[0];
+			int cigarOp = (cigar & SystemConfiguration.BAM_CIGAR_MASK);
+			int cigarLength = (cigar >> SystemConfiguration.BAM_CIGAR_SHIFT);
+			if (cigarOp == SystemConfiguration.BAM_CSOFT_CLIP) {
+				pileupOffset += cigarLength;
+			}
+		}
+
+		int pos = 0;
+		int alignmentPos = 0;
+
+		for (int iii = 0; iii < cigars.length; iii++) {
+			int cigar = cigars[0];
+			int cigarOp = (cigar & SystemConfiguration.BAM_CIGAR_MASK);
+			int cigarLength = (cigar >> SystemConfiguration.BAM_CIGAR_SHIFT);
+
+			switch (cigarOp) {
+				case SystemConfiguration.BAM_CINS:
+				case SystemConfiguration.BAM_CSOFT_CLIP:
+					pos += cigarLength;
+					if (pos >= pileupOffset) {
+						return alignmentPos;
+					}
+					break;
+				case SystemConfiguration.BAM_CDEL:
+					if (!isDeletion) {
+						alignmentPos += cigarLength;
+					} else {
+						if (pos + cigarLength - 1 >= pileupOffset) {
+							return alignmentPos + (pileupOffset - pos);
+						} else {
+							pos += cigarLength;
+							alignmentPos += cigarLength;
+						}
+					}
+					break;
+				case SystemConfiguration.BAM_CMATCH:
+				case SystemConfiguration.BAM_CEQUAL:
+				case SystemConfiguration.BAM_CDIFF:
+					if (pos + cigarLength - 1 >= pileupOffset) {
+						return alignmentPos + (pileupOffset - pos);
+					} else {
+						pos += cigarLength;
+						alignmentPos += cigarLength;
+					}
+					break;
+				case SystemConfiguration.BAM_CHARD_CLIP:
+				case SystemConfiguration.BAM_CPAD:
+				case SystemConfiguration.BAM_CREF_SKIP:
+					break;
+				default:
+					throw new UserException("Unsupported cigar operator: " + cigarOp);
+			}
+		}
+
+		return alignmentPos;
+	}
+
+	public static byte[] readToAlignmentByteArray(int[] cigars, final byte[] read) {
+
+		int alignmentLength = 0;
+		for (int iii = 0; iii < cigars.length; iii++) {
+
+			int cigar = cigars[0];
+			int cigarOp = (cigar & SystemConfiguration.BAM_CIGAR_MASK);
+			int cigarLength = (cigar >> SystemConfiguration.BAM_CIGAR_SHIFT);
+
+			switch (cigarOp) {
+				case SystemConfiguration.BAM_CDEL:
+				case SystemConfiguration.BAM_CREF_SKIP:
+				case SystemConfiguration.BAM_CMATCH:
+				case SystemConfiguration.BAM_CEQUAL:
+				case SystemConfiguration.BAM_CDIFF:
+					alignmentLength += cigarLength;
+					break;
+				case SystemConfiguration.BAM_CINS:
+				case SystemConfiguration.BAM_CSOFT_CLIP:
+				case SystemConfiguration.BAM_CHARD_CLIP:
+				case SystemConfiguration.BAM_CPAD:
+					break;
+				default:
+					throw new UserException("Unsupported cigar operator: " + cigarOp);
+			}
+		}
+
+		final byte[] alignment = new byte[alignmentLength];
+		int alignPos = 0;
+		int readPos = 0;
+		for (int iii = 0; iii < cigars.length; iii++) {
+
+			int cigar = cigars[0];
+			int cigarOp = (cigar & SystemConfiguration.BAM_CIGAR_MASK);
+			int cigarLength = (cigar >> SystemConfiguration.BAM_CIGAR_SHIFT);
+
+			switch (cigarOp) {
+				case SystemConfiguration.BAM_CINS:
+					if (alignPos > 0) {
+						if (alignment[alignPos - 1] == BaseUtils.A) {
+							alignment[alignPos - 1] = PileupReadInfo.A_FOLLOWED_BY_INSERTION_BASE;
+						} else if (alignment[alignPos - 1] == BaseUtils.C) {
+							alignment[alignPos - 1] = PileupReadInfo.C_FOLLOWED_BY_INSERTION_BASE;
+						} else if (alignment[alignPos - 1] == BaseUtils.T) {
+							alignment[alignPos - 1] = PileupReadInfo.T_FOLLOWED_BY_INSERTION_BASE;
+						} else if (alignment[alignPos - 1] == BaseUtils.G) {
+							alignment[alignPos - 1] = PileupReadInfo.G_FOLLOWED_BY_INSERTION_BASE;
+						}
+					}
+				case SystemConfiguration.BAM_CSOFT_CLIP:
+					for (int jjj = 0; jjj < cigarLength; jjj++) {
+						readPos++;
+					}
+					break;
+				case SystemConfiguration.BAM_CDEL:
+				case SystemConfiguration.BAM_CREF_SKIP:
+					for (int jjj = 0; jjj < cigarLength; jjj++) {
+						alignment[alignPos] = PileupReadInfo.DELETION_BASE;
+						alignPos++;
+					}
+					break;
+				case SystemConfiguration.BAM_CMATCH:
+				case SystemConfiguration.BAM_CEQUAL:
+				case SystemConfiguration.BAM_CDIFF:
+					for (int jjj = 0; jjj < cigarLength; jjj++) {
+						alignment[alignPos] = read[readPos];
+						alignPos++;
+						readPos++;
+					}
+					break;
+				case SystemConfiguration.BAM_CHARD_CLIP:
+				case SystemConfiguration.BAM_CPAD:
+					break;
+				default:
+					throw new UserException("Unsupported cigar operator: " + cigarOp);
+			}
+		}
+		return alignment;
 	}
 
 	public String getEventBases() {

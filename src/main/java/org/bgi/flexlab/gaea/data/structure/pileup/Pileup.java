@@ -111,6 +111,20 @@ public class Pileup implements PileupInterface<PileupReadInfo> {
 		}
 	}
 
+	public char[] getBases() {
+		int i = 0;
+		char[] bases = new char[plp.size()];
+		for(PileupReadInfo read : plp) {
+			bases[i++] = read.getBase();
+		}
+
+		return bases;
+	}
+
+	public int getNumberOfDeletions() {
+		return deletionCount;
+	}
+
 	/**
 	 * is plp empty
 	 * 
@@ -164,6 +178,15 @@ public class Pileup implements PileupInterface<PileupReadInfo> {
 	}
 
 	public int getNumberOfElements() {
+		return plp.size();
+	}
+
+	/**
+	 * get coverage
+	 * FIXME:: maybe need to be fixed with filters.
+	 * @return coverage depth
+	 */
+	public int depthOfCoverage() {
 		return plp.size();
 	}
 }

@@ -190,6 +190,19 @@ public class Mpileup implements MpileupInterface<Pileup>{
 		return minPosition;
 	}
 
+	public Pileup joinPileups() {
+		Pileup joinedPileup = new Pileup();
+		joinedPileup.setPosition(position);
+		for(Pileup pileup : pileups.values()) {
+			joinedPileup.getPlp().addAll(pileup.getPlp());
+		}
+		return joinedPileup;
+	}
+
+	public Map<String, Pileup> getCurrentPosPileup() {
+		return pileups;
+	}
+
 	public int getPosition() {
 		return position;
 	}
@@ -200,6 +213,14 @@ public class Mpileup implements MpileupInterface<Pileup>{
 	
 	public void clear(){
 		pileups.clear();
+	}
+
+	public int totalDepth() {
+		int depth = 0;
+		for(String sample : pileups.keySet()) {
+			depth += pileups.get(sample).depthOfCoverage();
+		}
+		return depth;
 	}
 }
 

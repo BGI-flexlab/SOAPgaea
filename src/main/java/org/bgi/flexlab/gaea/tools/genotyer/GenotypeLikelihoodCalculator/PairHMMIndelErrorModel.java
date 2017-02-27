@@ -25,13 +25,6 @@
 
 package org.bgi.flexlab.gaea.tools.genotyer.GenotypeLikelihoodCalculator;
 
-import htsjdk.samtools.SAMRecord;
-
-import java.io.PrintStream;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 import htsjdk.variant.variantcontext.Allele;
 import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.data.structure.alignment.AlignmentsBasic;
@@ -46,6 +39,13 @@ import org.bgi.flexlab.gaea.util.pairhmm.ExactPairHMM;
 import org.bgi.flexlab.gaea.util.pairhmm.OriginalPairHMM;
 import org.bgi.flexlab.gaea.util.pairhmm.PairHMM;
 
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+/**
+ * mainly came from GATK 2.3.9-lite
+ */
 public class PairHMMIndelErrorModel {
     public static final int BASE_QUAL_THRESHOLD = 20;
 

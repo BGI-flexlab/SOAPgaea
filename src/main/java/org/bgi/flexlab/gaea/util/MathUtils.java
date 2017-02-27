@@ -1,7 +1,10 @@
 package org.bgi.flexlab.gaea.util;
 
+import org.bgi.flexlab.gaea.data.exception.UserException;
+
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
+import java.util.Collection;
 
 public class MathUtils {
 
@@ -18,7 +21,11 @@ public class MathUtils {
     static {
 		doubleformat.setRoundingMode(RoundingMode.HALF_UP);
 	}
-    
+
+    public static final double[] log10Cache;
+    public static final double[] log10FactorialCache;
+    private static final int MAXN = 50000;
+    private static final int LOG10_CACHE_SIZE = 4 * MAXN;  // we need to be able to go up to 2*(2N) when calculating some of the coefficients
     private static final double JACOBIAN_LOG_TABLE_STEP = 0.001;
     private static final double JACOBIAN_LOG_TABLE_INV_STEP = 1.0 / 0.001;
     private static final double MAX_JACOBIAN_TOLERANCE = 8.0;
@@ -26,7 +33,15 @@ public class MathUtils {
     private static final double[] jacobianLogTable;
 
     static {
+        log10Cache = new double[LOG10_CACHE_SIZE];
+        log10FactorialCache = new double[LOG10_CACHE_SIZE];
         jacobianLogTable = new double[JACOBIAN_LOG_TABLE_SIZE];
+
+        log10Cache[0] = Double.NEGATIVE_INFINITY;
+        for (int k = 1; k < LOG10_CACHE_SIZE; k++) {
+            log10Cache[k] = Math.log10(k);
+            log10FactorialCache[k] = log10FactorialCache[k-1] + log10Cache[k];
+        }
 
         for (int k = 0; k < JACOBIAN_LOG_TABLE_SIZE; k++) {
             jacobianLogTable[k] = Math.log10(1.0 + Math.pow(10.0, -((double) k) * JACOBIAN_LOG_TABLE_STEP));
@@ -41,6 +56,20 @@ public class MathUtils {
         int total = 0;
         for (byte v : x)
             total += (int)v;
+        return total;
+    }
+
+    public static double sum(double[] values) {
+        double s = 0.0;
+        for (double v : values)
+            s += v;
+        return s;
+    }
+
+    public static long sum(int[] x) {
+        long total = 0;
+        for (int v : x)
+            total += v;
         return total;
     }
     
@@ -94,6 +123,19 @@ public class MathUtils {
         return maxI;
     }
 
+    public static int minElementIndex(double[] array) {
+        if (array == null || array.length == 0)
+            throw new IllegalArgumentException("Array cannot be null!");
+
+        int minI = 0;
+        for (int i = 1; i < array.length; i++) {
+            if (array[i] < array[minI])
+                minI = i;
+        }
+
+        return minI;
+    }
+
 
     public static double arrayMax(final double[] array) {
         return array[maxElementIndex(array)];
@@ -101,6 +143,19 @@ public class MathUtils {
 
     public static double arrayMax(final double[] array, final int endIndex) {
         return array[maxElementIndex(array, endIndex)];
+    }
+    public static double arrayMin(double[] array) {
+        return array[minElementIndex(array)];
+    }
+
+    /**
+     * Converts LN to LOG10
+     *
+     * @param ln log(x)
+     * @return log10(x)
+     */
+    public static double lnToLog10(double ln) {
+        return ln * Math.log10(Math.exp(1));
     }
 
     /**
@@ -168,6 +223,24 @@ public class MathUtils {
         //        return s;
     }
 
+    /** Same routine, unboxed types for efficiency
+     *
+     * @param x                 First vector
+     * @param y                 Second vector
+     * @return Vector of same length as x and y so that z[k] = x[k]+y[k]
+     */
+    public static double[] vectorSum(double[]x, double[] y) {
+        if (x.length != y.length)
+            throw new UserException("BUG: Lengths of x and y must be the same");
+
+        double[] result = new double[x.length];
+        for (int k=0; k <x.length; k++)
+            result[k] = x[k]+y[k];
+
+        return result;
+    }
+
+
     public static double log10sumLog10(double[] log10values) {
         return log10sumLog10(log10values, 0);
     }
@@ -218,5 +291,299 @@ public class MathUtils {
         // we have pre-stored correction for 0,0.1,0.2,... 10.0
         final int ind = fastRound(diff * MathUtils.JACOBIAN_LOG_TABLE_INV_STEP); // hard rounding
         return big + MathUtils.jacobianLogTable[ind];
+    }
+
+    public static boolean goodLog10ProbVector(final double[] vector, final int expectedSize, final boolean shouldSumToOne) {
+        if ( vector.length != expectedSize ) return false;
+
+        for ( final double pr : vector ) {
+            if ( ! goodLog10Probability(pr) )
+                return false;
+        }
+
+        if ( shouldSumToOne && compareDoubles(sumLog10(vector), 1.0, 1e-4) != 0 )
+            return false;
+
+        return true; // everything is good
+    }
+
+    public static boolean goodLog10Probability(final double result) {
+        return result <= 0.0 && ! Double.isInfinite(result) && ! Double.isNaN(result);
+    }
+
+    /**
+     * Constants to simplify the log gamma function calculation.
+     */
+    private static final double zero = 0.0, one = 1.0, half = .5, a0 = 7.72156649015328655494e-02, a1 = 3.22467033424113591611e-01, a2 = 6.73523010531292681824e-02, a3 = 2.05808084325167332806e-02, a4 = 7.38555086081402883957e-03, a5 = 2.89051383673415629091e-03, a6 = 1.19270763183362067845e-03, a7 = 5.10069792153511336608e-04, a8 = 2.20862790713908385557e-04, a9 = 1.08011567247583939954e-04, a10 = 2.52144565451257326939e-05, a11 = 4.48640949618915160150e-05, tc = 1.46163214496836224576e+00, tf = -1.21486290535849611461e-01, tt = -3.63867699703950536541e-18, t0 = 4.83836122723810047042e-01, t1 = -1.47587722994593911752e-01, t2 = 6.46249402391333854778e-02, t3 = -3.27885410759859649565e-02, t4 = 1.79706750811820387126e-02, t5 = -1.03142241298341437450e-02, t6 = 6.10053870246291332635e-03, t7 = -3.68452016781138256760e-03, t8 = 2.25964780900612472250e-03, t9 = -1.40346469989232843813e-03, t10 = 8.81081882437654011382e-04, t11 = -5.38595305356740546715e-04, t12 = 3.15632070903625950361e-04, t13 = -3.12754168375120860518e-04, t14 = 3.35529192635519073543e-04, u0 = -7.72156649015328655494e-02, u1 = 6.32827064025093366517e-01, u2 = 1.45492250137234768737e+00, u3 = 9.77717527963372745603e-01, u4 = 2.28963728064692451092e-01, u5 = 1.33810918536787660377e-02, v1 = 2.45597793713041134822e+00, v2 = 2.12848976379893395361e+00, v3 = 7.69285150456672783825e-01, v4 = 1.04222645593369134254e-01, v5 = 3.21709242282423911810e-03, s0 = -7.72156649015328655494e-02, s1 = 2.14982415960608852501e-01, s2 = 3.25778796408930981787e-01, s3 = 1.46350472652464452805e-01, s4 = 2.66422703033638609560e-02, s5 = 1.84028451407337715652e-03, s6 = 3.19475326584100867617e-05, r1 = 1.39200533467621045958e+00, r2 = 7.21935547567138069525e-01, r3 = 1.71933865632803078993e-01, r4 = 1.86459191715652901344e-02, r5 = 7.77942496381893596434e-04, r6 = 7.32668430744625636189e-06, w0 = 4.18938533204672725052e-01, w1 = 8.33333333333329678849e-02, w2 = -2.77777777728775536470e-03, w3 = 7.93650558643019558500e-04, w4 = -5.95187557450339963135e-04, w5 = 8.36339918996282139126e-04, w6 = -1.63092934096575273989e-03;
+
+    /**
+     * Efficient rounding functions to simplify the log gamma function calculation
+     * double to long with 32 bit shift
+     */
+    private static final int HI(double x) {
+        return (int) (Double.doubleToLongBits(x) >> 32);
+    }
+
+    /**
+     * Efficient rounding functions to simplify the log gamma function calculation
+     * double to long without shift
+     */
+    private static final int LO(double x) {
+        return (int) Double.doubleToLongBits(x);
+    }
+
+    /**
+     * Most efficent implementation of the lnGamma (FDLIBM)
+     * Use via the log10Gamma wrapper method.
+     */
+    private static double lnGamma(double x) {
+        double t, y, z, p, p1, p2, p3, q, r, w;
+        int i;
+
+        int hx = HI(x);
+        int lx = LO(x);
+
+        /* purge off +-inf, NaN, +-0, and negative arguments */
+        int ix = hx & 0x7fffffff;
+        if (ix >= 0x7ff00000)
+            return Double.POSITIVE_INFINITY;
+        if ((ix | lx) == 0 || hx < 0)
+            return Double.NaN;
+        if (ix < 0x3b900000) {    /* |x|<2**-70, return -log(|x|) */
+            return -Math.log(x);
+        }
+
+        /* purge off 1 and 2 */
+        if ((((ix - 0x3ff00000) | lx) == 0) || (((ix - 0x40000000) | lx) == 0))
+            r = 0;
+            /* for x < 2.0 */
+        else if (ix < 0x40000000) {
+            if (ix <= 0x3feccccc) {     /* lgamma(x) = lgamma(x+1)-log(x) */
+                r = -Math.log(x);
+                if (ix >= 0x3FE76944) {
+                    y = one - x;
+                    i = 0;
+                }
+                else if (ix >= 0x3FCDA661) {
+                    y = x - (tc - one);
+                    i = 1;
+                }
+                else {
+                    y = x;
+                    i = 2;
+                }
+            }
+            else {
+                r = zero;
+                if (ix >= 0x3FFBB4C3) {
+                    y = 2.0 - x;
+                    i = 0;
+                } /* [1.7316,2] */
+                else if (ix >= 0x3FF3B4C4) {
+                    y = x - tc;
+                    i = 1;
+                } /* [1.23,1.73] */
+                else {
+                    y = x - one;
+                    i = 2;
+                }
+            }
+
+            switch (i) {
+                case 0:
+                    z = y * y;
+                    p1 = a0 + z * (a2 + z * (a4 + z * (a6 + z * (a8 + z * a10))));
+                    p2 = z * (a1 + z * (a3 + z * (a5 + z * (a7 + z * (a9 + z * a11)))));
+                    p = y * p1 + p2;
+                    r += (p - 0.5 * y);
+                    break;
+                case 1:
+                    z = y * y;
+                    w = z * y;
+                    p1 = t0 + w * (t3 + w * (t6 + w * (t9 + w * t12)));    /* parallel comp */
+                    p2 = t1 + w * (t4 + w * (t7 + w * (t10 + w * t13)));
+                    p3 = t2 + w * (t5 + w * (t8 + w * (t11 + w * t14)));
+                    p = z * p1 - (tt - w * (p2 + y * p3));
+                    r += (tf + p);
+                    break;
+                case 2:
+                    p1 = y * (u0 + y * (u1 + y * (u2 + y * (u3 + y * (u4 + y * u5)))));
+                    p2 = one + y * (v1 + y * (v2 + y * (v3 + y * (v4 + y * v5))));
+                    r += (-0.5 * y + p1 / p2);
+            }
+        }
+        else if (ix < 0x40200000) {             /* x < 8.0 */
+            i = (int) x;
+            t = zero;
+            y = x - (double) i;
+            p = y * (s0 + y * (s1 + y * (s2 + y * (s3 + y * (s4 + y * (s5 + y * s6))))));
+            q = one + y * (r1 + y * (r2 + y * (r3 + y * (r4 + y * (r5 + y * r6)))));
+            r = half * y + p / q;
+            z = one;    /* lgamma(1+s) = log(s) + lgamma(s) */
+            switch (i) {
+                case 7:
+                    z *= (y + 6.0);    /* FALLTHRU */
+                case 6:
+                    z *= (y + 5.0);    /* FALLTHRU */
+                case 5:
+                    z *= (y + 4.0);    /* FALLTHRU */
+                case 4:
+                    z *= (y + 3.0);    /* FALLTHRU */
+                case 3:
+                    z *= (y + 2.0);    /* FALLTHRU */
+                    r += Math.log(z);
+                    break;
+            }
+            /* 8.0 <= x < 2**58 */
+        }
+        else if (ix < 0x43900000) {
+            t = Math.log(x);
+            z = one / x;
+            y = z * z;
+            w = w0 + z * (w1 + y * (w2 + y * (w3 + y * (w4 + y * (w5 + y * w6)))));
+            r = (x - half) * (t - one) + w;
+        }
+        else
+            /* 2**58 <= x <= inf */
+            r = x * (Math.log(x) - one);
+        return r;
+    }
+
+    /**
+     * Calculates the log10 of the gamma function for x using the efficient FDLIBM
+     * implementation to avoid overflows and guarantees high accuracy even for large
+     * numbers.
+     *
+     * @param x the x parameter
+     * @return the log10 of the gamma function at x.
+     */
+    public static double log10Gamma(double x) {
+        return lnToLog10(lnGamma(x));
+    }
+
+    public static double log10Factorial(int x) {
+        if (x >= log10FactorialCache.length || x < 0)
+            return log10Gamma(x + 1);
+        else
+            return log10FactorialCache[x];
+    }
+
+    /**
+     * Calculates the log10 of the binomial coefficient. Designed to prevent
+     * overflows even with very large numbers.
+     *
+     * @param n total number of trials
+     * @param k number of successes
+     * @return the log10 of the binomial coefficient
+     */
+    public static double log10BinomialCoefficient(int n, int k) {
+        return log10Factorial(n) - log10Factorial(k) - log10Factorial(n - k);
+    }
+
+    public static double log10BinomialProbability(int n, int k, double log10p) {
+        double log10OneMinusP = Math.log10(1 - Math.pow(10, log10p));
+        return log10BinomialCoefficient(n, k) + log10p * k + log10OneMinusP * (n - k);
+    }
+
+    /**
+     * Computes a binomial probability.  This is computed using the formula
+     * <p/>
+     * B(k; n; p) = [ n! / ( k! (n - k)! ) ] (p^k)( (1-p)^k )
+     * <p/>
+     * where n is the number of trials, k is the number of successes, and p is the probability of success
+     *
+     * @param n number of Bernoulli trials
+     * @param k number of successes
+     * @param p probability of success
+     * @return the binomial probability of the specified configuration.  Computes values down to about 1e-237.
+     */
+    public static double binomialProbability(int n, int k, double p) {
+        return Math.pow(10, log10BinomialProbability(n, k, Math.log10(p)));
+    }
+
+
+    public static int countOccurrences(char c, String s) {
+        int count = 0;
+        for (int i = 0; i < s.length(); i++) {
+            count += s.charAt(i) == c ? 1 : 0;
+        }
+        return count;
+    }
+
+    /**
+     * calculate the Root Mean Square of an array of integers
+     *
+     * @param x an int[] of numbers
+     * @return the RMS of the specified numbers.
+     */
+    public static double rms(int[] x) {
+        if (x.length == 0)
+            return 0.0;
+
+        double rms = 0.0;
+        for (int i : x)
+            rms += i * i;
+        rms /= x.length;
+        return Math.sqrt(rms);
+    }
+
+    /**
+     * A utility class that computes on the fly average and standard deviation for a stream of numbers.
+     * The number of observations does not have to be known in advance, and can be also very big (so that
+     * it could overflow any naive summation-based scheme or cause loss of precision).
+     * Instead, adding a new number <code>observed</code>
+     * to a sample with <code>add(observed)</code> immediately updates the instance of this object so that
+     * it contains correct mean and standard deviation for all the numbers seen so far. Source: Knuth, vol.2
+     * (see also e.g. http://www.johndcook.com/standard_deviation.html for online reference).
+     */
+    public static class RunningAverage {
+        private double mean = 0.0;
+        private double s = 0.0;
+        private long obs_count = 0;
+
+        public void add(double obs) {
+            obs_count++;
+            double oldMean = mean;
+            mean += (obs - mean) / obs_count; // update mean
+            s += (obs - oldMean) * (obs - mean);
+        }
+
+        public void addAll(Collection<Number> col) {
+            for (Number o : col) {
+                add(o.doubleValue());
+            }
+        }
+
+        public double mean() {
+            return mean;
+        }
+
+        public double stddev() {
+            return Math.sqrt(s / (obs_count - 1));
+        }
+
+        public double var() {
+            return s / (obs_count - 1);
+        }
+
+        public long observationCount() {
+            return obs_count;
+        }
+
+        public RunningAverage clone() {
+            RunningAverage ra = new RunningAverage();
+            ra.mean = this.mean;
+            ra.s = this.s;
+            ra.obs_count = this.obs_count;
+            return ra;
+        }
+
+        public void merge(RunningAverage other) {
+            if (this.obs_count > 0 || other.obs_count > 0) { // if we have any observations at all
+                this.mean = (this.mean * this.obs_count + other.mean * other.obs_count) / (this.obs_count + other.obs_count);
+                this.s += other.s;
+            }
+            this.obs_count += other.obs_count;
+        }
     }
 }

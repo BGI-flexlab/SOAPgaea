@@ -3,6 +3,7 @@ package org.bgi.flexlab.gaea.util;
 public class QualityUtils {
 	public final static byte MAXIMUM_USABLE_QUALITY_SCORE = 93;
 	public final static byte MINIMUM_USABLE_QUALITY_SCORE = 6;
+	public final static int MAPPING_QUALITY_UNAVAILABLE = 255;
 
 	private static double qualityToErrorProbabilityCache[] = new double[256];
 	public static double[] QUALITY_PROB = new double[MAXIMUM_USABLE_QUALITY_SCORE + 1];
@@ -41,6 +42,10 @@ public class QualityUtils {
 	public static byte probabilityToQuality(double prob, double eps) {
 		double lp = Math.round(-10.0 * Math.log10(1.0 - prob + eps));
 		return boundQuality((int) lp);
+	}
+
+	public static double phredScaleErrorRate(double errorRate) {
+		return Math.abs(-10.0 * Math.log10(errorRate));
 	}
 
 	public static byte boundQuality(int qual) {
