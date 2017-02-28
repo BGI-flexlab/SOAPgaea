@@ -27,7 +27,7 @@ public class RegionCoverReport {
 	
 	public String toReducerString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("Rgion Depth:\n");
+		sb.append("Region Depth:\n");
 		sb.append(depth[0]);
 		for(int i = 1; i < depth.length; i++) {
 			sb.append("\t");

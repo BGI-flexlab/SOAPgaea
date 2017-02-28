@@ -39,8 +39,9 @@ public class BaseCounter {
 	}
 	
 	public void update(BaseType bType) {
-		if(this.bType == bType)
+		if(this.bType == bType) {
 			this.baseCount += bType.getCount();
+		}
 	}
 	
 	public void update(Interval region, DepthType depth, DepthType noPCRdepth) {
@@ -95,6 +96,7 @@ public class BaseCounter {
 			 switch (depth) {
 			 case TOTALDEPTH:
 			 	result = totalDepth;
+			 	break;
 			 default:
 				 switch (dType) {
 				 case NORMAL:
