@@ -31,9 +31,6 @@ public class AlignmentsBasic extends SAMCompressionInformationBasic {
 		}
 	}
 
-	public void parseOtherInfo(GaeaSamRecord samRecord) {
-	}
-
 	public String getSample() {
 		return Id2Sample.get(sampleIndex);
 	}

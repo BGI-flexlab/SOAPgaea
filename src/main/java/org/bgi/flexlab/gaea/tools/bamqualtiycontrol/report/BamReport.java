@@ -31,7 +31,6 @@ public class BamReport {
 		FileSystem fs = oPath.getFileSystem(conf);
 		FileStatus filelist[] = fs.listStatus(oPath);
 		for(int i = 0; i < filelist.length; i++) {
-			System.err.println(filelist[i].getPath());
 			if(!filelist[i].isDir() && !filelist[i].getPath().toString().startsWith("_")) {
 				FSDataInputStream reader = fs.open(filelist[i].getPath());
 				LineReader lineReader = new LineReader(reader, conf);
@@ -42,17 +41,19 @@ public class BamReport {
 						continue;
 					}
 					
-					String sample = "";
 					if(lineString.contains("sample:")) {
-						sample = line.toString().split(":")[1];
+						String sample = line.toString().split(":")[1];
 						if(!reports.containsKey(sample)) {
 							reports.put(sample, reportType);
+							reportBuilder.setReportChoice(reportType);
+							reportBuilder.initReports(sample);
 						} else {
 							reportType = reports.get(sample);
+							reportBuilder.setReportChoice(reportType);
 						}
 					}
-					reportBuilder.setReportChoice(reportType);
-					reportBuilder.parseReport(sample, lineReader, line, genome);					
+					reportBuilder.parseReport(lineReader, line, genome);					
+
 				}
 				lineReader.close();
 				reader.close();

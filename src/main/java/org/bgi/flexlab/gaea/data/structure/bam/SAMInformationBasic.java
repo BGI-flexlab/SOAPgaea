@@ -36,7 +36,7 @@ public abstract class SAMInformationBasic extends ReadInformation implements Par
 	protected CigarState cigarState;
 	
 	@Override
-	public boolean parseSAM(String samline) {
+	public boolean parseSam(String samline) {
 		
 		String[] alignmentArray = ParseSAMBasic.splitSAM(samline);
 		
@@ -73,17 +73,14 @@ public abstract class SAMInformationBasic extends ReadInformation implements Par
 		readSequence = ParseSAMBasic.parseSeq(alignmentArray, softClipStart, softClipEnd, false);
 		
 		qualityString = ParseSAMBasic.parseQual(alignmentArray, softClipStart, softClipEnd, false);
-		
-		parseOtherInfo(alignmentArray);
-		
+				
 		return true;
 	}
 
-	public boolean parseSAM(GaeaSamRecord samRecord) {
+	@Override
+	public boolean parseBamQC(String samRecord) {
 		return true;
 	}
-
-	protected abstract void parseOtherInfo(String[] aligmentArray);
 	
 	@Override
 	public boolean SAMFilter() {

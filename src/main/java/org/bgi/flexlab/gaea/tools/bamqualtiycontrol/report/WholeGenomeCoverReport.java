@@ -27,36 +27,33 @@ public class WholeGenomeCoverReport{
 	private BaseTracker bTracker;
 	
 	private ChromosomeInformationShare chrInfo;
-	
-	private static String chrName;
-	
-	private static Map<String, WholeGenomeCoverReport> coverReports;
+		
+	private static Map<String, WholeGenomeCoverReport> coverReports = new ConcurrentHashMap<>();
 	
 	private WholeGenomeCoverReport(ChromosomeInformationShare chrInfo) {
 		bTracker = new Tracker.BaseTracker();
 		register();
 		this.chrInfo = chrInfo;
-		this.chrName = chrInfo.getChromosomeName();
-		coverReports = new ConcurrentHashMap<>();
 	}
 	
 	public void constructDepthReport(PositionDepth deep, int i) {
 		int depth = deep.getPosDepth(i);
 		if(depth != 0) {
-			setBaseTrackerAttribute(Interval.WHOLEGENOME, DepthType.NORMAL.setDepth(depth), DepthType.WITHOUT_PCR);
-			setBaseTrackerAttribute(BaseType.COVERED);
+			bTracker.setTrackerAttribute(Interval.WHOLEGENOME, DepthType.NORMAL.setDepth(depth), DepthType.WITHOUT_PCR);
+			bTracker.setTrackerAttribute(BaseType.COVERED);
+			System.out.println(bTracker.getBaseCount(BaseType.COVERED));
 			if(deep.hasIndelReads(i)) 
-				setBaseTrackerAttribute(BaseType.INDELREF);
+				bTracker.setTrackerAttribute(BaseType.INDELREF);
 			
 			if(deep.hasMismatchReads(i)) 
-				setBaseTrackerAttribute(BaseType.MISMATCHREF);				
+				bTracker.setTrackerAttribute(BaseType.MISMATCHREF);				
 		} else {
 			if(deep.isDeletionBaseWithNoConver(i)) 
-				setBaseTrackerAttribute(BaseType.COVERED);
+				bTracker.setTrackerAttribute(BaseType.COVERED);
 		}
 	}
 	
-	public String toReducerString() {
+	public String toReducerString(String chrName) {
 		StringBuffer coverString = new StringBuffer();
 		coverString.append("Cover Information:\n");
 		coverString.append(chrName);
@@ -72,13 +69,13 @@ public class WholeGenomeCoverReport{
 		return coverString.toString();
 	}
 	
-	public String toString() {
+	public String toString(String chrName) {
 		DecimalFormat df = new DecimalFormat("0.000");
 		df.setRoundingMode(RoundingMode.HALF_UP);
 		
 		StringBuffer coverString = new StringBuffer();
 		coverString.append("chromsome:\t");
-		coverString.append(chrName);
+		coverString.append(chrInfo.getChromosomeName());
 		coverString.append("\nCoverage:\t");
 		coverString.append(df.format(getCoverage()));
 		coverString.append("%\nMean Depth:\t");
@@ -92,7 +89,7 @@ public class WholeGenomeCoverReport{
 		return coverString.toString();
 	}
 	
-	public void parse(String line, ReferenceShare genome) {
+	public static void parse(String line, ReferenceShare genome) {
 		String[] splitArray = line.split("\t");
 		WholeGenomeCoverReport coverReport = null;
 		for(String keyValue : splitArray) {
@@ -111,7 +108,7 @@ public class WholeGenomeCoverReport{
 		}
 	}
 	
-	private void parseKeyValue(String keyValue, ReferenceShare genome, WholeGenomeCoverReport coverReport) {
+	private static void parseKeyValue(String keyValue, ReferenceShare genome, WholeGenomeCoverReport coverReport) {
 		String key = keyValue.split(" ")[0];
 		String value = keyValue.split(" ")[1];
 		BaseCounter bCounter = null;
@@ -145,15 +142,7 @@ public class WholeGenomeCoverReport{
 	public void register() {
 		bTracker.register(createBaseCounters());
 	}
-	
-	public void setBaseTrackerAttribute(BaseType type) {
-		bTracker.setTrackerAttribute(type);
-	}
-	
-	public void setBaseTrackerAttribute(Interval region, DepthType depth, DepthType noPCRdepth) {
-		bTracker.setTrackerAttribute(region, depth, noPCRdepth);
-	}
-	
+
 	public List<BaseCounter> createBaseCounters() {
 		List<BaseCounter> counters = new ArrayList<>();
 		Collections.addAll(counters, new BaseCounter(Interval.WHOLEGENOME, Depth.TOTALDEPTH, DepthType.NORMAL),
@@ -163,7 +152,7 @@ public class WholeGenomeCoverReport{
 		return counters;
 	}
 	
-	public static Map<String, WholeGenomeCoverReport>getCoverReports() {
+	public static Map<String, WholeGenomeCoverReport> getCoverReports() {
 		return coverReports;
 	}
 	
@@ -181,7 +170,7 @@ public class WholeGenomeCoverReport{
 	
 	public static void addCoverReport(ChromosomeInformationShare chrInfo) {
 		WholeGenomeCoverReport coverInfo = new WholeGenomeCoverReport(chrInfo);
-		coverReports.put(chrName, coverInfo);
+		coverReports.put(chrInfo.getChromosomeName(), coverInfo);
 	}
 
 }

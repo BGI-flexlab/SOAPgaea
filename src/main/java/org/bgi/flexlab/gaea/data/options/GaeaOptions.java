@@ -33,11 +33,11 @@ public abstract class GaeaOptions {
 		}
 		sb.append("\nVersion: ");
 		sb.append(version);
-		sb.append("\nLast update: 2015.02.19\n");
-		sb.append("Developed by: Bioinformatics core technology laboratory | Science and Technology Division | BGI-shenzhen\n");
-		sb.append("Authors: Li ShengKang & Zhang Yong\n");
+		sb.append("\nLast update: 2017.02.19\n");
+		sb.append("Developed by: BGI-shenzhen\n");
+		sb.append("Authors: Li ShengKang & Zhang Yong & huang Zhibo & Hu Weipeng\n");
 		sb.append("E-mail: zhangyong2@genomics.org.cn or lishengkang@genomics.cn\n");
-		sb.append("Copyright(c) 2015: BGI. All Rights Reserved.\n\n");
+		sb.append("Copyright(c) 2017: BGI. All Rights Reserved.\n\n");
 		helpInfo.setNewLine("\n");
 		if(softwareName == null)
 			softwareName = "tools_name";

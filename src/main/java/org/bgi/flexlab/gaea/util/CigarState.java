@@ -289,7 +289,7 @@ public class CigarState {
 				}
 			} else if (op == SystemConfiguration.BAM_CREF_SKIP) {
 				cigarState[1] += l;
-			} else if (op == SystemConfiguration.BAM_CINS || op == SystemConfiguration.BAM_CSOFT_CLIP) {
+			} else if (op == SystemConfiguration.BAM_CINS ) {
 				cigarState[2] += l;
 			}
 		}
