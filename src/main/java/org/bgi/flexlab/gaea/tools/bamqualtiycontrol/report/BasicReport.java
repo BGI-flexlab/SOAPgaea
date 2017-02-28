@@ -64,7 +64,7 @@ public class BasicReport{
 		}
 			
 		if (isMismatch(datum, chrInfo)) {
-			rTracker.setTrackerAttribute(ReadType.MISMATCH);
+			rTracker.setTrackerAttribute(ReadType.MISMATCHREADS);
 		}
 		return true;
 	}
@@ -91,7 +91,7 @@ public class BasicReport{
 		basicString.append("%\nClipped Reads Rate:\t");
 		basicString.append(df.format(getRateOf(ReadType.CLIPPED)));
 		basicString.append("%\nMismatch Reads Rate:\t");
-		basicString.append(df.format(getRateOf(ReadType.MISMATCH)));
+		basicString.append(df.format(getRateOf(ReadType.MISMATCHREADS)));
 		basicString.append("%\nIndel Reads Rate:\t");
 		basicString.append(df.format(getRateOf(ReadType.INDEL)));
 		/*basicString.append("\nMismatch Rate in all mapped bases:\t");
