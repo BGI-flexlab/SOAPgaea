@@ -14,7 +14,7 @@ import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.CounterProperty.Read
 public class Tracker {
 	
 	private static String formatKey(CounterProperty... properties ) {
-		String key = null;
+		String key = "";
 		for(CounterProperty property : properties)
 			key += property;
 		return key;
@@ -94,7 +94,7 @@ public class Tracker {
 		
 		private Interval interval;
 		
-		private List<ReadsCounter> counters;
+		private List<ReadsCounter> counters = new ArrayList<>();
 		
 		private Map<String, ReadsCounter> mapCounter = new LinkedHashMap<>();
 		

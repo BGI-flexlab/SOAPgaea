@@ -8,7 +8,7 @@ import org.bgi.flexlab.gaea.util.SystemConfiguration;
 
 import java.util.Arrays;
 
-public abstract class SAMCompressionInformationBasic extends ReadBasicCompressionInformation implements ParseSAMInterface{
+public class SAMCompressionInformationBasic extends ReadBasicCompressionInformation implements ParseSAMInterface{
 	/**
 	 * flag
 	 */
@@ -85,16 +85,12 @@ public abstract class SAMCompressionInformationBasic extends ReadBasicCompressio
 
 		qualities = samRecord.getBaseQualities();
 
-		parseOtherInfo(samRecord);
-
 		return true;
 	}
 
-	public boolean parseSAM(String samline) {
+	public boolean parseBamQC(String samline) {
 		return true;
 	}
-
-	public abstract void parseOtherInfo(GaeaSamRecord samRecord);
 
 	public boolean SAMFilter() {
 		if(isUnmapped() || position < 0) {
@@ -302,6 +298,12 @@ public abstract class SAMCompressionInformationBasic extends ReadBasicCompressio
 	 */
 	public int getCigarsLength() {
 		return cigars.length;
+	}
+
+	@Override
+	public boolean parseSam(String samRecord) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 
 }

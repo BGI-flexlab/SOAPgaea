@@ -50,7 +50,7 @@ public class BamQualityControlMapper extends Mapper<LongWritable, SamRecordWrita
 		String rgID = SamRecordUtils.getReadGroup(value.get());
 		GaeaSamRecord record = new GaeaSamRecord(mFileHeader, value.get());
 		sampleName = mFileHeader.getReadGroup(rgID).getSample();
-		if(datum.parseSAM(record)) {
+		if(datum.parseSam(record.getSAMString())) {
 			long winNum = -1;
 			// read所在的窗口号（以read的起始点在参考基因组上的坐标划分窗口）
 			winNum = datum.getPosition() / BamQualityControl.WINDOW_SIZE;

@@ -41,9 +41,8 @@ public class BamReport {
 						continue;
 					}
 					
-					String sample = "";
 					if(lineString.contains("sample:")) {
-						sample = line.toString().split(":")[1];
+						String sample = line.toString().split(":")[1];
 						if(!reports.containsKey(sample)) {
 							reports.put(sample, reportType);
 							reportBuilder.setReportChoice(reportType);
@@ -54,6 +53,7 @@ public class BamReport {
 						}
 					}
 					reportBuilder.parseReport(lineReader, line, genome);					
+
 				}
 				lineReader.close();
 				reader.close();

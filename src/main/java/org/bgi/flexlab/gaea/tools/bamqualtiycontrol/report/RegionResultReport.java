@@ -105,7 +105,7 @@ public class RegionResultReport extends ResultReport{
 	}
 	
 	@Override
-	public void depthReport(PositionDepth pd, int i, String chrName, long pos) {
+	public void constructDepthReport(PositionDepth pd, int i, String chrName, long pos) {
 		int depth = pd.getPosDepth(i);
 		int noPCRdepth = pd.getRMDupPosDepth(i);
 		if(region.isPositionInRegion(chrName, pos)) {

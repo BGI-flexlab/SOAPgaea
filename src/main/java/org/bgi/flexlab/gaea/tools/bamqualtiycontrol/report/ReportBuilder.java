@@ -44,8 +44,8 @@ public class ReportBuilder {
 		return report.mappedReport(datum, chrName, context);
 	}
 	
-	public void depthReport(PositionDepth pd, int i, String chrName, long pos) {
-		report.depthReport(pd, i, chrName, pos);
+	public void constructDepthReport(PositionDepth pd, int i, String chrName, long pos) {
+		report.constructDepthReport(pd, i, chrName, pos);
 	}
 	
 	public void singleRegionReports(String chrName, long winStart, int winSize , PositionDepth pd) {

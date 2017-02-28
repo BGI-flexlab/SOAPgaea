@@ -1,7 +1,9 @@
 package org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.TreeSet;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
@@ -16,7 +18,7 @@ import org.bgi.flexlab.gaea.tools.mapreduce.bamqualitycontrol.BamQualityControlO
 public class WholeGenomeResultReport extends ResultReport{
 	
 	private WholeGenomeCoverReport coverReport;
-	
+		
 	public WholeGenomeResultReport(BamQualityControlOptions options) throws IOException {
 		super(options);
 	}
@@ -32,7 +34,7 @@ public class WholeGenomeResultReport extends ResultReport{
 	}
 	
 	@Override
-	public void depthReport(PositionDepth pd, int i, String chrName, long pos) {
+	public void constructDepthReport(PositionDepth pd, int i, String chrName, long pos) {
 		int depth = pd.getPosDepth(i);
 		int noPCRdepth = pd.getRMDupPosDepth(i);
 		super.regionCoverReport(depth, noPCRdepth);
@@ -63,7 +65,7 @@ public class WholeGenomeResultReport extends ResultReport{
 			info.append(regionCoverReport.toReducerString());
 			for(String key : WholeGenomeCoverReport.getCoverReports().keySet()) {
 				WholeGenomeCoverReport cover = WholeGenomeCoverReport.getCoverReport(key);
-				info.append(cover.toReducerString());
+				info.append(cover.toReducerString(key));
 			}
 			info.append("insert size information:\n");
 			insertSizeReportReducerString(info, insertSize);
@@ -88,7 +90,7 @@ public class WholeGenomeResultReport extends ResultReport{
 		String lineString = line.toString();
 		if(lineString.contains("Cover Information")) {
 			if(lineReader.readLine(line) > 0 && line.getLength() != 0) {
-				coverReport.parse(line.toString(), genome);
+				WholeGenomeCoverReport.parse(line.toString(), genome);
 			}
 		}
 		
@@ -110,7 +112,7 @@ public class WholeGenomeResultReport extends ResultReport{
 		TreeSet<String> keys = new TreeSet<String>(WholeGenomeCoverReport.getCoverReports().keySet());
 		for(String key : keys) {
 			WholeGenomeCoverReport cover = WholeGenomeCoverReport.getCoverReports().get(key);
-			info.append(cover.toString());
+			info.append(cover.toString(key));
 		}
 		reportwriter.write(info.toString().getBytes());
 		reportwriter.close();

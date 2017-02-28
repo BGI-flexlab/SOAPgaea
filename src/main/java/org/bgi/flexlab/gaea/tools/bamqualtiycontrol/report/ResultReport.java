@@ -144,7 +144,7 @@ public abstract class ResultReport {
 			
 	}
 	
-	public abstract void depthReport(PositionDepth pd, int i, String chrName, long pos);
+	public abstract void constructDepthReport(PositionDepth pd, int i, String chrName, long pos);
 
 	public abstract String toReducerString(String sample, String chrName, boolean unmappedRegion);
 
@@ -332,7 +332,7 @@ public abstract class ResultReport {
 	private void fillInsertSize(LineReader lineReader, Text line, int[] insertSize) throws RuntimeException, IOException {
 		String[] splitArray = null;
 		while(lineReader.readLine(line) > 0 && line.getLength() != 0) {
-			if(line.toString().contains("insert size without dup information")) {
+			if(line.toString().contains("insert size")) {
 				break;
 			}
 			splitArray = line.toString().split("\t");
