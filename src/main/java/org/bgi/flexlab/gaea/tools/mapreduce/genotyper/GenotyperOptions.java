@@ -1,6 +1,7 @@
 package org.bgi.flexlab.gaea.tools.mapreduce.genotyper;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
 import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.data.mapreduce.options.HadoopOptions;
 import org.bgi.flexlab.gaea.data.options.GaeaOptions;
@@ -9,6 +10,9 @@ import org.bgi.flexlab.gaea.tools.genotyer.GenotypeLikelihoodCalculator.Genotype
 import org.bgi.flexlab.gaea.tools.genotyer.VariantCallingEngine;
 import org.bgi.flexlab.gaea.tools.genotyer.genotypecaller.AFCalcFactory;
 import org.bgi.flexlab.gaea.util.GaeaVariantContextUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.bgi.flexlab.gaea.tools.genotyer.VariantCallingEngine.OUTPUT_MODE.EMIT_VARIANTS_ONLY;
 
@@ -19,6 +23,20 @@ public class GenotyperOptions extends GaeaOptions implements HadoopOptions {
     private final static String SOFTWARE_NAME = "Genotyper";
     private final static String SOFTWARE_VERSION = "1.0";
 
+    /**
+     * input alignment data
+     */
+    private String input = null;
+
+    /**
+     * output directory
+     */
+    private String output = null;
+
+    /**
+     * Which annotations to add to the output VCF file
+     */
+    private List<String> annotations = new ArrayList<>();
 
     /**
      * models for genotype likelihood calculator
@@ -121,6 +139,10 @@ public class GenotyperOptions extends GaeaOptions implements HadoopOptions {
     public boolean annotateNumberOfAllelesDiscovered = false;
 
     public GenotyperOptions() {
+        addOption("i", "input", true, "Input file containing sequence data (BAM or CRAM)");
+        addOption("o", "output", true, "directory to which variants should be written in HDFS written format.");
+        addOption("A", "annotation", true, "One or more specific annotations to apply to variant calls, the tag is separated by \',\'");
+
         addOption("glm", "genotypeLikelihoodModel", true, "models for genotype likelihood calculation: SNP, INDEL, BOTH.");
         addOption("D", "minDepth", true, "minimum depth for variant calling.");
         addOption("C", "noCapBaseQualsAtMappingQual", false, "do not cap base quality at mapping quality");
@@ -142,6 +164,28 @@ public class GenotyperOptions extends GaeaOptions implements HadoopOptions {
 
     @Override
     public void parse(String[] args) {
+        input = getOptionValue("i", null);
+        output = getOptionValue("o", null);
+        String annotaionTags = getOptionValue("A", null);
+        if(annotaionTags != null) {
+            for(String tag : annotaionTags.split(","))
+            annotations.add(tag);
+        }
+
+        minDepth = getOptionIntValue("D", 4);
+        noCapBaseQualsAtMappingQual = getOptionBooleanValue("C", false);
+        minBaseQuality = getOptionByteValue("B", (byte)17);
+        minMappingQuality = getOptionShortValue("M", (short)17);
+        minIndelCountForGenotyping = getOptionIntValue("X", 5);
+        minIndelFractionPerSample = getOptionDoubleValue("Y", 0.25);
+        contaminationFraction = getOptionDoubleValue("C1", DEFAULT_CONTAMINATION_FRACTION);
+        maxAlternateAlleles = getOptionIntValue("M1", 6);
+        samplePloidy = getOptionIntValue("P", GaeaVariantContextUtils.DEFAULT_PLOIDY);
+        standardConfidenceForCalling = getOptionDoubleValue("C1", 30);
+        heterozygosity = getOptionDoubleValue("H", VariantCallingEngine.HUMAN_SNP_HETEROZYGOSITY);
+        indelHeterozygosity = getOptionDoubleValue("H1", 1.0/8000);
+        annotateNumberOfAllelesDiscovered = getOptionBooleanValue("A1", false);
+
         try {
             gtlcalculators = GenotypeLikelihoodCalculator.Model.valueOf(getOptionValue("glm", "BOTH"));
         } catch (Exception e) {
@@ -159,19 +203,15 @@ public class GenotyperOptions extends GaeaOptions implements HadoopOptions {
             throw new UserException.BadArgumentValueException("O", e.getMessage());
         }
 
-        minDepth = getOptionIntValue("D", 4);
-        noCapBaseQualsAtMappingQual = getOptionBooleanValue("C", false);
-        minBaseQuality = getOptionByteValue("B", (byte)17);
-        minMappingQuality = getOptionShortValue("M", (short)17);
-        minIndelCountForGenotyping = getOptionIntValue("X", 5);
-        minIndelFractionPerSample = getOptionDoubleValue("Y", 0.25);
-        contaminationFraction = getOptionDoubleValue("C1", DEFAULT_CONTAMINATION_FRACTION);
-        maxAlternateAlleles = getOptionIntValue("M1", 6);
-        samplePloidy = getOptionIntValue("P", GaeaVariantContextUtils.DEFAULT_PLOIDY);
-        standardConfidenceForCalling = getOptionDoubleValue("C1", 30);
-        heterozygosity = getOptionDoubleValue("H", VariantCallingEngine.HUMAN_SNP_HETEROZYGOSITY);
-        indelHeterozygosity = getOptionDoubleValue("H1", 1.0/8000);
-        annotateNumberOfAllelesDiscovered = getOptionBooleanValue("A1", false);
+        check();
+    }
+
+    private void check() {
+        if(input == null)
+            throw new UserException.BadArgumentValueException("i", "input directory or file is not assigned.");
+
+        if(output == null)
+            throw new UserException.BadArgumentValueException("o", "output directory is not assigned.");
     }
 
     @Override
