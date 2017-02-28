@@ -37,7 +37,7 @@ public class ReadsCounter {
 	}
 	
 	public String formatKey() {
-		String key = null;
+		String key = "";
 		for(CounterProperty property : properties)
 			key += property.toString();
 		return key;

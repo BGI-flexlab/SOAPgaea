@@ -2,7 +2,6 @@ package org.bgi.flexlab.gaea.tools.mapreduce.bamqualitycontrol;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
@@ -14,7 +13,6 @@ import org.bgi.flexlab.gaea.data.structure.reference.ReferenceShare;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.BioJob;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.ToolsRunner;
 import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report.BamReport;
-import org.seqdoop.hadoop_bam.VariantContextWritable;
 
 public class BamQualityControl extends ToolsRunner{
 	
@@ -45,8 +43,8 @@ public class BamQualityControl extends ToolsRunner{
 		job.setJarByClass(BamQualityControl.class);
 		job.setMapperClass(BamQualityControlMapper.class);
 		job.setReducerClass(BamQualityControlReducer.class);
-		job.setOutputKeyValue(IntWritable.class, Text.class, 
-				NullWritable.class, VariantContextWritable.class);
+		job.setOutputKeyValue(Text.class, Text.class, 
+				NullWritable.class, Text.class);
 		job.setNumReduceTasks(options.getReducerNum());
 		
 		FileInputFormat.addInputPaths(job, options.getAlignmentFilePath());
@@ -55,7 +53,6 @@ public class BamQualityControl extends ToolsRunner{
 		job.setOutputFormatClass(TextOutputFormat.class);
 		
 		FileOutputFormat.setOutputPath(job, new Path(options.getTempPath()));
-		// 等待完成作业,后续统计depth,coverage和insert size分布
 		if(job.waitForCompletion(true)) {
 			BamReport.getOutput(options, conf, new Path(options.getTempPath()));
 			return 0;

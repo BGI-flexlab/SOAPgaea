@@ -63,7 +63,6 @@ public class BasicReport{
 			rTracker.setTrackerAttribute(ReadType.INDEL);
 		}
 			
-		datum.getCigarState().reSetCigarstate();
 		if (isMismatch(datum, chrInfo)) {
 			rTracker.setTrackerAttribute(ReadType.MISMATCH);
 		}
@@ -143,6 +142,7 @@ public class BasicReport{
 				isMismatch = true;
 			}
 		}
+		datum.getCigarState().reSetCigarstate();
 		return isMismatch;
 	}
 	
@@ -154,8 +154,8 @@ public class BasicReport{
 	
 	
 	private void parseKeyValue(String keyValue) {
-		String key = keyValue.split("\t")[0];
-		String value = keyValue.split("\t")[1];
+		String key = keyValue.split(" ")[0];
+		String value = keyValue.split(" ")[1];
 		ReadsCounter rCounter = null;
 		BaseCounter bCounter = null;
 		if((rCounter = rTracker.getCounterMap().get(key)) != null)
