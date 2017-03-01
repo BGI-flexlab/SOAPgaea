@@ -12,15 +12,10 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer.Context;
 import org.apache.hadoop.util.LineReader;
 import org.bgi.flexlab.gaea.data.structure.positioninformation.depth.PositionDepth;
-import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
 import org.bgi.flexlab.gaea.data.structure.reference.ReferenceShare;
 import org.bgi.flexlab.gaea.data.structure.region.SingleRegion;
 import org.bgi.flexlab.gaea.data.structure.region.SingleRegion.Regiondata;
 import org.bgi.flexlab.gaea.data.structure.region.statistic.CNVSingleRegionStatistic;
-import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.BaseCounter;
-import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.ReadsCounter;
-import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.Tracker.BaseTracker;
-import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.Tracker.ReadsTracker;
 import org.bgi.flexlab.gaea.tools.mapreduce.bamqualitycontrol.BamQualityControlOptions;
 import org.bgi.flexlab.gaea.util.SamRecordDatum;
 
@@ -67,7 +62,7 @@ public abstract class ResultReport {
 		
 		if(options.getSingleRegion() != null) {
 			SingleRegion singleRegion = new SingleRegion();
-			singleRegion.parseRegionsFileFromHDFS(options.getCnvRegion(), false, 0);
+			singleRegion.parseRegionsFileFromHDFS(options.getSingleRegion(), false, 0);
 			cnvSingleRegionReport = new CNVSingleRegionReport(singleRegion);
 		}
 		insertSize = new int[options.getInsertSzie()];

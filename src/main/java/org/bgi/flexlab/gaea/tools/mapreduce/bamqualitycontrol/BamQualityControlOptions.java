@@ -152,7 +152,17 @@ public class BamQualityControlOptions extends GaeaOptions implements HadoopOptio
 		bedfile = getOptionValue("B", null);
 		intsertSize = getOptionIntValue("I", 2000);
 		insertSizeWithoutDup = getOptionIntValue("P", 2000);
+		if((cnvRegion == null) && cnvDepth == true) {
+			System.err.println("cnv Region not setted, use -B to replace.");
+			if(bedfile == "") {
+				System.err.println("region don't exists.");
+				System.exit(1);
+			} else {
+				cnvRegion = bedfile;
+			}
+		}
 	}
+	
 	
 	/**
 	 * @return the alignmentFilePath

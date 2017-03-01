@@ -17,10 +17,15 @@ import org.bgi.flexlab.gaea.tools.mapreduce.bamqualitycontrol.BamQualityControlO
 
 public class WholeGenomeResultReport extends ResultReport{
 			
-	private Map<String, WholeGenomeCoverReport> coverReports = new ConcurrentHashMap<>();
+	private Map<String, WholeGenomeCoverReport> coverReports;
 		
 	public WholeGenomeResultReport(BamQualityControlOptions options) throws IOException {
 		super(options);
+	}
+	
+	public void initReports() throws IOException {
+		super.initReports();
+		coverReports = new ConcurrentHashMap<String, WholeGenomeCoverReport>();
 	}
 	
 	public void initReports(String chrName) throws IOException {
@@ -28,6 +33,7 @@ public class WholeGenomeResultReport extends ResultReport{
 		if(chrName.equals("-1"))
 			return;
 		else {
+			coverReports = new ConcurrentHashMap<>();
 			ChromosomeInformationShare chrInfo = genome.getChromosomeInfo(chrName);
 			coverReports.put(chrName, new WholeGenomeCoverReport(chrInfo));
 		}

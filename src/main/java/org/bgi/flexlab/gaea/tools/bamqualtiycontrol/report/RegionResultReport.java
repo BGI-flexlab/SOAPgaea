@@ -65,6 +65,11 @@ public class RegionResultReport extends ResultReport{
 			genderRegion = new SingleRegion();
 			genderRegion.parseRegionsFileFromHDFS(options.getBedfile(), true, 0);
 		}
+		
+		if(options.isCnvDepth() && options.getCnvRegion() != null) {
+			cnvRegion = new SingleRegion();
+			cnvRegion.parseRegionsFileFromHDFS(options.getCnvRegion(), true, 0);
+		}
 		this.conf = conf;
 		if(options.isCnvDepth())
 			initSampleLaneSize(conf);
@@ -79,8 +84,6 @@ public class RegionResultReport extends ResultReport{
 		}
 			
 		if(options.isCnvDepth() && options.getCnvRegion() != null) {
-			cnvRegion = new SingleRegion();
-			cnvRegion.parseRegionsFileFromHDFS(options.getCnvRegion(), true, 0);
 			cnvDepthReport = new CNVDepthReport(sampleLaneSize.get(sample),cnvRegion);
 		}
 	}
@@ -262,8 +265,8 @@ public class RegionResultReport extends ResultReport{
 				double[] filterValue = new double[2];
 				filterValue[0] = depth.get((int) (depth.size() * 0.02));
 				filterValue[1] = depth.get((int) (depth.size() * 0.98));
-//				GenderPredict gender = new GenderPredict(result, genderSingleRegionReport.getRegion(), filterValue);
-//				regionReport.setPredictedGender(gender.predict());
+				GenderPredict gender = new GenderPredict(result, genderSingleRegionReport.getRegion(), filterValue);
+				regionReport.setPredictedGender(gender.predict());
 			}
 		}
 		

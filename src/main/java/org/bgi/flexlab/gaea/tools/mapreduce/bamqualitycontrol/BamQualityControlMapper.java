@@ -70,7 +70,6 @@ public class BamQualityControlMapper extends Mapper<LongWritable, SamRecordWrita
 		}
 	}
 	
-
 	private void formatKeyValue(SamRecordDatum datum, String rgID, long winNum, boolean sameWin) {
 		outK = new Text(formatKey(datum.getChrName(), winNum));
 		outV = new Text(formatValue(datum, rgID, sameWin));
