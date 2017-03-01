@@ -52,12 +52,16 @@ public class BamQualityControlMapper extends Mapper<LongWritable, SamRecordWrita
 		sampleName = mFileHeader.getReadGroup(rgID).getSample();
 		if(datum.parseSam(record.getSAMString())) {
 			long winNum = -1;
+			// read所在的窗口号（以read的起始点在参考基因组上的坐标划分窗口）
 			winNum = datum.getPosition() / BamQualityControl.WINDOW_SIZE;
-			formatKeyValue(datum, rgID, winNum, true);
+			// 输出<K, V>：Key格式为"chrName:winNum"，Value为比对结果文件的一行
+			formatKeyValue(datum, rgID, winNum);
 			context.write(outK, outV);
+			// 当read跨越窗口时
 			if (winNum != (datum.getEnd() / BamQualityControl.WINDOW_SIZE)) {
-				winNum++; 
-				formatKeyValue(datum, rgID, winNum, false);
+				winNum++; // 窗口号+1，将该read放入下一个窗口
+				// 输出<K, V>：Key格式为"chrName:winNum"，Value为比对结果文件的一行
+				formatKeyValue(datum, rgID, winNum);
 				context.write(outK, outV);
 			}
 		} else {
@@ -71,12 +75,12 @@ public class BamQualityControlMapper extends Mapper<LongWritable, SamRecordWrita
 	}
 	
 
-	private void formatKeyValue(SamRecordDatum datum, String rgID, long winNum, boolean sameWin) {
+	private void formatKeyValue(SamRecordDatum datum, String rgID, long winNum) {
 		outK = new Text(formatKey(datum.getChrName(), winNum));
-		outV = new Text(formatValue(datum, rgID, sameWin));
+		outV = new Text(formatValue(datum, rgID));
 	}
 
-	private String formatValue(SamRecordDatum datum, String rgID, boolean sameWin) {
+	private String formatValue(SamRecordDatum datum, String rgID) {
 		// TODO Auto-generated method stub
 		StringBuilder vBuilder = new StringBuilder();
 		vBuilder.append(datum.getFlag());
@@ -91,10 +95,7 @@ public class BamQualityControlMapper extends Mapper<LongWritable, SamRecordWrita
 		vBuilder.append("\t");
 		vBuilder.append(datum.getBestHitCount());
 		vBuilder.append("\t");
-		if(sameWin)
-			vBuilder.append("0");
-		else
-			vBuilder.append("1");
+		vBuilder.append("0");
 		vBuilder.append("\t");
 		vBuilder.append(datum.getMappingQual());
 		vBuilder.append("\t");

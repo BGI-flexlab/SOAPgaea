@@ -61,6 +61,6 @@ public interface CounterProperty {
 	}
 	
 	public enum ReadType implements CounterProperty{
-		TOTALREADS, MAPPED, UNIQUE, DUP, PE, CLIPPED, MISMATCHREADS, INDEL;
+		TOTALREADS, MAPPED, UNIQUE, DUP, PE, CLIPPED, MISMATCH, INDEL;
 	}
 }

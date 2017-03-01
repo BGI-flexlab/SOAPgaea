@@ -45,7 +45,6 @@ public class Tracker {
 		}
 		
 		public void setTrackerAttribute(BaseType type) {
-			workForRegionReport = false;
 			this.type = type;
 			notifyCounters();
 		}
@@ -53,17 +52,14 @@ public class Tracker {
 		public void notifyCounters() {
 			// TODO Auto-generated method stub
 			if(!workForRegionReport)
-				for(int i = 0;i < counters.size(); i++){
+				for(int i = 0;i < counters.size(); i++)
 					counters.get(i).update(type);
-				}
 			else
-				for(int i = 0;i < counters.size(); i++) {
+				for(int i = 0;i < counters.size(); i++)
 					counters.get(i).update(region, depth, noPCRdepth);
-				}
 		}
 
 		public void register(BaseCounter o) {
-			System.out.println("register");
 			counters.add(o);
 			mapCounter.put(o.formatKey(), o);
 		}

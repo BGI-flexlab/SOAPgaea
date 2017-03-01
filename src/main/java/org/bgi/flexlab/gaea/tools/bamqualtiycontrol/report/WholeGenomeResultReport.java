@@ -16,8 +16,8 @@ import org.bgi.flexlab.gaea.data.structure.reference.ReferenceShare;
 import org.bgi.flexlab.gaea.tools.mapreduce.bamqualitycontrol.BamQualityControlOptions;
 
 public class WholeGenomeResultReport extends ResultReport{
-			
-	private Map<String, WholeGenomeCoverReport> coverReports = new ConcurrentHashMap<>();
+	
+	private WholeGenomeCoverReport coverReport;
 		
 	public WholeGenomeResultReport(BamQualityControlOptions options) throws IOException {
 		super(options);
@@ -29,7 +29,7 @@ public class WholeGenomeResultReport extends ResultReport{
 			return;
 		else {
 			ChromosomeInformationShare chrInfo = genome.getChromosomeInfo(chrName);
-			coverReports.put(chrName, new WholeGenomeCoverReport(chrInfo));
+			coverReport = WholeGenomeCoverReport.getCoverReport(chrInfo);
 		}
 	}
 	
@@ -40,7 +40,7 @@ public class WholeGenomeResultReport extends ResultReport{
 		super.regionCoverReport(depth, noPCRdepth);
 		if(options.isOutputUnmapped() && depth != 0 )
 			unmappedReport.updateUnmappedSites(pos, unmappedReport.getUnmappedSites(chrName));
-		coverReports.get(chrName).constructDepthReport(pd, i);
+		coverReport.constructDepthReport(pd, i);
 	}
 	
 	@Override
@@ -63,9 +63,8 @@ public class WholeGenomeResultReport extends ResultReport{
 		info.append(basicReport.toReducerString());
 		if(!unmappedRegion) {
 			info.append(regionCoverReport.toReducerString());
-			info.append(rmdupRegionCoverReport.toReducerString("RMDUP Region Depth"));
-			for(String key : coverReports.keySet()) {
-				WholeGenomeCoverReport cover = coverReports.get(key);
+			for(String key : WholeGenomeCoverReport.getCoverReports().keySet()) {
+				WholeGenomeCoverReport cover = WholeGenomeCoverReport.getCoverReport(key);
 				info.append(cover.toReducerString(key));
 			}
 			info.append("insert size information:\n");
@@ -91,24 +90,10 @@ public class WholeGenomeResultReport extends ResultReport{
 		String lineString = line.toString();
 		if(lineString.contains("Cover Information")) {
 			if(lineReader.readLine(line) > 0 && line.getLength() != 0) {
-				String[] splitArray = line.toString().split("\t");
-				WholeGenomeCoverReport coverReport = null;
-				for(String keyValue : splitArray) {
-					if(keyValue.split(" ").length == 1) {
-						String chrName = keyValue;
-						if(!coverReports.containsKey(chrName)) {
-							ChromosomeInformationShare chrInfo = genome.getChromosomeInfo(chrName);
-							coverReport = new WholeGenomeCoverReport(chrInfo);
-							coverReports.put(chrName, coverReport);
-						} else {
-							coverReport = coverReports.get(chrName);
-						}
-					} else {
-						coverReport.parse(keyValue, genome);
-					}
-				}
+				WholeGenomeCoverReport.parse(line.toString(), genome);
 			}
 		}
+		
 	}
 	
 	@Override
@@ -124,9 +109,9 @@ public class WholeGenomeResultReport extends ResultReport{
 		StringBuffer info = new StringBuffer();
 		info.append(basicReport.toString());
 		info.append("coverage information:\n");
-		TreeSet<String> keys = new TreeSet<String>(coverReports.keySet());
+		TreeSet<String> keys = new TreeSet<String>(WholeGenomeCoverReport.getCoverReports().keySet());
 		for(String key : keys) {
-			WholeGenomeCoverReport cover = coverReports.get(key);
+			WholeGenomeCoverReport cover = WholeGenomeCoverReport.getCoverReports().get(key);
 			info.append(cover.toString(key));
 		}
 		reportwriter.write(info.toString().getBytes());

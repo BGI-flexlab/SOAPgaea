@@ -82,7 +82,9 @@ public class BamQualityControlReducer extends Reducer<Text, Text, NullWritable, 
 		}
 		//position depth
 		deep = new PositionDepth(winSize, options.isGenderDepth(), reportBuilder.getSampleLaneSzie(sampleName));
-				
+		
+		System.out.println("sample lane size:" + reportBuilder.getSampleLaneSzie(sampleName));
+		
 		for(Text value : values) {
 			SamRecordDatum datum = new SamRecordDatum();
 

@@ -30,7 +30,7 @@ public class WholeGenomeCoverReport{
 		
 	private static Map<String, WholeGenomeCoverReport> coverReports = new ConcurrentHashMap<>();
 	
-	public WholeGenomeCoverReport(ChromosomeInformationShare chrInfo) {
+	private WholeGenomeCoverReport(ChromosomeInformationShare chrInfo) {
 		bTracker = new Tracker.BaseTracker();
 		register();
 		this.chrInfo = chrInfo;
@@ -41,6 +41,7 @@ public class WholeGenomeCoverReport{
 		if(depth != 0) {
 			bTracker.setTrackerAttribute(Interval.WHOLEGENOME, DepthType.NORMAL.setDepth(depth), DepthType.WITHOUT_PCR);
 			bTracker.setTrackerAttribute(BaseType.COVERED);
+			System.out.println(bTracker.getBaseCount(BaseType.COVERED));
 			if(deep.hasIndelReads(i)) 
 				bTracker.setTrackerAttribute(BaseType.INDELREF);
 			
@@ -88,11 +89,30 @@ public class WholeGenomeCoverReport{
 		return coverString.toString();
 	}
 	
-	public void parse(String keyValue, ReferenceShare genome) {
+	public static void parse(String line, ReferenceShare genome) {
+		String[] splitArray = line.split("\t");
+		WholeGenomeCoverReport coverReport = null;
+		for(String keyValue : splitArray) {
+			if(keyValue.split(" ").length == 1) {
+				String chrName = keyValue;
+				if(!coverReports.containsKey(chrName)) {
+					ChromosomeInformationShare chrInfo = genome.getChromosomeInfo(chrName);
+					coverReport = new WholeGenomeCoverReport(chrInfo);
+					coverReports.put(chrName, coverReport);
+				} else {
+					coverReport = coverReports.get(chrName);
+				}
+			} else {
+				parseKeyValue(keyValue, genome, coverReport);
+			}
+		}
+	}
+	
+	private static void parseKeyValue(String keyValue, ReferenceShare genome, WholeGenomeCoverReport coverReport) {
 		String key = keyValue.split(" ")[0];
 		String value = keyValue.split(" ")[1];
 		BaseCounter bCounter = null;
-		if((bCounter = getBasetTracker().getCounterMap().get(key)) != null) {
+		if((bCounter = coverReport.getBasetTracker().getCounterMap().get(key)) != null) {
 			if(!key.contains(Depth.TOTALDEPTH.toString())) {
 				bCounter.setBaseCount(Long.parseLong(value));
 			} else {
