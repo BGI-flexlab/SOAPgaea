@@ -12,15 +12,10 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer.Context;
 import org.apache.hadoop.util.LineReader;
 import org.bgi.flexlab.gaea.data.structure.positioninformation.depth.PositionDepth;
-import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
 import org.bgi.flexlab.gaea.data.structure.reference.ReferenceShare;
 import org.bgi.flexlab.gaea.data.structure.region.SingleRegion;
 import org.bgi.flexlab.gaea.data.structure.region.SingleRegion.Regiondata;
 import org.bgi.flexlab.gaea.data.structure.region.statistic.CNVSingleRegionStatistic;
-import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.BaseCounter;
-import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.ReadsCounter;
-import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.Tracker.BaseTracker;
-import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.Tracker.ReadsTracker;
 import org.bgi.flexlab.gaea.tools.mapreduce.bamqualitycontrol.BamQualityControlOptions;
 import org.bgi.flexlab.gaea.util.SamRecordDatum;
 
@@ -67,7 +62,7 @@ public abstract class ResultReport {
 		
 		if(options.getSingleRegion() != null) {
 			SingleRegion singleRegion = new SingleRegion();
-			singleRegion.parseRegionsFileFromHDFS(options.getCnvRegion(), false, 0);
+			singleRegion.parseRegionsFileFromHDFS(options.getSingleRegion(), false, 0);
 			cnvSingleRegionReport = new CNVSingleRegionReport(singleRegion);
 		}
 		insertSize = new int[options.getInsertSzie()];
@@ -123,27 +118,6 @@ public abstract class ResultReport {
 		}
 	}
 	
-	public void parseLine(String line, ReadsTracker rTracker, BaseTracker bTracker) {
-		String[] splitArray = line.split("\t");
-		for(String keyValue : splitArray)
-			parseKeyValue(keyValue, rTracker, bTracker);
-	}
-	
-	private void parseKeyValue(String keyValue, ReadsTracker rTracker, BaseTracker bTracker) {
-		String key = keyValue.split("\t")[0];
-		String value = keyValue.split("\t")[1];
-		ReadsCounter rCounter = null;
-		BaseCounter bCounter = null;
-		if((rCounter = rTracker.getCounterMap().get(key)) != null)
-			rCounter.setReadsCount(Long.parseLong(value));
-		else if((bCounter = bTracker.getCounterMap().get(key)) != null)
-			bCounter.setBaseCount(Long.parseLong(value));
-		else {
-			throw new RuntimeException("Can not idenity counter with name " + key);
-		}
-			
-	}
-	
 	public abstract void constructDepthReport(PositionDepth pd, int i, String chrName, long pos);
 
 	public abstract String toReducerString(String sample, String chrName, boolean unmappedRegion);
@@ -172,12 +146,12 @@ public abstract class ResultReport {
 				cnvSingleRegionReport.parseReducerOutput(line.toString(), false);
 			}
 		}
-		if(lineString.startsWith("Rgion Depth")) {
+		if(lineString.startsWith("Region Depth")) {
 			if(lineReader.readLine(line) > 0 && line.getLength() != 0) {
 				regionCoverReport.parseReducerOutput(line.toString());
 			}
 		}
-		if(lineString.startsWith("RMDUP Rgion Depth")) {
+		if(lineString.startsWith("RMDUP Region Depth")) {
 			if(lineReader.readLine(line) > 0 && line.getLength() != 0) {
 				rmdupRegionCoverReport.parseReducerOutput(line.toString());
 			}
