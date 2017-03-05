@@ -108,15 +108,15 @@ public class WholeGenomeCoverReport{
 	}
 	
 	public double getCoverage() {
-		return (100 * (bTracker.getBaseCount(BaseType.COVERED)/(double)chrInfo.getLength()));
+		return (100 * (bTracker.getProperty(BaseType.COVERED)/(double)chrInfo.getLength()));
 	}
 	
 	public double getMeanDepth() {
-		return (bTracker.getTotalDepth(Interval.WHOLEGENOME, Depth.TOTALDEPTH, DepthType.NORMAL)/(double)bTracker.getBaseCount(BaseType.COVERED));
+		return (bTracker.getProperty(Interval.WHOLEGENOME, Depth.TOTALDEPTH, DepthType.NORMAL)/(double)bTracker.getProperty(BaseType.COVERED));
 	}
 	
 	public double getRateOf(BaseType type) {
-		return (100 * (bTracker.getBaseCount(type)/(double)chrInfo.getLength()));
+		return (100 * (bTracker.getProperty(type)/(double)chrInfo.getLength()));
 	}
 	
 	public void register() {

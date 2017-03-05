@@ -14,6 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.bgi.flexlab.gaea.util.ChromosomeUtils;
 import org.bgi.flexlab.gaea.util.FileIterator;
 
+import htsjdk.tribble.index.Index;
 import htsjdk.tribble.readers.AsciiLineReader;
 import htsjdk.tribble.readers.AsciiLineReaderIterator;
 
@@ -49,7 +50,7 @@ public class TargetRegion extends Region {
 			winse[0] = winStart;
 			winse[1] = winEnd;
 			if(!isAddFlank) {
-				addRegionIndex(index, id, winse);
+				addRegionIndex(this.index, id, winse);
 			} else {
 				addRegionIndex(flankRegion.getIndex(), id, winse);
 			}
@@ -182,26 +183,16 @@ public class TargetRegion extends Region {
 		}
 	}
 	
-	public static void main(String[] args) throws IOException {
-		TargetRegion tr = new TargetRegion();
-		tr.parseBedFileFromHDFS("F:\\BGIBigData\\TestData\\Bed\\bed_PP600V3-737genes.bed", true);
-	}
-	
 	public void parseBedFileFromHDFS(String bedFilePath, boolean isWithFlank) throws IOException {
-//		FileIterator it = new FileIterator(bedFilePath);
-		BufferedInputStream is = new BufferedInputStream(new FileInputStream(new File(bedFilePath)));
-		AsciiLineReaderIterator it = new AsciiLineReaderIterator(new AsciiLineReader(is));
+		FileIterator it = new FileIterator(bedFilePath);
 		while(it.hasNext()) {
 			parseBedRegion(it, isWithFlank);
 		}
-//		while(it.hasNext()) {
-//			parseBedRegion(it, isWithFlank);
-//		}
+
 		it.close();
-		//System.err.println("region size:" + regionSize);
 	}
 	
-	protected void parseBedRegion(AsciiLineReaderIterator it, boolean isWithFlank) {
+	protected void parseBedRegion(FileIterator it, boolean isWithFlank) {
 		String line=it.next().toString().trim();
 		String[] splitArray = line.split("\\s+");
 		if(line.equals("") || line == null) {
@@ -210,6 +201,7 @@ public class TargetRegion extends Region {
 		
 		boolean skipLine = parseBedFileLine(splitArray, this);
 		if(skipLine) {
+			System.out.println("skip line");
 			return;
 		} else {
 			addChrSize(chrName, calRegionSize(start, end));

@@ -10,7 +10,7 @@ public class Region {
 	/**
 	 * 数据结构，方便查找:winID->[start,end],[start,end]...
 	 */
-	protected static Map<String, ArrayList<Integer[]>> index;
+	protected Map<String, ArrayList<Integer[]>> index;
 	/**
 	 * 染色体标志，表示此条染色体已经全在区域内
 	 */

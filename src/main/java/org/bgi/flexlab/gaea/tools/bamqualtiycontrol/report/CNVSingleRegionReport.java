@@ -1,10 +1,13 @@
 package org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.hadoop.mapreduce.Reducer.Context;
 import org.bgi.flexlab.gaea.data.structure.positioninformation.IntPositionInformation;
+import org.bgi.flexlab.gaea.data.structure.positioninformation.depth.PositionDepth;
 import org.bgi.flexlab.gaea.data.structure.region.SingleRegion;
 import org.bgi.flexlab.gaea.data.structure.region.SingleRegion.Regiondata;
 import org.bgi.flexlab.gaea.data.structure.region.statistic.CNVSingleRegionStatistic;
@@ -19,6 +22,14 @@ public class CNVSingleRegionReport extends SingleRegionReport<CNVSingleRegionSta
 		result = new ConcurrentHashMap<SingleRegion.Regiondata, CNVSingleRegionStatistic>();
 	}
 	
+//	public static void main(String[] args) throws IOException {
+//		SingleRegion singleRegion = new SingleRegion();
+//		singleRegion.parseRegionsFileFromHDFS("F:\\BGIBigData\\TestData\\Bed\\anno_bed_for_cnv_stat_PP600V3", false, 0);
+//		CNVSingleRegionReport report = new CNVSingleRegionReport(singleRegion);
+		PositionDepth pd = new PositionDepth(1000000, true, 2);
+//		report.getWholeRegionInfo(pd.getRMDupPosDepth(), 500000, 510000);
+//	}
+	
 	public String getWholeRegionInfo(IntPositionInformation deep, int start, int end) {
 		ArrayList<Integer> deepth = new ArrayList<Integer>();
 		SingleRegionStatistic statistic = new SingleRegionStatistic();
@@ -26,16 +37,18 @@ public class CNVSingleRegionReport extends SingleRegionReport<CNVSingleRegionSta
 		if(start > end) {
 			throw new RuntimeException("start:" + start + "is bigger than end:" + end);
 		}
+		int n = 0;
 		for(int i = start; i <= end; i++) {
 			int deepNum = deep.get(i);
 			if(deepNum > 0) {
+				n++;
 				statistic.addCoverage();
 				statistic.addDepth(deepNum);
 			}
 			deepth.add(deepNum);
 		}
+		System.out.println("deep Num > 0:" + n);
 		Collections.sort(deepth);
-		
 		outputString.append(statistic.toString());
 		outputString.append("\t");
 		outputString.append(statistic.calMiddleVaule(deepth));
@@ -118,19 +131,20 @@ public class CNVSingleRegionReport extends SingleRegionReport<CNVSingleRegionSta
 	}
 	
 	public void updateAllRegionAverageDeepth() {
-		long deepthAll = 0;
+		long depthAll = 0;
 		double regionSizeTotal = 0.0;
 		updateResult();
+		System.out.println(result.keySet().size());
 		for(Regiondata regionData : result.keySet()) {
 			CNVSingleRegionStatistic statistic = (CNVSingleRegionStatistic) result.get(regionData);
 			String formatChrName = ChromosomeUtils.formatChrName(regionData.getChrName());
 			if(!formatChrName.equals("chrx") && !formatChrName.equals("chry") && !formatChrName.equals("chrm")) {
-				deepthAll += statistic.getDepthNum();
+				depthAll += statistic.getDepthNum();
 				regionSizeTotal += regionData.size();
 			}
 		}
-		System.err.println("deepthAll:" + deepthAll + "\nregionSizeTotal:" + regionSizeTotal);
-		allRegionAverageDeepth = deepthAll / regionSizeTotal;
+		System.err.println("depthAll:" + depthAll + "\nregionSizeTotal:" + regionSizeTotal);
+		allRegionAverageDeepth = depthAll / regionSizeTotal;
 		System.err.println("allRegionAverageDeepth:" + allRegionAverageDeepth);
 	}
 

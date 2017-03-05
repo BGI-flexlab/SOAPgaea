@@ -82,12 +82,8 @@ public class Tracker {
 			return mapCounter;
 		}
 		
-		public long getBaseCount(CounterProperty... properties) {
-			return mapCounter.get(formatKey(properties)).getBaseCount();
-		}
-		
-		public long getTotalDepth(CounterProperty... properties ) {
-			return mapCounter.get(formatKey(properties)).getTotalDepth();
+		public long getProperty(CounterProperty... properties) {
+			return mapCounter.get(formatKey(properties)).getProperty();
 		}
 	
 	}
@@ -105,6 +101,7 @@ public class Tracker {
 		private boolean workForRegionReport = false;
 		
 		public void setTrackerAttribute(ReadType type) {
+			workForRegionReport = false;
 			this.type = type;
 			notifyCounters();
 		}

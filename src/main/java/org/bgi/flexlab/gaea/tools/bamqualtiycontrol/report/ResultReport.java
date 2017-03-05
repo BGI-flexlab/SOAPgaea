@@ -21,6 +21,8 @@ import org.bgi.flexlab.gaea.util.SamRecordDatum;
 
 public abstract class ResultReport {
 	
+	private SingleRegion singleRegion;
+	
 	protected BasicReport basicReport;
 	
 	protected BamQualityControlOptions options;
@@ -39,9 +41,12 @@ public abstract class ResultReport {
 	
 	protected ReferenceShare genome;
 	
-	public ResultReport(BamQualityControlOptions options) {
+	public ResultReport(BamQualityControlOptions options) throws IOException {
 		this.options = options;
-		genome = new ReferenceShare();
+		if(options.getSingleRegion() != null) {
+			singleRegion = new SingleRegion();
+			singleRegion.parseRegionsFileFromHDFS(options.getSingleRegion(), false, 0);
+		}
 		loadReference();
 	}
 	
@@ -61,8 +66,6 @@ public abstract class ResultReport {
 		rmdupRegionCoverReport = new RegionCoverReport(1000);
 		
 		if(options.getSingleRegion() != null) {
-			SingleRegion singleRegion = new SingleRegion();
-			singleRegion.parseRegionsFileFromHDFS(options.getSingleRegion(), false, 0);
 			cnvSingleRegionReport = new CNVSingleRegionReport(singleRegion);
 		}
 		insertSize = new int[options.getInsertSzie()];

@@ -99,7 +99,7 @@ public class BamQualityControlReducer extends Reducer<Text, Text, NullWritable, 
 			if(!deep.add(new CompoundInformation<SamRecordDatum>((int)winStart, winSize, datum, chrInfo))) 
 				context.getCounter("Exception", "null read info in depth class").increment(1);
 			
-			if(datum.isRepeat()) 
+			if(datum.isRepeat())
 				continue;
 			
 			if (!reportBuilder.mappedReport(datum, chrName, context)) 
