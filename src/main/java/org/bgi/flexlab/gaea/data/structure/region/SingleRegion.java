@@ -24,13 +24,6 @@ public class SingleRegion {
 		chrNameInterval = new ConcurrentHashMap<String, Integer[]>();
 	}
 	
-	public static void main(String[] args) throws IOException {
-		SingleRegion singleRegion = new SingleRegion();
-		singleRegion.parseRegionsFileFromHDFS("F:\\BGIBigData\\TestData\\Bed\\anno_bed_for_cnv_stat_PP600V3", false, 0);
-		System.out.println(singleRegion.getRegion(1060).getStart());
-		System.out.println(singleRegion.getRegion(1060).getEnd());
-	}
-	
 	public void parseRegionsFileFromHDFS(String regionsFilePath, boolean normalBed, int extendSize) throws IOException {
 		Regiondata lastRegionData = null;
 		Integer[] chrInterval = new Integer[2];
