@@ -7,9 +7,13 @@ import org.bgi.flexlab.gaea.data.mapreduce.options.HadoopOptions;
 import org.bgi.flexlab.gaea.data.options.GaeaOptions;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Variant;
 import org.bgi.flexlab.gaea.tools.genotyer.GenotypeLikelihoodCalculator.GenotypeLikelihoodCalculator;
+import org.bgi.flexlab.gaea.tools.genotyer.GenotypeLikelihoodCalculator.INDELGenotypeLikelihoodCalculator;
 import org.bgi.flexlab.gaea.tools.genotyer.VariantCallingEngine;
 import org.bgi.flexlab.gaea.tools.genotyer.genotypecaller.AFCalcFactory;
 import org.bgi.flexlab.gaea.util.GaeaVariantContextUtils;
+import org.bgi.flexlab.gaea.util.pairhmm.PairHMM;
+import org.seqdoop.hadoop_bam.SAMFormat;
+import org.seqdoop.hadoop_bam.VCFFormat;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,20 +32,39 @@ public class GenotyperOptions extends GaeaOptions implements HadoopOptions {
      */
     private String input = null;
 
+    private boolean samFormat = false;
+
     /**
      * output directory
      */
     private String output = null;
 
+    private boolean bcfFormat = false;
+
+    /**
+     * Gaea indexed reference
+     */
+    private String reference = null;
+
     /**
      * Which annotations to add to the output VCF file
      */
-    private List<String> annotations = new ArrayList<>();
+    private List<String> annotations = new ArrayList<String>();
+
+    /**
+     * annotation groups to add to the output VCF file
+     */
+    private List<String> annotationGroups = new ArrayList<String>() {
+        {
+            add("Standard");
+            add("StandardUG");
+        }
+    };
 
     /**
      * models for genotype likelihood calculator
      */
-    private GenotypeLikelihoodCalculator.Model gtlcalculators = GenotypeLikelihoodCalculator.Model.BOTH;
+    private GenotypeLikelihoodCalculator.Model gtlcalculators = GenotypeLikelihoodCalculator.Model.SNP;
 
     /**
      * min depth for genotype likelihood calculation
@@ -67,6 +90,11 @@ public class GenotyperOptions extends GaeaOptions implements HadoopOptions {
      * output mode
      */
     private VariantCallingEngine.OUTPUT_MODE outputMode = EMIT_VARIANTS_ONLY;
+
+    /**
+     * Maximum fraction of reads with deletions spanning this locus for it to be callable
+     */
+    private double maxDeletionFraction = 0.05;
 
     /**
      * A candidate indel is genotyped (and potentially called) if there are this number of reads with a consensus indel at a site.
@@ -100,6 +128,16 @@ public class GenotyperOptions extends GaeaOptions implements HadoopOptions {
     private int maxAlternateAlleles = 6;
 
     /**
+     * Maximum number of genotypes to consider at any site
+     */
+    private int maxGenotypeCount = 1024;
+
+    /**
+     * Maximum number of PL values to output
+     */
+    private int maxNumPLValues = 100;
+
+    /**
      * Sample ploidy - equivalent to number of chromosomes per pool. In pooled experiments this should be = # of samples in pool * individual sample ploidy
      */
     private int samplePloidy = GaeaVariantContextUtils.DEFAULT_PLOIDY;
@@ -110,11 +148,16 @@ public class GenotyperOptions extends GaeaOptions implements HadoopOptions {
     private AFCalcFactory.Calculation AFmodel = AFCalcFactory.Calculation.getDefaultModel();
 
     /**
+     *
+     */
+    private PairHMM.HMM_IMPLEMENTATION pairHmmImplementation = PairHMM.HMM_IMPLEMENTATION.LOGLESS_CACHING;
+
+    /**
      * The minimum phred-scaled Qscore threshold to separate high confidence from low confidence calls. Only genotypes with
      * confidence >= this threshold are emitted as called sites. A reasonable threshold is 30 for high-pass calling (this
      * is the default).
      */
-    public double standardConfidenceForCalling = 30.0;
+    public double standardConfidenceForCalling = 10.0;
 
     /**
      * This argument allows you to emit low quality calls as filtered records.
@@ -128,6 +171,11 @@ public class GenotyperOptions extends GaeaOptions implements HadoopOptions {
     public Double heterozygosity = VariantCallingEngine.HUMAN_SNP_HETEROZYGOSITY;
 
     /**
+     * Standard deviation of eterozygosity for SNP and indel calling.
+     */
+    private double heterozygosityStandardDeviation = 0.01;
+
+    /**
      * This argument informs the prior probability of having an indel at a site.
      */
     public double indelHeterozygosity = 1.0/8000;
@@ -138,56 +186,126 @@ public class GenotyperOptions extends GaeaOptions implements HadoopOptions {
      */
     public boolean annotateNumberOfAllelesDiscovered = false;
 
+    /**
+     * The PCR error rate to be used for computing fragment-based likelihoods
+     */
+    private double pcr_error = 0.0001;
+
+    /**
+     * ndel gap continuation penalty, as Phred-scaled probability. I.e., 30 => 10^-30/10
+     */
+    private double indelGapContinuationPenalty = 10;
+
+    /**
+     * Indel gap open penalty, as Phred-scaled probability. I.e., 30 => 10^-30/10
+     */
+    private double indelGapOpenPenalty = 45;
+
+    /**
+     * multi sample mode
+     */
+    private boolean singleSampleMode;
+
+    /**
+     * reducer number
+     */
+    private int reducerNumber = 30;
+
+    /**
+     * window size
+     */
+    private int windowSize = 100000;
+
     public GenotyperOptions() {
         addOption("i", "input", true, "Input file containing sequence data (BAM or CRAM)");
+        addOption("I", "is_sam_input", false, "the input is in SAM format.");
         addOption("o", "output", true, "directory to which variants should be written in HDFS written format.");
+        addOption("O", "outputMode", true, "output mode :EMIT_VARIANTS_ONLY, EMIT_ALL_CONFIDENT_SITES, EMIT_ALL_SITES");
+        addOption("B","is_bcf_output", false, "output variant in BCF format." );
+        addOption("r", "reference", true, "Gaea Indexed reference list for memory sharing.");
         addOption("A", "annotation", true, "One or more specific annotations to apply to variant calls, the tag is separated by \',\'");
-
-        addOption("glm", "genotypeLikelihoodModel", true, "models for genotype likelihood calculation: SNP, INDEL, BOTH.");
+        addOption("contamination", "contamination_fraction_to_filter", true, "Fraction of contamination to aggressively remove.");
+        addOption("glm", "genotype_likelihoods_model", true, "Genotype likelihoods calculation model to employ -- SNP is the default option, while INDEL is also available for calling indels and BOTH is available for calling both together.");
+        addOption("G", "group", true, "One or more classes/groups of annotations to apply to variant calls. The single value 'none' removes the default group, the group tag is separated by \',\'");
+        addOption("hets", "heterozygosity", true, "Heterozygosity value used to compute prior likelihoods for any locus.");
+        addOption("heterozygosityStandardDeviation", "heterozygosity_stdev", true, "\tStandard deviation of eterozygosity for SNP and indel calling.");
+        addOption("indelHeterozygosity", "indel_heterozygosity", true, "Heterozygosity for indel calling.");
+        addOption("deletions", "max_deletion_fraction", true, "Maximum fraction of reads with deletions spanning this locus for it to be callable.");
+        addOption("mbq", "min_base_quality_score", true, "Minimum base quality required to consider a base for calling.");
+        addOption("mmq", "min_mapping_quality_score", true, "Minimum mapping quality required to consider a read for calling.");
+        addOption("minIndelCnt", "min_indel_count_for_genotyping", true, "Minimum number of consensus indels required to trigger genotyping run.");
+        addOption("minIndelFrac", "min_indel_fraction_per_sample", true, "Minimum fraction of all reads at a locus that must contain an indel (of any allele) for that sample to contribute to the indel count for alleles.");
+        addOption("pairHMM", "pair_hmm_implementation", true, "The PairHMM implementation to use for -glm INDEL genotype likelihood calculations");
+        addOption("pcrError", "pcr_error_rate", true, "The PCR error rate to be used for computing fragment-based likelihoods.");
+        addOption("ploidy", "sample_ploidy", true, "Ploidy per sample. For pooled data, set to (Number of samples in each pool * Sample Ploidy).");
+        addOption("standCallConf", "standardConfidenceForCalling", true, "standard confidence for calling");
+        addOption("standEmitConf", "standardConfidenceForEmitting", true, "standard confidence for emitting");
+        addOption("AFmodel", "Allele_frequency_model", true, "allele frequency calculation model");
+        addOption("indelGCP", "indelGapContinuationPenalty", true, "Indel gap continuation penalty, as Phred-scaled probability. I.e., 30 => 10^-30/10");
+        addOption("indelGOP", "indelGapOpenPenalty", true, "Indel gap open penalty, as Phred-scaled probability. I.e., 30 => 10^-30/10.");
+        addOption("maxAltAlleles", "max_alternate_alleles", true, "max alternate alleles");
+        addOption("maxGT", "max_genotype_count", true, "Maximum number of genotypes to consider at any site.");
+        addOption("maxNumPLValues", "max_num_PL_values", true, "Maximum number of PL values to output");
+        addOption("S", "single_sample_mode", false, "will call genotype and variant for each sample separately");
         addOption("D", "minDepth", true, "minimum depth for variant calling.");
         addOption("C", "noCapBaseQualsAtMappingQual", false, "do not cap base quality at mapping quality");
-        addOption("B", "minBaseQuality", true, "minimum base quality.");
-        addOption("M", "minMappingQuality", true, "minimum mapping quality.");
-        addOption("O", "outputMode", true, "output mode :EMIT_VARIANTS_ONLY, EMIT_ALL_CONFIDENT_SITES, EMIT_ALL_SITES");
-        addOption("X", "minIndelCountForGenotyping", true, "minimum indel count for genotyping in all samples.");
-        addOption("Y", "minIndelFractionPerSample", true, "minimum indel fraction for genotyping in each sample.");
-        addOption("C1", "contaminationFraction", true, "contamination fraction.");
-        addOption("M1", "maxAlternateAlleles", true, "max alternate alleles");
-        addOption("P", "samplePloidy", true, "sample ploidy");
-        addOption("A", "AFmodel", true, "allele frequency calculation model");
-        addOption("C1", "standardConfidenceForCalling", true, "standard confidence for calling");
-        addOption("C2", "standardConfidenceForEmitting", true, "standard confidence for emitting");
-        addOption("H", "heterozygosity", true, "heterozygosity for SNP");
-        addOption("H1", "indelHeterozygosity", true, "indel heterozygosity");
-        addOption("A1", "annotateNumberOfAllelesDiscovered", false, "annotate Number Of Alleles Discovered");
+        addOption("numAlleleDis", "annotateNumberOfAllelesDiscovered", false, "annotate Number Of Alleles Discovered");
+        addOption("R", "reducer", true, "reducer numbers");
+        addOption("W", "window_size", true, "window size that sharding the data.");
     }
 
     @Override
     public void parse(String[] args) {
-        input = getOptionValue("i", null);
-        output = getOptionValue("o", null);
-        String annotaionTags = getOptionValue("A", null);
-        if(annotaionTags != null) {
-            for(String tag : annotaionTags.split(","))
-            annotations.add(tag);
+        if(getOptionBooleanValue("h", false)) {
+            FormatHelpInfo(SOFTWARE_NAME, SOFTWARE_VERSION);
         }
 
-        minDepth = getOptionIntValue("D", 4);
-        noCapBaseQualsAtMappingQual = getOptionBooleanValue("C", false);
-        minBaseQuality = getOptionByteValue("B", (byte)17);
-        minMappingQuality = getOptionShortValue("M", (short)17);
-        minIndelCountForGenotyping = getOptionIntValue("X", 5);
-        minIndelFractionPerSample = getOptionDoubleValue("Y", 0.25);
+
+        input = getOptionValue("i", null);
+        samFormat = getOptionBooleanValue("I", false);
+        output = getOptionValue("o", null);
+        bcfFormat = getOptionBooleanValue("B", false);
+        reference = getOptionValue("r", null);
+        String annotationTags = getOptionValue("A", null);
+        if(annotationTags != null) {
+            for(String tag : annotationTags.split(","))
+            annotations.add(tag);
+        }
+        String annotationGroupTags = getOptionValue("G", "null");
+        if(annotationGroupTags != null) {
+            if(annotationGroupTags.equals("none")) {
+                annotationGroups.clear();
+            }
+            for(String tag : annotationGroupTags.split(","))
+                annotationGroups.add(tag);
+        } else {
+            annotationGroups.add("Standard");
+            annotationGroups.add("StandardUG");
+        }
         contaminationFraction = getOptionDoubleValue("C1", DEFAULT_CONTAMINATION_FRACTION);
-        maxAlternateAlleles = getOptionIntValue("M1", 6);
-        samplePloidy = getOptionIntValue("P", GaeaVariantContextUtils.DEFAULT_PLOIDY);
-        standardConfidenceForCalling = getOptionDoubleValue("C1", 30);
-        heterozygosity = getOptionDoubleValue("H", VariantCallingEngine.HUMAN_SNP_HETEROZYGOSITY);
-        indelHeterozygosity = getOptionDoubleValue("H1", 1.0/8000);
-        annotateNumberOfAllelesDiscovered = getOptionBooleanValue("A1", false);
+        heterozygosity = getOptionDoubleValue("hets", VariantCallingEngine.HUMAN_SNP_HETEROZYGOSITY);
+        heterozygosityStandardDeviation = getOptionDoubleValue("heterozygosityStandardDeviation", 0.01);
+        indelHeterozygosity = getOptionDoubleValue("indelHeterozygosity", 1.0/8000);
+        maxDeletionFraction = getOptionDoubleValue("deletions", 0.05);
+        noCapBaseQualsAtMappingQual = getOptionBooleanValue("C", false);
+        minBaseQuality = getOptionByteValue("mbq", (byte)17);
+        minMappingQuality = getOptionShortValue("mmq", (short)17);
+        minIndelCountForGenotyping = getOptionIntValue("minIndelCnt", 5);
+        minIndelFractionPerSample = getOptionDoubleValue("minIndelFrac", 0.25);
+        samplePloidy = getOptionIntValue("ploidy", GaeaVariantContextUtils.DEFAULT_PLOIDY);
+        standardConfidenceForCalling = getOptionDoubleValue("standCallConf", 10.0);
+        standardConfidenceForEmitting = getOptionDoubleValue("standEmitConf", 30);
+        indelGapContinuationPenalty = getOptionDoubleValue("indelGCP", 10);
+        indelGapOpenPenalty = getOptionDoubleValue("indelGOP", 45);
+        maxAlternateAlleles = getOptionIntValue("maxAltAlleles", 6);
+        maxGenotypeCount = getOptionIntValue("maxGT", 1024);
+        maxNumPLValues = getOptionIntValue("maxNumPLValues", 100);
+        singleSampleMode = getOptionBooleanValue("S", false);
+        reducerNumber = getOptionIntValue("R", 30);
+        windowSize = getOptionIntValue("W", 100000);
 
         try {
-            gtlcalculators = GenotypeLikelihoodCalculator.Model.valueOf(getOptionValue("glm", "BOTH"));
+            gtlcalculators = GenotypeLikelihoodCalculator.Model.valueOf(getOptionValue("glm", "SNP"));
         } catch (Exception e) {
             throw new UserException.BadArgumentValueException("glm", e.getMessage());
         }
@@ -196,14 +314,23 @@ public class GenotyperOptions extends GaeaOptions implements HadoopOptions {
         } catch (Exception e) {
             throw new UserException.BadArgumentValueException("O", e.getMessage());
         }
-
         try {
-            AFmodel = AFCalcFactory.Calculation.valueOf(getOptionValue("O", "EMIT_VARIANTS_ONLY"));
+            AFmodel = AFCalcFactory.Calculation.valueOf(getOptionValue("AFmodel", "EXACT_INDEPENDENT"));
         } catch (Exception e) {
-            throw new UserException.BadArgumentValueException("O", e.getMessage());
+            throw new UserException.BadArgumentValueException("AFmodel", e.getMessage());
+        }
+        try {
+            pairHmmImplementation = PairHMM.HMM_IMPLEMENTATION.valueOf(getOptionValue("pairHMM", "LOGLESS_CACHING"));
+        } catch (Exception e) {
+            throw new UserException.BadArgumentValueException("pairHMM", e.getMessage());
         }
 
         check();
+
+        minDepth = getOptionIntValue("D", 4);
+        annotateNumberOfAllelesDiscovered = getOptionBooleanValue("numAlleleDis", false);
+        noCapBaseQualsAtMappingQual = getOptionBooleanValue("C", false);
+
     }
 
     private void check() {
@@ -212,6 +339,13 @@ public class GenotyperOptions extends GaeaOptions implements HadoopOptions {
 
         if(output == null)
             throw new UserException.BadArgumentValueException("o", "output directory is not assigned.");
+
+        if(reference == null)
+            throw new UserException.BadArgumentValueException("r", "reference can not be null.");
+
+        if(reducerNumber <= 0 ) {
+            throw new UserException.BadArgumentValueException("r", "reducer number can not be less than 1.");
+        }
     }
 
     @Override
@@ -231,6 +365,18 @@ public class GenotyperOptions extends GaeaOptions implements HadoopOptions {
 
     public void setGtlcalculators(GenotypeLikelihoodCalculator.Model gtlcalculators) {
         this.gtlcalculators = gtlcalculators;
+    }
+
+    public SAMFormat getInputFormat(){
+        if(samFormat)
+            return SAMFormat.SAM;
+        return SAMFormat.BAM;
+    }
+
+    public VCFFormat getOuptputFormat() {
+        if(bcfFormat)
+            return VCFFormat.BCF;
+        return VCFFormat.VCF;
     }
 
     public int getMinDepth() {
@@ -304,4 +450,45 @@ public class GenotyperOptions extends GaeaOptions implements HadoopOptions {
     public boolean isAnnotateNumberOfAllelesDiscovered() {
         return annotateNumberOfAllelesDiscovered;
     }
+
+    public boolean isSingleSampleMode() {
+        return singleSampleMode;
+    }
+
+    public String getInput() {
+        return input;
+    }
+
+    public String getOutput() {
+        return output;
+    }
+
+    public String getBAMHeaderOutput(){
+        return output+"bamHeader";
+    }
+
+    public String getVCFHeaderOutput() {
+        return output + "vcfHeader";
+    }
+
+    public String getReference() {
+        return  reference;
+    }
+
+    public int getReducerNumber() {
+        return reducerNumber;
+    }
+
+    public int getWindowSize() {
+        return windowSize;
+    }
+
+    public List<String> getAnnotations() {
+        return annotations;
+    }
+
+    public List<String> getAnnotationGroups() {
+        return annotationGroups;
+    }
 }
+

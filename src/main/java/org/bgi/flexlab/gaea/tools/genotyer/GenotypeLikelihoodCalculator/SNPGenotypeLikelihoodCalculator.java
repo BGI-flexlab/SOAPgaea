@@ -129,7 +129,7 @@ public class SNPGenotypeLikelihoodCalculator extends GenotypeLikelihoodCalculato
 
         // calculate the GLs
         ArrayList<SampleGenotypeData> gls = new ArrayList<>(mpileup.getSize());
-        Map<String, Pileup> pileups = mpileup.getNextPosPileup();
+        Map<String, Pileup> pileups = mpileup.getCurrentPosPileup();
         int position = mpileup.getPosition();
         if (pileups != null) {
             //calculate the genotype likelihood

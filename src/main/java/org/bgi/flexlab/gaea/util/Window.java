@@ -1,5 +1,7 @@
 package org.bgi.flexlab.gaea.util;
 
+import htsjdk.samtools.SAMFileHeader;
+
 public class Window {
 	private String contigName;
 	private int chrIndex;
@@ -14,6 +16,22 @@ public class Window {
 	public Window(String contigName,int index,int start,int stop) {
 		this.contigName=contigName;
 		this.chrIndex = index;
+		this.start=start;
+		this.stop=stop;
+	}
+
+	public Window(SAMFileHeader mHeader, int chrIndex, int winNum, int WindowsSize) {
+		int winSize = WindowsSize;
+		int start = winNum * winSize;
+
+		if (mHeader.getSequence(chrIndex) == null)
+			throw new RuntimeException(String.format("chr index %d is not found in reference", chrIndex));
+		String chrName = mHeader.getSequence(chrIndex).getSequenceName();
+		int stop = (winNum + 1) * winSize - 1 < mHeader.getSequence(chrName).getSequenceLength()
+				? (winNum + 1) * winSize - 1 : mHeader.getSequence(chrName).getSequenceLength();
+
+		this.contigName=chrName;
+		this.chrIndex = chrIndex;
 		this.start=start;
 		this.stop=stop;
 	}
