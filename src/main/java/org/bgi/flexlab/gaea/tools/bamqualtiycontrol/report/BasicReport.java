@@ -79,7 +79,7 @@ public class BasicReport{
 		basicString.append("Total Reads Number:\t");
 		basicString.append(rTracker.getReadsCount(ReadType.TOTALREADS));
 		basicString.append("\nTotal mapped bases:\t");
-		basicString.append(bTracker.getBaseCount(BaseType.TOTALBASE));
+		basicString.append(bTracker.getProperty(BaseType.TOTALBASE));
 		basicString.append("\nMapping Rate:\t");
 		basicString.append(df.format(getRateOf(ReadType.MAPPED)));
 		basicString.append("%\nUniq Mapping Rate:\t");

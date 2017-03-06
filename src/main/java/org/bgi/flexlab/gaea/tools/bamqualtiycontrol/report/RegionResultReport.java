@@ -152,6 +152,7 @@ public class RegionResultReport extends ResultReport{
 		info.append(basicReport.toReducerString());
 		if(!unmappedRegion) {
 			info.append(regionCoverReport.toReducerString());
+			info.append(rmdupRegionCoverReport.toReducerString("RMDUP Region Depth"));
 			info.append(regionReport.toReducerString());
 			if(options.isCnvDepth()) {
 				//System.err.println("do cnv depth");
@@ -199,12 +200,12 @@ public class RegionResultReport extends ResultReport{
 		}
 		if(lineString.startsWith("gender single Region Statistic")) {
 			if(lineReader.readLine(line) > 0 && line.getLength() != 0) {
-				bedSingleRegionReport.parseReducerOutput(line.toString(), false);
+				genderSingleRegionReport.parseReducerOutput(line.toString(), false);
 			}
 		}
 		if(lineString.startsWith("gender part single Region Statistic")) {
 			if(lineReader.readLine(line) > 0 && line.getLength() != 0) {
-				bedSingleRegionReport.parseReducerOutput(line.toString(), true);
+				genderSingleRegionReport.parseReducerOutput(line.toString(), true);
 			}
 		}
 		if(lineString.startsWith("CNV Depth")) {
@@ -258,7 +259,7 @@ public class RegionResultReport extends ResultReport{
 			}
 			
 			if(!options.isGenderPredict() || result.size() < 10) {
-				System.err.println("[Warnning] input bed file have too little regions, abort gender cal!");
+				System.err.println("[Warning] input bed file have too little regions, abort gender cal!");
 				regionReport.setPredictedGender(Sex.unKown);
 			} else {
 				Collections.sort(depth);
@@ -268,6 +269,7 @@ public class RegionResultReport extends ResultReport{
 				GenderPredict gender = new GenderPredict(result, genderSingleRegionReport.getRegion(), filterValue);
 				regionReport.setPredictedGender(gender.predict());
 			}
+			
 		}
 		
 		StringBuffer reportFilePath = new StringBuffer();
