@@ -52,7 +52,7 @@ public class SamRecordDatum extends SAMInformationBasic {
 			 return false;
 		 id = ParseSAMBasic.parseReadName(alignmentArray, flag, true);
 		 chrName = ParseSAMBasic.parseChrName(alignmentArray);
-		 position = ParseSAMBasic.parsePosition(alignmentArray, false);
+		 position = ParseSAMBasic.parsePosition(alignmentArray, true);
 		 if(position < 0)
 		 	return false;
 		 mappingQual = ParseSAMBasic.parseMappingQuality(alignmentArray);
