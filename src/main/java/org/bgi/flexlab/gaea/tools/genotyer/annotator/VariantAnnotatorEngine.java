@@ -3,16 +3,15 @@ package org.bgi.flexlab.gaea.tools.genotyer.annotator;
 
 
 import htsjdk.variant.variantcontext.*;
-import htsjdk.variant.vcf.*;
-import org.bgi.flexlab.gaea.data.exception.UserException;
-import org.bgi.flexlab.gaea.data.structure.header.VCFConstants;
-import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
+import htsjdk.variant.vcf.VCFHeaderLine;
+import htsjdk.variant.vcf.VCFHeaderLineType;
+import htsjdk.variant.vcf.VCFInfoHeaderLine;
+import htsjdk.variant.vcf.VCFStandardHeaderLines;
 import org.bgi.flexlab.gaea.data.structure.pileup.Mpileup;
 import org.bgi.flexlab.gaea.data.structure.pileup.Pileup;
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
 import org.bgi.flexlab.gaea.data.structure.vcf.VariantDataTracker;
 import org.bgi.flexlab.gaea.tools.genotyer.GenotypeLikelihoodCalculator.PerReadAlleleLikelihoodMap;
-import org.bgi.flexlab.gaea.tools.genotyer.VariantCallingEngine;
 import org.bgi.flexlab.gaea.tools.genotyer.annotator.interfaces.*;
 
 import java.util.*;
@@ -57,7 +56,7 @@ public class VariantAnnotatorEngine {
     }
 
     private void excludeAnnotations(List<String> annotationsToExclude) {
-        if ( annotationsToExclude.size() == 0 )
+        if (annotationsToExclude == null || annotationsToExclude.size() == 0 )
             return;
 
         List<InfoFieldAnnotation> tempRequestedInfoAnnotations = new ArrayList<InfoFieldAnnotation>(requestedInfoAnnotations.size());

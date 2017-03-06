@@ -3,12 +3,14 @@ package org.bgi.flexlab.gaea.tools.genotyer;
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMReadGroupRecord;
 import htsjdk.variant.variantcontext.*;
+import htsjdk.variant.vcf.*;
 import org.bgi.flexlab.gaea.data.structure.header.VCFConstants;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocationParser;
 import org.bgi.flexlab.gaea.data.structure.pileup.Mpileup;
 import org.bgi.flexlab.gaea.data.structure.pileup.ReadsPool;
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
+import org.bgi.flexlab.gaea.data.structure.reference.ReferenceShare;
 import org.bgi.flexlab.gaea.data.structure.variant.VariantCallContext;
 import org.bgi.flexlab.gaea.data.structure.vcf.VariantDataTracker;
 import org.bgi.flexlab.gaea.tools.genotyer.GenotypeLikelihoodCalculator.GenotypeLikelihoodCalculator;
@@ -21,6 +23,7 @@ import org.bgi.flexlab.gaea.tools.mapreduce.genotyper.GenotyperOptions;
 import org.bgi.flexlab.gaea.util.GaeaVariantContextUtils;
 import org.bgi.flexlab.gaea.util.MathUtils;
 import org.bgi.flexlab.gaea.util.QualityUtils;
+import org.bgi.flexlab.gaea.util.Window;
 
 import java.util.*;
 
@@ -60,17 +63,19 @@ public class VariantCallingEngine {
     private Mpileup mpileup;
 
     /**
-     * memory shared reference
-     */
-    private ChromosomeInformationShare reference;
-
-    /**
      * genotype caller
      */
     private AlleleFrequencyCalculator alleleFrequencyCalculator;
 
-    // the annotation engine
+    /**
+     * the annotation engine
+     */
     private final VariantAnnotatorEngine annotationEngine;
+
+    /**
+     * variant data tracker
+     */
+    VariantDataTracker tracker;
 
     /**
      * options
@@ -78,24 +83,32 @@ public class VariantCallingEngine {
     private GenotyperOptions options;
 
     /**
+     * reference
+     */
+    private ChromosomeInformationShare reference;
+
+    /**
      * genome location parser
      */
     public static GenomeLocationParser genomeLocationParser;
 
+    /**
+     * samples
+     */
     public static Set<String> samples;
 
+    /**
+     * sample number * ploidy number
+     */
     private int N;
 
 
     /**
-     * constructor
-     * @param readsPool reads
-     * @param windowStart window start
-     * @param windowEnd window end
+     *  constructor
+     * @param options
+     * @param samFileHeader
      */
-    public VariantCallingEngine(ReadsPool readsPool, ChromosomeInformationShare reference, int windowStart, int windowEnd, GenotyperOptions options, SAMFileHeader samFileHeader) {
-        mpileup = new Mpileup(readsPool, windowStart, windowEnd);
-        this.reference = reference;
+    public VariantCallingEngine(GenotyperOptions options, SAMFileHeader samFileHeader) {
         this.options = options;
         genomeLocationParser = new GenomeLocationParser(samFileHeader.getSequenceDictionary());
         samples = new HashSet<>();
@@ -109,16 +122,25 @@ public class VariantCallingEngine {
         computeAlleleFrequencyPriors(N, log10AlleleFrequencyPriorsSNPs, options.getHeterozygosity());
         computeAlleleFrequencyPriors(N, log10AlleleFrequencyPriorsIndels, options.getIndelHeterozygosity());
         filter.add(LOW_QUAL_FILTER_NAME);
+        tracker = new VariantDataTracker();
 
-        annotationEngine = new VariantAnnotatorEngine();
+        annotationEngine = new VariantAnnotatorEngine(options.getAnnotationGroups(), options.getAnnotations(), null);
     }
 
-    public List<VariantContext> reduce() {
-        List<VariantContext> vcList = new ArrayList<>();
+    public void init(ReadsPool readsPool, Window win, ChromosomeInformationShare reference) {
+        mpileup = new Mpileup(readsPool, win.getStart(), win.getStop());
+        this.reference = reference;
+    }
+
+    public List<VariantCallContext> reduce() {
+        if(mpileup.getNextPosPileup() == null)
+            return null;
+        List<VariantCallContext> vcList = new ArrayList<>();
         final Map<String, PerReadAlleleLikelihoodMap> perReadAlleleLikelihoodMap = new HashMap<>();
         for(GenotypeLikelihoodCalculator.Model model : GenotypeLikelihoodCalculator.modelsToUse) {
             VariantContext vc = GenotypeLikelihoodCalculator.glcm.get(model).genotypeLikelihoodCalculate(mpileup, reference, options, genomeLocationParser, perReadAlleleLikelihoodMap);
-            vcList.add(vc);
+            if(vc != null)
+                vcList.add(calculateGenotypes(tracker, reference, vc, false, perReadAlleleLikelihoodMap));
         }
 
         return vcList;
@@ -396,4 +418,62 @@ public class VariantCallingEngine {
         return conf >= options.getStandardConfidenceForCalling();
     }
 
+
+    public static VCFHeader getVCFHeader(final GenotyperOptions options,
+                                  final VariantAnnotatorEngine annotationEngine) {
+        Set<VCFHeaderLine> headerInfo = getHeaderInfo(options, annotationEngine);
+
+        // invoke initialize() method on each of the annotation classes, allowing them to add their own header lines
+        // and perform any necessary initialization/validation steps
+        annotationEngine.invokeAnnotationInitializationMethods(headerInfo);
+
+        return new VCFHeader(headerInfo, samples);
+    }
+
+    public static Set<VCFHeaderLine> getHeaderInfo(final GenotyperOptions options,
+                                                   final VariantAnnotatorEngine annotationEngine) {
+        Set<VCFHeaderLine> headerInfo = new HashSet<VCFHeaderLine>();
+
+        // all annotation fields from VariantAnnotatorEngine
+        if ( annotationEngine != null )
+            headerInfo.addAll(annotationEngine.getVCFAnnotationDescriptions());
+
+        // annotation (INFO) fields from UnifiedGenotyper
+        //if ( UAC.COMPUTE_SLOD )
+        //    VCFStandardHeaderLines.addStandardInfoLines(headerInfo, true, VCFConstants.STRAND_BIAS_KEY);
+
+        if ( options.isAnnotateNumberOfAllelesDiscovered() )
+            headerInfo.add(new VCFInfoHeaderLine(NUMBER_OF_DISCOVERED_ALLELES_KEY, 1, VCFHeaderLineType.Integer, "Number of alternate alleles discovered (but not necessarily genotyped) at this site"));
+
+        // add the pool values for each genotype
+        if (options.getSamplePloidy() != GaeaVariantContextUtils.DEFAULT_PLOIDY) {
+            headerInfo.add(new VCFFormatHeaderLine(VCFConstants.MLE_PER_SAMPLE_ALLELE_COUNT_KEY, VCFHeaderLineCount.A, VCFHeaderLineType.Integer, "Maximum likelihood expectation (MLE) for the alternate allele count, in the same order as listed, for each individual sample"));
+            headerInfo.add(new VCFFormatHeaderLine(VCFConstants.MLE_PER_SAMPLE_ALLELE_FRACTION_KEY, VCFHeaderLineCount.A, VCFHeaderLineType.Float, "Maximum likelihood expectation (MLE) for the alternate allele fraction, in the same order as listed, for each individual sample"));
+        }
+        //if (UAC.referenceSampleName != null) {
+        //    headerInfo.add(new VCFInfoHeaderLine(VCFConstants.REFSAMPLE_DEPTH_KEY, 1, VCFHeaderLineType.Integer, "Total reference sample depth"));
+        //}
+
+        VCFStandardHeaderLines.addStandardInfoLines(headerInfo, true,
+                VCFConstants.DOWNSAMPLED_KEY,
+                VCFConstants.MLE_ALLELE_COUNT_KEY,
+                VCFConstants.MLE_ALLELE_FREQUENCY_KEY);
+
+        // also, check to see whether comp rods were included
+        //if ( dbsnp != null && dbsnp.isBound() )
+            VCFStandardHeaderLines.addStandardInfoLines(headerInfo, true, VCFConstants.DBSNP_KEY);
+
+        // FORMAT fields
+        VCFStandardHeaderLines.addStandardFormatLines(headerInfo, true,
+                VCFConstants.GENOTYPE_KEY,
+                VCFConstants.GENOTYPE_QUALITY_KEY,
+                VCFConstants.DEPTH_KEY,
+                VCFConstants.GENOTYPE_PL_KEY);
+
+        // FILTER fields are added unconditionally as it's not always 100% certain the circumstances
+        // where the filters are used.  For example, in emitting all sites the lowQual field is used
+        headerInfo.add(new VCFFilterHeaderLine(LOW_QUAL_FILTER_NAME, "Low quality"));
+
+        return headerInfo;
+    }
 }
