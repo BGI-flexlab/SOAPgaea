@@ -7,6 +7,10 @@ public class FlankRegion extends Region {
 	 */
 	private static int extendSize = 200;
 	
+	public FlankRegion() {
+		super();
+	}
+	
 	public void setRegionSize(int regionSize) {
 		this.regionSize= regionSize + extendSize * 2;
 	}

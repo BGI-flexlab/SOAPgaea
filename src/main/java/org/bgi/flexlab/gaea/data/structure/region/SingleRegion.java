@@ -1,5 +1,8 @@
 package org.bgi.flexlab.gaea.data.structure.region;
 
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -7,6 +10,9 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.bgi.flexlab.gaea.util.FileIterator;
+
+import htsjdk.tribble.readers.AsciiLineReader;
+import htsjdk.tribble.readers.AsciiLineReaderIterator;
 
 
 public class SingleRegion {
@@ -23,8 +29,9 @@ public class SingleRegion {
 		Integer[] chrInterval = new Integer[2];
 		Arrays.fill(chrInterval, 0);
 		
-		System.err.println("extend size:" + extendSize);
 		FileIterator it = new FileIterator(regionsFilePath);
+//		BufferedInputStream is = new BufferedInputStream(new FileInputStream(new File(regionsFilePath)));
+//		AsciiLineReaderIterator it = new AsciiLineReaderIterator(new AsciiLineReader(is));
 		while(it.hasNext()) {
 			String line=it.next().toString().trim();
 			if(line.equals("") || line == null || line.startsWith("#")) {
@@ -61,7 +68,7 @@ public class SingleRegion {
 	}
 	
 	private boolean extendRegion(Regiondata regionData, Regiondata lastRegionData, int extendSize){
-		if(canCombineRegion(regionData, lastRegionData, extendSize)) {//�µ�������Ժ�last�ϲ�
+		if(canCombineRegion(regionData, lastRegionData, extendSize)) {
 			lastRegionData = combineRegion(regionData, lastRegionData, extendSize);
 			return true;
 		} else {
@@ -72,7 +79,7 @@ public class SingleRegion {
 	}
 	
 	private boolean updateRegion(Regiondata regionData, Regiondata lastRegionData, int extendSize) {
-		boolean nextRegion = true;
+		boolean nextRegion = false;
 		if(extendSize > 0) {
 			nextRegion = extendRegion(regionData, lastRegionData, extendSize);
 		} else {

@@ -13,6 +13,8 @@ public class BaseCounter {
 	
 	private long totalDepth;
 		
+	private long totalDepthWithouPCR;
+	
 	private Interval region;
 	
 	private Depth depth;
@@ -57,7 +59,16 @@ public class BaseCounter {
 					baseWithoutPCRdupCount++;
 				}
 			} else if(this.depth == Depth.TOTALDEPTH) {
+				switch (this.dType) {
+				case NORMAL:
 					totalDepth += depth.getDepth();
+					break;
+				case WITHOUT_PCR:
+					totalDepthWithouPCR += noPCRdepth.getDepth();
+				default:
+					break;
+				}
+					
 			 }
 		}
 	}
@@ -87,6 +98,10 @@ public class BaseCounter {
 		this.totalDepth += totalDepth;
 	}
 	
+	public void setTotalDepthWithoutPCRDup(long totalDepth) {
+		this.totalDepthWithouPCR += totalDepth;
+	}
+	
 	public long getProperty() {
 		long result = 0;
 		if(properties.length == 1) {
@@ -95,8 +110,15 @@ public class BaseCounter {
 		} else {
 			 switch (depth) {
 			 case TOTALDEPTH:
-			 	result = totalDepth;
-			 	break;
+				 switch (dType) {
+				case NORMAL:
+					result = totalDepth;
+					break;
+				case WITHOUT_PCR:
+					result = totalDepthWithouPCR;
+					break;
+				}
+				 break;
 			 default:
 				 switch (dType) {
 				 case NORMAL:

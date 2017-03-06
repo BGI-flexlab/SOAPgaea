@@ -154,8 +154,6 @@ public class CNVDepthReport {
 		
 		public LaneDepth2() {
 			for(String chrName : bedIndex.keySet()) {
-				//position + depth
-				//System.err.println("chrName:" + chrName + "\tSize:" + bedIndex.get(chrName).size());
 				WrappedIntArray depth = new WrappedIntArray(bedIndex.get(chrName).size() * 2);
 				
 				laneDepth.put(chrName, depth);
