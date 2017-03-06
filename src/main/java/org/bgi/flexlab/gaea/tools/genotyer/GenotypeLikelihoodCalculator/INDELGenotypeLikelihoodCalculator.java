@@ -53,7 +53,7 @@ public class INDELGenotypeLikelihoodCalculator extends GenotypeLikelihoodCalcula
      * @return variant context with likelihoods
      */
     public VariantContext genotypeLikelihoodCalculate(Mpileup mpileup, ChromosomeInformationShare reference, GenotyperOptions options, GenomeLocationParser locationParser, Map<String, PerReadAlleleLikelihoodMap> perReadAlleleLikelihoodMap) {
-        Map<String, Pileup> pileups = mpileup.getNextPosPileup();
+        Map<String, Pileup> pileups = mpileup.getCurrentPosPileup();
         int position = mpileup.getPosition();
         if (pileups == null || pileups.isEmpty())
             return null;
