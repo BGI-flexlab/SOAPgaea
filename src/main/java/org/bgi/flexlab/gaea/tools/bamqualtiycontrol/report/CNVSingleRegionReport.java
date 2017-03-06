@@ -1,13 +1,10 @@
 package org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.hadoop.mapreduce.Reducer.Context;
 import org.bgi.flexlab.gaea.data.structure.positioninformation.IntPositionInformation;
-import org.bgi.flexlab.gaea.data.structure.positioninformation.depth.PositionDepth;
 import org.bgi.flexlab.gaea.data.structure.region.SingleRegion;
 import org.bgi.flexlab.gaea.data.structure.region.SingleRegion.Regiondata;
 import org.bgi.flexlab.gaea.data.structure.region.statistic.CNVSingleRegionStatistic;
@@ -21,14 +18,6 @@ public class CNVSingleRegionReport extends SingleRegionReport<CNVSingleRegionSta
 		super(singleReigon);
 		result = new ConcurrentHashMap<SingleRegion.Regiondata, CNVSingleRegionStatistic>();
 	}
-	
-//	public static void main(String[] args) throws IOException {
-//		SingleRegion singleRegion = new SingleRegion();
-//		singleRegion.parseRegionsFileFromHDFS("F:\\BGIBigData\\TestData\\Bed\\anno_bed_for_cnv_stat_PP600V3", false, 0);
-//		CNVSingleRegionReport report = new CNVSingleRegionReport(singleRegion);
-		PositionDepth pd = new PositionDepth(1000000, true, 2);
-//		report.getWholeRegionInfo(pd.getRMDupPosDepth(), 500000, 510000);
-//	}
 	
 	public String getWholeRegionInfo(IntPositionInformation deep, int start, int end) {
 		ArrayList<Integer> deepth = new ArrayList<Integer>();

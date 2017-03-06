@@ -63,7 +63,6 @@ public class Tracker {
 		}
 
 		public void register(BaseCounter o) {
-			System.out.println("register");
 			counters.add(o);
 			mapCounter.put(o.formatKey(), o);
 		}
@@ -139,9 +138,8 @@ public class Tracker {
 		
 		public void notifyCounters() {
 			if (!workForRegionReport) {
-				for(ReadsCounter counter : counters) {
+				for(ReadsCounter counter : counters) 
 					counter.update(type);
-				}
 			} else {
 				for(ReadsCounter counter : counters)
 					counter.update(type, interval);

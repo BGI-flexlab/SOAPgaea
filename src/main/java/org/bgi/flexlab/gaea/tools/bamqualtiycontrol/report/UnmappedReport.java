@@ -2,12 +2,10 @@ package org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.hadoop.io.Text;
-import org.bgi.flexlab.gaea.data.structure.region.TargetRegion;
 import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.CounterProperty.ReadType;
 
 public class UnmappedReport {
