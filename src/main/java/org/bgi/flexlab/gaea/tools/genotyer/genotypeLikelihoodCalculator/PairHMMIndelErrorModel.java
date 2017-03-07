@@ -23,7 +23,7 @@
  * THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bgi.flexlab.gaea.tools.genotyer.GenotypeLikelihoodCalculator;
+package org.bgi.flexlab.gaea.tools.genotyer.genotypeLikelihoodCalculator;
 
 import htsjdk.variant.variantcontext.Allele;
 import org.bgi.flexlab.gaea.data.exception.UserException;

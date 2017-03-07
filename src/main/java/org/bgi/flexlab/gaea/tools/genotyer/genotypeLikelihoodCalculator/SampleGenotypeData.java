@@ -1,4 +1,4 @@
-package org.bgi.flexlab.gaea.tools.genotyer.GenotypeLikelihoodCalculator;
+package org.bgi.flexlab.gaea.tools.genotyer.genotypeLikelihoodCalculator;
 
 /**
  * Created by zhangyong on 2016/12/29.

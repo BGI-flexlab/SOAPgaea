@@ -1,14 +1,11 @@
 package org.bgi.flexlab.gaea.tools.mapreduce.genotyper;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
 import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.data.mapreduce.options.HadoopOptions;
 import org.bgi.flexlab.gaea.data.options.GaeaOptions;
-import org.bgi.flexlab.gaea.tools.annotator.interval.Variant;
-import org.bgi.flexlab.gaea.tools.genotyer.GenotypeLikelihoodCalculator.GenotypeLikelihoodCalculator;
-import org.bgi.flexlab.gaea.tools.genotyer.GenotypeLikelihoodCalculator.INDELGenotypeLikelihoodCalculator;
 import org.bgi.flexlab.gaea.tools.genotyer.VariantCallingEngine;
+import org.bgi.flexlab.gaea.tools.genotyer.genotypeLikelihoodCalculator.GenotypeLikelihoodCalculator;
 import org.bgi.flexlab.gaea.tools.genotyer.genotypecaller.AFCalcFactory;
 import org.bgi.flexlab.gaea.util.GaeaVariantContextUtils;
 import org.bgi.flexlab.gaea.util.pairhmm.PairHMM;

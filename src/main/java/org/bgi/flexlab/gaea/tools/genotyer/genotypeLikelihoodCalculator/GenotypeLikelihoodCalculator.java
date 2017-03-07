@@ -1,4 +1,4 @@
-package org.bgi.flexlab.gaea.tools.genotyer.GenotypeLikelihoodCalculator;
+package org.bgi.flexlab.gaea.tools.genotyer.genotypeLikelihoodCalculator;
 
 import htsjdk.variant.variantcontext.VariantContext;
 import org.bgi.flexlab.gaea.data.exception.UserException;

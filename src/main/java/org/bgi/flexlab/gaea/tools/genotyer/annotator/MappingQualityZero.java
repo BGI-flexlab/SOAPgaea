@@ -11,7 +11,7 @@ import org.bgi.flexlab.gaea.data.structure.pileup.Pileup;
 import org.bgi.flexlab.gaea.data.structure.pileup.PileupReadInfo;
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
 import org.bgi.flexlab.gaea.data.structure.vcf.VariantDataTracker;
-import org.bgi.flexlab.gaea.tools.genotyer.GenotypeLikelihoodCalculator.PerReadAlleleLikelihoodMap;
+import org.bgi.flexlab.gaea.tools.genotyer.genotypeLikelihoodCalculator.PerReadAlleleLikelihoodMap;
 import org.bgi.flexlab.gaea.tools.genotyer.annotator.interfaces.ActiveRegionBasedAnnotation;
 import org.bgi.flexlab.gaea.tools.genotyer.annotator.interfaces.InfoFieldAnnotation;
 import org.bgi.flexlab.gaea.tools.genotyer.annotator.interfaces.StandardAnnotation;
