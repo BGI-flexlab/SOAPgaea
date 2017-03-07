@@ -42,13 +42,13 @@ public abstract class SingleRegionReport<T extends SingleRegionStatistic> {
 				int regionEnd = singleReigon.getRegion(index).getEnd();
 				//System.err.println("index:" + index + "\tstart-end:" +regionStart+"-"+regionEnd + "\tposition:"+i +"\t" + winStart);
 				if(regionStart >= winStart && regionEnd <= winStart + windowSize -1) {
-					outputString.append(title + "single Region Statistic:\n" + index + ":");
+					outputString.append(title + " single Region Statistic:\n" + index + ":");
 					getWholeRegionInfo(deep, regionStart - winStart, regionEnd - winStart);
 				} else if(regionStart >= winStart && regionEnd > winStart + windowSize - 1) { 
-					outputString.append(title + "part single Region Statistic:\n" + index + ":");
+					outputString.append(title + " part single Region Statistic:\n" + index + ":");
 					getPartRegionInfo(deep, regionStart - winStart, windowSize - 1);
 				} else {
-					outputString.append(title + "part single Region Statistic:\n" + index + ":");
+					outputString.append(title + " part single Region Statistic:\n" + index + ":");
 					if(regionEnd- winStart >= windowSize) {
 						getPartRegionInfo(deep, 0, windowSize - 1);
 					} else {

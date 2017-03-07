@@ -63,7 +63,6 @@ public class Tracker {
 		}
 
 		public void register(BaseCounter o) {
-			System.out.println("register");
 			counters.add(o);
 			mapCounter.put(o.formatKey(), o);
 		}
@@ -82,12 +81,8 @@ public class Tracker {
 			return mapCounter;
 		}
 		
-		public long getBaseCount(CounterProperty... properties) {
-			return mapCounter.get(formatKey(properties)).getBaseCount();
-		}
-		
-		public long getTotalDepth(CounterProperty... properties ) {
-			return mapCounter.get(formatKey(properties)).getTotalDepth();
+		public long getProperty(CounterProperty... properties) {
+			return mapCounter.get(formatKey(properties)).getProperty();
 		}
 	
 	}
@@ -105,6 +100,7 @@ public class Tracker {
 		private boolean workForRegionReport = false;
 		
 		public void setTrackerAttribute(ReadType type) {
+			workForRegionReport = false;
 			this.type = type;
 			notifyCounters();
 		}
@@ -142,9 +138,8 @@ public class Tracker {
 		
 		public void notifyCounters() {
 			if (!workForRegionReport) {
-				for(ReadsCounter counter : counters) {
+				for(ReadsCounter counter : counters) 
 					counter.update(type);
-				}
 			} else {
 				for(ReadsCounter counter : counters)
 					counter.update(type, interval);

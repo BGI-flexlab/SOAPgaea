@@ -119,10 +119,13 @@ public class RegionReport{
 			if(!key.contains(Depth.TOTALDEPTH.toString())) {
 				if(key.contains(DepthType.WITHOUT_PCR.toString()))
 					bCounter.setBaseWithoutPCRDupCount(Long.parseLong(value));
-				if(key.contains(DepthType.NORMAL.toString()))
+				else if(key.contains(DepthType.NORMAL.toString()))
 					bCounter.setBaseCount(Long.parseLong(value));
 			} else {
-				bCounter.setTotalDepth(Long.parseLong(value));
+				if(key.contains(DepthType.WITHOUT_PCR.toString()))
+					bCounter.setTotalDepthWithoutPCRDup(Long.parseLong(value));
+				else if(key.contains(DepthType.NORMAL.toString()))
+					bCounter.setTotalDepth(Long.parseLong(value));
 			}
 		} else {
 			throw new RuntimeException("Can not idenity counter with name " + key);
@@ -156,13 +159,13 @@ public class RegionReport{
 		formateCoverageInfo(regionString, "Target", region, Interval.TARGET, DepthType.WITHOUT_PCR);
 		formateCoverageInfo(regionString, "Flanking", fRegion, Interval.FLANK, DepthType.WITHOUT_PCR);
 		regionString.append("\nchrX region coverage:\t");
-		regionString.append(df.format(100 * (bTracker.getBaseCount(Interval.CHRX, Depth.ABOVE_ZREO, DepthType.NORMAL)/(double)region.getChrSize("chrX"))));
+		regionString.append(df.format(100 * (bTracker.getProperty(Interval.CHRX, Depth.ABOVE_ZREO, DepthType.NORMAL)/(double)region.getChrSize("chrX"))));
 		regionString.append("%\nchrX region depth:\t");
-		regionString.append(df.format(getMeanDepth(Interval.CHRX)));
+		regionString.append(df.format(getMeanDepth(Interval.CHRX, DepthType.NORMAL)));
 		regionString.append("\nchrY region coverage:\t");
-		regionString.append(df.format(100 * (bTracker.getBaseCount(Interval.CHRY, Depth.ABOVE_ZREO, DepthType.NORMAL)/(double)region.getChrSize("chrY"))));
+		regionString.append(df.format(100 * (bTracker.getProperty(Interval.CHRY, Depth.ABOVE_ZREO, DepthType.NORMAL)/(double)region.getChrSize("chrY"))));
 		regionString.append("%\nchrY region depth:\t");
-		regionString.append(df.format(getMeanDepth(Interval.CHRY)));
+		regionString.append(df.format(getMeanDepth(Interval.CHRY, DepthType.NORMAL)));
 		regionString.append("\npredicted gender:\t");
 		regionString.append(gender.toString());
 		regionString.append("\n");
@@ -174,21 +177,21 @@ public class RegionReport{
 		df.setRoundingMode(RoundingMode.HALF_UP);
 		String rmdupSuffix = type == DepthType.WITHOUT_PCR ? "[RM DUP]" : "";
 		regionString.append(String.format("\n%s coverage%s:\t", location, rmdupSuffix));
-		regionString.append(df.format(getCoverage(interval, Depth.ABOVE_ZREO, type, region.getRegionSize())));
-		regionString.append(String.format("%\n%s coverage > 4X percentage%s:\t", location, rmdupSuffix));
-		regionString.append(df.format(100 * (bTracker.getBaseCount(interval, Depth.FOURX, type) /(double)region.getRegionSize())));
-		regionString.append(String.format("%\n%s coverage > 10X percentage%s:\t", location, rmdupSuffix));
-		regionString.append(df.format(100 * (bTracker.getBaseCount(interval, Depth.TENX, type)/(double)region.getRegionSize())));
-		regionString.append(String.format("%\n%s coverage > 20X percentage%s:\t", location, rmdupSuffix));
-		regionString.append(df.format(100 * (bTracker.getBaseCount(interval, Depth.TWENTYX, type)/(double)region.getRegionSize())));
-		regionString.append(String.format("%\n%s coverage > 30X percentage%s:\t", location, rmdupSuffix));
-		regionString.append(df.format(100 * (bTracker.getBaseCount(interval, Depth.THIRTYX, type)/(double)region.getRegionSize())));
-		regionString.append(String.format("%\n%s coverage > 50X percentage%s:\t", location, rmdupSuffix));
-		regionString.append(df.format(100 * (bTracker.getBaseCount(interval, Depth.FIFTYX, type)/(double)region.getRegionSize())));
-		regionString.append(String.format("%\n%s coverage > 100X percentage%s:\t", location, rmdupSuffix));
-		regionString.append(df.format(100 * (bTracker.getBaseCount(interval, Depth.HUNDREDX, type)/(double)region.getRegionSize())));
-		regionString.append(String.format("%\n%s Mean Depth:\t", location));
-		regionString.append(df.format(getMeanDepth(interval)));
+		regionString.append(df.format(getCoverage(interval, Depth.ABOVE_ZREO, type, region.getRegionSize())) + "%");
+		regionString.append(String.format("\n%s coverage > 4X percentage%s:\t", location, rmdupSuffix));
+		regionString.append(df.format(100 * (bTracker.getProperty(interval, Depth.FOURX, type) /(double)region.getRegionSize())) + "%");
+		regionString.append(String.format("\n%s coverage > 10X percentage%s:\t", location, rmdupSuffix));
+		regionString.append(df.format(100 * (bTracker.getProperty(interval, Depth.TENX, type)/(double)region.getRegionSize())) + "%");
+		regionString.append(String.format("\n%s coverage > 20X percentage%s:\t", location, rmdupSuffix));
+		regionString.append(df.format(100 * (bTracker.getProperty(interval, Depth.TWENTYX, type)/(double)region.getRegionSize())) + "%");
+		regionString.append(String.format("\n%s coverage > 30X percentage%s:\t", location, rmdupSuffix));
+		regionString.append(df.format(100 * (bTracker.getProperty(interval, Depth.THIRTYX, type)/(double)region.getRegionSize())) + "%");
+		regionString.append(String.format("\n%s coverage > 50X percentage%s:\t", location, rmdupSuffix));
+		regionString.append(df.format(100 * (bTracker.getProperty(interval, Depth.FIFTYX, type)/(double)region.getRegionSize())) + "%");
+		regionString.append(String.format("\n%s coverage > 100X percentage%s:\t", location, rmdupSuffix));
+		regionString.append(df.format(100 * (bTracker.getProperty(interval, Depth.HUNDREDX, type)/(double)region.getRegionSize())) + "%");
+		regionString.append(String.format("\n%s Mean Depth%s:\t", location, rmdupSuffix));
+		regionString.append(df.format(getMeanDepth(interval, type)));
 	}
 	
 	public void register() {
@@ -206,17 +209,18 @@ public class RegionReport{
 	
 	public List<BaseCounter> createBaseCounters() {
 		List<BaseCounter> observers = new ArrayList<>();
-		for(Interval region : Interval.values()) {
+		for(Interval region : new Interval[] {Interval.TARGET, Interval.FLANK, Interval.CHRX, Interval.CHRY}) {
 			switch (region) {
 			case CHRX:
 			case CHRY:
 				observers.add(new BaseCounter(region, Depth.TOTALDEPTH, DepthType.NORMAL));
 				observers.add(new BaseCounter(region, Depth.ABOVE_ZREO, DepthType.NORMAL));
+				break;
 			default:
 				for(Depth depth : Depth.values())
 					for(DepthType type : DepthType.values()) {
 						observers.add(new BaseCounter(region, depth, type));
-						};
+					};
 			}
 		}
 		return observers;
@@ -231,12 +235,12 @@ public class RegionReport{
 	}
 	
 	public long getTotalDepth(Interval region, Depth depth, DepthType type) {
-		return bTracker.getTotalDepth(region,depth,type);
+		return bTracker.getProperty(region,depth,type);
 	}
 	
-	public double getMeanDepth(Interval region) {
-		long regionDepth = bTracker.getTotalDepth(region, Depth.TOTALDEPTH, DepthType.NORMAL);
-		long baseCount = bTracker.getBaseCount(region, Depth.ABOVE_ZREO, DepthType.NORMAL);
+	public double getMeanDepth(Interval region, DepthType type) {
+		long regionDepth = bTracker.getProperty(region, Depth.TOTALDEPTH, type);
+		long baseCount = bTracker.getProperty(region, Depth.ABOVE_ZREO, type);
 		return regionDepth * 1.0 / baseCount;
 	}
 	
@@ -249,7 +253,7 @@ public class RegionReport{
 	}
 	
 	public double getCoverage(Interval region, Depth depth, DepthType type, int size) {
-		return (100 * (bTracker.getBaseCount(region, depth, type)/(double)size));
+		return (100 * (bTracker.getProperty(region, depth, type)/(double)size));
 	}
 	
 	public double getCaptureSpecificity(BasicReport basicReport) {
@@ -257,7 +261,7 @@ public class RegionReport{
 	}
 	
 	public double getCaptureEffiency(BasicReport basicReport) {
-		return 100 * (bTracker.getTotalDepth(Interval.TARGET, Depth.TOTALDEPTH, DepthType.NORMAL) / (double) basicReport.getBaseTracker().getBaseCount(BaseType.TOTALBASE));
+		return 100 * (bTracker.getProperty(Interval.TARGET, Depth.TOTALDEPTH, DepthType.NORMAL) / (double) basicReport.getBaseTracker().getProperty(BaseType.TOTALBASE));
 	}
 	
 }

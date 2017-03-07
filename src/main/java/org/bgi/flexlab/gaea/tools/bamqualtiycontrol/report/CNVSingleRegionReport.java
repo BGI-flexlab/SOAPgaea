@@ -26,16 +26,18 @@ public class CNVSingleRegionReport extends SingleRegionReport<CNVSingleRegionSta
 		if(start > end) {
 			throw new RuntimeException("start:" + start + "is bigger than end:" + end);
 		}
+		int n = 0;
 		for(int i = start; i <= end; i++) {
 			int deepNum = deep.get(i);
 			if(deepNum > 0) {
+				n++;
 				statistic.addCoverage();
 				statistic.addDepth(deepNum);
 			}
 			deepth.add(deepNum);
 		}
+		System.out.println("deep Num > 0:" + n);
 		Collections.sort(deepth);
-		
 		outputString.append(statistic.toString());
 		outputString.append("\t");
 		outputString.append(statistic.calMiddleVaule(deepth));
@@ -118,19 +120,20 @@ public class CNVSingleRegionReport extends SingleRegionReport<CNVSingleRegionSta
 	}
 	
 	public void updateAllRegionAverageDeepth() {
-		long deepthAll = 0;
+		long depthAll = 0;
 		double regionSizeTotal = 0.0;
 		updateResult();
+		System.out.println(result.keySet().size());
 		for(Regiondata regionData : result.keySet()) {
 			CNVSingleRegionStatistic statistic = (CNVSingleRegionStatistic) result.get(regionData);
 			String formatChrName = ChromosomeUtils.formatChrName(regionData.getChrName());
 			if(!formatChrName.equals("chrx") && !formatChrName.equals("chry") && !formatChrName.equals("chrm")) {
-				deepthAll += statistic.getDepthNum();
+				depthAll += statistic.getDepthNum();
 				regionSizeTotal += regionData.size();
 			}
 		}
-		System.err.println("deepthAll:" + deepthAll + "\nregionSizeTotal:" + regionSizeTotal);
-		allRegionAverageDeepth = deepthAll / regionSizeTotal;
+		System.err.println("depthAll:" + depthAll + "\nregionSizeTotal:" + regionSizeTotal);
+		allRegionAverageDeepth = depthAll / regionSizeTotal;
 		System.err.println("allRegionAverageDeepth:" + allRegionAverageDeepth);
 	}
 

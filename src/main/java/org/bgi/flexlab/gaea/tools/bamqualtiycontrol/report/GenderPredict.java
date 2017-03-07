@@ -54,8 +54,6 @@ public class GenderPredict {
 				continue;
 			
 			lowessData.put(i, new LowessData(bsrs.getAverageDepth(), bsrs.getRefGCrate()));
-			//System.err.println(rd.getNameString() + "\t" + bsrs.getRefGCrate() + "\t" + bsrs.getAverageDepth());
-			//System.err.println("chrName:" + rd.getChrName()+"\tstart:" + rd.getStart());
 			totalRegionDepth += bsrs.getAverageDepth();
 			totalRegionNum++;
 			
@@ -68,7 +66,6 @@ public class GenderPredict {
 					Integer[] se = new Integer[2];
 					se[0] = startEnd[0];
 					se[1] = startEnd[1];
-					//System.err.println("chrName:" + chrName + "\tse:" +se[0] + "-" + se[1]);
 					chrIndex.put(chrName, se);
 					startEnd[0] = i;
 				}
@@ -77,7 +74,6 @@ public class GenderPredict {
 			i++;
 		}
 		startEnd[1] = i - 1;
-		//System.err.println("chrName:" + chrName + "\tse:" +startEnd[0] + "-" + startEnd[1]);
 		chrIndex.put(chrName, startEnd);
 		totalMeanDepth = totalRegionDepth/totalRegionNum;
 		System.err.println("origional region number:" + sg.getRegions().size() + "\tcoverage filter region number:" + coverageFilterNum);
@@ -170,7 +166,6 @@ public class GenderPredict {
 		}
 		Sex gender = null;
 		if(chrx == null && chry == null) {
-			//throw new BAMQCException.GenderInformationException("no gender chromosome info");
 			BAMQCException e = new BAMQCException.GenderInformationException("no gender chromosome info");
 			e.printStackTrace();
 			return Sex.unKown;
@@ -348,8 +343,6 @@ public class GenderPredict {
 	public class LowessDataMapComparator implements Comparator<Entry<Integer, LowessData>> {
 		@Override
 		public int compare(Entry<Integer, LowessData> o1, Entry<Integer, LowessData> o2) {
-			//double val1 = o1.getValue().getDepth();
-			//double val2 = o2.getValue().getDepth();
 			double val1 = o1.getValue().getGCrate();
 			double val2 = o2.getValue().getGCrate();
 			if(val1 > val2)
