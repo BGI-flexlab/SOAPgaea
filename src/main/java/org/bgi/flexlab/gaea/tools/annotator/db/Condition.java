@@ -1,12 +1,18 @@
 package org.bgi.flexlab.gaea.tools.annotator.db;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Set;
 
+import org.bgi.flexlab.gaea.tools.annotator.config.Config;
 import org.bgi.flexlab.gaea.tools.annotator.config.DatabaseInfo;
+import org.bgi.flexlab.gaea.tools.annotator.config.DatabaseInfo.ConditionKey;
 import org.bgi.flexlab.gaea.tools.annotator.config.DatabaseInfo.DbType;
 import org.bgi.flexlab.gaea.tools.annotator.config.RefTableInfo;
+import org.bgi.flexlab.gaea.tools.annotator.effect.VcfAnnotationContext;
 
 /**
  * @author huangzhibo
@@ -15,34 +21,44 @@ import org.bgi.flexlab.gaea.tools.annotator.config.RefTableInfo;
  */
 public class Condition implements Serializable{
 
-	
-	public static enum ConditionKey {
-		CHR
-		, START  //0-base, POS - 1
-		, POS
-		, END0   //0-base
-		, END  //1-base , some database use this , example: HGMD
-		, ALT
-		, GENE
-		, ASSEMBLY
-	}
-	
 	private static final long serialVersionUID = 5474372956720082769L;
 	
 	private String conditionString = null;
 	private String dbName;
-	private DbType dbType;
-	private DatabaseInfo tableInfo;
+	private DbType dbType;   //数据库类型: Hbase, Mysql
+	private List<String> alts;
+	private Set<String> genes;
+	private DatabaseInfo dbInfo;
 	private RefTableInfo refTable;
 	
-	private LinkedHashMap<ConditionKey, String> conditionMap = null;
+	private boolean keyHasGene;
+	private boolean keyHasAlt;
+	private boolean keyIsChrPos;
 	
-	public Condition(String dbName, DatabaseInfo tableInfo, LinkedHashMap<ConditionKey, String>conditionMap){
+	
+	private LinkedHashMap<ConditionKey, String> conditionMap;
+	
+	public Condition(String dbName, DatabaseInfo dbInfo){
+		this.dbInfo = dbInfo;
+		this.dbType = dbInfo.getDatabase();
+		setKeyIsChrPos();
+		conditionMap = new LinkedHashMap<ConditionKey, String>();
+		this.refTable = dbInfo.getRefTable(Config.getConfigInstance().getRef());
+	}
+	
+	public Condition(DatabaseInfo dbInfo, LinkedHashMap<ConditionKey, String>conditionMap){
+		this.conditionMap = conditionMap;
+		this.dbInfo = dbInfo;
+		this.setRefTable(dbInfo.getRefTable(conditionMap.get(ConditionKey.ASSEMBLY)));
+		this.dbType = dbInfo.getDatabase();
+	}
+	
+	public Condition(String dbName, DatabaseInfo dbInfo, LinkedHashMap<ConditionKey, String>conditionMap){
 		setDbName(dbName);
 		this.conditionMap = conditionMap;
-		this.tableInfo = tableInfo;
-		this.setRefTable(tableInfo.getRefTable(conditionMap.get(ConditionKey.ASSEMBLY)));
-		this.dbType = tableInfo.getDatabase();
+		this.dbInfo = dbInfo;
+		this.setRefTable(dbInfo.getRefTable(conditionMap.get(ConditionKey.ASSEMBLY)));
+		this.dbType = dbInfo.getDatabase();
 	}
 
 	/**
@@ -50,7 +66,7 @@ public class Condition implements Serializable{
 	 */
 	public String getConditionString() {
 		StringBuilder sb = new StringBuilder();
-		String[] conKeys = tableInfo.getQueryCondition().split("_");
+		String[] conKeys = dbInfo.getQueryCondition().split("_");
 		if(dbType == DbType.HBASE){
 			for (int i = 0; i < conKeys.length-1; i++) {
 				sb.append(conditionMap.get(ConditionKey.valueOf(conKeys[i]))+'-');
@@ -66,13 +82,82 @@ public class Condition implements Serializable{
 		conditionString = sb.toString();
 		return conditionString;
 	}
-
+	
+	/**
+	 * condition string hash
+	 */
+	public HashMap<String,String> getConditionHash() {
+		HashMap<String,String> conditionHash = new HashMap<String, String>();
+		if(dbInfo.getQueryCondition().indexOf("GENE") != -1){
+			for (String gene: genes) {
+				conditionMap.put(ConditionKey.GENE, gene);
+				String conditionStr = getConditionString();
+				conditionHash.put(gene, conditionStr);
+			}
+		}else if (dbInfo.getQueryCondition().indexOf("ALT") != -1) {
+			for (String alt: alts) {
+				conditionMap.put(ConditionKey.ALT, alt);
+				String conditionStr = getConditionString();
+				conditionHash.put(alt, conditionStr);
+			}
+		}else {
+			conditionHash.put("common", getConditionString());
+		}
+		
+		return conditionHash;
+	}
+	
+	/**
+	 * condition string list
+	 */
+	@Deprecated
+	public List<String> getConditionList() {
+		List<String> conditionList = new ArrayList<String>();
+		if(dbInfo.getQueryCondition().indexOf("GENE") != -1){
+			for (String gene: genes) {
+				conditionMap.put(ConditionKey.GENE, gene);
+				String conditionStr = getConditionString();
+				conditionList.add(conditionStr);
+			}
+		}else if (dbInfo.getQueryCondition().indexOf("ALT") != -1) {
+			for (String alt: alts) {
+				conditionMap.put(ConditionKey.ALT, alt);
+				String conditionStr = getConditionString();
+				conditionList.add(conditionStr);
+			}
+		}else {
+			conditionList.add(getConditionString());
+		}
+		
+		return conditionList;
+	}
+	
+	public List<String> getConditionAltList() {
+		List<String> conditionList = new ArrayList<String>();
+		
+		for (String alt: alts) {
+			conditionMap.put(ConditionKey.ALT, alt);
+			String conditionStr = getConditionString();
+			conditionList.add(conditionStr);
+		}
+		
+		return conditionList;
+	}
+	
 	public String getDbName() {
 		return dbName;
 	}
 
 	public void setDbName(String dbName) {
 		this.dbName = dbName;
+	}
+	
+	public List<String> getAlts() {
+		return alts;
+	}
+
+	public void setAlts(List<String> alts) {
+		this.alts = alts;
 	}
 
 	public DbType getDbType() {
@@ -84,15 +169,23 @@ public class Condition implements Serializable{
 	}
 
 	public DatabaseInfo getTableInfo() {
-		return tableInfo;
+		return dbInfo;
 	}
 
-	public void setTableInfo(DatabaseInfo tableInfo) {
-		this.tableInfo = tableInfo;
+	public void setDbInfo(DatabaseInfo dbInfo) {
+		this.dbInfo = dbInfo;
 	}
 	
 	public HashMap<String, String> getFields(){
-		return tableInfo.getFields();
+		return dbInfo.getFields();
+	}
+
+	public String getAltField(){
+		return dbInfo.getAltField();
+	}
+
+	public void setConditionMap(LinkedHashMap<ConditionKey, String> conditionMap) {
+		this.conditionMap = conditionMap;
 	}
 
 	public HashMap<ConditionKey, String> getConditionMap() {
@@ -105,6 +198,54 @@ public class Condition implements Serializable{
 
 	public void setRefTable(RefTableInfo refTable) {
 		this.refTable = refTable;
+	}
+
+	public void setGenes(Set<String> genes) {
+		this.genes = genes;
+	}
+	
+	public Set<String> getGenes() {
+		return genes;
+	}
+
+	public boolean isKeyHasGene() {
+		return keyHasGene;
+	}
+
+	public void setKeyHasGene(boolean keyHasGene) {
+		this.keyHasGene = keyHasGene;
+	}
+
+	public boolean isKeyHasAlt() {
+		return keyHasAlt;
+	}
+
+	public void setKeyHasAlt(boolean keyHasAlt) {
+		this.keyHasAlt = keyHasAlt;
+	}
+
+	public boolean isKeyIsChrPos() {
+		return keyIsChrPos;
+	}
+
+	private void setKeyIsChrPos() {
+		if (!keyHasAlt && !keyHasGene) {
+			this.keyIsChrPos = true;
+		}else {
+			this.keyIsChrPos = false;
+		}
+	}
+
+	public void createConditionMap(VcfAnnotationContext vac) {
+		// TODO Auto-generated method stub
+		conditionMap.put(ConditionKey.CHR, vac.getChromeNoChr());
+		conditionMap.put(ConditionKey.CHROM, vac.getChrome());
+		conditionMap.put(ConditionKey.ASSEMBLY, Config.getConfigInstance().getRef());
+		conditionMap.put(ConditionKey.POS, String.valueOf(vac.getStart()));
+		conditionMap.put(ConditionKey.START, String.valueOf(vac.getStart()-1));
+		conditionMap.put(ConditionKey.END, String.valueOf(vac.getEnd()));
+		setAlts(vac.getAlts());  // alt == annotationContext.getAllele() ?? TODO
+		setGenes(vac.getGenes());
 	}
 	
 }

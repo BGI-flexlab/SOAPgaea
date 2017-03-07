@@ -5,7 +5,6 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
@@ -56,7 +55,7 @@ public class Config implements Serializable {
 	private boolean hgvsOneLetterAa = false; // Use HGVS 1 letter amino acid in HGVS notation?
 	private boolean hgvsTrId = false; // Use HGVS transcript ID in HGVS notation?
 	private CountByType warningsCounter = new CountByType();
-	private HashMap<String, String[]> dbFieldsHashMap = null;
+	private HashMap<String, String[]> annoFieldsByDB = null;  // fields in user config
 	private DatabaseJson databaseJson;
 	private List<String> dbNameList;
 	private Properties properties;
@@ -197,36 +196,48 @@ public class Config implements Serializable {
 		ArrayList<String> keys = new ArrayList<String>();
 		for (Object k : properties.keySet())
 			keys.add(k.toString());
-		Collections.sort(keys);
+//		Collections.sort(keys);
 		ref = properties.getProperty(KEY_REFERENCE);
-		geneInfo = properties.getProperty(KEY_GENE_INFO);
+		setGeneInfo(properties.getProperty(KEY_GENE_INFO));
 		
-		dbFieldsHashMap = new HashMap<>();
+		annoFieldsByDB = new HashMap<>();
 		dbNameList = new ArrayList<>();
 		
 		//用户配置文件中注释字段的配置格式： dbSNP.fields = RS,DBSNP_CAF,DBSNP_COMMON,dbSNPBuildID
 		for (String key : keys) {
 			if (key.endsWith(ANNO_FIELDS_SUFIX)) {
 				String dbName = key.substring(0, key.length() - ANNO_FIELDS_SUFIX.length());
-				String[] fields = properties.getProperty(key).split(",");
-				if (fields != null && fields.length != 0) {
-					dbFieldsHashMap.put(dbName, fields);
-					if (!key.startsWith(KEY_GENE_INFO)) {
-						dbNameList.add(dbName);
+				HashMap<String, String> newFieldMap = new HashMap<>();
+				String[] annoFields = properties.getProperty(key).split(",");
+				
+				if (!key.startsWith(KEY_GENE_INFO)) {
+					DatabaseInfo dbInfo = databaseJson.getDatabaseInfo(dbName);
+					HashMap<String, String> fieldMap = dbInfo.getFields();
+					for (int i = 0; i < annoFields.length; i++) {
+						String annoField = annoFields[i];
+						if (fieldMap.containsKey(annoField)) {
+							newFieldMap.put(annoField, fieldMap.get(annoField));
+						}else {
+							if(annoField.startsWith(dbName)){
+								newFieldMap.put(annoField, annoField);
+							}else {
+								annoFields[i] = dbName+"_"+annoField;
+								newFieldMap.put(annoFields[i], annoField);
+							}
+						}
 					}
+					dbNameList.add(dbName);
+					dbInfo.setFields(newFieldMap);
 				}
+				annoFieldsByDB.put(dbName, annoFields);
 			}
 		}
 		
 		return true;
 	}
 	
-	public HashMap<String, String[]> getDbFieldsHashMap() {
-		return dbFieldsHashMap;
-	}
-	
 	public String[] getFieldsByDB(String dbName){
-		return dbFieldsHashMap.get(dbName);
+		return annoFieldsByDB.get(dbName);
 	}
 
 	public static Config getConfigInstance() {
@@ -280,19 +291,6 @@ public class Config implements Serializable {
 	public void setDebug(boolean debug) {
 		this.debug = debug;
 	}
-	
-//	/**
-//	 * Get the relative path to a config file
-//	 */
-//	String getRelativeConfigPath() {
-//		URL url = Config.class.getProtectionDomain().getCodeSource().getLocation();
-//		try {
-//			File path = new File(url.toURI());
-//			return path.getParent();
-//		} catch (Exception e) {
-//			throw new RuntimeException("Cannot get path '" + url + "'", e);
-//		}
-//	}
 
 	public boolean isDebug() {
 		return debug;
@@ -355,7 +353,11 @@ public class Config implements Serializable {
 	}
 
 	public void setGeneInfo(String geneInfo) {
-		this.geneInfo = geneInfo;
+		if (geneInfo.startsWith("/")) {
+			this.geneInfo = "file://" + geneInfo;
+		}else {
+			this.geneInfo = geneInfo;
+		}
 	}
 
 	public String getRef() {
@@ -423,11 +425,17 @@ public class Config implements Serializable {
 		return sb.toString();
 	}
 	
-	public static void main(String[] args) throws Exception {
-		Config config = new Config();
-		config.loadJson();
-		System.err.println(config.databaseJson.getDatabaseInfo("HGMD").getQueryClassName());
-		System.err.println("Good");
-	}
+//	public static void main(String[] args) throws Exception {
+//		Config config = new Config();
+//		config.loadJson();
+//		System.out.println(config.databaseJson.getDatabaseInfo("dbNSFP").getRefTable("GRCh38").getIndexTable());
+//		System.out.println(config.databaseJson.getDatabaseInfo("dbNSFP").getFields());
+//		if (config.databaseJson.getDatabaseInfo("dbNSFP").getFields() == null) {
+//			System.out.println("dbNSFP fields is null!");
+//		}else if (config.databaseJson.getDatabaseInfo("dbNSFP").getFields().isEmpty()) {
+//			System.out.println("dbNSFP fields is empty!");
+//		}
+//		System.out.println("Good");
+//	}
 
 }

@@ -10,34 +10,61 @@ public class DatabaseInfo implements Serializable {
 		, MYSQL
 	}
 	
+	public static enum ConditionKey {
+		CHR
+		, CHROM
+		, START  //0-base, POS - 1
+		, POS
+		, END0   //0-base
+		, END  //1-base , some database use this , example: HGMD
+		, REF
+		, ALT
+		, GENE
+		, ASSEMBLY
+	}
+	
 	private static final long serialVersionUID = -5850759043237677551L;
 	
 	private final DbType database;
 	private final String queryClassName;
 	private final String queryCondition;
-	private final RefTableInfo GRCh37; //HBASE: table,key,indexTable
-	private final RefTableInfo GRCh38;
-	private final HashMap<String, String> fields;
+	private final String altField;
 	
-	public DatabaseInfo(DbType database,String queryCondition, String queryClassName, RefTableInfo GRCh37, RefTableInfo GRCh38, HashMap<String, String> fields) {
+	private HashMap<String, String> fields;
+	private HashMap<String, RefTableInfo> dbVersion;
+	
+	public DatabaseInfo(DbType database, String queryCondition, String queryClassName, String extendField,
+			String altField, HashMap<String, RefTableInfo> dbVersion, HashMap<String, String> fields) {
 		this.database = database;
 		this.queryClassName = queryClassName;
 		this.queryCondition = queryCondition;
+		this.altField = altField;
 		this.fields = fields;
-		this.GRCh37 = GRCh37;
-		this.GRCh38 = GRCh38;
+		this.dbVersion = dbVersion;
+	}
+	
+	public void setFields(HashMap<String, String> fields) {
+		this.fields = fields;
 	}
 
 	public HashMap<String, String> getFields() {
+		if (fields == null) {
+			return new HashMap<String, String>();
+		}
 		return fields;
 	}
 
-	public RefTableInfo getRefTable(String ref) {
-		if (ref.equals(GRCh38)) {
-			return GRCh38;
-		}else {
-			return GRCh37;
-		}
+	public String getAltField() {
+		return altField;
+	}
+
+	/**
+	 * key is reference version for human : GRCh37, GRCh38
+	 * @param key
+	 * @return
+	 */
+	public RefTableInfo getRefTable(String key) {
+		return dbVersion.get(key);
 	}
 
 	public String getQueryCondition() {

@@ -2,7 +2,7 @@ package org.bgi.flexlab.gaea.tools.annotator.db;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Set;
+import java.util.Map.Entry;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
@@ -59,18 +59,33 @@ public class HbaseAdapter implements DBAdapterInterface{
 		}
 		return resultMap;
 	}
-
-	@Override
+    
 	public HashMap<String, String> getResult(String tableName,
-			String rowKey, Set<String> tags) throws IOException{
+			String rowKey, String[] fields) throws IOException{
 		HashMap<String,String> resultMap = getResult(tableName,rowKey);
 		Table table = conn.getTable(TableName.valueOf(tableName));
 		Get get = new Get(Bytes.toBytes(rowKey));
 		get.addFamily(Bytes.toBytes(DEFAULT_COLUMN_FAMILY));
 		Result result = table.get(get);
-		for (String key : tags) {
-			byte[] value = result.getValue(Bytes.toBytes(DEFAULT_COLUMN_FAMILY), Bytes.toBytes(key));
-			resultMap.put(key, Bytes.toString(value));
+		for (String field : fields) {
+			byte[] value = result.getValue(Bytes.toBytes(DEFAULT_COLUMN_FAMILY), Bytes.toBytes(field));
+			resultMap.put(field, Bytes.toString(value));
+		}
+		return resultMap;
+	}
+	
+	@Override
+	public HashMap<String, String> getResult(String tableName,
+			String rowKey, HashMap<String, String> fieldMap) throws IOException{
+//		HashMap<String,String> resultMap = getResult(tableName,rowKey);
+		HashMap<String,String> resultMap = new HashMap<String,String>();
+		Table table = conn.getTable(TableName.valueOf(tableName));
+		Get get = new Get(Bytes.toBytes(rowKey));
+		get.addFamily(Bytes.toBytes(DEFAULT_COLUMN_FAMILY));
+		Result result = table.get(get);
+		for (Entry<String, String> entry : fieldMap.entrySet()) {
+			byte[] value = result.getValue(Bytes.toBytes(DEFAULT_COLUMN_FAMILY), Bytes.toBytes(entry.getValue()));
+			resultMap.put(entry.getKey(), Bytes.toString(value));
 		}
 		return resultMap;
 	}
