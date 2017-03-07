@@ -1,4 +1,4 @@
-package org.bgi.flexlab.gaea.tools.genotyer.GenotypeLikelihoodCalculator;
+package org.bgi.flexlab.gaea.tools.genotyer.genotypeLikelihoodCalculator;
 
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.VariantContext;
