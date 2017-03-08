@@ -1,5 +1,6 @@
 package org.bgi.flexlab.gaea.tools.mapreduce.genotyper;
 
+import org.apache.commons.cli.ParseException;
 import org.apache.hadoop.conf.Configuration;
 import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.data.mapreduce.options.HadoopOptions;
@@ -249,15 +250,24 @@ public class GenotyperOptions extends GaeaOptions implements HadoopOptions {
         addOption("numAlleleDis", "annotateNumberOfAllelesDiscovered", false, "annotate Number Of Alleles Discovered");
         addOption("R", "reducer", true, "reducer numbers");
         addOption("W", "window_size", true, "window size that sharding the data.");
+        addOption("h", "help", false, "print help information.");
+
+        FormatHelpInfo(SOFTWARE_NAME, SOFTWARE_VERSION);
     }
 
     @Override
     public void parse(String[] args) {
-        if(getOptionBooleanValue("h", false)) {
-            FormatHelpInfo(SOFTWARE_NAME, SOFTWARE_VERSION);
+        try {
+            cmdLine = parser.parse(options, args);
+        } catch (ParseException e) {
+            printHelpInfotmation(SOFTWARE_NAME);
+            throw new RuntimeException(e);
         }
 
-
+        if(getOptionBooleanValue("h", false)) {
+            printHelpInfotmation(SOFTWARE_NAME);
+            System.exit(1);
+        }
         input = getOptionValue("i", null);
         samFormat = getOptionBooleanValue("I", false);
         output = getOptionValue("o", null);

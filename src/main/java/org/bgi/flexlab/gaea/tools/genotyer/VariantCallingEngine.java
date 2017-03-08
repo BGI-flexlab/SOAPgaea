@@ -49,13 +49,21 @@ public class VariantCallingEngine {
         EMIT_ALL_SITES
     }
 
+    /**
+     *  heterozygosity prob
+     */
     public static final double HUMAN_SNP_HETEROZYGOSITY = 1e-3;
     public static final double HUMAN_INDEL_HETEROZYGOSITY = 1e-4;
 
-    // the standard filter to use for calls below the confidence threshold but above the emit threshold
+    /**
+     * the standard filter to use for calls below the confidence threshold but above the emit threshold
+     */
     private static final Set<String> filter = new HashSet<String>(1);
 
-    // because the allele frequency priors are constant for a given i, we cache the results to avoid having to recompute everything
+    /**
+     * because the allele frequency priors are constant for a given i, we cache the results to avoid having to
+     * recompute everything
+     */
     private final double[] log10AlleleFrequencyPriorsSNPs;
     private final double[] log10AlleleFrequencyPriorsIndels;
 
@@ -77,7 +85,7 @@ public class VariantCallingEngine {
     /**
      * variant data tracker
      */
-    VariantDataTracker tracker;
+    private VariantDataTracker tracker;
 
     /**
      * options

@@ -31,7 +31,7 @@ public class Genotyper extends ToolsRunner {
 
     private GenotyperOptions options = null;
 
-    private int runRealigner(String[] args) throws IOException, ClassNotFoundException, InterruptedException {
+    private int runGenoytper(String[] args) throws IOException, ClassNotFoundException, InterruptedException {
         BioJob job = BioJob.getInstance();
         Configuration conf = job.getConfiguration();
         String[] remainArgs = remainArgs(args, conf);
@@ -74,7 +74,7 @@ public class Genotyper extends ToolsRunner {
     @Override
     public int run(String[] args) throws Exception {
         Genotyper genotyper = new Genotyper();
-        int res = genotyper.run(args);
+        int res = genotyper.runGenoytper(args);
         if(res != 0) {
             throw new RuntimeException("GaeaGenotyper Failed!");
         }
