@@ -6,8 +6,10 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamHdfsFileHeader;
 import org.bgi.flexlab.gaea.data.mapreduce.output.vcf.GaeaVCFOutputFormat;
 import org.bgi.flexlab.gaea.data.mapreduce.output.vcf.VCFHdfsWriter;
+import org.bgi.flexlab.gaea.data.mapreduce.writable.AlignmentBasicWritable;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.SamRecordWritable;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.WindowsBasedWritable;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.BioJob;
@@ -19,6 +21,8 @@ import org.seqdoop.hadoop_bam.KeyIgnoringVCFOutputFormat;
 import org.seqdoop.hadoop_bam.VariantContextWritable;
 
 import java.io.IOException;
+
+import static org.bgi.flexlab.gaea.framework.tools.mapreduce.WindowsBasedMapper.REFERENCE_REGION;
 
 /**
  * Created by zhangyong on 2017/3/3.
@@ -43,19 +47,22 @@ public class Genotyper extends ToolsRunner {
         job.setHeader(new Path(options.getInput()), new Path(options.getBAMHeaderOutput()));
 
         //vcf header
-        conf.set(GaeaVCFOutputFormat.OUT_PATH_PROP, options.getVCFHeaderOutput());
+        conf.set(GaeaVCFOutputFormat.OUT_PATH_PROP, options.getVCFHeaderOutput() + "/vcfFileHeader.vcf");
         VariantAnnotatorEngine variantAnnotatorEngine = new VariantAnnotatorEngine(options.getAnnotationGroups(), options.getAnnotations(), null);
-        VCFHeader vcfHeader = VariantCallingEngine.getVCFHeader(options, variantAnnotatorEngine);
-        VCFHdfsWriter vcfHdfsWriter = new VCFHdfsWriter(GaeaVCFOutputFormat.OUT_PATH_PROP, false, false, conf);
+        VCFHeader vcfHeader = VariantCallingEngine.getVCFHeader(options, variantAnnotatorEngine, SamHdfsFileHeader.getHeader(conf));
+        VCFHdfsWriter vcfHdfsWriter = new VCFHdfsWriter(conf.get(GaeaVCFOutputFormat.OUT_PATH_PROP), false, false, conf);
         vcfHdfsWriter.writeHeader(vcfHeader);
+        vcfHdfsWriter.close();
 
         job.setJobName("GaeaGenotyper");
         job.setAnySamInputFormat(options.getInputFormat());
         conf.set(KeyIgnoringVCFOutputFormat.OUTPUT_VCF_FORMAT_PROPERTY, options.getOuptputFormat().toString());
         job.setOutputFormatClass(GaeaVCFOutputFormat.class);
-        job.setOutputKeyValue(WindowsBasedWritable.class, SamRecordWritable.class, NullWritable.class, VariantContextWritable.class);
+        job.setOutputKeyValue(WindowsBasedWritable.class, AlignmentBasicWritable.class, NullWritable.class, VariantContextWritable.class);
 
         job.setJarByClass(Genotyper.class);
+        if(options.getBedRegionFile() != null)
+            conf.set(REFERENCE_REGION, options.getBedRegionFile());
         job.setWindowsBasicMapperClass(WindowsBasedMapper.class, options.getWindowSize());
         job.setReducerClass(GenotyperReducer.class);
         job.setNumReduceTasks(options.getReducerNumber());

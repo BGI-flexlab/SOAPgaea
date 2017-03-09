@@ -430,12 +430,17 @@ public class VariantCallingEngine {
 
 
     public static VCFHeader getVCFHeader(final GenotyperOptions options,
-                                  final VariantAnnotatorEngine annotationEngine) {
+                                         final VariantAnnotatorEngine annotationEngine,
+                                         final SAMFileHeader samFileHeader) {
         Set<VCFHeaderLine> headerInfo = getHeaderInfo(options, annotationEngine);
 
         // invoke initialize() method on each of the annotation classes, allowing them to add their own header lines
         // and perform any necessary initialization/validation steps
         annotationEngine.invokeAnnotationInitializationMethods(headerInfo);
+        Set<String> samples = new HashSet<>();
+        for(SAMReadGroupRecord rg : samFileHeader.getReadGroups()) {
+            samples.add(rg.getSample());
+        }
 
         return new VCFHeader(headerInfo, samples);
     }
@@ -464,10 +469,7 @@ public class VariantCallingEngine {
         //    headerInfo.add(new VCFInfoHeaderLine(VCFConstants.REFSAMPLE_DEPTH_KEY, 1, VCFHeaderLineType.Integer, "Total reference sample depth"));
         //}
 
-        VCFStandardHeaderLines.addStandardInfoLines(headerInfo, true,
-                VCFConstants.DOWNSAMPLED_KEY,
-                VCFConstants.MLE_ALLELE_COUNT_KEY,
-                VCFConstants.MLE_ALLELE_FREQUENCY_KEY);
+        //VCFStandardHeaderLines.addStandardInfoLines(headerInfo, true, VCFConstants.DOWNSAMPLED_KEY, VCFConstants.MLE_ALLELE_COUNT_KEY, VCFConstants.MLE_ALLELE_FREQUENCY_KEY);
 
         // also, check to see whether comp rods were included
         //if ( dbsnp != null && dbsnp.isBound() )
