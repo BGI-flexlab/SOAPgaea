@@ -1,7 +1,14 @@
 package org.bgi.flexlab.gaea.tools.annotator;
 
+import java.io.BufferedReader;
+import java.io.FileOutputStream;
+import java.io.InputStreamReader;
+import java.util.zip.GZIPOutputStream;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
+import org.apache.hadoop.fs.FSDataInputStream;
+import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
@@ -11,10 +18,6 @@ import org.apache.hadoop.util.Tool;
 import org.bgi.flexlab.gaea.data.structure.reference.ReferenceShare;
 
 public class VariantAnnotation extends Configured implements Tool{
-	
-	/**
-	 * 参数
-	 */
 	
 	Parameter parameter=null;
 	
@@ -32,12 +35,12 @@ public class VariantAnnotation extends Configured implements Tool{
 	 * @param parameter
 	 */
 	private static void setConfiguration(Configuration conf, Parameter parameter) {
-		
 		//set reference
 		conf.set("inputFilePath", parameter.getInputFilePath());
 		conf.set("reference", parameter.getReferenceSequencePath());
 		conf.set("configFile", parameter.getConfigFile());
 		conf.set("outputType", parameter.getOutputType());
+		conf.setBoolean("cacheref", parameter.isCachedRef());
 		conf.setBoolean("verbose", parameter.isVerbose());
 		conf.setBoolean("debug", parameter.isDebug());
 	}
@@ -47,8 +50,13 @@ public class VariantAnnotation extends Configured implements Tool{
 		Configuration conf = new Configuration();
 		parameter = new Parameter(arg0);
 		setConfiguration(conf, parameter);
-		
 		Job job = Job.getInstance(conf, "GaeaAnnotator");
+		
+		if(parameter.isCachedRef()){
+			System.err.println("--------- isCachedRef --------");
+			ReferenceShare.distributeCache(parameter.getReferenceSequencePath(), job);
+		}
+		
 		job.setNumReduceTasks(0);
 		job.setJarByClass(VariantAnnotation.class);
 		job.setMapperClass(VariantAnnotationMapper.class);
@@ -59,14 +67,38 @@ public class VariantAnnotation extends Configured implements Tool{
 		MNLineInputFormat.addInputPath(job, new Path(parameter.getInputFilePath()));
 		MNLineInputFormat.setMinNumLinesToSplit(job,1000); //按行处理的最小单位
 		MNLineInputFormat.setMapperNum(job, parameter.getMapperNum()); 
-		FileOutputFormat.setOutputPath(job, new Path(parameter.getOutputPath()));
+		Path partTmp = new Path(parameter.getTmpPath());
+		
+		FileOutputFormat.setOutputPath(job, partTmp);
 		if (job.waitForCompletion(true)) {
-//     TODO	 
+			GZIPOutputStream os = new GZIPOutputStream(new FileOutputStream(parameter.getOutputPath()));
+			final FileStatus[] parts = partTmp.getFileSystem(conf).globStatus( new Path(parameter.getTmpPath()+"/part" + "-*-[0-9][0-9][0-9][0-9][0-9]*"));
+            boolean writeHeader = true;
+			for (FileStatus p : parts) {
+            	FSDataInputStream dis = p.getPath().getFileSystem(conf).open(p.getPath());
+            	BufferedReader reader = new BufferedReader(new InputStreamReader(dis));
+            	String line;
+            	while ((line = reader.readLine()) != null) {
+            		if(line.startsWith("#")){
+            			if (writeHeader){
+            				os.write(line.getBytes());
+                    		os.write('\n');
+            				writeHeader = false;
+            			}
+            			continue;
+            		}
+            		os.write(line.getBytes());
+            		os.write('\n');
+				}
+            }
+			os.close();
+			
+			partTmp.getFileSystem(conf).delete(partTmp, true);
+			
 			return 0;
 		}else {
 			return 1;
 		}
-//		System.exit(job.waitForCompletion(true) ? 0 : 1);
 	}
 
 }

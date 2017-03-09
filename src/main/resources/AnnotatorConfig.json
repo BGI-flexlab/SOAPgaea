@@ -4,124 +4,164 @@
     "MYSQL":""
   },
   "databaseInfo":{
-    "HGMD":{
+    "HGNC":{
       "database":"HBASE",
-      "queryClassName":"CommonQuery",
-      "queryCondition":"CHR_START_END",
-      "GRCh37":{
-        "table":"hgmd",
-        "key":"acc_num_gene_id",
-        "indexTable":"hgmd_index_chr_start_end"
-      },
-      "GRCh38":{
-        "table":"hgmd",
-        "key":"acc_num_gene_id",
-        "indexTable":"hgmd_index_chr_start_end"
+      "queryClassName":"HGNCQuery",
+      "queryCondition":"GENE",
+      "dbVersion":{
+        "GRCh37":{
+          "table":"HGNC"
+        },
+        "GRCh38":{
+          "table":"HGNC"
+        }
+      }
+    },
+     "OMIM":{
+      "database":"HBASE",
+      "queryClassName":"DBQuery",
+      "queryCondition":"GENE",
+      "dbVersion":{
+        "GRCh37":{
+          "table":"omim_genemap",
+          "key":"mim_id",
+          "indexTable":"omim_genemap_index_gene_symbol"
+        },
+        "GRCh38":{
+          "table":"omim_genemap",
+          "key":"mim_id",
+          "indexTable":"omim_genemap_index_gene_symbol"
+        }
       },
       "fields":{
-        "HGMD_disease_name":"disease_name",
-        "HGMD_pubmed_id":"pubmed_id",
-        "HGMD_tag":"tag",
-        "HGMD_chgvs":"chgvs",
-        "HGMD_phgvs":"phgvs",
-        "HGMD_transcript":"transcript",
-        "HGMD_gene_symbol":"gene_symbol",
-        "HGMD_acc_type":"acc_type"
+        "OMIM_gene_symbol":"gene_symbol",
+        "OMIM_gene_status":"gene_status",
+        "OMIM_loc":"location",
+        "OMIM_disorders":"disorders",
+        "OMIM_title":"title",
+        "OMIM_ID":"mim_id"
+      }
+    },
+    "HGMD":{
+      "database":"HBASE",
+      "queryClassName":"DBQuery",
+      "queryCondition":"CHR_POS_END",
+      "dbVersion":{
+        "GRCh37":{
+          "table":"HGMD_hg19",
+          "key":"id",
+          "indexTable":"HGMD_hg19_index"
+        },
+        "GRCh38":{
+          "table":"",
+          "key":"",
+          "indexTable":""
+        }
       }
     },
     "ESP6500":{
       "database":"HBASE",
-      "queryClassName":"CommonQuery",
-      "queryCondition":"CHR_POS",
-      "GRCh37":{
-        "table":"eps6500",
-        "key":"id",
-        "indexTable":"eps6500_index_chr_pos"
-      },
-      "GRCh38":{
-        "table":"eps6500",
-        "key":"id",
-        "indexTable":"eps6500_index_chr_pos"
+      "queryClassName":"DBQuery",
+      "queryCondition":"CHR_POS_END",
+      "dbVersion":{
+        "GRCh37":{
+          "table":"ESP6500_hg19",
+          "key":"id",
+          "indexTable":"ESP6500_hg19_index"
+        },
+        "GRCh38":{
+          "table":"ESP6500_hg38",
+          "key":"id",
+          "indexTable":"ESP6500_hg19_index"
+        }
       },
       "fields":{
-        "ESP6500_AF":"af"
+        "ESP6500_AF":"AF"
       }
     },
     "dbSNP":{
       "database":"HBASE",
-      "queryClassName":"DBsnpQuery",
-      "queryCondition":"CHR_POS",
-      "GRCh37":{
-        "table":"dbSNP",
-        "key":"RSID",
-        "indexTable":"dbSNP_index_chr_pos"
-      },
-      "GRCh38":{
-        "table":"dbSNP",
-        "key":"RSID",
-        "indexTable":"dbSNP_index_chr_pos"
+      "queryClassName":"DBQuery",
+      "queryCondition":"CHR_POS_END",
+      "dbVersion":{
+        "GRCh37":{
+          "table":"dbSNP147_GRCh37",
+          "key":"id",
+          "indexTable":"dbSNP147_GRCh37_index"
+        },
+        "GRCh38":{
+          "table":"",
+          "key":"",
+          "indexTable":""
+        }
       },
       "fields":{
-        "RS":"INFO:RS",
-        "dbSNPBuildID":"INFO:dbSNPBuildID",
-        "DBSNP_CAF":"INFO:CAF",
-        "DBSNP_COMMON":"INFO:COMMON"
+        "dbSNPBuildID":"dbSNPBuildID",
+        "DBSNP_CAF":"CAF",
+        "DBSNP_COMMON":"COMMON"
       }
     },
     "G1000":{
       "database":"HBASE",
-      "queryClassName":"G1000Query",
-      "queryCondition":"CHR_POS",
-      "GRCh37":{
-        "table":"1000Genomes",
-        "key":"id",
-        "indexTable":"1000Genomes_index_chr_pos"
-      },
-      "GRCh38":{
-        "table":"1000Genomes",
-        "key":"id",
-        "indexTable":"1000Genomes_index_chr_pos"
+      "queryClassName":"DBQuery",
+      "queryCondition":"CHR_POS_END",
+      "dbVersion":{
+        "GRCh37":{
+          "table":"G1000_GRCh37",
+          "key":"id",
+          "indexTable":"G1000_GRCh37_index"
+        },
+        "GRCh38":{
+          "table":"",
+          "key":"id",
+          "indexTable":""
+        }
       },
       "fields":{
-        "G1000_AF":"info:AF",
-        "G1000_ASN_AF":"info:ASN_AF",
-        "G1000_EUR_AF":"info:EUR_AF",
-        "G1000_AFR_AF":"info:AFR_AF",
-        "G1000_AMR_AF":"info:AMR_AF"
+        "G1000_AF":"AF",
+        "G1000_ASN_AF":"ASN_AF",
+        "G1000_EUR_AF":"EUR_AF",
+        "G1000_AFR_AF":"AFR_AF",
+        "G1000_AMR_AF":"AMR_AF"
       }
     },
     "EXAC":{
       "database":"HBASE",
-      "queryClassName":"CommonQuery",
-      "queryCondition":"CHR_POS",
-      "GRCh37":{
-        "table":"exac",
-        "key":"id",
-        "indexTable":"exac_index_chr_pos"
+      "queryClassName":"DBQuery",
+      "queryCondition":"CHR_POS_END",
+      "dbVersion":{
+        "GRCh37":{
+          "table":"EXAC_GRCh37",
+          "key":"id",
+          "indexTable":"EXAC_GRCh37_index"
+        },
+        "GRCh38":{
+          "table":"",
+          "key":"id",
+          "indexTable":""
+        }
       },
-      "GRCh38":{
-        "table":"exac",
-        "key":"id",
-        "indexTable":"exac_index_chr_pos"
-      },
+      "altField":"alt",
       "fields":{
         "EXAC_AC":"ac",
         "EXAC_AF":"af"
       }
     },
-    "GWAS":{
+    "gwasCatalog":{
       "database":"HBASE",
-      "queryClassName":"CommonQuery",
+      "queryClassName":"GwasQuery",
       "queryCondition":"CHR_START_END",
-      "GRCh37":{
-        "table":"gwasCatalog",
-        "key":"id",
-        "indexTable":"gwasCatalog_index_chrom_chromStar_chromEnd"
-      },
-      "GRCh38":{
-        "table":"gwasCatalog",
-        "key":"id",
-        "indexTable":"gwasCatalog_index_chrom_chromStar_chromEnd"
+      "dbVersion":{
+        "GRCh37":{
+          "table":"gwasCatalog",
+          "key":"id",
+          "indexTable":"gwasCatalog_index_chrom_chromStar_chromEnd"
+        },
+        "GRCh38":{
+          "table":"gwasCatalog",
+          "key":"id",
+          "indexTable":"gwasCatalog_index_chrom_chromStar_chromEnd"
+        }
       },
       "fields":{
         "GWAS_trait":"trait",
@@ -134,51 +174,38 @@
         "GWAS_riskAllel":"riskAllel"
       }
     },
-    "OMIM":{
-      "database":"HBASE",
-      "queryClassName":"CommonQuery",
-      "queryCondition":"GENE",
-      "GRCh37":{
-        "table":"omim_genemap",
-        "key":"mim_id",
-        "indexTable":"omim_genemap_index_gene_symbol"
-      },
-      "GRCh38":{
-        "table":"omim_genemap",
-        "key":"mim_id",
-        "indexTable":"omim_genemap_index_gene_symbol"
-      },
-      "fields":{
-        "OMIM_gene_symbol":"gene_symbol",
-        "OMIM_gene_status":"gene_status",
-        "OMIM_loc":"location",
-        "OMIM_disorders":"disorders",
-        "OMIM_title":"title",
-        "OMIM_ID":"mim_id"
-      }
-    },
     "CLINVAR":{
       "database":"HBASE",
-      "queryClassName":"ClinvarQuery",
+      "queryClassName":"DBQuery",
       "queryCondition":"CHR_POS_END",
-      "GRCh37":{
-        "table":"clinvar_variant_summary",
-        "key":"id",
-        "indexTable":"clinvar_variant_summary_index_chr_start_stop"
-      },
-      "GRCh38":{
-        "table":"clinvar_variant_summary",
-        "key":"id",
-        "indexTable":"clinvar_variant_summary_index_chr_start_stop"
-      },
-      "fields":{
-        "CLINVAR_name":"Name",
-        "CLINVAR_Type":"Type",
-        "CLINVAR_PhenotypeIDs":"PhenotypeIDs",
-        "CLINVAR_ReviewStatus":"ReviewStatus",
-        "CLINVAR_cHGVS":"cHGVS",
-        "CLINVAR_pHGVS":"pHGVS",
-        "CLINVAR_loc":"Cytogenetic"
+      "dbVersion":{
+        "GRCh37":{
+          "table":"Clinvar_GRCh37",
+          "key":"id",
+          "indexTable":"Clinvar_GRCh37_index"
+        },
+        "GRCh38":{
+          "table":"",
+          "key":"",
+          "indexTable":""
+        }
+      }
+    },
+    "dbNSFP":{
+      "database":"HBASE",
+      "queryClassName":"DBNSFPQuery",
+      "queryCondition":"CHROM_POS_ALT",
+      "dbVersion":{
+        "GRCh37":{
+          "table":"dbNSFP",
+          "key":"id",
+          "indexTable":"dbNSFP_index_hg19_chr_pos_alt"
+        },
+        "GRCh38":{
+          "table":"dbNSFP",
+          "key":"id",
+          "indexTable":"dbNSFP_index_hg38_chr_pos_alt"
+        }
       }
     }
   }

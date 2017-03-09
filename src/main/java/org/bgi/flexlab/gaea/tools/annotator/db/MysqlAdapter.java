@@ -7,7 +7,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
-import java.util.Set;
+import java.util.Map.Entry;
 
 
 public class MysqlAdapter implements DBAdapterInterface{
@@ -64,8 +64,7 @@ public class MysqlAdapter implements DBAdapterInterface{
 		MysqlAdapter.driver = driver;
 	}
 	
-	@Override
-	public HashMap<String, String> getResult(String tableName, String condition, Set<String> tags) {
+	public HashMap<String, String> getResult(String tableName, String condition, String[] tags) {
 		HashMap<String,String> resultMap = new HashMap<String,String>();
 		StringBuilder sb=new StringBuilder();
 		sb.append("select * from " + tableName + " ");
@@ -79,7 +78,31 @@ public class MysqlAdapter implements DBAdapterInterface{
 					resultMap.put(key, rs.getString(key));
 			}
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
+			System.err.println("SQLException: query tableName(" + tableName + ") is Wrong!\nStatement: "+ sb.toString());
+			e.printStackTrace();
+		}
+		return resultMap;
+	}
+	
+	@Override
+	public HashMap<String, String> getResult(String tableName,
+			String condition, HashMap<String, String> fieldMap)
+					throws IOException {
+		HashMap<String,String> resultMap = new HashMap<String,String>();
+		StringBuilder sb=new StringBuilder();
+		sb.append("select * from " + tableName + " ");
+		sb.append(condition);
+		PreparedStatement ptmt = null;
+		ResultSet rs = null;
+		try {
+			ptmt=conn.prepareStatement(sb.toString());
+			rs=ptmt.executeQuery();
+			fieldMap.entrySet();
+			for (Entry<String, String> entry : fieldMap.entrySet()) {
+				resultMap.put(entry.getKey(), rs.getString(entry.getValue()));
+			}
+		} catch (SQLException e) {
+			System.err.println("SQLException: query tableName(" + tableName + ") is Wrong!\nStatement: "+ sb.toString());
 			e.printStackTrace();
 		}
 		return resultMap;
