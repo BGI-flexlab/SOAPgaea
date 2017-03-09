@@ -10,6 +10,7 @@ import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.bgi.flexlab.gaea.data.exception.FileNotExistException;
 import org.bgi.flexlab.gaea.data.mapreduce.input.bed.RegionHdfsParser;
@@ -19,8 +20,8 @@ import org.bgi.flexlab.gaea.data.mapreduce.writable.WindowsBasedWritable;
 import org.bgi.flexlab.gaea.data.structure.bam.filter.SamRecordFilter;
 import org.bgi.flexlab.gaea.util.SamRecordUtils;
 
-public class WindowsBasedMapper
-		extends Mapper<LongWritable, SamRecordWritable, WindowsBasedWritable, SamRecordWritable> {
+public abstract class WindowsBasedMapper<VALUEOUT extends Writable> extends
+		Mapper<LongWritable, SamRecordWritable, WindowsBasedWritable, VALUEOUT> {
 
 	public final static String WINDOWS_SIZE = "windows.size";
 	public final static String WINDOWS_EXTEND_SIZE = "windows.extend.size";
@@ -37,9 +38,12 @@ public class WindowsBasedMapper
 	protected WindowsBasedWritable keyout = new WindowsBasedWritable();
 	private SamRecordFilter recordFilter = null;
 	private RegionHdfsParser region = null;
-	private SamRecordWritable outputValue = new SamRecordWritable();
+	protected VALUEOUT outputValue;
 
 	private HashMap<String, Integer> sampleIDs = null;
+
+	abstract void setOutputValue(SAMRecord samRecord);
+	abstract void initOutputVaule();
 
 	@Override
 	protected void setup(Context context) throws IOException, InterruptedException {
@@ -47,6 +51,7 @@ public class WindowsBasedMapper
 		windowsSize = conf.getInt(WINDOWS_SIZE, 10000);
 		windowsExtendSize = conf.getInt(WINDOWS_EXTEND_SIZE, 500);
 		multiSample = conf.getBoolean(MULTIPLE_SAMPLE, false);
+		initOutputVaule();
 
 		header = SamHdfsFileHeader.getHeader(conf);
 
@@ -110,8 +115,7 @@ public class WindowsBasedMapper
 		if (recordFilter.filter(sam, region)) {
 			return;
 		}
-
-		outputValue.set(value.get());
+		setOutputValue(sam);
 
 		if (SamRecordUtils.isUnmapped(sam)) {
 			setKey(sam.getReadGroup().getSample(), -1, sam.getReadName().hashCode(), sam.getReadName().hashCode());
