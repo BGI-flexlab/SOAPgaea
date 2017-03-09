@@ -18,7 +18,7 @@ public class Main {
 				toolsDescription.put((String) key, tools.getDescription());
 			} catch (InstantiationException | IllegalAccessException
 					| ClassNotFoundException e) {
-				e.printStackTrace();
+				throw new RuntimeException(e);
 			}
 		}
 		return toolsDescription;
@@ -40,11 +40,11 @@ public class Main {
 				try {
 					tool.run(arg);
 				} catch (Exception e) {
-					e.printStackTrace();
+					throw new RuntimeException(e);
 				}
 			} catch (InstantiationException | IllegalAccessException
 					| ClassNotFoundException e) {
-				e.printStackTrace();
+				throw new RuntimeException(e);
 			}
 		} else {
 			ToolsOptions option = new ToolsOptions(getTools(properties));

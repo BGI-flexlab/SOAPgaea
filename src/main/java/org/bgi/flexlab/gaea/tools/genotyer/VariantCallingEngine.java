@@ -49,13 +49,21 @@ public class VariantCallingEngine {
         EMIT_ALL_SITES
     }
 
+    /**
+     *  heterozygosity prob
+     */
     public static final double HUMAN_SNP_HETEROZYGOSITY = 1e-3;
     public static final double HUMAN_INDEL_HETEROZYGOSITY = 1e-4;
 
-    // the standard filter to use for calls below the confidence threshold but above the emit threshold
+    /**
+     * the standard filter to use for calls below the confidence threshold but above the emit threshold
+     */
     private static final Set<String> filter = new HashSet<String>(1);
 
-    // because the allele frequency priors are constant for a given i, we cache the results to avoid having to recompute everything
+    /**
+     * because the allele frequency priors are constant for a given i, we cache the results to avoid having to
+     * recompute everything
+     */
     private final double[] log10AlleleFrequencyPriorsSNPs;
     private final double[] log10AlleleFrequencyPriorsIndels;
 
@@ -77,7 +85,7 @@ public class VariantCallingEngine {
     /**
      * variant data tracker
      */
-    VariantDataTracker tracker;
+    private VariantDataTracker tracker;
 
     /**
      * options
@@ -422,12 +430,17 @@ public class VariantCallingEngine {
 
 
     public static VCFHeader getVCFHeader(final GenotyperOptions options,
-                                  final VariantAnnotatorEngine annotationEngine) {
+                                         final VariantAnnotatorEngine annotationEngine,
+                                         final SAMFileHeader samFileHeader) {
         Set<VCFHeaderLine> headerInfo = getHeaderInfo(options, annotationEngine);
 
         // invoke initialize() method on each of the annotation classes, allowing them to add their own header lines
         // and perform any necessary initialization/validation steps
         annotationEngine.invokeAnnotationInitializationMethods(headerInfo);
+        Set<String> samples = new HashSet<>();
+        for(SAMReadGroupRecord rg : samFileHeader.getReadGroups()) {
+            samples.add(rg.getSample());
+        }
 
         return new VCFHeader(headerInfo, samples);
     }
@@ -456,10 +469,7 @@ public class VariantCallingEngine {
         //    headerInfo.add(new VCFInfoHeaderLine(VCFConstants.REFSAMPLE_DEPTH_KEY, 1, VCFHeaderLineType.Integer, "Total reference sample depth"));
         //}
 
-        VCFStandardHeaderLines.addStandardInfoLines(headerInfo, true,
-                VCFConstants.DOWNSAMPLED_KEY,
-                VCFConstants.MLE_ALLELE_COUNT_KEY,
-                VCFConstants.MLE_ALLELE_FREQUENCY_KEY);
+        //VCFStandardHeaderLines.addStandardInfoLines(headerInfo, true, VCFConstants.DOWNSAMPLED_KEY, VCFConstants.MLE_ALLELE_COUNT_KEY, VCFConstants.MLE_ALLELE_FREQUENCY_KEY);
 
         // also, check to see whether comp rods were included
         //if ( dbsnp != null && dbsnp.isBound() )
