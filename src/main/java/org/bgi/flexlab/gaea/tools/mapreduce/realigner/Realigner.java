@@ -15,7 +15,7 @@ import org.bgi.flexlab.gaea.data.mapreduce.writable.SamRecordWritable;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.WindowsBasedWritable;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.BioJob;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.ToolsRunner;
-import org.bgi.flexlab.gaea.framework.tools.mapreduce.WindowsBasedMapper;
+import org.bgi.flexlab.gaea.framework.tools.mapreduce.WindowsBasedSamRecordMapper;
 import org.bgi.flexlab.gaea.tools.recalibrator.report.RecalibratorReportTableEngine;
 import org.seqdoop.hadoop_bam.SAMFormat;
 
@@ -58,7 +58,7 @@ public class Realigner extends ToolsRunner {
 				SamRecordWritable.class);
 
 		job.setJarByClass(Realigner.class);
-		job.setWindowsBasicMapperClass(WindowsBasedMapper.class, option.getWindowsSize());
+		job.setWindowsBasicMapperClass(WindowsBasedSamRecordMapper.class, option.getWindowsSize());
 		job.setReducerClass(RealignerReducer.class);
 		job.setNumReduceTasks(option.getReducerNumber());
 
