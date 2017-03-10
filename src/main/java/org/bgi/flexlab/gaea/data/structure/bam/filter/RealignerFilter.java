@@ -1,6 +1,7 @@
 package org.bgi.flexlab.gaea.data.structure.bam.filter;
 
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
+import org.bgi.flexlab.gaea.data.structure.bam.filter.util.ReadsFilter;
 import org.bgi.flexlab.gaea.util.ReadUtils;
 
 import htsjdk.samtools.SAMRecord;

@@ -1,5 +1,7 @@
 package org.bgi.flexlab.gaea.data.structure.region;
 
+import htsjdk.samtools.SAMRecord;
+
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -50,6 +52,10 @@ public class Region {
 			}
 		}
 		return false;
+	}
+
+	public boolean isSamRecordInRegion(SAMRecord samrecord) {
+		return isReadInRegion(samrecord.getReferenceName(), samrecord.getStart() - 1, samrecord.getEnd() - 1);
 	}
 	
 	public boolean isReadInRegion(String chrName, long start, long end) {

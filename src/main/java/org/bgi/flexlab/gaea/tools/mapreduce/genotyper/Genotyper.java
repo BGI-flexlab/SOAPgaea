@@ -10,11 +10,11 @@ import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamHdfsFileHeader;
 import org.bgi.flexlab.gaea.data.mapreduce.output.vcf.GaeaVCFOutputFormat;
 import org.bgi.flexlab.gaea.data.mapreduce.output.vcf.VCFHdfsWriter;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.AlignmentBasicWritable;
-import org.bgi.flexlab.gaea.data.mapreduce.writable.SamRecordWritable;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.WindowsBasedWritable;
+import org.bgi.flexlab.gaea.data.structure.bam.filter.GenotyperFilter;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.BioJob;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.ToolsRunner;
-import org.bgi.flexlab.gaea.framework.tools.mapreduce.WindowsBasedMapper;
+import org.bgi.flexlab.gaea.framework.tools.mapreduce.WindowsBasedAlignmentMapper;
 import org.bgi.flexlab.gaea.tools.genotyer.VariantCallingEngine;
 import org.bgi.flexlab.gaea.tools.genotyer.annotator.VariantAnnotatorEngine;
 import org.seqdoop.hadoop_bam.KeyIgnoringVCFOutputFormat;
@@ -63,7 +63,8 @@ public class Genotyper extends ToolsRunner {
         job.setJarByClass(Genotyper.class);
         if(options.getBedRegionFile() != null)
             conf.set(REFERENCE_REGION, options.getBedRegionFile());
-        job.setWindowsBasicMapperClass(WindowsBasedMapper.class, options.getWindowSize());
+        job.setFilterClass(GenotyperFilter.class);
+        job.setWindowsBasicMapperClass(WindowsBasedAlignmentMapper.class, options.getWindowSize());
         job.setReducerClass(GenotyperReducer.class);
         job.setNumReduceTasks(options.getReducerNumber());
 
@@ -77,14 +78,10 @@ public class Genotyper extends ToolsRunner {
         return 1;
     }
 
-
     @Override
     public int run(String[] args) throws Exception {
         Genotyper genotyper = new Genotyper();
         int res = genotyper.runGenoytper(args);
-        if(res != 0) {
-            throw new RuntimeException("GaeaGenotyper Failed!");
-        }
 
         return res;
     }

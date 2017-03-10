@@ -30,6 +30,7 @@ public class AlignmentBasicWritable implements WritableComparable<AlignmentBasic
 
 	@Override
 	public void write(DataOutput dataOutput) throws IOException {
+		//final AlignmentsBasicCodec codec = new AlignmentsBasicCodec();
 		codec.setOutputStream(new DataOutputWrapper(dataOutput));
 		codec.encode(alignment);
 	}
