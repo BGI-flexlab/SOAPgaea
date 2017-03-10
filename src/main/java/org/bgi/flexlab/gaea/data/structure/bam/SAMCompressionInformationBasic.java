@@ -89,10 +89,6 @@ public class SAMCompressionInformationBasic extends ReadBasicCompressionInformat
 		return true;
 	}
 
-	public boolean parseBamQC(String samline) {
-		return true;
-	}
-
 	public boolean SAMFilter() {
 		if(isUnmapped() || position < 0) {
 			return false;

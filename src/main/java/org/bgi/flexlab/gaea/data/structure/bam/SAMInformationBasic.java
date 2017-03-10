@@ -77,10 +77,10 @@ public abstract class SAMInformationBasic extends ReadInformation implements Par
 		return true;
 	}
 
-	@Override
-	public boolean parseBamQC(String samRecord) {
-		return true;
-	}
+	//@Override
+	//public boolean parseBamQC(String samRecord) {
+	//	return true;
+	//}
 	
 	@Override
 	public boolean SAMFilter() {
