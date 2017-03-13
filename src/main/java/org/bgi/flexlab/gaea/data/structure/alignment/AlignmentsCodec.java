@@ -16,17 +16,15 @@ public abstract class AlignmentsCodec <T extends SAMCompressionInformationBasic>
 	//FieldAccess access = FieldAccess.get(AlignmentsBasic.class);
 
 	public AlignmentsCodec() {
-
 	}
 
 	public AlignmentsCodec(Input dataInput) {
 		this.dataInput = dataInput;
-		AlignmentsInit();
 	}
 	
 	public AlignmentsCodec(Output dataOutput) {
 		this.dataOutput = dataOutput;
-		AlignmentsInit();
+		//AlignmentsInit();
 	}
 
 	public void setInputStream(InputStream input) {
@@ -42,7 +40,8 @@ public abstract class AlignmentsCodec <T extends SAMCompressionInformationBasic>
 		writeOtherInfo(alignments);
 	}
 
-	public T decode() {
+	public T 	decode() {
+		AlignmentsInit();
 		readBasic();
 		readOtherInfo();
 		
@@ -62,9 +61,12 @@ public abstract class AlignmentsCodec <T extends SAMCompressionInformationBasic>
 		dataOutput.writeInt(alignments.getReadLength());
 		dataOutput.write(alignments.getQualities());
 		dataOutput.write(alignments.getReadBases());
+		System.out.println("write record : " + alignments.getChrNameIndex() + "\t" + alignments.getPosition());
 	}
 	
 	private void readBasic() {
+		System.out.println("read record : ");
+		try
 		alignments.setFlag(dataInput.read());
 		alignments.setChrNameIndex(dataInput.read());
 		alignments.setPosition(dataInput.read());
@@ -74,9 +76,11 @@ public abstract class AlignmentsCodec <T extends SAMCompressionInformationBasic>
 		for(int i = 0; i < cigarLength; i++) {
 			cigars[i] = dataInput.read();
 		}
+		alignments.setCigars(cigars);
 		int readLength = dataInput.read();
 		alignments.setQualities(dataInput.readBytes(readLength));
 		alignments.setReadBases(dataInput.readBytes((readLength + 1) / 2));
+		System.out.println(alignments.getChrNameIndex() + "\t" + alignments.getPosition());
 	}
 	
 	public abstract void AlignmentsInit();

@@ -17,7 +17,7 @@ import org.bgi.flexlab.gaea.data.mapreduce.input.bed.RegionHdfsParser;
 import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamHdfsFileHeader;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.SamRecordWritable;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.WindowsBasedWritable;
-import org.bgi.flexlab.gaea.data.structure.bam.filter.SamRecordFilter;
+import org.bgi.flexlab.gaea.data.structure.bam.filter.util.SamRecordFilter;
 import org.bgi.flexlab.gaea.util.SamRecordUtils;
 
 public abstract class WindowsBasedMapper<VALUEOUT extends Writable> extends
@@ -74,7 +74,7 @@ public abstract class WindowsBasedMapper<VALUEOUT extends Writable> extends
 			try {
 				recordFilter = (SamRecordFilter) (Class.forName(className).newInstance());
 			} catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-				throw new RuntimeException(e.toString());
+				throw new RuntimeException(e);
 			}
 		}
 

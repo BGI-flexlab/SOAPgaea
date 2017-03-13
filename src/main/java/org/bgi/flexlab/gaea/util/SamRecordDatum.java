@@ -148,7 +148,6 @@ public class SamRecordDatum extends SAMInformationBasic {
 		this.rgIndex = rgIndex;
 	}
 
-	@Override
 	public boolean parseBamQC(String value) {
 		// TODO Auto-generated method stub
 		if (value.isEmpty()) {
