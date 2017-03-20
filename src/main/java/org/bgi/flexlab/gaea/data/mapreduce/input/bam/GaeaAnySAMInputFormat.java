@@ -57,7 +57,7 @@ public class GaeaAnySAMInputFormat extends
 		
 		if(conf.get(SAM_FORMAT_FOR_ALL_PATH) != null){
 			String format = conf.get(SAM_FORMAT_FOR_ALL_PATH);
-			if(format.equals("BAM"))
+			if(format.equals("BAM") || format.equals("bam"))
 				fmt = SAMFormat.BAM;
 			else
 				fmt = SAMFormat.SAM;

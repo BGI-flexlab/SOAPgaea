@@ -134,6 +134,7 @@ public class GaeaBamSplitGuesser {
 						if (record == null) {
 							break;
 						}
+						
 						record.getCigar(); // force decoding of CIGAR
 						decodedAny = true;
 
@@ -386,6 +387,13 @@ public class GaeaBamSplitGuesser {
 					up = nextUP;
 					continue;
 				}
+				
+				/*deep check*/
+				if(validRecord(cpVirt, nextUP-1, nameLength) != 0){
+					up = nextUP;
+					continue;
+				}
+				
 				return up;
 			}
 		} catch (IOException e) {
