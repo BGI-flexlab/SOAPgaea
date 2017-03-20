@@ -4,7 +4,10 @@
  */
 package org.bgi.flexlab.gaea.tools.annotator;
 
+import java.io.File;
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import org.apache.commons.cli.ParseException;
 import org.bgi.flexlab.gaea.data.options.GaeaOptions;
@@ -15,7 +18,8 @@ public class Parameter extends GaeaOptions implements Serializable {
 	private static final long serialVersionUID = -322870818035327827L;
 	
 	private String configFile = null; //用户配置文件
-	private String outputType = null; //输出格式 txt,vcf
+//	private String outputType = null; //输出格式 txt,vcf
+	private String tmpPath = null; //输出格式 txt,vcf
 	private String outputPath = null; 
 	private String inputFilePath = null;
 	
@@ -38,16 +42,17 @@ public class Parameter extends GaeaOptions implements Serializable {
 	@Override
 	public void parse(String[] args) {
 		
-		addOption("i", "input",      true,  "input file(VCF).", true);
-		addOption("o", "output",     true,  "output file(VCF).", true);
-		addOption("c", "config",     true,  "config file.", true);
-		addOption("r", "reference",  true,  "indexed reference sequence file list [null]", true);
-		addOption("T", "outputType", true,  "output file foramt[txt, vcf].");
-		addOption("m", "mapperNum", true,  "mapper number.");
+		addOption("i", "input",      true,  "input file(VCF). [request]", true);
+		addOption("o", "output",     true,  "output file of annotation results(.gz) [request]", true);
+		addOption("c", "config",     true,  "config file. [request]", true);
+		addOption("r", "reference",  true,  "indexed reference sequence file list [request]", true);
+		//addOption("T", "outputType", true,  "output file foramt[txt, vcf].");
+		addOption("m", "mapperNum", true,  "mapper number. [50]");
+		addOption(null,"cacheref",   false,  "DistributedCache reference sequence file list");
 		addOption(null,"verbose",    false, "display verbose information.");
 		addOption(null,"debug",      false, "for debug.");
 		addOption("h", "help",       false, "help information.");
-		FormatHelpInfo("GaeaAnnotator", "0.0.1-SNAPSHOT");
+		FormatHelpInfo("GaeaAnnotator", "0.0.1-beta");
 		
 		try {
 			cmdLine = parser.parse(options, args);
@@ -60,15 +65,26 @@ public class Parameter extends GaeaOptions implements Serializable {
 			System.exit(0);
 		}
 		
+		SimpleDateFormat df = new SimpleDateFormat("yyyyMMddHHmmss");
+	    tmpPath = "/user/" + System.getProperty("user.name") + "/annotmp-" + df.format(new Date());
 		
-		inputFilePath = cmdLine.getOptionValue("input");
-		outputPath = cmdLine.getOptionValue("output");
-		configFile = cmdLine.getOptionValue("config");
-		referenceSequencePath = cmdLine.getOptionValue("reference","");
-		outputType = getOptionValue("outputType", "txt");
-		setMapperNum(getOptionIntValue("mapperNum", 10));
-		verbose = getOptionBooleanValue("verbose", false);
-		debug = getOptionBooleanValue("debug", false);
+	    setInputFilePath(cmdLine.getOptionValue("input"));
+	    setConfigFile(cmdLine.getOptionValue("config"));
+	    setReferenceSequencePath(cmdLine.getOptionValue("reference",""));
+	    setMapperNum(getOptionIntValue("mapperNum", 50));
+	    setOutputPath(cmdLine.getOptionValue("output"));
+	    setCachedRef(getOptionBooleanValue("cacheref", false));
+		setVerbose(getOptionBooleanValue("verbose", false));
+		setDebug(getOptionBooleanValue("debug", false));
+	}
+	
+	private String formatPath(String p) {
+		if (p.startsWith("/")) {
+			p = "file://" + p;
+		}else if (p.startsWith(".")) {
+			p = "file://" + new File(p).getAbsolutePath();
+		}
+		return p;
 	}
 	
 	public String getOutputPath() {
@@ -79,14 +95,19 @@ public class Parameter extends GaeaOptions implements Serializable {
 		this.outputPath = outputPath;
 	}
 
-	public String getOutputType() {
-		return outputType;
+	public String getTmpPath() {
+		return tmpPath;
 	}
 
-	public void setOutputType(String outputType) {
-		this.outputType = outputType;
+	public void setTmpPath(String tmpPath) {
+		this.tmpPath = tmpPath;
 	}
-	
+
+	public String getOutputType() {
+//		return outputType;
+		return "txt";
+	}
+
 	public boolean isMutiSample() {
 		return mutiSample;
 	}
@@ -99,13 +120,16 @@ public class Parameter extends GaeaOptions implements Serializable {
 		return isCachedRef;
 	}
 
+	public void setCachedRef(boolean isCachedRef) {
+		this.isCachedRef = isCachedRef;
+	}
+	
 	public String getInputFilePath() {
 		return inputFilePath;
 	}
 	
-	public String setInputFilePath(String inputFilePath) {
-		this.inputFilePath = inputFilePath;
-		return inputFilePath;
+	public void setInputFilePath(String inputFilePath) {
+		this.inputFilePath = formatPath(inputFilePath);
 	}
 	
 	public String getConfigFile() {
@@ -113,11 +137,15 @@ public class Parameter extends GaeaOptions implements Serializable {
 	}
 	
 	public void setConfigFile(String configFile) {
-		this.configFile = configFile;
+		this.configFile = formatPath(configFile);
 	}
 	
 	public String getReferenceSequencePath() {
 		return referenceSequencePath;
+	}
+	
+	public void setReferenceSequencePath(String referenceSequencePath) {
+		this.referenceSequencePath = formatPath(referenceSequencePath);
 	}
 
 	public boolean isVerbose() {

@@ -76,7 +76,11 @@ public class VcfAnnotator implements Serializable{
 			String[] fields = config.getFieldsByDB(Config.KEY_GENE_INFO);
 			for (String field : fields) {
 				sb.append("\t");
-				sb.append(ac.getFieldByName(field));    
+				if(!ac.getFieldByName(field).isEmpty()){
+					sb.append(ac.getFieldByName(field));
+				}else {
+					sb.append(".");
+				}
 			}
 			
 			List<String> dbNameList = config.getDbNameList();

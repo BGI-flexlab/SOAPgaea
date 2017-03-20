@@ -2,7 +2,7 @@
 package org.bgi.flexlab.gaea.tools.genotyer.annotator;
 
 
-import htsjdk.samtools.SAMRecord;
+
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.VariantContext;
@@ -15,24 +15,17 @@ import org.bgi.flexlab.gaea.data.structure.pileup.Pileup;
 import org.bgi.flexlab.gaea.data.structure.pileup.PileupReadInfo;
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
 import org.bgi.flexlab.gaea.data.structure.vcf.VariantDataTracker;
-import org.bgi.flexlab.gaea.tools.genotyer.GenotypeLikelihoodCalculator.GenotypeLikelihoodCalculator;
-import org.bgi.flexlab.gaea.tools.genotyer.GenotypeLikelihoodCalculator.Haplotype;
-import org.bgi.flexlab.gaea.tools.genotyer.GenotypeLikelihoodCalculator.PerReadAlleleLikelihoodMap;
 import org.bgi.flexlab.gaea.tools.genotyer.annotator.interfaces.ActiveRegionBasedAnnotation;
 import org.bgi.flexlab.gaea.tools.genotyer.annotator.interfaces.InfoFieldAnnotation;
 import org.bgi.flexlab.gaea.tools.genotyer.annotator.interfaces.StandardAnnotation;
+import org.bgi.flexlab.gaea.tools.genotyer.genotypeLikelihoodCalculator.Haplotype;
+import org.bgi.flexlab.gaea.tools.genotyer.genotypeLikelihoodCalculator.PerReadAlleleLikelihoodMap;
 import org.bgi.flexlab.gaea.util.BaseUtils;
 import org.bgi.flexlab.gaea.util.MathUtils;
 import org.bgi.flexlab.gaea.util.QualityUtils;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.PriorityQueue;
+import java.util.*;
 /**
  * Consistency of the site with two (and only two) segregating haplotypes. Higher scores
  * are indicative of regions with bad alignments, often leading to artifactual SNP and indel calls.

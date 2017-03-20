@@ -200,7 +200,7 @@ public class AnnotationContext implements Serializable{
 
     public String getAnnoItemAsString(String key, String defaultValue) {
         Object x = getAnnoItem(key);
-        if ( x == null ) return defaultValue;
+        if ( x == null || x.equals("")) return defaultValue;
         if ( x instanceof String ) return (String)x;
         return String.valueOf(x); // throws an exception if this isn't a string
     }
@@ -338,7 +338,7 @@ public class AnnotationContext implements Serializable{
 	public String getFeatureType() {
 		return featureType;
 	}
-
+	
 	/**
 	 * Get a subfield by name
 	 */

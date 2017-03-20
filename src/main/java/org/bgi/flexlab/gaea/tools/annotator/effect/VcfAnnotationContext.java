@@ -4,8 +4,10 @@ import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.VariantContext;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import org.bgi.flexlab.gaea.tools.annotator.config.Config;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Chromosome;
@@ -17,7 +19,8 @@ import org.bgi.flexlab.gaea.tools.annotator.realignment.VcfRefAltAlign;
  *  AnnotationContext + VariantContext
  */
 public class VcfAnnotationContext extends VariantContext{
-	
+
+	private static final long serialVersionUID = -3258168300489497081L;
 	public enum AlleleFrequencyType {
 		Common, LowFrequency, Rare
 	}
@@ -163,6 +166,16 @@ public class VcfAnnotationContext extends VariantContext{
 	public List<String> getAlts() {
 		return alts;
 	}
+	
+	public Set<String> getGenes() {
+		Set<String> genes = new HashSet<String>();
+		for (AnnotationContext ac : annotationContexts) {
+			if (!ac.getGeneName().equals("")) {
+				genes.add(ac.getGeneName());
+			}
+		}
+		return genes;
+	}
 
 	public String toVcfLine() {
 		// TODO Auto-generated method stub
@@ -188,7 +201,12 @@ public class VcfAnnotationContext extends VariantContext{
 				if (dbName.equalsIgnoreCase("GeneInfo")) {
 					for (String field : fields) {
 						sb.append("\t");
-						sb.append(annoContext.getFieldByName(field));    
+						String tag = annoContext.getFieldByName(field);
+						if (tag.isEmpty()) {
+							sb.append(".");
+						}else {
+							sb.append(annoContext.getFieldByName(field));    
+						}
 					}
 				}else {
 					for (String field : fields) {
@@ -214,6 +232,12 @@ public class VcfAnnotationContext extends VariantContext{
 		return annotationContexts;
 	}
 	
+	public String getChromeNoChr(){
+		if(getContig().startsWith("chr")){
+			return getContig().substring(3);
+		}
+		return getContig();
+	}
 	public String getChrome(){
 		if(!getContig().startsWith("chr")){
 			return "chr"+getContig();
