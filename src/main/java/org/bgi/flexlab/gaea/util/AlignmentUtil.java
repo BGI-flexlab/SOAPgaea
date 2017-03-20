@@ -72,21 +72,23 @@ public class AlignmentUtil {
 		int indelLength = element.getLength();
 
 		int i;
-		int refBaseCount = 0, readBaseCount = 0;
+		int totalRefBaseCount = 0;
 		for (i = 0; i < indexOfIndel; i++) {
 			CigarElement ce = cigar.getCigarElement(i);
 			switch (ce.getOperator()) {
 			case X:
 			case EQ:
 			case M:
-				refBaseCount += ce.getLength();
-				readBaseCount += ce.getLength();
+				refIndex += ce.getLength();
+				readIndex += ce.getLength();
+				totalRefBaseCount += ce.getLength();
 				break;
 			case S:
-				readBaseCount += ce.getLength();
+				readIndex += ce.getLength();
 				break;
 			case N:
-				refBaseCount += ce.getLength();
+				refIndex += ce.getLength();
+				totalRefBaseCount += ce.getLength();
 				break;
 			default:
 				break;
@@ -94,8 +96,8 @@ public class AlignmentUtil {
 		}
 
 		/* CigarOperator.I needn't be changed */
-		if (element.getOperator() == CigarOperator.D && (indelLength + refBaseCount > ref.length)) {
-			indelLength -= (indelLength + refBaseCount - ref.length);
+		if (element.getOperator() == CigarOperator.D && (indelLength + totalRefBaseCount > ref.length)) {
+			indelLength -= (indelLength + totalRefBaseCount - ref.length);
 		}
 
 		int refLength = ref.length + (indelLength * (element.getOperator() == CigarOperator.D ? -1 : 1));
@@ -111,11 +113,11 @@ public class AlignmentUtil {
 		if (element.getOperator() == CigarOperator.D) {
 			refIndex += indelLength;
 		} else {
-			System.arraycopy(read, readBaseCount, alt, currPos, indelLength);
+			System.arraycopy(read, readIndex, alt, currPos, indelLength);
 			currPos += indelLength;
 		}
 
-		if (ref.length - refIndex > alt.length - currPos)
+		if (currPos >= alt.length || (ref.length - refIndex > alt.length - currPos))
 			return null;
 
 		System.arraycopy(ref, refIndex, alt, currPos, ref.length - refIndex);

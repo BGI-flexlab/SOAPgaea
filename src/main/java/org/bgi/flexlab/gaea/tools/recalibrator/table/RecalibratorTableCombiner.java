@@ -29,7 +29,18 @@ public class RecalibratorTableCombiner {
 				return true;
 			return false;
 		}
-	} 
+	}
+	
+	public static class NonRecalibratorPathFilter implements PathFilter {
+		@Override
+		public boolean accept(Path path) {
+			if (path.getName().startsWith(RecalibratorContextWriter.RECALIBRATOR_TABLE_TAG))
+				return false;
+			if(path.getName().startsWith("_"))
+				return false;
+			return true;
+		}
+	}
 
 	public void combineTable(String path) {
 		reader = new HdfsFilesReader();

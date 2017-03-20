@@ -29,7 +29,6 @@ public class RealignerReducer
 		extends Reducer<WindowsBasedWritable, SamRecordWritable, NullWritable, SamRecordWritable> {
 	private RealignerOptions option = new RealignerOptions();
 	private SAMFileHeader mHeader = null;
-	private SamRecordWritable outputValue = new SamRecordWritable();
 	private QualityControlFilter filter = new QualityControlFilter();
 
 	private ArrayList<GaeaSamRecord> records = new ArrayList<GaeaSamRecord>();
@@ -143,10 +142,8 @@ public class RealignerReducer
 
 		if (unmapped) {
 			for (SamRecordWritable value : values) {
-				SAMRecord sam = value.get();
-				sam.setHeader(mHeader);
-				outputValue.set(sam);
-				context.write(NullWritable.get(), outputValue);
+				GaeaSamRecord record = new GaeaSamRecord(mHeader,value.get(),true);
+				writer.write(record);
 			}
 			clear();
 			return;

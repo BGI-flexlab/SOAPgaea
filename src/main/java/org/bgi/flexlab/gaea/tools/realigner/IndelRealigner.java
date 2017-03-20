@@ -205,6 +205,10 @@ public class IndelRealigner {
 			return;
 		}
 		if (read.getReferenceIndex() == SAMRecord.NO_ALIGNMENT_REFERENCE_INDEX) {
+			if (writer instanceof RecalibratorContextWriter) {
+				((RecalibratorContextWriter) writer).getContext().getCounter("REALIGNER", "unexception reads")
+				.increment(notNeedRealignementReads.size());
+			}
 			realignerAndPending(knowIndels, read, null, writer);
 			return;
 		}
@@ -240,6 +244,9 @@ public class IndelRealigner {
 	}
 
 	private void write(RealignerWriter writer) {
+		if (needRealignementReads.getReads() != null)
+			notNeedRealignementReads.addAll(needRealignementReads.getReads());
+
 		if (writer instanceof RealignerContextWriter) {
 			((RealignerContextWriter) writer).getContext().getCounter("REALIGNER", "clean reads")
 					.increment(needRealignementReads.size());
@@ -247,9 +254,7 @@ public class IndelRealigner {
 			((RecalibratorContextWriter) writer).getContext().getCounter("REALIGNER", "clean reads")
 					.increment(needRealignementReads.size());
 		}
-		if (needRealignementReads.getReads() != null)
-			notNeedRealignementReads.addAll(needRealignementReads.getReads());
-
+		
 		writer.writeReadList(notNeedRealignementReads);
 		needRealignementReads.clear();
 		notNeedRealignementReads.clear();
