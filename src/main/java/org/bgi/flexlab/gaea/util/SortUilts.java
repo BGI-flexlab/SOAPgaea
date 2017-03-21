@@ -14,7 +14,6 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IOUtils;
-import org.apache.hadoop.mapreduce.filecache.DistributedCache;
 import org.apache.hadoop.mapreduce.lib.partition.TotalOrderPartitioner;
 import org.bgi.flexlab.gaea.data.structure.header.MultipleVCFHeader;
 import org.bgi.flexlab.gaea.data.structure.header.SingleVCFHeader;
