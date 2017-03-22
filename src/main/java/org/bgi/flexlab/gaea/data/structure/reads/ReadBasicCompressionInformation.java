@@ -10,6 +10,7 @@ import java.util.Arrays;
 public class ReadBasicCompressionInformation {
 	protected byte[] readBases;
 	protected byte[] qualities;
+	//protected byte[] compressedReadBases;
 	protected static int MINIMUM_BASE_QUALITY = 33;
 
 	public ReadBasicCompressionInformation() {
@@ -41,7 +42,10 @@ public class ReadBasicCompressionInformation {
 		if(toStartLength < 0 && toEndLength < 0)
 			throw new UserException("both start and end < 0 for clip read");
 
+
 		//bases
+		readBases = Arrays.copyOfRange(readBases, toStartLength, readBases.length - toEndLength);
+		/*
 		if(toStartLength % 2 != 0) {
 			byte[] readBases = new byte[(getReadLength() - toStartLength - toEndLength - 1) / 2 + 1];
 			int i, j = 0;
@@ -53,7 +57,8 @@ public class ReadBasicCompressionInformation {
 			this.readBases = readBases;
 		} else {
 			readBases = Arrays.copyOfRange(readBases, toStartLength / 2, readBases.length - (toEndLength / 2));
-		}
+		} */
+
 
 		//qualities
 		qualities = Arrays.copyOfRange(qualities, toStartLength, qualities.length - toEndLength);
@@ -80,8 +85,8 @@ public class ReadBasicCompressionInformation {
 	 * @param position
 	 * @return
 	 */
-	public char getBaseFromRead(int position) {
-		return (char) BaseUtils.baseIndexToSimpleBase(getBinaryBase(position));
+	public byte getReadBase(int position) {
+		return readBases[position];
 	}
 
 	/**
@@ -90,10 +95,7 @@ public class ReadBasicCompressionInformation {
 	 * @return
 	 */
 	public byte getBinaryBase(int position) {
-		if(position % 2 != 0) {
-			return (byte) (readBases[position / 2] >> 4);
-		} else
-			return (byte) (readBases[position / 2] & 0x0f);
+		return (byte) ((getReadBase(position) >> 1) & 0x0f);
 	}
 
 	/**
@@ -102,6 +104,15 @@ public class ReadBasicCompressionInformation {
 	 */
 	public byte[] getReadBases() {
 		return readBases;
+	}
+
+
+	/**
+	 *  get read bases in String
+	 * @return read bases in String
+	 */
+	public String getReadBasesString() {
+		return String.valueOf(getReadBases());
 	}
 
 	/**
@@ -113,41 +124,35 @@ public class ReadBasicCompressionInformation {
 	}
 
 	/**
-	 * get read seq in string
-	 * @return
-	 */
-	public String getReadsSequence() {
-		return Bytes.toString(getReadsOriginalSequenceBytes());
-	}
-
-	/**
 	 * get read region seq
 	 * @param qStart
 	 * @param length
 	 * @return
 	 */
-	public String getReadBases(int qStart, int length) {
+	public byte[] getReadBases(int qStart, int length) {
 		byte[] bases = new byte[length];
 
-		int i = 0;
-		if(qStart % 2 != 0)
-			bases[i++] = BaseUtils.baseIndexToSimpleBase((byte) (readBases[qStart / 2] >> 4));
-		for(; i < length - 1; i += 2) {
-			bases[i] = BaseUtils.baseIndexToSimpleBase((byte) (readBases[qStart / 2] & 0x0f));
-			bases[i + 1] = BaseUtils.baseIndexToSimpleBase((byte) (readBases[qStart / 2] >> 4));
+		for(int i = 0; i < length; i++) {
+			bases[i] = readBases[qStart +i];
 		}
-		if(i - 2 < length - 1) {
-			bases[length - 1] = BaseUtils.baseIndexToSimpleBase((byte) (readBases[qStart / 2] & 0x0f));
-		}
-		return String.valueOf(bases);
+		return bases;
+	}
+
+	public String getReadBasesString(int qstart, int length) {
+		return String.valueOf(getReadBases(qstart, length));
 	}
 
 	/**
-	 * get read seq bytes
+	 * compress read bases.
 	 * @return
 	 */
-	public byte[] getReadsOriginalSequenceBytes() {
-		return SAMUtils.compressedBasesToBytesGaea(qualities.length, readBases, 0);
+	public byte[] getCompressedReadBasesBytes() {
+		//return SAMUtils.compressedBasesToBytesGaea(qualities.length, readBases, 0);
+		return SAMUtils.bytesToCompressedBasesGaea(readBases);
+	}
+
+	public void getReadBasesFromCompressedReadBasesBytes(byte[] compressedReadBases, int readLength) {
+		readBases = SAMUtils.compressedBasesToBytesGaea(readLength, compressedReadBases, 0);
 	}
 
 	/**
@@ -164,6 +169,10 @@ public class ReadBasicCompressionInformation {
 	 */
 	public void setQualities(byte[] qualities) {
 		this.qualities = qualities;
+	}
+
+	public String getQualitiesString() {
+		return String.valueOf(qualities);
 	}
 
 	/**
@@ -191,5 +200,12 @@ public class ReadBasicCompressionInformation {
 	public void emptyRead() {
 		readBases = null;
 		qualities = null;
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+
+		return sb.toString();
 	}
 }

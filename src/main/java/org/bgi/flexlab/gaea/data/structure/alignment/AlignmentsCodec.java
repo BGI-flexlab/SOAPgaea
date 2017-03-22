@@ -1,40 +1,40 @@
 package org.bgi.flexlab.gaea.data.structure.alignment;
 
-import com.esotericsoftware.kryo.io.Input;
-import com.esotericsoftware.kryo.io.Output;
+import com.esotericsoftware.kryo.KryoException;
+import htsjdk.samtools.util.BinaryCodec;
 import org.bgi.flexlab.gaea.data.structure.bam.SAMCompressionInformationBasic;
 
-import java.io.DataInput;
-import java.io.DataInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 
 public abstract class AlignmentsCodec <T extends SAMCompressionInformationBasic>{
-	protected Input dataInput;
-	protected Output dataOutput;
+	protected BinaryCodec binaryCodec;
 	protected T alignments;
 	//FieldAccess access = FieldAccess.get(AlignmentsBasic.class);
 
 	public AlignmentsCodec() {
+		binaryCodec = new BinaryCodec();
 	}
 
-	public AlignmentsCodec(Input dataInput) {
-		this.dataInput = dataInput;
+	public AlignmentsCodec(InputStream dataInput) {
+		binaryCodec = new BinaryCodec();
+		this.binaryCodec.setInputStream(dataInput);
 	}
 	
-	public AlignmentsCodec(Output dataOutput) {
-		this.dataOutput = dataOutput;
+	public AlignmentsCodec(OutputStream dataOutput) {
+		binaryCodec = new BinaryCodec();
+		this.binaryCodec.setOutputStream(dataOutput);
 		//AlignmentsInit();
 	}
 
-	public void setInputStream(InputStream input) {
-		dataInput = new Input(input);
+	public void setInputStream(InputStream dataInput) {
+		this.binaryCodec.setInputStream(dataInput);
 	}
 
-	public void setOutputStream(OutputStream output) {
-		dataOutput = new Output(output);
+	public void setOutputStream(OutputStream dataOutput) {
+		this.binaryCodec.setOutputStream(dataOutput);
 	}
-	
+
 	public void encode(T alignments) {
 		writeBasic(alignments);
 		writeOtherInfo(alignments);
@@ -42,45 +42,55 @@ public abstract class AlignmentsCodec <T extends SAMCompressionInformationBasic>
 
 	public T 	decode() {
 		AlignmentsInit();
-		readBasic();
-		readOtherInfo();
-		
-		return alignments;
+		if(readBasic()) {
+			readOtherInfo();
+			return alignments;
+		} else
+			return null;
 	}
 	
 	private void writeBasic(T alignments) {
-		dataOutput.write(alignments.getFlag());
-		dataOutput.writeInt(alignments.getChrNameIndex());
-		dataOutput.writeInt(alignments.getPosition());
-		dataOutput.writeShort(alignments.getMappingQual());
-		dataOutput.writeInt(alignments.getCigarsLength());
+		binaryCodec.writeByte(alignments.getFlag());
+		binaryCodec.writeInt(alignments.getChrNameIndex());
+		binaryCodec.writeInt(alignments.getPosition());
+		binaryCodec.writeShort(alignments.getMappingQual());
+		binaryCodec.writeInt(alignments.getCigarsLength());
 		int[] cigars = alignments.getCigars();
 		for(int i = 0; i < alignments.getCigarsLength(); i++) {
-			dataOutput.writeInt(cigars[i]);
+			binaryCodec.writeInt(cigars[i]);
 		}
-		dataOutput.writeInt(alignments.getReadLength());
-		dataOutput.write(alignments.getQualities());
-		dataOutput.write(alignments.getReadBases());
-		System.out.println("write record : " + alignments.getChrNameIndex() + "\t" + alignments.getPosition());
+		binaryCodec.writeInt(alignments.getReadLength());
+		binaryCodec.writeBytes(alignments.getQualities());
+		binaryCodec.writeBytes(alignments.getCompressedReadBasesBytes());
+		System.out.println("write record : " + alignments.toString());
 	}
 	
-	private void readBasic() {
-		System.out.println("read record : ");
-		try
-		alignments.setFlag(dataInput.read());
-		alignments.setChrNameIndex(dataInput.read());
-		alignments.setPosition(dataInput.read());
-		alignments.setMappingQual(dataInput.readShort());
-		int cigarLength = dataInput.read();
+	private boolean readBasic() {
+		System.out.print("read record : ");
+		try {
+			alignments.setFlag(binaryCodec.readByte());
+		} catch (KryoException e) {
+			return false;
+		}
+		alignments.setChrNameIndex(binaryCodec.readInt());
+		alignments.setPosition(binaryCodec.readInt());
+		alignments.setMappingQual(binaryCodec.readShort());
+		int cigarLength = binaryCodec.readInt();
 		int[] cigars = new int[cigarLength];
 		for(int i = 0; i < cigarLength; i++) {
-			cigars[i] = dataInput.read();
+			cigars[i] = binaryCodec.readInt();
 		}
 		alignments.setCigars(cigars);
-		int readLength = dataInput.read();
-		alignments.setQualities(dataInput.readBytes(readLength));
-		alignments.setReadBases(dataInput.readBytes((readLength + 1) / 2));
-		System.out.println(alignments.getChrNameIndex() + "\t" + alignments.getPosition());
+		int readLength = binaryCodec.readInt();
+		int baseLength = (readLength + 1) / 2;
+		byte[] qualities = new byte[readLength];
+		byte[] readBases = new byte[baseLength];
+		binaryCodec.readBytes(qualities);
+		binaryCodec.readBytes(readBases);
+		alignments.setQualities(qualities);
+		alignments.getReadBasesFromCompressedReadBasesBytes(readBases, readLength);
+		System.out.println(alignments.toString());
+		return true;
 	}
 	
 	public abstract void AlignmentsInit();

@@ -70,7 +70,7 @@ public abstract class GenotypeLikelihoodCalculator {
         List<Class<? extends GenotypeLikelihoodCalculator>> glmClasses = new ArrayList<>();
         glmClasses.add(SNPGenotypeLikelihoodCalculator.class);
         glmClasses.add(INDELGenotypeLikelihoodCalculator.class);
-        glmClasses.add(SOAPSNPGenotypeLikelihoodCalculator.class);
+        //glmClasses.add(SOAPSNPGenotypeLikelihoodCalculator.class);
         for (int i = 0; i < glmClasses.size(); i++) {
             final Class<? extends GenotypeLikelihoodCalculator> glmClass = glmClasses.get(i);
             final String key = glmClass.getSimpleName().replaceAll(GTMSTRING, "").toUpperCase();
@@ -78,8 +78,10 @@ public abstract class GenotypeLikelihoodCalculator {
                 final Object args[] = new Object[] { options };
                 final Constructor c = glmClass.getDeclaredConstructor(GenotyperOptions.class);
                 glcm.put(key, (GenotypeLikelihoodCalculator) c.newInstance(args));
+                System.err.println("key:" + key + "\tclass:" + c.getName());
             } catch (Exception e) {
-                throw new UserException("The likelihoods model provided for the -glm argument (" + options.getGtlcalculators() + ") is not a valid option: " + e.getMessage());
+                throw new UserException("The likelihoods model provided for the -glm argument (" + options.getGtlcalculators() +
+                        ") is not a valid option: " + e.getClass() + ":\n" + e.getMessage());
             }
         }
 
@@ -91,9 +93,8 @@ public abstract class GenotypeLikelihoodCalculator {
      * @param options options
      */
     public GenotypeLikelihoodCalculator(GenotyperOptions options) {
-        if(modelsToUse == null) {
-            getCalculators(options);
-            getGenotypeLikelihoodsCalculatorObject(options);
+        if(options == null) {
+            throw new RuntimeException("options can not be null.");
         }
     }
 

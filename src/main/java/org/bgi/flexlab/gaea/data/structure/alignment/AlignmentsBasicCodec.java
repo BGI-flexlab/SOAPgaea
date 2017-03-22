@@ -6,7 +6,7 @@ import com.esotericsoftware.kryo.io.Output;
 public class AlignmentsBasicCodec extends AlignmentsCodec<AlignmentsBasic>{
 
 	public AlignmentsBasicCodec() {
-
+		super();
 	}
 	public AlignmentsBasicCodec(Input dataInput) {
 		super(dataInput);
@@ -24,13 +24,13 @@ public class AlignmentsBasicCodec extends AlignmentsCodec<AlignmentsBasic>{
 	@Override
 	protected void writeOtherInfo(AlignmentsBasic alignments) {
 		// TODO Auto-generated method stub
-		dataOutput.write(alignments.getSampleIndex());
+		binaryCodec.writeInt(alignments.getSampleIndex());
+		//dataOutput.flush();
 	}
 
 	@Override
 	protected void readOtherInfo() {
 		// TODO Auto-generated method stub
-		alignments.setSampleIndex(dataInput.read());
+		alignments.setSampleIndex(binaryCodec.readInt());
 	}
-
 }
