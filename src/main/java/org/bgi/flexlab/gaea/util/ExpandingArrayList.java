@@ -4,6 +4,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 public class ExpandingArrayList<E> extends ArrayList<E>{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -3384958780645022068L;
+
+
 	public ExpandingArrayList() { super(); }
     public ExpandingArrayList(Collection<? extends E> c) { super(c); }
     public ExpandingArrayList(int initialCapacity) { super(initialCapacity); }

@@ -29,10 +29,12 @@ public abstract class WindowsBasedMapper<VALUEOUT extends Writable> extends
 	public final static String SAM_RECORD_FILTER = "sam.record.filter";
 	public final static String REFERENCE_REGION = "reference.region.bed";
 	public final static String UNMAPPED_REFERENCE_NAME = "UNMAPPED";
+	public final static String BASERECALIBRATOR_ONLY = "base.recalibrator.only";
 
 	protected int windowsSize;
 	protected int windowsExtendSize;
 	protected boolean multiSample;
+	protected boolean bqsrOnly = false;
 	protected SAMFileHeader header = null;
 
 	protected WindowsBasedWritable keyout = new WindowsBasedWritable();
@@ -51,6 +53,7 @@ public abstract class WindowsBasedMapper<VALUEOUT extends Writable> extends
 		windowsSize = conf.getInt(WINDOWS_SIZE, 10000);
 		windowsExtendSize = conf.getInt(WINDOWS_EXTEND_SIZE, 500);
 		multiSample = conf.getBoolean(MULTIPLE_SAMPLE, false);
+		bqsrOnly = conf.getBoolean(BASERECALIBRATOR_ONLY,false);
 		initOutputVaule();
 
 		header = SamHdfsFileHeader.getHeader(conf);
@@ -118,8 +121,10 @@ public abstract class WindowsBasedMapper<VALUEOUT extends Writable> extends
 		setOutputValue(sam);
 
 		if (SamRecordUtils.isUnmapped(sam)) {
-			setKey(sam.getReadGroup().getSample(), -1, sam.getReadName().hashCode(), sam.getReadName().hashCode());
-			context.write(keyout, outputValue);
+			if(!bqsrOnly){
+				setKey(sam.getReadGroup().getSample(), -1, sam.getReadName().hashCode(), sam.getReadName().hashCode());
+				context.write(keyout, outputValue);
+			}
 			return;
 		}
 

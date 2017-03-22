@@ -24,7 +24,7 @@ import htsjdk.samtools.seekablestream.SeekableStream;
  * bam header io for hdfs
  * */
 public class SamHdfsFileHeader extends SamFileHeader {
-	protected final static String BAM_HEADER_FILE_NAME = "SAMFileHeader";
+	public final static String BAM_HEADER_FILE_NAME = "SAMFileHeader";
 	protected final static SAMFileHeader.SortOrder SORT_ORDER = SAMFileHeader.SortOrder.coordinate;
 	protected static boolean MERGE_SEQUENCE_DICTIONARIES = true;
 	protected static SAMFileHeader.SortOrder headerMergerSortOrder;

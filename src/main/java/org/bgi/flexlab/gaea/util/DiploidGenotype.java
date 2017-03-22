@@ -1,8 +1,5 @@
 package org.bgi.flexlab.gaea.util;
 
-
-import java.util.Map;
-
 public enum DiploidGenotype {
     AA ('A', 'A'),
     AC ('A', 'C'),
