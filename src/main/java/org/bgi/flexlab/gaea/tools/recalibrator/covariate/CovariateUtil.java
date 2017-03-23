@@ -29,10 +29,11 @@ public class CovariateUtil {
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private static List<Class<? extends OptionalCovariate>> initOptionalCovariate() {
+	private static List<Class<? extends OptionalCovariate>> initOptionalCovariate(boolean cycle) {
 		List<Class<? extends OptionalCovariate>> optional = new ArrayList();
 		optional.add(ContextCovariate.class);
-		optional.add(CycleCovariate.class);
+		if(cycle)
+			optional.add(CycleCovariate.class);
 		return optional;
 	}
 
@@ -64,7 +65,7 @@ public class CovariateUtil {
 			RecalibratorOptions option) {
 		final List<Class<? extends Covariate>> covariateClasses = initConvariate();
 		final List<Class<? extends RequiredCovariate>> requiredClasses = initRequiredCovariate();
-		final List<Class<? extends OptionalCovariate>> standardClasses = initOptionalCovariate();
+		final List<Class<? extends OptionalCovariate>> standardClasses = initOptionalCovariate(false);
 
 		final ArrayList<Covariate> requiredCovariates = addRequiredCovariatesToList(requiredClasses);
 		ArrayList<Covariate> optionalCovariates = new ArrayList<Covariate>();

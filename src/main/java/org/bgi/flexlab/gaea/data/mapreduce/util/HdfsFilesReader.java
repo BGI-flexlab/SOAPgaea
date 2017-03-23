@@ -114,9 +114,11 @@ public class HdfsFilesReader extends GaeaFilesReader{
 		for(Path path : files){
 			fs = HdfsFileManager.getFileSystem(path, conf);
 			try {
-				fs.deleteOnExit(path);
-			} catch (IOException e) {
-				throw new RuntimeException(e.toString());
+				if(fs.exists(path)){
+					fs.delete(path);
+				}
+			} catch (IOException e1) {
+				throw new RuntimeException(e1.toString());
 			}
 		}
 	}
