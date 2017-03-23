@@ -2,6 +2,7 @@ package org.bgi.flexlab.gaea.data.structure.alignment;
 
 import com.esotericsoftware.kryo.KryoException;
 import htsjdk.samtools.util.BinaryCodec;
+import htsjdk.samtools.util.RuntimeEOFException;
 import org.bgi.flexlab.gaea.data.structure.bam.SAMCompressionInformationBasic;
 
 import java.io.InputStream;
@@ -62,14 +63,14 @@ public abstract class AlignmentsCodec <T extends SAMCompressionInformationBasic>
 		binaryCodec.writeInt(alignments.getReadLength());
 		binaryCodec.writeBytes(alignments.getQualities());
 		binaryCodec.writeBytes(alignments.getCompressedReadBasesBytes());
-		System.out.println("write record : " + alignments.toString());
+		//System.out.println("write record : " + alignments.toString());
 	}
 	
 	private boolean readBasic() {
-		System.out.print("read record : ");
+		//System.out.print("read record : ");
 		try {
 			alignments.setFlag(binaryCodec.readByte());
-		} catch (KryoException e) {
+		} catch (RuntimeEOFException e) {
 			return false;
 		}
 		alignments.setChrNameIndex(binaryCodec.readInt());
@@ -89,7 +90,7 @@ public abstract class AlignmentsCodec <T extends SAMCompressionInformationBasic>
 		binaryCodec.readBytes(readBases);
 		alignments.setQualities(qualities);
 		alignments.getReadBasesFromCompressedReadBasesBytes(readBases, readLength);
-		System.out.println(alignments.toString());
+		//System.out.println(alignments.toString());
 		return true;
 	}
 	
