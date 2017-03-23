@@ -7,7 +7,6 @@ import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.bam.filter.BaseRecalibrationFilter;
 import org.bgi.flexlab.gaea.data.structure.reference.BaseAndSNPInformation;
 import org.bgi.flexlab.gaea.data.structure.reference.ReferenceShare;
-import org.bgi.flexlab.gaea.tools.mapreduce.realigner.RecalibratorContextWriter;
 import org.bgi.flexlab.gaea.tools.mapreduce.realigner.RecalibratorOptions;
 import org.bgi.flexlab.gaea.tools.realigner.RealignerWriter;
 import org.bgi.flexlab.gaea.tools.recalibrator.RecalibratorUtil.Consistent;
@@ -82,15 +81,15 @@ public class RecalibratorEngine {
 		if (RecalibratorUtil.isSOLiDRead(read) || option.SOLID_RECAL_MODE == SolidRecallMode.DO_NOTHING)
 			return;
 
+		int start = read.getAlignmentStart();
 		int end = read.getAlignmentEnd();
-		int[] readOffsets = AlignmentUtil.readOffsets(read.getCigar(), read.getAlignmentStart(), end);
+		int[] readOffsets = AlignmentUtil.readOffsets(read.getCigar(), start, end);
 
 		byte[] quals = read.getBaseQualities();
 		byte[] bases = read.getReadBases();
 
 		Consistent consistent = null;
 		ReadCovariates rcovariate = null;
-		int start = read.getAlignmentStart();
 		for (int i = start; i <= end; i++) {
 			int qpos = readOffsets[i - start];
 			if (!information.getSNP(i)) {
