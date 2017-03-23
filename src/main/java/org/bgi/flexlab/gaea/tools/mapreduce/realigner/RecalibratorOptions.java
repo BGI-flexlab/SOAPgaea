@@ -170,7 +170,7 @@ public class RecalibratorOptions extends GaeaOptions implements HadoopOptions {
 		BINARY_TAG_NAME = getOptionValue("b", null);
 		DEFAULT_PLATFORM = getOptionValue("a", null);
 		FORCE_PLATFORM = getOptionValue("f", null);
-		COVARIATES = getOptionValue("A", null) == null ? null : getOptionValue("c", null).split(",");
+		COVARIATES = getOptionValue("A", null) == null ? null : getOptionValue("A", null).split(",");
 		MISMATCHES_CONTEXT_SIZE = getOptionIntValue("g", 2);
 		INDELS_CONTEXT_SIZE = getOptionIntValue("G", 3);
 

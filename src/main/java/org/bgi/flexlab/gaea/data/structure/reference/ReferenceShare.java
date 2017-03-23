@@ -108,7 +108,10 @@ public class ReferenceShare extends WholeGenomeShare {
 	public ChromosomeInformationShare getChromosomeInfo(String chrName) {
 		if (chromosomeInfoMap.get(ChromosomeUtils.formatChrName(chrName)) == null)
 			throw new RuntimeException("chr name not in GaeaIndex of ref:" + chrName);
-		return chromosomeInfoMap.get(ChromosomeUtils.formatChrName(chrName));
+		//FIXME::temporary solution for chromosome name problem.
+		ChromosomeInformationShare chrInfo = chromosomeInfoMap.get(ChromosomeUtils.formatChrName(chrName));
+		chrInfo.setChromosomeName(chrName);
+		return chrInfo;
 	}
 
 	/**
