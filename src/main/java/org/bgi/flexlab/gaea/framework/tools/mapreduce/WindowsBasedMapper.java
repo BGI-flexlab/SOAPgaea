@@ -10,17 +10,18 @@ import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.bgi.flexlab.gaea.data.exception.FileNotExistException;
 import org.bgi.flexlab.gaea.data.mapreduce.input.bed.RegionHdfsParser;
 import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamHdfsFileHeader;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.SamRecordWritable;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.WindowsBasedWritable;
-import org.bgi.flexlab.gaea.data.structure.bam.filter.SamRecordFilter;
+import org.bgi.flexlab.gaea.data.structure.bam.filter.util.SamRecordFilter;
 import org.bgi.flexlab.gaea.util.SamRecordUtils;
 
-public class WindowsBasedMapper
-		extends Mapper<LongWritable, SamRecordWritable, WindowsBasedWritable, SamRecordWritable> {
+public abstract class WindowsBasedMapper<VALUEOUT extends Writable> extends
+		Mapper<LongWritable, SamRecordWritable, WindowsBasedWritable, VALUEOUT> {
 
 	public final static String WINDOWS_SIZE = "windows.size";
 	public final static String WINDOWS_EXTEND_SIZE = "windows.extend.size";
@@ -28,18 +29,23 @@ public class WindowsBasedMapper
 	public final static String SAM_RECORD_FILTER = "sam.record.filter";
 	public final static String REFERENCE_REGION = "reference.region.bed";
 	public final static String UNMAPPED_REFERENCE_NAME = "UNMAPPED";
+	public final static String BASERECALIBRATOR_ONLY = "base.recalibrator.only";
 
 	protected int windowsSize;
 	protected int windowsExtendSize;
 	protected boolean multiSample;
+	protected boolean bqsrOnly = false;
 	protected SAMFileHeader header = null;
 
 	protected WindowsBasedWritable keyout = new WindowsBasedWritable();
 	private SamRecordFilter recordFilter = null;
 	private RegionHdfsParser region = null;
-	private SamRecordWritable outputValue = new SamRecordWritable();
+	protected VALUEOUT outputValue;
 
 	private HashMap<String, Integer> sampleIDs = null;
+
+	abstract void setOutputValue(SAMRecord samRecord);
+	abstract void initOutputVaule();
 
 	@Override
 	protected void setup(Context context) throws IOException, InterruptedException {
@@ -47,6 +53,8 @@ public class WindowsBasedMapper
 		windowsSize = conf.getInt(WINDOWS_SIZE, 10000);
 		windowsExtendSize = conf.getInt(WINDOWS_EXTEND_SIZE, 500);
 		multiSample = conf.getBoolean(MULTIPLE_SAMPLE, false);
+		bqsrOnly = conf.getBoolean(BASERECALIBRATOR_ONLY,false);
+		initOutputVaule();
 
 		header = SamHdfsFileHeader.getHeader(conf);
 
@@ -69,7 +77,7 @@ public class WindowsBasedMapper
 			try {
 				recordFilter = (SamRecordFilter) (Class.forName(className).newInstance());
 			} catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-				throw new RuntimeException(e.toString());
+				throw new RuntimeException(e);
 			}
 		}
 
@@ -110,12 +118,13 @@ public class WindowsBasedMapper
 		if (recordFilter.filter(sam, region)) {
 			return;
 		}
-
-		outputValue.set(value.get());
+		setOutputValue(sam);
 
 		if (SamRecordUtils.isUnmapped(sam)) {
-			setKey(sam.getReadGroup().getSample(), -1, sam.getReadName().hashCode(), sam.getReadName().hashCode());
-			context.write(keyout, outputValue);
+			if(!bqsrOnly){
+				setKey(sam.getReadGroup().getSample(), -1, sam.getReadName().hashCode(), sam.getReadName().hashCode());
+				context.write(keyout, outputValue);
+			}
 			return;
 		}
 

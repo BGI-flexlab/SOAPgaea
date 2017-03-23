@@ -54,8 +54,8 @@ public class GaeaSamRecordBin {
 	public byte[] getReference(ChromosomeInformationShare chr,
 			GenomeLocationParser parser) {
 		if (refBases == null) {
-			int start = location.getStart() - REFERENCE_EXTEND;
-			int end = location.getStop() + REFERENCE_EXTEND;
+			int start = location.getStart() > REFERENCE_EXTEND ? (location.getStart() - REFERENCE_EXTEND) : 1;
+			int end = location.getStop() + REFERENCE_EXTEND > chr.getLength() ? chr.getLength() : (location.getStop() + REFERENCE_EXTEND);
 			location = parser.createGenomeLocation(location.getContig(), start,
 					end);
 			refBases = chr.getBaseBytes(start - 1, end - 1);

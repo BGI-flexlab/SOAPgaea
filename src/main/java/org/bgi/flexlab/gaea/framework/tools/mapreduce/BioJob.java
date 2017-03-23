@@ -11,7 +11,7 @@ import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamHdfsFileHeader;
 import org.bgi.flexlab.gaea.data.mapreduce.partitioner.WindowsBasedComparator;
 import org.bgi.flexlab.gaea.data.mapreduce.partitioner.WindowsBasedPartitioner;
 import org.bgi.flexlab.gaea.data.mapreduce.partitioner.WindowsBasedSort;
-import org.bgi.flexlab.gaea.data.structure.bam.filter.SamRecordFilter;
+import org.bgi.flexlab.gaea.data.structure.bam.filter.util.SamRecordFilter;
 import org.seqdoop.hadoop_bam.SAMFormat;
 
 import htsjdk.samtools.SAMFileHeader;
@@ -32,30 +32,31 @@ public class BioJob extends Job {
 	}
 
 	@SuppressWarnings("rawtypes")
-	public void setWindowsBasicMapperClass(Class<? extends Mapper> cls,
-			int windowsSize) throws IllegalStateException {
+	public void setWindowsBasicMapperClass(Class<? extends Mapper> cls, int windowsSize) throws IllegalStateException {
 		conf.setInt(WindowsBasedMapper.WINDOWS_SIZE, windowsSize);
 		setMapperClass(cls);
 		setPartitionerClass(WindowsBasedPartitioner.class);
 		setGroupingComparatorClass(WindowsBasedComparator.class);
 		setSortComparatorClass(WindowsBasedSort.class);
-		//setSortComparatorClass(WindowsBasedBasicSort.class);
+		// setSortComparatorClass(WindowsBasedBasicSort.class);
 	}
 
 	@SuppressWarnings("rawtypes")
-	public void setWindowsBasicMapperClass(Class<? extends Mapper> cls,
-			int windowsSize, int windowsExtendSize)
+	public void setWindowsBasicMapperClass(Class<? extends Mapper> cls, int windowsSize, int windowsExtendSize)
 			throws IllegalStateException {
 		conf.setInt(WindowsBasedMapper.WINDOWS_EXTEND_SIZE, windowsExtendSize);
 		setWindowsBasicMapperClass(cls, windowsSize);
 	}
-	
-	public void setWindowsBasicMapperClass(@SuppressWarnings("rawtypes") Class<? extends Mapper> cls,
-			int windowsSize, int windowsExtendSize,boolean multiSample)
-			throws IllegalStateException {
-		if(multiSample)
+
+	public void setOnlyBaseRecalibrator(boolean bqsr) {
+		conf.setBoolean(WindowsBasedMapper.BASERECALIBRATOR_ONLY, bqsr);
+	}
+
+	public void setWindowsBasicMapperClass(@SuppressWarnings("rawtypes") Class<? extends Mapper> cls, int windowsSize,
+			int windowsExtendSize, boolean multiSample) throws IllegalStateException {
+		if (multiSample)
 			setMultipleSample();
-		setWindowsBasicMapperClass(cls,windowsSize,windowsExtendSize);
+		setWindowsBasicMapperClass(cls, windowsSize, windowsExtendSize);
 	}
 
 	public void setMultipleSample() {
@@ -64,14 +65,13 @@ public class BioJob extends Job {
 
 	/*
 	 * set windows based mapper filter
-	 * */
+	 */
 	public void setFilterClass(Class<? extends SamRecordFilter> cls) {
-		conf.setClass(WindowsBasedMapper.SAM_RECORD_FILTER, cls,
-				SamRecordFilter.class);
+		conf.setClass(WindowsBasedMapper.SAM_RECORD_FILTER, cls, SamRecordFilter.class);
 	}
 
-	public void setOutputKeyValue(Class<?> mapKeyClass, Class<?> mapValueClass,
-			Class<?> reduceKeyClass, Class<?> reduceValueClass) {
+	public void setOutputKeyValue(Class<?> mapKeyClass, Class<?> mapValueClass, Class<?> reduceKeyClass,
+			Class<?> reduceValueClass) {
 		setMapOutputKeyClass(mapKeyClass);
 		setMapOutputValueClass(mapValueClass);
 		setOutputKeyClass(reduceKeyClass);
@@ -82,20 +82,24 @@ public class BioJob extends Job {
 		setOutputKeyClass(keyClass);
 		setOutputValueClass(valueClass);
 	}
-	
+
 	/*
 	 * set sam or bam inputformat
-	 * */
-	public void setAnySamInputFormat(SAMFormat fmt){
+	 */
+	public void setAnySamInputFormat(SAMFormat fmt) {
 		conf.set(GaeaAnySAMInputFormat.SAM_FORMAT_FOR_ALL_PATH, fmt.toString());
 		setInputFormatClass(GaeaAnySAMInputFormat.class);
 	}
-	
-	public SAMFileHeader setHeader(Path input,Path output){
+
+	public SAMFileHeader setHeader(Path input, Path output) {
 		try {
-			return SamHdfsFileHeader.loadHeader(input,conf,output);
+			return SamHdfsFileHeader.loadHeader(input, conf, output);
 		} catch (IOException e) {
 			throw new RuntimeException(e.toString());
 		}
+	}
+
+	public void setHeader(String headerPath) {
+		conf.set(SamHdfsFileHeader.BAM_HEADER_FILE_NAME, headerPath);
 	}
 }

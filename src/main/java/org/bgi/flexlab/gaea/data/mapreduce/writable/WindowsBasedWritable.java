@@ -98,6 +98,16 @@ public class WindowsBasedWritable implements WritableComparable<WindowsBasedWrit
 		return windowsInfo.hashCode() * 163 + position.hashCode();
 	}
 
+	public int partition() {
+		long hashcode = (getChromosomeIndex() + 1) * 163;
+		hashcode += (getWindowsNumber() + 1) * 127;
+		hashcode += (getSampleID() + 1) * 163;
+		
+		if(hashcode >= (long)(Integer.MAX_VALUE))
+			hashcode -= (long)(Integer.MAX_VALUE);
+		return (int)(hashcode & 0xffffffff);
+	}
+
 	@Override
 	public boolean equals(Object other) {
 		if (other instanceof WindowsBasedWritable) {
@@ -112,7 +122,7 @@ public class WindowsBasedWritable implements WritableComparable<WindowsBasedWrit
 	public int compareTo(WindowsBasedWritable tp) {
 		long cmp = windowsInfo.get() - tp.getWindows();
 		if (cmp != 0) {
-			if(cmp > 0)
+			if (cmp > 0)
 				return 1;
 			return -1;
 		}

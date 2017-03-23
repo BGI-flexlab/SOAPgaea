@@ -2,6 +2,7 @@ package org.bgi.flexlab.gaea.data.structure.bam;
 
 import htsjdk.samtools.CigarElement;
 import htsjdk.samtools.CigarOperator;
+import htsjdk.samtools.SAMRecord;
 import org.bgi.flexlab.gaea.data.structure.reads.ReadBasicCompressionInformation;
 import org.bgi.flexlab.gaea.util.SAMUtils;
 import org.bgi.flexlab.gaea.util.SystemConfiguration;
@@ -50,7 +51,7 @@ public class SAMCompressionInformationBasic extends ReadBasicCompressionInformat
 		this.cigars = Arrays.copyOf(read.cigars, read.cigars.length);
 	}
 
-	public boolean parseSAM(GaeaSamRecord samRecord) {
+	public boolean parseSAM(SAMRecord samRecord) {
 
 		flag = samRecord.getFlags();
 
@@ -85,10 +86,6 @@ public class SAMCompressionInformationBasic extends ReadBasicCompressionInformat
 
 		qualities = samRecord.getBaseQualities();
 
-		return true;
-	}
-
-	public boolean parseBamQC(String samline) {
 		return true;
 	}
 

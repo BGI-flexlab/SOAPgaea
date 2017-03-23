@@ -1,8 +1,11 @@
 package org.bgi.flexlab.gaea.tools.mapreduce.realigner;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
@@ -10,13 +13,17 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
+import org.bgi.flexlab.gaea.data.exception.FileNotExistException;
+import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamHdfsFileHeader;
 import org.bgi.flexlab.gaea.data.mapreduce.output.bam.GaeaBamOutputFormat;
+import org.bgi.flexlab.gaea.data.mapreduce.util.HdfsFileManager;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.SamRecordWritable;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.WindowsBasedWritable;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.BioJob;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.ToolsRunner;
-import org.bgi.flexlab.gaea.framework.tools.mapreduce.WindowsBasedMapper;
+import org.bgi.flexlab.gaea.framework.tools.mapreduce.WindowsBasedSamRecordMapper;
 import org.bgi.flexlab.gaea.tools.recalibrator.report.RecalibratorReportTableEngine;
+import org.bgi.flexlab.gaea.tools.recalibrator.table.RecalibratorTableCombiner.NonRecalibratorPathFilter;
 import org.seqdoop.hadoop_bam.SAMFormat;
 
 import htsjdk.samtools.SAMFileHeader;
@@ -33,6 +40,7 @@ public class Realigner extends ToolsRunner {
 
 	private RealignerExtendOptions options = null;
 	private RealignerOptions option = null;
+	private SAMFileHeader header = null;
 
 	private int runRealigner(String[] args) throws IOException, ClassNotFoundException, InterruptedException {
 		BioJob job = BioJob.getInstance();
@@ -46,11 +54,13 @@ public class Realigner extends ToolsRunner {
 
 		job.setJobName("GaeaRealigner");
 
+		if (options.isRecalibration() && !options.isRealignment()) {
+			job.setOnlyBaseRecalibrator(true);
+		}
+
 		option.setHadoopConf(remainArgs, conf);
 
-		// merge header and set to configuration
-		SAMFileHeader header = job.setHeader(new Path(option.getRealignerInput()),
-				new Path(option.getRealignerHeaderOutput()));
+		header = job.setHeader(new Path(option.getRealignerInput()), new Path(options.getCommonOutput()));
 
 		job.setAnySamInputFormat(option.getInputFormat());
 		job.setOutputFormatClass(GaeaBamOutputFormat.class);
@@ -58,24 +68,24 @@ public class Realigner extends ToolsRunner {
 				SamRecordWritable.class);
 
 		job.setJarByClass(Realigner.class);
-		job.setWindowsBasicMapperClass(WindowsBasedMapper.class, option.getWindowsSize());
+		job.setWindowsBasicMapperClass(WindowsBasedSamRecordMapper.class, option.getWindowsSize());
 		job.setReducerClass(RealignerReducer.class);
 		job.setNumReduceTasks(option.getReducerNumber());
 
 		FileInputFormat.setInputPaths(job, new Path(option.getRealignerInput()));
 		FileOutputFormat.setOutputPath(job, new Path(option.getRealignerOutput()));
 
-		if(options.isRecalibration())
-			MultipleOutputs.addNamedOutput(job, RecalibratorContextWriter.RECALIBRATOR_TABLE_TAG, TextOutputFormat.class,
-				NullWritable.class, Text.class);
+		if (options.isRecalibration())
+			MultipleOutputs.addNamedOutput(job, RecalibratorContextWriter.RECALIBRATOR_TABLE_TAG,
+					TextOutputFormat.class, NullWritable.class, Text.class);
 
 		if (job.waitForCompletion(true)) {
 			if (options.isRecalibration())
 				return mergeReportTable(options.getBqsrOptions(), header,
-						options.getReportOutput() + RECALIBRATOR_REPORT_TABLE_NAME);
+						options.getCommonOutput() + RECALIBRATOR_REPORT_TABLE_NAME);
 			return 0;
 		}
-		
+
 		return 1;
 	}
 
@@ -85,15 +95,23 @@ public class Realigner extends ToolsRunner {
 
 		Configuration conf = job.getConfiguration();
 
+		if (options == null) {
+			String[] remainArgs = remainArgs(args, conf);
+
+			options = new RealignerExtendOptions();
+			options.parse(remainArgs);
+
+			option = options.getRealignerOptions();
+		}
+
 		// set bqsr table path
 		if (options.isRecalibration())
-			conf.set(RECALIBRATOR_REPORT_TABLE_NAME, options.getReportOutput() + RECALIBRATOR_REPORT_TABLE_NAME);
+			conf.set(RECALIBRATOR_REPORT_TABLE_NAME, options.getCommonOutput() + RECALIBRATOR_REPORT_TABLE_NAME);
 
 		String[] remainArgs = remainArgs(args, conf);
 		option.setHadoopConf(remainArgs, conf);
 
-		// merge header and set to configuration
-		job.setHeader(new Path(option.getFixmateInput()), new Path(option.getFixmateHeaderOutput()));
+		job.setHeader(options.getCommonOutput() + "/" + SamHdfsFileHeader.BAM_HEADER_FILE_NAME);
 
 		job.setAnySamInputFormat(format);
 		job.setOutputFormatClass(GaeaBamOutputFormat.class);
@@ -110,11 +128,56 @@ public class Realigner extends ToolsRunner {
 			job.setOutputKeyValue(Text.class, SamRecordWritable.class, NullWritable.class, SamRecordWritable.class);
 			job.setNumReduceTasks(option.getReducerNumber());
 		}
+		
+		ArrayList<Path> lists = inputFilter(option.getFixmateInput(options.isRealignment()),conf,new NonRecalibratorPathFilter());
+		
+		for(Path p : lists){
+			FileInputFormat.addInputPath(job, p);
+		}
+		lists.clear();
 
-		FileInputFormat.setInputPaths(job, new Path(option.getFixmateInput()));
 		FileOutputFormat.setOutputPath(job, new Path(option.getFixmateOutput()));
 
 		return job.waitForCompletion(true) ? 0 : 1;
+	}
+	
+	private ArrayList<Path> inputFilter(String path,Configuration conf,NonRecalibratorPathFilter filter){
+		ArrayList<Path> lists = new ArrayList<Path>();
+		
+		Path p = new Path(path);
+		
+		FileSystem fs = HdfsFileManager.getFileSystem(p, conf);
+		FileStatus status = null;
+		try {
+			status = fs.getFileStatus(p);
+		} catch (IOException e2) {
+			throw new FileNotExistException(p.getName());
+		}
+		
+		if(status.isFile()){
+			if(filter.accept(status.getPath()))
+				lists.add(status.getPath());
+		}else{
+			FileStatus[] stats = null;
+			try{
+				stats = fs.listStatus(p,filter);
+			}catch(IOException e){
+				throw new RuntimeException(e.toString());
+			}
+
+			for (FileStatus file : stats) {
+				if(!file.isFile()){
+					throw new RuntimeException("input directory cann't contains sub directory!!");
+				}else{
+					if(filter.accept(file.getPath()))
+						lists.add(file.getPath());
+				}
+			}
+		}
+		
+		if(lists.size() == 0)
+			return null;
+		return lists;
 	}
 
 	private int mergeReportTable(RecalibratorOptions bqsrOption, SAMFileHeader header, String output) {
@@ -126,7 +189,6 @@ public class Realigner extends ToolsRunner {
 
 	@Override
 	public int run(String[] args) throws Exception {
-
 		int res = runRealigner(args);
 
 		if (res != 0) {

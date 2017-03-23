@@ -6,19 +6,23 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamHdfsFileHeader;
 import org.bgi.flexlab.gaea.data.mapreduce.output.vcf.GaeaVCFOutputFormat;
 import org.bgi.flexlab.gaea.data.mapreduce.output.vcf.VCFHdfsWriter;
-import org.bgi.flexlab.gaea.data.mapreduce.writable.SamRecordWritable;
+import org.bgi.flexlab.gaea.data.mapreduce.writable.AlignmentBasicWritable;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.WindowsBasedWritable;
+import org.bgi.flexlab.gaea.data.structure.bam.filter.GenotyperFilter;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.BioJob;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.ToolsRunner;
-import org.bgi.flexlab.gaea.framework.tools.mapreduce.WindowsBasedMapper;
+import org.bgi.flexlab.gaea.framework.tools.mapreduce.WindowsBasedAlignmentMapper;
 import org.bgi.flexlab.gaea.tools.genotyer.VariantCallingEngine;
 import org.bgi.flexlab.gaea.tools.genotyer.annotator.VariantAnnotatorEngine;
 import org.seqdoop.hadoop_bam.KeyIgnoringVCFOutputFormat;
 import org.seqdoop.hadoop_bam.VariantContextWritable;
 
 import java.io.IOException;
+
+import static org.bgi.flexlab.gaea.framework.tools.mapreduce.WindowsBasedMapper.REFERENCE_REGION;
 
 /**
  * Created by zhangyong on 2017/3/3.
@@ -31,7 +35,7 @@ public class Genotyper extends ToolsRunner {
 
     private GenotyperOptions options = null;
 
-    private int runRealigner(String[] args) throws IOException, ClassNotFoundException, InterruptedException {
+    private int runGenoytper(String[] args) throws IOException, ClassNotFoundException, InterruptedException {
         BioJob job = BioJob.getInstance();
         Configuration conf = job.getConfiguration();
         String[] remainArgs = remainArgs(args, conf);
@@ -43,20 +47,24 @@ public class Genotyper extends ToolsRunner {
         job.setHeader(new Path(options.getInput()), new Path(options.getBAMHeaderOutput()));
 
         //vcf header
-        conf.set(GaeaVCFOutputFormat.OUT_PATH_PROP, options.getVCFHeaderOutput());
+        conf.set(GaeaVCFOutputFormat.OUT_PATH_PROP, options.getVCFHeaderOutput() + "/vcfFileHeader.vcf");
         VariantAnnotatorEngine variantAnnotatorEngine = new VariantAnnotatorEngine(options.getAnnotationGroups(), options.getAnnotations(), null);
-        VCFHeader vcfHeader = VariantCallingEngine.getVCFHeader(options, variantAnnotatorEngine);
-        VCFHdfsWriter vcfHdfsWriter = new VCFHdfsWriter(GaeaVCFOutputFormat.OUT_PATH_PROP, false, false, conf);
+        VCFHeader vcfHeader = VariantCallingEngine.getVCFHeader(options, variantAnnotatorEngine, SamHdfsFileHeader.getHeader(conf));
+        VCFHdfsWriter vcfHdfsWriter = new VCFHdfsWriter(conf.get(GaeaVCFOutputFormat.OUT_PATH_PROP), false, false, conf);
         vcfHdfsWriter.writeHeader(vcfHeader);
+        vcfHdfsWriter.close();
 
         job.setJobName("GaeaGenotyper");
         job.setAnySamInputFormat(options.getInputFormat());
         conf.set(KeyIgnoringVCFOutputFormat.OUTPUT_VCF_FORMAT_PROPERTY, options.getOuptputFormat().toString());
         job.setOutputFormatClass(GaeaVCFOutputFormat.class);
-        job.setOutputKeyValue(WindowsBasedWritable.class, SamRecordWritable.class, NullWritable.class, VariantContextWritable.class);
+        job.setOutputKeyValue(WindowsBasedWritable.class, AlignmentBasicWritable.class, NullWritable.class, VariantContextWritable.class);
 
         job.setJarByClass(Genotyper.class);
-        job.setWindowsBasicMapperClass(WindowsBasedMapper.class, options.getWindowSize());
+        if(options.getBedRegionFile() != null)
+            conf.set(REFERENCE_REGION, options.getBedRegionFile());
+        job.setFilterClass(GenotyperFilter.class);
+        job.setWindowsBasicMapperClass(WindowsBasedAlignmentMapper.class, options.getWindowSize());
         job.setReducerClass(GenotyperReducer.class);
         job.setNumReduceTasks(options.getReducerNumber());
 
@@ -70,14 +78,10 @@ public class Genotyper extends ToolsRunner {
         return 1;
     }
 
-
     @Override
     public int run(String[] args) throws Exception {
         Genotyper genotyper = new Genotyper();
-        int res = genotyper.run(args);
-        if(res != 0) {
-            throw new RuntimeException("GaeaGenotyper Failed!");
-        }
+        int res = genotyper.runGenoytper(args);
 
         return res;
     }

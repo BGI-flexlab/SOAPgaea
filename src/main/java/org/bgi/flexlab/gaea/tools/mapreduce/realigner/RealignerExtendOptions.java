@@ -27,7 +27,7 @@ public class RealignerExtendOptions extends GaeaOptions implements HadoopOptions
 	private boolean realignment;
 	private boolean recalibration;
 	
-	private String reportOutput = null;
+	private String commonOutput = null;
 
 	public RealignerExtendOptions() {
 		addOption("q", "recalibrator", false, "only run base recalibrator");
@@ -90,7 +90,7 @@ public class RealignerExtendOptions extends GaeaOptions implements HadoopOptions
 		}
 		
 		if(cmdLine.hasOption("o"))
-			this.reportOutput = cmdLine.getOptionValue("o");
+			this.commonOutput = cmdLine.getOptionValue("o");
 		
 		if (!isValid()) {
 			throw new RuntimeException("must set at least one algorithm!");
@@ -142,10 +142,10 @@ public class RealignerExtendOptions extends GaeaOptions implements HadoopOptions
 		return this.bqsrOptions;
 	}
 	
-	public String getReportOutput(){
-		if(this.reportOutput.endsWith("/"))
-			return this.reportOutput;
+	public String getCommonOutput(){
+		if(this.commonOutput.endsWith("/"))
+			return this.commonOutput;
 		else
-			return this.reportOutput+"/";
+			return this.commonOutput+"/";
 	}
 }

@@ -7,6 +7,7 @@ import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.bam.filter.BaseRecalibrationFilter;
 import org.bgi.flexlab.gaea.data.structure.reference.BaseAndSNPInformation;
 import org.bgi.flexlab.gaea.data.structure.reference.ReferenceShare;
+import org.bgi.flexlab.gaea.tools.mapreduce.realigner.RecalibratorContextWriter;
 import org.bgi.flexlab.gaea.tools.mapreduce.realigner.RecalibratorOptions;
 import org.bgi.flexlab.gaea.tools.realigner.RealignerWriter;
 import org.bgi.flexlab.gaea.tools.recalibrator.RecalibratorUtil.Consistent;
@@ -68,9 +69,8 @@ public class RecalibratorEngine {
 			GaeaSamRecord sam = new GaeaSamRecord(mHeader, writable.get(), readWinNum == winNum);
 			baseQualityStatistics(sam);
 			
-			if(!isRealigment){
+			if(isRealigment)
 				writer.writeRead(sam);
-			}
 		}
 	}
 

@@ -1,5 +1,6 @@
 package org.bgi.flexlab.gaea.tools.mapreduce.genotyper;
 
+import org.apache.commons.cli.ParseException;
 import org.apache.hadoop.conf.Configuration;
 import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.data.mapreduce.options.HadoopOptions;
@@ -44,6 +45,11 @@ public class GenotyperOptions extends GaeaOptions implements HadoopOptions {
     private String reference = null;
 
     /**
+     * bed region file
+     */
+    private String bedRegionFile = null;
+
+    /**
      * Which annotations to add to the output VCF file
      */
     private List<String> annotations = new ArrayList<String>();
@@ -51,12 +57,7 @@ public class GenotyperOptions extends GaeaOptions implements HadoopOptions {
     /**
      * annotation groups to add to the output VCF file
      */
-    private List<String> annotationGroups = new ArrayList<String>() {
-        {
-            add("Standard");
-            add("StandardUG");
-        }
-    };
+    private List<String> annotationGroups = new ArrayList<String>();
 
     /**
      * models for genotype likelihood calculator
@@ -219,6 +220,7 @@ public class GenotyperOptions extends GaeaOptions implements HadoopOptions {
         addOption("o", "output", true, "directory to which variants should be written in HDFS written format.");
         addOption("O", "outputMode", true, "output mode :EMIT_VARIANTS_ONLY, EMIT_ALL_CONFIDENT_SITES, EMIT_ALL_SITES");
         addOption("B","is_bcf_output", false, "output variant in BCF format." );
+        addOption("b", "bed_file", true, "only variant in this region will be called.");
         addOption("r", "reference", true, "Gaea Indexed reference list for memory sharing.");
         addOption("A", "annotation", true, "One or more specific annotations to apply to variant calls, the tag is separated by \',\'");
         addOption("contamination", "contamination_fraction_to_filter", true, "Fraction of contamination to aggressively remove.");
@@ -249,35 +251,45 @@ public class GenotyperOptions extends GaeaOptions implements HadoopOptions {
         addOption("numAlleleDis", "annotateNumberOfAllelesDiscovered", false, "annotate Number Of Alleles Discovered");
         addOption("R", "reducer", true, "reducer numbers");
         addOption("W", "window_size", true, "window size that sharding the data.");
+        addOption("h", "help", false, "print help information.");
+
+        FormatHelpInfo(SOFTWARE_NAME, SOFTWARE_VERSION);
     }
 
     @Override
     public void parse(String[] args) {
-        if(getOptionBooleanValue("h", false)) {
-            FormatHelpInfo(SOFTWARE_NAME, SOFTWARE_VERSION);
+        try {
+            cmdLine = parser.parse(options, args);
+        } catch (ParseException e) {
+            printHelpInfotmation(SOFTWARE_NAME);
+            throw new RuntimeException(e);
         }
 
-
+        if(args.length == 0 || getOptionBooleanValue("h", false)) {
+            printHelpInfotmation(SOFTWARE_NAME);
+            System.exit(1);
+        }
         input = getOptionValue("i", null);
         samFormat = getOptionBooleanValue("I", false);
         output = getOptionValue("o", null);
         bcfFormat = getOptionBooleanValue("B", false);
+        bedRegionFile = getOptionValue("b", null);
         reference = getOptionValue("r", null);
         String annotationTags = getOptionValue("A", null);
         if(annotationTags != null) {
             for(String tag : annotationTags.split(","))
             annotations.add(tag);
         }
-        String annotationGroupTags = getOptionValue("G", "null");
+        annotationGroups.add("Standard");
+        String annotationGroupTags = getOptionValue("G", null);
         if(annotationGroupTags != null) {
             if(annotationGroupTags.equals("none")) {
                 annotationGroups.clear();
+                annotationGroups.add("none");
+            } else {
+                for (String tag : annotationGroupTags.split(","))
+                    annotationGroups.add(tag);
             }
-            for(String tag : annotationGroupTags.split(","))
-                annotationGroups.add(tag);
-        } else {
-            annotationGroups.add("Standard");
-            annotationGroups.add("StandardUG");
         }
         contaminationFraction = getOptionDoubleValue("C1", DEFAULT_CONTAMINATION_FRACTION);
         heterozygosity = getOptionDoubleValue("hets", VariantCallingEngine.HUMAN_SNP_HETEROZYGOSITY);
@@ -486,6 +498,10 @@ public class GenotyperOptions extends GaeaOptions implements HadoopOptions {
 
     public List<String> getAnnotationGroups() {
         return annotationGroups;
+    }
+
+    public String getBedRegionFile() {
+        return bedRegionFile;
     }
 }
 
