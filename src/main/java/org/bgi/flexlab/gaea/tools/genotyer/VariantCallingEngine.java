@@ -7,6 +7,7 @@ import htsjdk.variant.variantcontext.GenotypesContext;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.VariantContextBuilder;
 import htsjdk.variant.vcf.*;
+import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.data.structure.header.VCFConstants;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocationParser;
@@ -126,6 +127,9 @@ public class VariantCallingEngine {
             samples.add(rg.getSample());
         }
 
+        GenotypeLikelihoodCalculator.getGenotypeLikelihoodsCalculatorObject(options);
+        GenotypeLikelihoodCalculator.getCalculators(options);
+
         this.N = samples.size() * options.getSamplePloidy();
         log10AlleleFrequencyPriorsSNPs = new double[N+1];
         log10AlleleFrequencyPriorsIndels = new double[N+1];
@@ -138,6 +142,9 @@ public class VariantCallingEngine {
     }
 
     public void init(ReadsPool readsPool, Window win, ChromosomeInformationShare reference) {
+        if(reference == null) {
+            throw new UserException("reference is null");
+        }
         mpileup = new Mpileup(readsPool, win.getStart(), win.getStop());
         this.reference = reference;
     }
@@ -148,17 +155,18 @@ public class VariantCallingEngine {
         List<VariantCallContext> vcList = new ArrayList<>();
         final Map<String, PerReadAlleleLikelihoodMap> perReadAlleleLikelihoodMap = new HashMap<>();
         for(GenotypeLikelihoodCalculator.Model model : GenotypeLikelihoodCalculator.modelsToUse) {
-            VariantContext vc = GenotypeLikelihoodCalculator.glcm.get(model).genotypeLikelihoodCalculate(mpileup, reference, options, genomeLocationParser, perReadAlleleLikelihoodMap);
+            VariantContext vc = GenotypeLikelihoodCalculator.glcm.get(model.name()).genotypeLikelihoodCalculate(mpileup, reference, options, genomeLocationParser, perReadAlleleLikelihoodMap);
             if(vc != null)
-                vcList.add(calculateGenotypes(tracker, reference, vc, false, perReadAlleleLikelihoodMap));
+                vcList.add(calculateGenotypes(tracker, reference, vc, false, perReadAlleleLikelihoodMap, model));
         }
 
         return vcList;
     }
 
     public VariantCallContext calculateGenotypes(final VariantDataTracker tracker, final ChromosomeInformationShare reference, final VariantContext vc,
-                                             final boolean inheritAttributesFromInputVC,
-                                             final Map<String, PerReadAlleleLikelihoodMap> perReadAlleleLikelihoodMap) {
+                                                 final boolean inheritAttributesFromInputVC,
+                                                 final Map<String, PerReadAlleleLikelihoodMap> perReadAlleleLikelihoodMap,
+                                                 final GenotypeLikelihoodCalculator.Model model) {
 
         boolean limitedContext = tracker == null || reference == null ;
 
@@ -170,10 +178,10 @@ public class VariantCallingEngine {
             if (limitedContext)
                 return null;
             return (options.getOutputMode() != VariantCallingEngine.OUTPUT_MODE.EMIT_ALL_SITES ?
-                    estimateReferenceConfidence(vc, mpileup, getTheta(options.getGtlcalculators()), false, 1.0) :
+                    estimateReferenceConfidence(vc, mpileup, getTheta(model), false, 1.0) :
                     generateEmptyContext(tracker, reference, mpileup.getPosition()));
         }
-        AFCalcResult AFresult = alleleFrequencyCalculator.getLog10PNonRef(vc, getAlleleFrequencyPriors(options.getGtlcalculators()));
+        AFCalcResult AFresult = alleleFrequencyCalculator.getLog10PNonRef(vc, getAlleleFrequencyPriors(model));
 
         // is the most likely frequency conformation AC=0 for all alternate alleles?
         boolean bestGuessIsRef = true;
@@ -209,7 +217,7 @@ public class VariantCallingEngine {
         if (options.getOutputMode() != VariantCallingEngine.OUTPUT_MODE.EMIT_ALL_SITES && !passesEmitThreshold(phredScaledConfidence, bestGuessIsRef)) {
             // technically, at this point our confidence in a reference call isn't accurately estimated
             //  because it didn't take into account samples with no data, so let's get a better estimate
-            return limitedContext ? null : estimateReferenceConfidence(vc, mpileup, getTheta(options.getGtlcalculators()), true, PoFGT0);
+            return limitedContext ? null : estimateReferenceConfidence(vc, mpileup, getTheta(model), true, PoFGT0);
         }
         // start constructing the resulting VC
         final GenomeLocation loc = genomeLocationParser.createGenomeLocation(vc);

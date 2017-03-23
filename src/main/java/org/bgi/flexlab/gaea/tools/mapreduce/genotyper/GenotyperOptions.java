@@ -7,6 +7,7 @@ import org.bgi.flexlab.gaea.data.mapreduce.options.HadoopOptions;
 import org.bgi.flexlab.gaea.data.options.GaeaOptions;
 import org.bgi.flexlab.gaea.tools.genotyer.VariantCallingEngine;
 import org.bgi.flexlab.gaea.tools.genotyer.genotypeLikelihoodCalculator.GenotypeLikelihoodCalculator;
+import org.bgi.flexlab.gaea.tools.genotyer.genotypeLikelihoodCalculator.SNPGenotypeLikelihoodCalculator;
 import org.bgi.flexlab.gaea.tools.genotyer.genotypecaller.AFCalcFactory;
 import org.bgi.flexlab.gaea.util.GaeaVariantContextUtils;
 import org.bgi.flexlab.gaea.util.pairhmm.PairHMM;
@@ -148,7 +149,7 @@ public class GenotyperOptions extends GaeaOptions implements HadoopOptions {
     /**
      *
      */
-    private PairHMM.HMM_IMPLEMENTATION pairHmmImplementation = PairHMM.HMM_IMPLEMENTATION.LOGLESS_CACHING;
+    private PairHMM.HMM_IMPLEMENTATION pairHmmImplementation = PairHMM.HMM_IMPLEMENTATION.ORIGINAL;
 
     /**
      * The minimum phred-scaled Qscore threshold to separate high confidence from low confidence calls. Only genotypes with
@@ -192,12 +193,12 @@ public class GenotyperOptions extends GaeaOptions implements HadoopOptions {
     /**
      * ndel gap continuation penalty, as Phred-scaled probability. I.e., 30 => 10^-30/10
      */
-    private double indelGapContinuationPenalty = 10;
+    private byte indelGapContinuationPenalty = 10;
 
     /**
      * Indel gap open penalty, as Phred-scaled probability. I.e., 30 => 10^-30/10
      */
-    private double indelGapOpenPenalty = 45;
+    private byte indelGapOpenPenalty = 45;
 
     /**
      * multi sample mode
@@ -304,14 +305,15 @@ public class GenotyperOptions extends GaeaOptions implements HadoopOptions {
         samplePloidy = getOptionIntValue("ploidy", GaeaVariantContextUtils.DEFAULT_PLOIDY);
         standardConfidenceForCalling = getOptionDoubleValue("standCallConf", 10.0);
         standardConfidenceForEmitting = getOptionDoubleValue("standEmitConf", 30);
-        indelGapContinuationPenalty = getOptionDoubleValue("indelGCP", 10);
-        indelGapOpenPenalty = getOptionDoubleValue("indelGOP", 45);
+        indelGapContinuationPenalty = getOptionByteValue("indelGCP", (byte) 10);
+        indelGapOpenPenalty = getOptionByteValue("indelGOP", (byte) 45);
         maxAlternateAlleles = getOptionIntValue("maxAltAlleles", 6);
         maxGenotypeCount = getOptionIntValue("maxGT", 1024);
         maxNumPLValues = getOptionIntValue("maxNumPLValues", 100);
         singleSampleMode = getOptionBooleanValue("S", false);
         reducerNumber = getOptionIntValue("R", 30);
         windowSize = getOptionIntValue("W", 100000);
+        pcr_error = getOptionDoubleValue("pcrError", SNPGenotypeLikelihoodCalculator.DEFAULT_PCR_ERROR_RATE);
 
         try {
             gtlcalculators = GenotypeLikelihoodCalculator.Model.valueOf(getOptionValue("glm", "SNP"));
@@ -329,7 +331,7 @@ public class GenotyperOptions extends GaeaOptions implements HadoopOptions {
             throw new UserException.BadArgumentValueException("AFmodel", e.getMessage());
         }
         try {
-            pairHmmImplementation = PairHMM.HMM_IMPLEMENTATION.valueOf(getOptionValue("pairHMM", "LOGLESS_CACHING"));
+            pairHmmImplementation = PairHMM.HMM_IMPLEMENTATION.valueOf(getOptionValue("pairHMM", "ORIGINAL"));
         } catch (Exception e) {
             throw new UserException.BadArgumentValueException("pairHMM", e.getMessage());
         }
@@ -502,6 +504,22 @@ public class GenotyperOptions extends GaeaOptions implements HadoopOptions {
 
     public String getBedRegionFile() {
         return bedRegionFile;
+    }
+
+    public double getPcr_error() {
+        return pcr_error;
+    }
+
+    public byte getIndelGapOpenPenalty() {
+        return indelGapOpenPenalty;
+    }
+
+    public byte getIndelGapContinuationPenalty() {
+        return indelGapContinuationPenalty;
+    }
+
+    public PairHMM.HMM_IMPLEMENTATION getPairHmmImplementation() {
+        return pairHmmImplementation;
     }
 }
 

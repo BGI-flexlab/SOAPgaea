@@ -83,7 +83,7 @@ public class PileupReadInfo {
 
 		eventLength = cigarState.getEventLength();
 		if (isNextInsertBase())
-			eventBases = readInfo.getReadBases(qpos, eventLength);
+			eventBases = readInfo.getReadBasesString(qpos, eventLength);
 		else
 			eventBases = null;                  // ignore argument in any other case
 	}
@@ -116,7 +116,7 @@ public class PileupReadInfo {
 		int alignmentPos = 0;
 
 		for (int iii = 0; iii < cigars.length; iii++) {
-			int cigar = cigars[0];
+			int cigar = cigars[iii];
 			int cigarOp = (cigar & SystemConfiguration.BAM_CIGAR_MASK);
 			int cigarLength = (cigar >> SystemConfiguration.BAM_CIGAR_SHIFT);
 
@@ -167,7 +167,7 @@ public class PileupReadInfo {
 		int alignmentLength = 0;
 		for (int iii = 0; iii < cigars.length; iii++) {
 
-			int cigar = cigars[0];
+			int cigar = cigars[iii];
 			int cigarOp = (cigar & SystemConfiguration.BAM_CIGAR_MASK);
 			int cigarLength = (cigar >> SystemConfiguration.BAM_CIGAR_SHIFT);
 
@@ -194,7 +194,7 @@ public class PileupReadInfo {
 		int readPos = 0;
 		for (int iii = 0; iii < cigars.length; iii++) {
 
-			int cigar = cigars[0];
+			int cigar = cigars[iii];
 			int cigarOp = (cigar & SystemConfiguration.BAM_CIGAR_MASK);
 			int cigarLength = (cigar >> SystemConfiguration.BAM_CIGAR_SHIFT);
 
@@ -227,7 +227,12 @@ public class PileupReadInfo {
 				case SystemConfiguration.BAM_CEQUAL:
 				case SystemConfiguration.BAM_CDIFF:
 					for (int jjj = 0; jjj < cigarLength; jjj++) {
-						alignment[alignPos] = read[readPos];
+						try {
+                            alignment[alignPos] = read[readPos];
+                        } catch(ArrayIndexOutOfBoundsException e) {
+						    throw  new RuntimeException(SAMCompressionInformationBasic.CigarToString(cigars) + "\t" +
+                                    e.getMessage() + "\t" + alignPos + "\t" + readPos + "\t" + cigarLength + "\t" + alignmentLength);
+                        }
 						alignPos++;
 						readPos++;
 					}
@@ -278,7 +283,7 @@ public class PileupReadInfo {
 	public char getBase() {
 		if(qpos < 0)
 			return 0;
-		return readInfo.getBaseFromRead(qpos);
+		return (char) readInfo.getReadBase(qpos);
 	}
 
 	/**

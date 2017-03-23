@@ -4,7 +4,6 @@ import htsjdk.samtools.CigarElement;
 import htsjdk.samtools.CigarOperator;
 import htsjdk.samtools.SAMRecord;
 import org.bgi.flexlab.gaea.data.structure.reads.ReadBasicCompressionInformation;
-import org.bgi.flexlab.gaea.util.SAMUtils;
 import org.bgi.flexlab.gaea.util.SystemConfiguration;
 
 import java.util.Arrays;
@@ -36,6 +35,7 @@ public class SAMCompressionInformationBasic extends ReadBasicCompressionInformat
 	protected int[] cigars;
 
 	public SAMCompressionInformationBasic() {
+		super();
 		flag = 0;
 		chrNameIndex = -1;
 		position = 0;
@@ -82,7 +82,7 @@ public class SAMCompressionInformationBasic extends ReadBasicCompressionInformat
 			cigars[i] = cigarInt;
 		}
 
-		readBases = SAMUtils.bytesToCompressedBasesGaea(samRecord.getReadBases());
+		readBases = samRecord.getReadBases();
 
 		qualities = samRecord.getBaseQualities();
 
@@ -301,6 +301,48 @@ public class SAMCompressionInformationBasic extends ReadBasicCompressionInformat
 	public boolean parseSam(String samRecord) {
 		// TODO Auto-generated method stub
 		return false;
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append(flag);
+		sb.append("\t");
+		sb.append(chrNameIndex);
+		sb.append("\t");
+		sb.append(position);
+		sb.append("\t");
+		sb.append(mappingQual);
+		sb.append("\t");
+		sb.append(cigarsToString());
+		sb.append("\t");
+		sb.append(new String(readBases));
+		sb.append("\t");
+		sb.append(new String(qualities));
+
+		return sb.toString();
+	}
+
+	public String cigarsToString() {
+		StringBuilder sb = new StringBuilder();
+		for(int cigar : cigars) {
+			int cigarOp = (cigar & SystemConfiguration.BAM_CIGAR_MASK);
+			int cigarLength = cigar >> SystemConfiguration.BAM_CIGAR_SHIFT;
+			sb.append(cigarLength);
+			sb.append(SystemConfiguration.cigar2String.get(cigarOp));
+		}
+		return sb.toString();
+	}
+
+	public static String CigarToString(int[] cigars) {
+		StringBuilder sb = new StringBuilder();
+		for(int cigar : cigars) {
+			int cigarOp = (cigar & SystemConfiguration.BAM_CIGAR_MASK);
+			int cigarLength = cigar >> SystemConfiguration.BAM_CIGAR_SHIFT;
+			sb.append(cigarLength);
+			sb.append(SystemConfiguration.cigar2String.get(cigarOp));
+		}
+		return sb.toString();
 	}
 
 }

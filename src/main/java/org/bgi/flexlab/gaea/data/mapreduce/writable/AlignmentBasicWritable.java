@@ -35,7 +35,6 @@ public class AlignmentBasicWritable implements WritableComparable<AlignmentBasic
 		codec.encode(alignment);
 	}
 
-
 	@Override
 	public int compareTo(AlignmentBasicWritable o) {
 		AlignmentsBasic alignment2 = o.getAlignment();
