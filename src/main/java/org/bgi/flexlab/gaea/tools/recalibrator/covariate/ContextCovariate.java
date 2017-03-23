@@ -13,7 +13,7 @@ import org.bgi.flexlab.gaea.util.BaseUtils;
 
 public class ContextCovariate implements OptionalCovariate {
 	private static final int LENGTH_BITS = 4;
-	private static final int LENGTH_MASK = (2 << LENGTH_BITS) - 1;
+	private static final int LENGTH_MASK = (1 << LENGTH_BITS) - 1;
 	private static final int MAX_DNA_CONTEXT = 13;
 
 	private int mContextSize;
@@ -32,7 +32,7 @@ public class ContextCovariate implements OptionalCovariate {
 		if (mContextSize <= 0 || mContextSize > MAX_DNA_CONTEXT)
 			throw new UserException.BadArgumentValueException(mContextSize, 0, MAX_DNA_CONTEXT);
 
-		if (iContextSize <= 0 || mContextSize > MAX_DNA_CONTEXT)
+		if (iContextSize <= 0 || iContextSize > MAX_DNA_CONTEXT)
 			throw new UserException.BadArgumentValueException(iContextSize, 0, MAX_DNA_CONTEXT);
 
 		lowQuality = option.LOW_QUALITY_TAIL;
@@ -150,8 +150,8 @@ public class ContextCovariate implements OptionalCovariate {
 		if (key < 0)
 			throw new UserException("dna conversion cannot handle negative numbers. Possible overflow?");
 
-		final int length = key & LENGTH_MASK;
-		int mask = 48;
+		int length = key & LENGTH_MASK;
+		int mask = 3 << LENGTH_BITS;
 		int offset = LENGTH_BITS;
 
 		StringBuilder dna = new StringBuilder();
