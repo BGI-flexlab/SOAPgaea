@@ -4,6 +4,9 @@
  */
 package org.bgi.flexlab.gaea.util;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class SystemConfiguration {
 	/**
 	 * BAM flags
@@ -62,6 +65,20 @@ public class SystemConfiguration {
 	/* ! @abstract CIGAR: X = mismatch */
 	public static final int BAM_CDIFF = 8;
 	public static final int BAM_CBACK = 9;
+
+	public static Map<Integer, Character> cigar2String = new HashMap<Integer, Character>(){
+		{
+			put(BAM_CMATCH, 'M');
+			put(BAM_CINS, 'I');
+			put(BAM_CDEL, 'D');
+			put(BAM_CREF_SKIP, 'N');
+			put(BAM_CSOFT_CLIP, 'S');
+			put(BAM_CHARD_CLIP, 'H');
+			put(BAM_CPAD, 'P');
+			put(BAM_CEQUAL, '=');
+			put(BAM_CDIFF, 'X');
+		}
+	};
 
 	public static final int indelCallingWindowSize = 1000;
 

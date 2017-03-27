@@ -100,6 +100,18 @@ public class SNPGenotypeLikelihoodCalculator extends GenotypeLikelihoodCalculato
 
     /**
      * constructor
+     * @param options
+     */
+    public SNPGenotypeLikelihoodCalculator(GenotyperOptions options) {
+        super(options);
+        double pcrErrorRate = options.getPcr_error();
+        log10_PCR_error_3 = log10(pcrErrorRate) - log10_3;
+        log10_1_minus_PCR_error = log10(1.0 - pcrErrorRate);
+    }
+
+
+    /**
+     * constructor
      * @param options options
      * @param pcrErrorRate pcr error rate
      */
@@ -155,7 +167,7 @@ public class SNPGenotypeLikelihoodCalculator extends GenotypeLikelihoodCalculato
         List<Allele> alleles = new ArrayList<>();
         alleles.add(refAllele);
         VariantContextBuilder builder = new VariantContextBuilder("GaeaCall", reference.getChromosomeName(),
-                position + 1, position + 2, alleles);
+                position + 1, position + 1, alleles);
 
         alleles.addAll(determineAlternateAlleles(refBase, gls));
         // if there are no non-ref alleles...

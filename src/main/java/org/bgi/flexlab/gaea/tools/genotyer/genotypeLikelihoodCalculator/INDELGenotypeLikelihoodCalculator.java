@@ -42,6 +42,9 @@ public class INDELGenotypeLikelihoodCalculator extends GenotypeLikelihoodCalcula
      */
     public INDELGenotypeLikelihoodCalculator(GenotyperOptions options) {
         super(options);
+        haplotypeMap = new LinkedHashMap<>();
+        pairModel = new PairHMMIndelErrorModel(options.getIndelGapOpenPenalty(), options.getIndelGapContinuationPenalty(), options.getPairHmmImplementation());
+        ignoreSNPAllelesWhenGenotypingIndels = false;
     }
 
     /**
