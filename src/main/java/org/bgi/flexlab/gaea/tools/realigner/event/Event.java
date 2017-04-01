@@ -34,6 +34,10 @@ public class Event {
 			pointEvents.add(location.getStart());
 		}
 	}
+	
+	public String toString(){
+    	return eventStartPosition+"-"+eventStopPosition+"->"+furthestStopPosition+":"+type.toString();
+    }
 
 	public GenomeLocation createLocation(GenomeLocationParser parser) {
 		return parser.createGenomeLocation(location.getContig(),
@@ -48,6 +52,10 @@ public class Event {
 
 	public GenomeLocation getLocation() {
 		return this.location;
+	}
+	
+	public GenomeLocation getLocation(GenomeLocationParser parser) {
+		return parser.createGenomeLocation(location.getContig(), eventStartPosition, eventStopPosition);
 	}
 
 	public EVENT_TYPE getEventType() {
@@ -104,8 +112,7 @@ public class Event {
 		}
 		if (event.getEventType() != EVENT_TYPE.INDEL_EVENT) {
 			int newPosition = event.peek();
-			if (newPosition < 0)
-				return;
+			
 			if (pointEvents.size() > 0) {
 				int lastPosition = last();
 				if (newPosition - lastPosition < snpWin) {

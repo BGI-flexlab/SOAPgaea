@@ -48,7 +48,7 @@ public class AlternateConsensusEngine {
 		byte[] qualities = read.getReadQualities();
 
 		for (int readIndex = 0; readIndex < readSeq.length; readIndex++) {
-			if (posOnRef > ref.length) {
+			if (posOnRef >= ref.length) {
 				mismatchQualitySum += (readSeq.length - readIndex)
 						* MAX_QUALITY;
 				break;
