@@ -41,7 +41,6 @@ public class IndelRealigner {
 	private Window win = null;
 	private RealignerOptions option = null;
 	private AlternateConsensusEngine consensusEngine = null;
-	private GenomeLocation currentLocation = null;
 	private Iterator<GenomeLocation> iterator = null;
 	private GenomeLocation currentInterval = null;
 	private GaeaSamRecordBin needRealignementReads = null;
@@ -135,8 +134,7 @@ public class IndelRealigner {
 					int neededBases = Math.max(neededBasesToLeft, neededBasesToRight);
 					if (neededBases > 0) {
 						int padLeft = Math.max(leftMostIndex - neededBases, 1);
-						int padRight = Math.min(leftMostIndex + ref.length + neededBases,
-								parser.getContigInfo(location.getContig()).getSequenceLength());
+						int padRight = Math.min(leftMostIndex + ref.length + neededBases,parser.getContigInfo(location.getContig()).getSequenceLength());
 						ref = chrInfo.getBaseSequence(padLeft, padRight).getBytes();
 						leftMostIndex = padLeft;
 					}
@@ -149,7 +147,8 @@ public class IndelRealigner {
 							read.setAttribute(SAMTag.UQ.name(),
 									SequenceUtil.sumQualitiesOfMismatches(read, ref, leftMostIndex - 1));
 					} catch (Exception e) {
-						throw new RuntimeException(e.toString());
+						// ignore it
+						// throw new RuntimeException(e.toString());
 					}
 					if (read.getAttribute(SAMTag.MD.name()) != null)
 						read.setAttribute(SAMTag.MD.name(), null);
@@ -181,7 +180,10 @@ public class IndelRealigner {
 
 		AlternateConsensus bestConsensus = consensusEngine.findBestAlternateConsensus(altReads, leftMostIndex);
 
-		realignerCore(bestConsensus, altReads, reference, currentLocation, totalRawQuality, leftMostIndex);
+		realignerCore(bestConsensus, altReads, reference, currentInterval, totalRawQuality, leftMostIndex);
+		
+		if(bestConsensus != null)
+			bestConsensus.clear();
 	}
 
 	private void realignerAndPending(ArrayList<VariantContext> knowIndels, GaeaSamRecord read, GenomeLocation location,

@@ -127,42 +127,40 @@ public class AlignmentUtil {
 
 	public static Cigar leftAlignIndel(Cigar originCigar, final byte[] refSeq, final byte[] readSeq, final int refIndex,
 			final int readIndex) {
-		Cigar unclipcigar = GaeaCigar.unclipCigar(originCigar);
-
-		int indexOfIndel = GaeaCigar.firstIndexOfIndel(unclipcigar);
+		int indexOfIndel = GaeaCigar.firstIndexOfIndel(originCigar);
 
 		if (indexOfIndel < 1)
-			return unclipcigar;
+			return originCigar;
 
-		final int indelLength = unclipcigar.getCigarElement(indexOfIndel).getLength();
+		final int indelLength = originCigar.getCigarElement(indexOfIndel).getLength();
 
-		byte[] alt = createStringByIndel(unclipcigar, indexOfIndel, refSeq, readSeq, refIndex, readIndex);
+		byte[] alt = createStringByIndel(originCigar, indexOfIndel, refSeq, readSeq, refIndex, readIndex);
 		if (alt == null)
-			return unclipcigar;
+			return originCigar;
 
-		Cigar newCigar = unclipcigar;
+		Cigar newCigar = originCigar;
 		for (int i = 0; i < indelLength; i++) {
 			newCigar = GaeaCigar.moveCigarLeft(newCigar, indexOfIndel, 1);
 
 			if (newCigar == null)
-				return unclipcigar;
+				return originCigar;
 
 			byte[] newAlt = createStringByIndel(newCigar, indexOfIndel, refSeq, readSeq, refIndex, readIndex);
 
 			boolean reachedEndOfRead = GaeaCigar.cigarHasZeroSizeElement(newCigar);
 
 			if (Arrays.equals(alt, newAlt)) {
-				unclipcigar = newCigar;
+				originCigar = newCigar;
 				i = -1;
 				if (reachedEndOfRead)
-					unclipcigar = GaeaCigar.cleanCigar(unclipcigar);
+					originCigar = GaeaCigar.cleanCigar(originCigar);
 			}
 
 			if (reachedEndOfRead)
 				break;
 		}
 
-		return unclipcigar;
+		return originCigar;
 	}
 
 	public static int[] referencePositions(Cigar cigar, int start, int readLength) {
