@@ -39,4 +39,15 @@ public class EventPair {
 	public void setRight(Event r){
 		right = r;
 	}
+	
+	public String toString(){
+    	StringBuilder sb = new StringBuilder();
+    	
+    	if(left != null && right == null)
+    		sb.append(left.toString()+";");
+    	else if(left != null && right != null){
+    		sb.append(left.toString()+";"+right.toString());
+    	}
+    	return sb.toString();
+    }
 }
