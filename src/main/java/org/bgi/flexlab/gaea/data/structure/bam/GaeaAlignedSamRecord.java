@@ -111,8 +111,9 @@ public class GaeaAlignedSamRecord {
 		}
 
 		newStart = getAlignmentStart();
-		if (Math.abs(newStart - read.getAlignmentStart()) > this.MAX_POSITION_MOVE_ALLOWED)
+		if (Math.abs(newStart - read.getAlignmentStart()) > this.MAX_POSITION_MOVE_ALLOWED){
 			return false;
+		}
 
 		if (!ignoredOriginTag) {
 			read.setAttribute(ORIGINAL_CIGAR_TAG, read.getCigar().toString());
@@ -188,7 +189,7 @@ public class GaeaAlignedSamRecord {
 	}
 
 	public int getAlignmentStart() {
-		return newStart == -1 ? read.getAlignmentStart() : newStart;
+		return newStart == -1 ? read.getAlignmentStart() : newStart+1;
 	}
 
 	public int getMismatchScore() {

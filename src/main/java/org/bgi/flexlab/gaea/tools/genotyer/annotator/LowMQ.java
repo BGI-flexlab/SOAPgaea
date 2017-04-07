@@ -78,7 +78,7 @@ public class LowMQ extends InfoFieldAnnotation {
         for ( String sample : mpileup.getCurrentPosPileup().keySet() )
 		{
             Pileup pileup = mpileup.getCurrentPosPileup().get(sample);
-            for ( PileupReadInfo p : pileup.getPlp() )
+            for ( PileupReadInfo p : pileup.getFilteredPileup() )
 			{
                 if ( p.getMappingQuality() == 0 )  { mq0 += 1; }
                 if ( p.getMappingQuality() <= 10 ) { mq10 += 1; }

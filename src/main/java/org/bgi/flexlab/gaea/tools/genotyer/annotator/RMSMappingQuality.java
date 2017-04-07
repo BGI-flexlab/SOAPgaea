@@ -85,7 +85,7 @@ public class RMSMappingQuality extends InfoFieldAnnotation implements StandardAn
 
             for ( String sample : mpileup.getCurrentPosPileup().keySet() ) {
                 Pileup pileup = mpileup.getCurrentPosPileup().get(sample);
-                for (PileupReadInfo p : pileup.getPlp() )
+                for (PileupReadInfo p : pileup.getFilteredPileup() )
                     index = fillMappingQualitiesFromPileupAndUpdateIndex(p.getReadInfo(), index, qualities);
             }
         }

@@ -71,7 +71,7 @@ public class BaseQualityRankSumTest extends RankSumTest implements StandardAnnot
 
         if (alleleLikelihoodMap == null) {
             // use fast SNP-based version if we don't have per-read allele likelihoods
-            for ( final PileupReadInfo p : pileup.getPlp() ) {
+            for ( final PileupReadInfo p : pileup.getFilteredPileup() ) {
                 if ( isUsableBase(p) ) {
                     if ( allAlleles.get(0).equals(Allele.create((byte)p.getBase(),true)) ) {
                         refQuals.add((double)p.getBaseQuality());

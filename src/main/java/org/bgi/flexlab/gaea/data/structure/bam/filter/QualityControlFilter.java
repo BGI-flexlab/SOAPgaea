@@ -32,6 +32,6 @@ public class QualityControlFilter implements SamRecordFilter {
 	public boolean filter(SAMRecord sam, Region region) {
 		return FiltersMethod.filterBadCigar(sam) || FiltersMethod.filterBadMate(sam)
 				|| readsFilter.filter(sam, region)
-				|| malformedReadFilter.filter(sam, region);
+				|| malformedReadFilter.filter(sam, region) || FiltersMethod.matchBaseNumberZero(sam);
 	}
 }

@@ -214,7 +214,7 @@ public class INDELGenotypeLikelihoodCalculator extends GenotypeLikelihoodCalcula
     // so that per-sample DP will include deletions covering the event.
     protected int getFilteredDepth(Pileup pileup) {
         int count = 0;
-        for (PileupReadInfo p : pileup.getPlp()) {
+        for (PileupReadInfo p : pileup.getFilteredPileup()) {
             if (p.isDeletionBase() || p.isInsertionAtBeginningOfRead() || BaseUtils.isRegularBase(p.getByteBase()))
                 count += 1; //p.getRepresentativeCount();
         }

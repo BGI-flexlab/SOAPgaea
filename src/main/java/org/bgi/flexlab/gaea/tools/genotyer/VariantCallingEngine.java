@@ -50,6 +50,7 @@ import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.VariantContextBuilder;
 import htsjdk.variant.vcf.*;
 import org.bgi.flexlab.gaea.data.exception.UserException;
+import org.bgi.flexlab.gaea.data.structure.alignment.AlignmentsBasic;
 import org.bgi.flexlab.gaea.data.structure.header.VCFConstants;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocationParser;
@@ -187,7 +188,7 @@ public class VariantCallingEngine {
         if(reference == null) {
             throw new UserException("reference is null");
         }
-        mpileup = new Mpileup(readsPool, win.getStart(), win.getStop());
+        mpileup = new Mpileup(readsPool, win.getStart(), win.getStop(), options);
         this.reference = reference;
     }
 
@@ -520,6 +521,9 @@ public class VariantCallingEngine {
         //}
 
         //VCFStandardHeaderLines.addStandardInfoLines(headerInfo, true, VCFConstants.DOWNSAMPLED_KEY, VCFConstants.MLE_ALLELE_COUNT_KEY, VCFConstants.MLE_ALLELE_FREQUENCY_KEY);
+        headerInfo.add(new VCFInfoHeaderLine(VCFConstants.MLE_ALLELE_COUNT_KEY, VCFHeaderLineCount.A, VCFHeaderLineType.Integer, "Maximum likelihood expectation (MLE) for the allele counts (not necessarily the same as the AC), for each ALT allele, in the same order as listed"));
+        headerInfo.add(new VCFInfoHeaderLine(VCFConstants.MLE_ALLELE_FREQUENCY_KEY, VCFHeaderLineCount.A, VCFHeaderLineType.Float, "Maximum likelihood expectation (MLE) for the allele frequency (not necessarily the same as the AF), for each ALT allele, in the same order as listed"));
+        headerInfo.add(new VCFInfoHeaderLine(VCFConstants.DOWNSAMPLED_KEY, 0, VCFHeaderLineType.Flag, "Were any of the samples downsampled?"));
 
         // also, check to see whether comp rods were included
         //if ( dbsnp != null && dbsnp.isBound() )

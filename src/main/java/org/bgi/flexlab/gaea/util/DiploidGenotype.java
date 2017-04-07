@@ -135,7 +135,7 @@ public enum DiploidGenotype {
     private static final DiploidGenotype[][] conversionMatrix = {
             { DiploidGenotype.AA, DiploidGenotype.AC, DiploidGenotype.AT, DiploidGenotype.AG },
             { DiploidGenotype.AC, DiploidGenotype.CC, DiploidGenotype.CT, DiploidGenotype.CG },
-            { DiploidGenotype.AG, DiploidGenotype.CG, DiploidGenotype.GT, DiploidGenotype.GG },
-            { DiploidGenotype.AT, DiploidGenotype.CT, DiploidGenotype.TT, DiploidGenotype.GT }
+            { DiploidGenotype.AT, DiploidGenotype.CT, DiploidGenotype.TT, DiploidGenotype.GT },
+            { DiploidGenotype.AG, DiploidGenotype.CG, DiploidGenotype.GT, DiploidGenotype.GG }
     };
 }

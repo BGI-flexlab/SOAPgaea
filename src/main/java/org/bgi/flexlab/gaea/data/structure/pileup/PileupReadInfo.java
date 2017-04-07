@@ -341,8 +341,7 @@ public class PileupReadInfo {
 	 * @return
 	 */
 	public byte getBinaryBase() {
-		if(qpos < 0)
-			return (byte) qpos;
+
 		return readInfo.getBinaryBase(qpos);
 	}
 

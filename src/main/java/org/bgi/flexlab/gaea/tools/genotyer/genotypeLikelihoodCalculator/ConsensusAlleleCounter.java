@@ -105,11 +105,13 @@ public class ConsensusAlleleCounter {
             final int nIndelReads = pileup.getNextDeletionCount() + pileup.getNextInsertionCount();
             final int nReadsOverall = pileup.getNumberOfElements();
 
+            System.err.println("indel reads number:" + nIndelReads + "\ntotal reads number:" + nReadsOverall);
+
             if (nIndelReads == 0 || (nIndelReads / (1.0 * nReadsOverall)) < minFractionInOneSample) {
                 continue;
             }
 
-            for (PileupReadInfo p : pileup.getPlp()) {
+            for (PileupReadInfo p : pileup.getFilteredPileup()) {
                 AlignmentsBasic read = p.getReadInfo();
                 if (read == null)
                     continue;
@@ -193,6 +195,7 @@ public class ConsensusAlleleCounter {
                     consensusIndelStrings.put(indelString, cnt + 1);
 
                 }
+                System.out.println("indel:" + indelString);
             }
         }
         return consensusIndelStrings;
@@ -216,12 +219,13 @@ public class ConsensusAlleleCounter {
                 // get deletion length
                 final int dLen = Integer.valueOf(s.substring(1));
                 // get ref bases of accurate deletion
-                final byte[] refBases = reference.getBaseBytes(position, position + dLen - 1);
+                final byte[] refBases = reference.getBaseBytes(position, position + dLen);
                 stop = position + dLen + 1;
 
                 if (Allele.acceptableAlleleBases(refBases, false)) {
                     refAllele = Allele.create(refBases, true);
                     altAllele = Allele.create((byte) reference.getBase(position), false);
+                    System.out.println("delete ref allele:" + refAllele + "\talt allele:" + altAllele);
                 }
                 else continue; // don't go on with this allele if refBases are non-standard
             } else {
@@ -230,7 +234,7 @@ public class ConsensusAlleleCounter {
                 if (Allele.acceptableAlleleBases(insertionBases, false)) { // don't allow N's in insertions
                     refAllele = Allele.create((byte) reference.getBase(position), true);
                     altAllele = Allele.create(insertionBases, false);
-                    //System.out.println("insert ref allele:" + refAllele + "\talt allele:" + altAllele);
+                    System.out.println("insert ref allele:" + refAllele + "\talt allele:" + altAllele);
                     stop = position + 1;
                 }
                 else continue; // go on to next allele if consensus insertion has any non-standard base.

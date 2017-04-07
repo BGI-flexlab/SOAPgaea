@@ -121,6 +121,18 @@ public class FiltersMethod {
         // No reads that are fully hard or soft clipped
         return lastOp == CigarOperator.D || !hasMeaningfulElements;
     }
+    
+    public static boolean matchBaseNumberZero(SAMRecord read){
+    	
+    	for(CigarElement ce : read.getCigar().getCigarElements()){
+    		CigarOperator op = ce.getOperator();
+    		if(op == CigarOperator.EQ || op == CigarOperator.M || op == CigarOperator.X){
+    			return false;
+    		}
+    	}
+    	
+    	return true;
+    }
 
     public static boolean filterBadMate(SAMRecord read) {
         return (read.getReadPairedFlag() && !read.getMateUnmappedFlag() && !read

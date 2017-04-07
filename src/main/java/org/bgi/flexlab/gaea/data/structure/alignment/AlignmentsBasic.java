@@ -28,6 +28,7 @@ import java.util.Map;
 
 public class AlignmentsBasic extends SAMCompressionInformationBasic {
 	protected static Map<Integer, String> Id2Sample = new HashMap<Integer, String>();
+	protected static Map<String, Integer> Sample2Id = new HashMap<String, Integer>();
 
 	protected int sampleIndex;
 
@@ -40,10 +41,11 @@ public class AlignmentsBasic extends SAMCompressionInformationBasic {
 		this.sampleIndex = read.sampleIndex;
 	}
 
-	public void initId2Sample(List<SAMReadGroupRecord> samReadGroupRecords) {
+	public static void initIdSampleHash(List<SAMReadGroupRecord> samReadGroupRecords) {
 		int i = 0;
 		for(SAMReadGroupRecord samReadGroupRecord : samReadGroupRecords) {
 			Id2Sample.put(i, samReadGroupRecord.getSample());
+			Sample2Id.put(samReadGroupRecord.getSample(), i);
 		}
 	}
 
@@ -57,6 +59,10 @@ public class AlignmentsBasic extends SAMCompressionInformationBasic {
 
 	public void setSampleIndex(int sampleIndex) {
 		this.sampleIndex = sampleIndex;
+	}
+
+	public void setSampleIndex(String sample) {
+		this.sampleIndex = Sample2Id.get(sample);
 	}
 }
 

@@ -28,6 +28,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Reducer;
 import org.bgi.flexlab.gaea.data.exception.FileNotExistException;
 import org.bgi.flexlab.gaea.data.mapreduce.input.bed.RegionHdfsParser;
 import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamHdfsFileHeader;
@@ -60,6 +61,7 @@ public abstract class WindowsBasedMapper<VALUEOUT extends Writable> extends
 
 	private HashMap<String, Integer> sampleIDs = null;
 
+	abstract void otherSetup(Context context);
 	abstract void setOutputValue(SAMRecord samRecord);
 	abstract void initOutputVaule();
 
@@ -101,6 +103,8 @@ public abstract class WindowsBasedMapper<VALUEOUT extends Writable> extends
 			region = new RegionHdfsParser();
 			region.parseBedFileFromHDFS(conf.get(REFERENCE_REGION), false);
 		}
+
+		otherSetup(context);
 	}
 
 	protected int[] getExtendPosition(int start, int end, int length) {

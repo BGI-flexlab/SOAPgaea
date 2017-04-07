@@ -113,7 +113,7 @@ public class RealignerEngine {
 		end = (win.getStop() + WINDOWS_EXTEND) < mHeader.getSequence(referenceName).getSequenceLength()
 				? (win.getStop() + WINDOWS_EXTEND) : mHeader.getSequence(referenceName).getSequenceLength();
 
-		long startPosition = dbsnpShare.getStartPosition(referenceName, start / VcfIndex.WINDOW_SIZE,
+		long startPosition = dbsnpShare.getStartPosition(referenceName, start / VcfIndex.WINDOW_SIZE, end / VcfIndex.WINDOW_SIZE,
 				VcfIndex.WINDOW_SIZE);
 
 		if (startPosition >= 0)

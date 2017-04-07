@@ -21,6 +21,7 @@ import java.util.Iterator;
 import java.util.Map;
 
 import org.bgi.flexlab.gaea.data.structure.alignment.AlignmentsBasic;
+import org.bgi.flexlab.gaea.tools.mapreduce.genotyper.GenotyperOptions;
 
 public class Mpileup implements MpileupInterface<Pileup>{
 
@@ -50,15 +51,21 @@ public class Mpileup implements MpileupInterface<Pileup>{
 	private AlignmentsBasic tmpRead = null;
 
 	/**
+	 * options for filter
+	 */
+	private GenotyperOptions options;
+
+	/**
 	 * constructor
 	 * @param readsPool reads
 	 * @param position start
 	 * @param end end
 	 */
-	public Mpileup(ReadsPool readsPool, int position, int end) {
+	public Mpileup(ReadsPool readsPool, int position, int end, GenotyperOptions options) {
 		this.readsPool = readsPool;
 		this.position = position;
 		this.end = end;
+		this.options = options;
 	}
 
 	/**
@@ -166,6 +173,7 @@ public class Mpileup implements MpileupInterface<Pileup>{
 			java.util.Map.Entry entry = (java.util.Map.Entry) it.next();
 			Pileup plp = (Pileup)entry.getValue();
 			if (plp.getPosition() == minPosition) {
+				plp.calculateBaseInfo(options);
 				String sample = (String)entry.getKey();
 				posPlps.put(sample, plp);
 			}
@@ -210,7 +218,8 @@ public class Mpileup implements MpileupInterface<Pileup>{
 		Pileup joinedPileup = new Pileup();
 		joinedPileup.setPosition(position);
 		for(Pileup pileup : pileups.values()) {
-			joinedPileup.getPlp().addAll(pileup.getPlp());
+			joinedPileup.getFilteredPileup().addAll(pileup.getFilteredPileup());
+			joinedPileup.getTotalPileup().addAll(pileup.getTotalPileup());
 		}
 		return joinedPileup;
 	}

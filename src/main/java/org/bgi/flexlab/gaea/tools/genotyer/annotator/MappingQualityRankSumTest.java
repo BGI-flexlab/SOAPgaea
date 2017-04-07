@@ -75,7 +75,7 @@ public class MappingQualityRankSumTest extends RankSumTest implements StandardAn
 
         if (pileup != null && likelihoodMap == null) {
             // old UG snp-only path through the annotations
-            for ( final PileupReadInfo p : pileup.getPlp() ) {
+            for ( final PileupReadInfo p : pileup.getFilteredPileup() ) {
                 if ( isUsableBase(p) ) {
                     if ( allAlleles.get(0).equals(Allele.create((byte)p.getBase(), true)) ) {
                         refQuals.add((double)p.getMappingQuality());

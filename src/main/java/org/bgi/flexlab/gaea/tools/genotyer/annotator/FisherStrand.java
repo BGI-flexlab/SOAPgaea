@@ -297,7 +297,7 @@ public class FisherStrand extends InfoFieldAnnotation implements StandardAnnotat
 
         for ( String sample : mpileup.getCurrentPosPileup().keySet() ) {
             Pileup pileup = mpileup.getCurrentPosPileup().get(sample);
-            for (PileupReadInfo p : pileup.getPlp()) {
+            for (PileupReadInfo p : pileup.getFilteredPileup()) {
 
                 // ignore reduced reads because they are always on the forward strand!
                 // TODO -- when het compression is enabled in RR, we somehow need to allow those reads through into the Fisher test

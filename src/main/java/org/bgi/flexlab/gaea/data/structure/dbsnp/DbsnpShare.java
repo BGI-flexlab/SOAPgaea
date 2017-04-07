@@ -90,12 +90,26 @@ public class DbsnpShare extends WholeGenomeShare {
 		return dbsnpInfo.get(chrName);
 	}
 
-	public long getStartPosition(String chrName, int winNum, int winSize) {
+	/*public long getStartPosition(String chrName, int winNum, int winSize) {
 		chrName = ChromosomeUtils.formatChrName(chrName);
-		if (!dbsnpInfo.containsKey(chrName))
+		if (!dbsnpInfo.containsKey(chrName)){
 			return -1;
+		}
 
 		return dbsnpInfo.get(chrName).getStartPosition(winNum, winSize);
+	}*/
+	
+	public long getStartPosition(String chrName, int winNum, int winSize) {
+		return getStartPosition(chrName,winNum,winNum+1,winSize);
+	}
+	
+	public long getStartPosition(String chrName, int startWinNum,int endWinNum, int winSize) {
+		chrName = ChromosomeUtils.formatChrName(chrName);
+		if (!dbsnpInfo.containsKey(chrName)){
+			return -1;
+		}
+
+		return dbsnpInfo.get(chrName).getStartPosition(startWinNum, endWinNum,winSize);
 	}
 
 	public long getStartPosition(String chrName, int winNum) {

@@ -115,12 +115,10 @@ public class WindowsBasedWritable implements WritableComparable<WindowsBasedWrit
 	}
 
 	public int partition() {
-		long hashcode = (getChromosomeIndex() + 1) * 163;
-		hashcode += (getWindowsNumber() + 1) * 127;
-		hashcode += (getSampleID() + 1) * 163;
+		int hashcode = (getChromosomeIndex() + 1);
+		hashcode += (getWindowsNumber() + 1);
+		hashcode += (getSampleID() + 1);
 		
-		if(hashcode >= (long)(Integer.MAX_VALUE))
-			hashcode -= (long)(Integer.MAX_VALUE);
 		return (int)(hashcode & 0xffffffff);
 	}
 

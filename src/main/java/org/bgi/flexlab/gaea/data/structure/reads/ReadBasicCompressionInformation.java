@@ -111,7 +111,7 @@ public class ReadBasicCompressionInformation {
 	 * @return
 	 */
 	public byte getBinaryBase(int position) {
-		return (byte) ((getReadBase(position) >> 1) & 0x0f);
+		return (byte) ((getReadBase(position) & 0x0f) >> 1);
 	}
 
 	/**

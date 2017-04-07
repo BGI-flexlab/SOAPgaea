@@ -78,7 +78,7 @@ public class MappingQualityZeroFraction extends InfoFieldAnnotation implements E
         for ( String sample : mpileup.getCurrentPosPileup().keySet() ) {
             Pileup pileup = mpileup.getCurrentPosPileup().get(sample);
             depth += pileup.depthOfCoverage();
-            for (PileupReadInfo p : pileup.getPlp() ) {
+            for (PileupReadInfo p : pileup.getFilteredPileup() ) {
                 if ( p.getMappingQuality() == 0 )
                     mq0++;
             }

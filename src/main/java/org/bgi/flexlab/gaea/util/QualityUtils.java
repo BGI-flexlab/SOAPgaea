@@ -54,9 +54,10 @@ public class QualityUtils {
 
 	static {
 		for(byte quality = 0; quality < MAXIMUM_USABLE_QUALITY_SCORE + 1; quality++) {
-			QUALITY_PROB[quality] = qualityToErrorProbability(quality);
-			QUALITY_PROB_LOG10[quality] = Math.log(qualityToErrorProbability(quality));
-			MINUS_QUALITY_PROB_LOG10[quality] = Math.log(1 - qualityToErrorProbability(quality));
+			double errorProbability = qualityToErrorProbability(quality);
+			QUALITY_PROB[quality] = errorProbability;
+			QUALITY_PROB_LOG10[quality] = Math.log10(errorProbability);
+			MINUS_QUALITY_PROB_LOG10[quality] = Math.log10(1 - errorProbability);
 		}
 	}
 
