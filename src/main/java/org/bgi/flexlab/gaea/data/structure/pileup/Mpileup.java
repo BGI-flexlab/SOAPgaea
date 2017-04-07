@@ -53,8 +53,7 @@ public class Mpileup implements MpileupInterface<Pileup>{
 	protected void addReads2Pileup(AlignmentsBasic read, int pos) {
 		Pileup pileup = pileups.get(read.getSample());
 		if (pileup == null) {
-			if(pileup == null)
-				pileup = new Pileup();
+			pileup = new Pileup();
 			pileup.setPosition(pos);
 			pileups.put(read.getSample(), pileup);
 		}
