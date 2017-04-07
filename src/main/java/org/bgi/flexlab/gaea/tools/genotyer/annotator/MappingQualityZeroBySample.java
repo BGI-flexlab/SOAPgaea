@@ -33,7 +33,7 @@ public class MappingQualityZeroBySample extends GenotypeAnnotation {
             return;
 
         int mq0 = 0;
-        for (PileupReadInfo p : pileup.getPlp() ) {
+        for (PileupReadInfo p : pileup.getFilteredPileup() ) {
             if ( p.getMappingQuality() == 0 )
                 mq0++;
         }

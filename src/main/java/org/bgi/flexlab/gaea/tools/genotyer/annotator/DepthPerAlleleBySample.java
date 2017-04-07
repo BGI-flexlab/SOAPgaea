@@ -41,14 +41,18 @@ public class DepthPerAlleleBySample extends GenotypeAnnotation implements Standa
     }
 
     private void annotateWithPileup(final Pileup pileup, final VariantContext vc, final GenotypeBuilder gb) {
-
+        //System.out.println("annotated with pileup");
         HashMap<Byte, Integer> alleleCounts = new HashMap<Byte, Integer>();
-        for ( Allele allele : vc.getAlleles() )
+        for ( Allele allele : vc.getAlleles() ) {
             alleleCounts.put(allele.getBases()[0], 0);
+            //System.out.println("genotype allele:" + allele.getBases()[0]);
+        }
 
-        for ( PileupReadInfo p : pileup.getPlp() ) {
-            if ( alleleCounts.containsKey(p.getBase()) )
-                alleleCounts.put((byte)p.getBase(), alleleCounts.get(p.getBase())+1);
+        for ( PileupReadInfo p : pileup.getFilteredPileup() ) {
+            if ( alleleCounts.containsKey(p.getByteBase()) ) {
+                //System.out.println("pileup allele:" + p.getBase());
+                alleleCounts.put(p.getByteBase(), alleleCounts.get(p.getByteBase())+1);
+            }
         }
 
         // we need to add counts in the correct order
@@ -63,7 +67,7 @@ public class DepthPerAlleleBySample extends GenotypeAnnotation implements Standa
     private void annotateWithLikelihoods(final PerReadAlleleLikelihoodMap perReadAlleleLikelihoodMap, final VariantContext vc, final GenotypeBuilder gb) {
         final HashMap<Allele, Integer> alleleCounts = new HashMap<Allele, Integer>();
 
-       // System.out.println("vc allele:");
+       //System.out.println("vc allele:");
         for ( final Allele allele : vc.getAlleles() ) {
             alleleCounts.put(allele, 0);
             //System.out.println(allele);
