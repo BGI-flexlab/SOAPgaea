@@ -32,4 +32,18 @@ public class SampleGenotypeData extends GenotypeData{
     public void setDepth(int depth) {
         this.depth = depth;
     }
+
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(name);
+        sb.append("\t");
+        sb.append(depth);
+        for (int i = 0; i < log10Likelihoods.length; i++) {
+            sb.append("\t");
+            sb.append(i);
+            sb.append("\t");
+            sb.append(log10Likelihoods[i]);
+        }
+        return sb.toString();
+    }
 }

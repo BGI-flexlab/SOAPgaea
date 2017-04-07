@@ -50,7 +50,7 @@ public class MappingQualityZero extends InfoFieldAnnotation implements StandardA
         for ( String sample : mpileup.getCurrentPosPileup().keySet() ) {
             Pileup pileup = mpileup.getCurrentPosPileup().get(sample);
 
-            for (PileupReadInfo p : pileup.getPlp() ) {
+            for (PileupReadInfo p : pileup.getFilteredPileup() ) {
                 if ( p.getMappingQuality() == 0 )
                     mq0++;
             }

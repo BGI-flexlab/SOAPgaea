@@ -1,6 +1,8 @@
 package org.bgi.flexlab.gaea.data.structure.pileup;
 
 import org.bgi.flexlab.gaea.data.structure.alignment.AlignmentsBasic;
+import org.bgi.flexlab.gaea.tools.mapreduce.genotyper.Genotyper;
+import org.bgi.flexlab.gaea.tools.mapreduce.genotyper.GenotyperOptions;
 
 import java.util.ArrayList;
 
@@ -12,6 +14,11 @@ public class Pileup implements PileupInterface<PileupReadInfo> {
 	 * pileup struct;
 	 */
 	private ArrayList<PileupReadInfo> plp;
+
+	/**
+	 * filtered pileup
+	 */
+	private ArrayList<PileupReadInfo> filterPileup;
 
 	/**
 	 * position
@@ -41,10 +48,6 @@ public class Pileup implements PileupInterface<PileupReadInfo> {
 	public Pileup() {
 		position = -1;
 		plp = new ArrayList<>();
-	}
-
-	public ArrayList<PileupReadInfo> getFinalPileup() {
-		return plp;
 	}
 
 	/**
@@ -91,14 +94,22 @@ public class Pileup implements PileupInterface<PileupReadInfo> {
 	}
 
 	@Override
-	public void calculateBaseInfo() {
+	public void calculateBaseInfo(GenotyperOptions options) {
 		deletionCount = 0;
 		nextDeletionCount = 0;
 		nextInsertionCount = 0;
+		if(options != null)
+			filterPileup = new ArrayList<>();
 		if (position != Integer.MAX_VALUE) {
 			for (int i = 0; i < plp.size(); i++) {
 				PileupReadInfo posRead = plp.get(i);
 				posRead.calculateQueryPosition(position);
+				if(options != null) {
+					if(posRead.getMappingQuality() < options.getMinMappingQuality() ||
+							posRead.getBaseQuality() < options.getMinBaseQuality())
+						continue;
+					filterPileup.add(posRead);
+				}
 				if (posRead.isDeletionBase())
 					deletionCount++;
 				if (posRead.isNextDeletionBase())
@@ -157,8 +168,16 @@ public class Pileup implements PileupInterface<PileupReadInfo> {
 	 *
 	 * @return plp array list.
 	 */
-	public ArrayList<PileupReadInfo> getPlp() {
+	public ArrayList<PileupReadInfo> getTotalPileup() {
 		return plp;
+	}
+
+	/**
+	 *
+	 * @return
+	 */
+	public ArrayList<PileupReadInfo> getFilteredPileup() {
+		return filterPileup;
 	}
 
 	public int getDeletionCount() {
