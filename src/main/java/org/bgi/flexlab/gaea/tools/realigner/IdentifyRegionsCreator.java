@@ -86,7 +86,7 @@ public class IdentifyRegionsCreator {
 		return new Event(location, furthestPosition, type);
 	}
 
-	public EventPair setEventPair(EventPair pair, Event event) {
+	public void setEventPair(EventPair pair, Event event) {
 		if (event != null) {
 			if (pair.getLeft() == null)
 				pair.setLeft(event);
@@ -101,20 +101,19 @@ public class IdentifyRegionsCreator {
 					pair.getRight().merge(event, option.getSNPWindowSize());
 				} else {
 					if (pair.getRight().isValidEvent(parser, maxIntervalSize)) {
-						pair.getIntervals().add(pair.getRight().getLocation());
-						pair.setRight(event);
+						pair.getIntervals().add(pair.getRight().getLocation(parser));
 					}
+					pair.setRight(event);
 				}
 			}
 		}
-		return pair;
 	}
 
 	public void setIntervals(EventPair pair) {
 		if (pair.getLeft() != null && pair.getLeft().isValidEvent(parser, maxIntervalSize))
-			pair.getIntervals().add(pair.getLeft().getLocation());
+			pair.getIntervals().add(pair.getLeft().getLocation(parser));
 		if (pair.getRight() != null && pair.getRight().isValidEvent(parser, maxIntervalSize))
-			pair.getIntervals().add(pair.getRight().getLocation());
+			pair.getIntervals().add(pair.getRight().getLocation(parser));
 
 		for (GenomeLocation location : pair.getIntervals())
 			intervals.add(location);
@@ -145,14 +144,15 @@ public class IdentifyRegionsCreator {
 
 		while (pileups != null) {
 			int currPosition = mpileup.getPosition()+1;
-			if(currPosition < start){
+			/*if(currPosition < start){
 				pileups = mpileup.getNextPosPileup();
 				continue;
-			}
+			}*/
 			for (String key : pileups.keySet()) {
 				VariantState state = new VariantState();
 				state.filterVariant(knowIndels, currPosition);
-				pair = setEventPair(pair, getEvent(state,chrIndex, pileups.get(key), currPosition));
+				Event event = getEvent(state,chrIndex, pileups.get(key), currPosition);
+				setEventPair(pair, event);
 			}
 			pileups = mpileup.getNextPosPileup();
 		}
