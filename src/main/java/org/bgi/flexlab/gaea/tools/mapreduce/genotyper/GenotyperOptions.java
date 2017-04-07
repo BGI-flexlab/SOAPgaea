@@ -188,7 +188,7 @@ public class GenotyperOptions extends GaeaOptions implements HadoopOptions {
     /**
      * The PCR error rate to be used for computing fragment-based likelihoods
      */
-    private double pcr_error = 0.0001;
+    private double pcr_error = SNPGenotypeLikelihoodCalculator.DEFAULT_PCR_ERROR_RATE;
 
     /**
      * ndel gap continuation penalty, as Phred-scaled probability. I.e., 30 => 10^-30/10

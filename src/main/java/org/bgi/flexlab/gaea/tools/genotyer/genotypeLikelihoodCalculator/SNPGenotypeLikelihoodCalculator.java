@@ -56,6 +56,12 @@ public class SNPGenotypeLikelihoodCalculator extends GenotypeLikelihoodCalculato
      */
     public static GenotypeData[][] CACHE = new GenotypeData[BaseUtils.BASES.length][QualityUtils.MAXIMUM_USABLE_QUALITY_SCORE+1];
 
+    /**
+     * one time calculation result about PCR error
+     */
+    protected static double log10_PCR_error_3 = log10(DEFAULT_PCR_ERROR_RATE) - log10_3;
+    protected static double log10_1_minus_PCR_error = log10(1.0 - DEFAULT_PCR_ERROR_RATE);
+
 
     /**
      * get Cached likelihoods
@@ -88,12 +94,6 @@ public class SNPGenotypeLikelihoodCalculator extends GenotypeLikelihoodCalculato
     }
 
     /**
-     * one time calculation result about PCR error
-     */
-    protected double log10_PCR_error_3;
-    protected double log10_1_minus_PCR_error;
-
-    /**
      * sum likelihoods of each allele
      */
     private final double[] likelihoodSums = new double[4];
@@ -104,9 +104,7 @@ public class SNPGenotypeLikelihoodCalculator extends GenotypeLikelihoodCalculato
      */
     public SNPGenotypeLikelihoodCalculator(GenotyperOptions options) {
         super(options);
-        double pcrErrorRate = options.getPcr_error();
-        log10_PCR_error_3 = log10(pcrErrorRate) - log10_3;
-        log10_1_minus_PCR_error = log10(1.0 - pcrErrorRate);
+        init(options.getPcr_error());
     }
 
 
@@ -117,6 +115,10 @@ public class SNPGenotypeLikelihoodCalculator extends GenotypeLikelihoodCalculato
      */
     public SNPGenotypeLikelihoodCalculator(GenotyperOptions options, double pcrErrorRate) {
         super(options);
+        init(pcrErrorRate);
+    }
+
+    public void init(double pcrErrorRate) {
         if(pcrErrorRate == 0) {
             pcrErrorRate = DEFAULT_PCR_ERROR_RATE;
         }
@@ -138,19 +140,19 @@ public class SNPGenotypeLikelihoodCalculator extends GenotypeLikelihoodCalculato
         if ( indexOfRefBase == -1 )
             return null;
         final Allele refAllele = Allele.create(refBase, true);
-
+        System.err.print("ref:" + (char) refBase);
         // calculate the GLs
         ArrayList<SampleGenotypeData> gls = new ArrayList<>(mpileup.getSize());
         Map<String, Pileup> pileups = mpileup.getCurrentPosPileup();
         int position = mpileup.getPosition();
         if (pileups != null) {
             //calculate the genotype likelihood
+            System.err.println("\tat:" + position);
             for(String sample : pileups.keySet()) {
                 Pileup pileup = pileups.get(sample);
-                pileup.calculateBaseInfo();
-
+                //System.err.println(sample);
                 //depth too low to calculate genotype likelihood
-                if (pileup.getPlp().size() < options.getMinDepth()) {
+                if (pileup.getFilteredPileup().size() < options.getMinDepth()) {
                     continue;
                 }
 
@@ -160,6 +162,7 @@ public class SNPGenotypeLikelihoodCalculator extends GenotypeLikelihoodCalculato
                     sampleGenotypeData.setName(sample);
                     gls.add(sampleGenotypeData);
                 }
+                System.err.println("genotype likelihood result:" + sampleGenotypeData.toString());
             }
         }
 
@@ -169,6 +172,7 @@ public class SNPGenotypeLikelihoodCalculator extends GenotypeLikelihoodCalculato
         VariantContextBuilder builder = new VariantContextBuilder("GaeaCall", reference.getChromosomeName(),
                 position + 1, position + 1, alleles);
 
+        System.err.println("determine alt alleles:");
         alleles.addAll(determineAlternateAlleles(refBase, gls));
         // if there are no non-ref alleles...
         if ( alleles.size() == 1 ) {
@@ -250,10 +254,12 @@ public class SNPGenotypeLikelihoodCalculator extends GenotypeLikelihoodCalculato
             }
         }
 
-        final List<Allele> allelesToUse = new ArrayList<>(3);
+        final List<Allele> allelesToUse = new ArrayList<>();
         for ( int i = 0; i < 4; i++ ) {
-            if ( likelihoodSums[i] > 0.0 )
+            if ( likelihoodSums[i] > 0.0 ) {
+                System.err.println("allele:" + (char) BaseUtils.baseIndexToSimpleBase(i) + "\tlikelihood sum:" + likelihoodSums[i]);
                 allelesToUse.add(Allele.create(BaseUtils.baseIndexToSimpleBase(i), false));
+            }
         }
 
         return allelesToUse;
@@ -262,21 +268,29 @@ public class SNPGenotypeLikelihoodCalculator extends GenotypeLikelihoodCalculato
     /**
      * calculate the genotype likelihood for one sample
      * @param pileup pileup
-     * @param capBaseQualsAtMappingQual is cap base quality at mapping quality
+     * @param isCapBaseQualsAtMappingQual options
      * @return sample genotype likelihoods data
      */
-    private SampleGenotypeData getGenotypeLikelihood(Pileup pileup, boolean capBaseQualsAtMappingQual) {
+    private SampleGenotypeData getGenotypeLikelihood(Pileup pileup, boolean isCapBaseQualsAtMappingQual) {
         int goodBaseCount = 0;
         SampleGenotypeData sampleGenotypeData = new SampleGenotypeData();
-        for(PileupReadInfo readInfo : pileup.getFinalPileup()) {
+        System.err.println("depth:" + pileup.getFilteredPileup().size());
+        for(PileupReadInfo readInfo : pileup.getFilteredPileup()) {
             byte base = readInfo.getBinaryBase();
             byte quality = readInfo.getBaseQuality();
 
-            if(base < 0 || base > 3 || quality < 0)
-                continue;
-            if(capBaseQualsAtMappingQual && quality > readInfo.getMappingQuality()) {
+            //System.err.println("base before:" + (char) BaseUtils.baseIndexToSimpleBase(base) + "\tquality:" + (char) (quality + 33));
+
+            if(isCapBaseQualsAtMappingQual && quality > readInfo.getMappingQuality()) {
                 quality = (byte)readInfo.getMappingQuality();
             }
+
+            if(base < 0 || base > 3) {
+                System.err.println("bad base" + readInfo.getBase());
+                continue;
+            }
+
+            System.err.println("base after:" + (char) BaseUtils.baseIndexToSimpleBase(base) + "\tquality:" + (char) (quality + 33));
 
             goodBaseCount++;
             if(hasCACHE(base, quality)) {
@@ -286,21 +300,22 @@ public class SNPGenotypeLikelihoodCalculator extends GenotypeLikelihoodCalculato
                 sampleGenotypeData.add(genotypeDataTmp);
                 setCACHE(base, quality, genotypeDataTmp);
             }
-            errorModel(base, quality);
         }
 
         sampleGenotypeData.setDepth(goodBaseCount);
+
         return sampleGenotypeData;
     }
 
     /**
      * calculate genotype likelihood
      * FIXME::only consider diploid and without overlapping paired reads
-     * @param observedBase base
+     * @param observedBinaryBase base
      * @param baseQuality quality
      * @return genotype likelihood
      */
-    private GenotypeData errorModel(byte observedBase, byte baseQuality) {
+    private GenotypeData errorModel(byte observedBinaryBase, byte baseQuality) {
+        byte observedBase = BaseUtils.baseIndexToSimpleBase(observedBinaryBase);
         GenotypeData genotypeData = new GenotypeData();
         double[] log10FourBaseLikelihoods = baseErrorModel(observedBase, baseQuality);
         for ( DiploidGenotype g : DiploidGenotype.values() ) {
@@ -327,14 +342,18 @@ public class SNPGenotypeLikelihoodCalculator extends GenotypeLikelihoodCalculato
         for (byte trueBase : BaseUtils.BASES) {
             double likelihood = 0.0;
 
+            //System.err.println("true base:" + (char) trueBase);
             for (byte fragmentBase : BaseUtils.BASES) {
                 double log10FragmentLikelihood = (trueBase == fragmentBase ? log10_1_minus_PCR_error : log10_PCR_error_3);
+                //System.err.print("\tfragment base:" + (char)fragmentBase + "\tpcr error prob:" + log10FragmentLikelihood);
                 if(baseQuality != 0) {
                     log10FragmentLikelihood += log10PofObservingBaseGivenChromosome(observedBase, fragmentBase, baseQuality);
                 }
+                //System.err.println("\tquality prob:" + log10PofObservingBaseGivenChromosome(observedBase, fragmentBase, baseQuality) + "\tsum:" + log10FragmentLikelihood);
                 likelihood += pow(10, log10FragmentLikelihood);
             }
-            log10FourBaseLikelihoods[observedBase] = log10(likelihood);
+            //System.err.println("\tfinal prob:" + log10(likelihood));
+            log10FourBaseLikelihoods[BaseUtils.simpleBaseToBaseIndex(trueBase)] = log10(likelihood);
         }
         return log10FourBaseLikelihoods;
     }

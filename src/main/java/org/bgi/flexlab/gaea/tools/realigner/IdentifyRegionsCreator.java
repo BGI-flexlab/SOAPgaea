@@ -52,9 +52,9 @@ public class IdentifyRegionsCreator {
 
 		long totalQuality = 0, mismatchQuality = 0;
 		
-		pileup.calculateBaseInfo();
+		pileup.calculateBaseInfo(null);
 
-		for (PileupReadInfo p : pileup.getPlp()) {
+		for (PileupReadInfo p : pileup.getTotalPileup()) {
 			furthestPosition = Math.max(furthestPosition, p.getAlignmentEnd());
 
 			if (p.isDeletionBase() || p.isNextInsertBase()) {
@@ -131,7 +131,7 @@ public class IdentifyRegionsCreator {
 		ReadsPool pool = new ReadsPool(records.iterator(), null);
 		
 		int regionStart = records.get(0).getAlignmentStart();
-		Mpileup mpileup = new Mpileup(pool, regionStart, end-1);
+		Mpileup mpileup = new Mpileup(pool, regionStart, end-1,null);
 
 		Map<String, Pileup> pileups = mpileup.getNextPosPileup();
 		

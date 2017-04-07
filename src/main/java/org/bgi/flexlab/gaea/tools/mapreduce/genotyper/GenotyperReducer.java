@@ -8,6 +8,7 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamHdfsFileHeader;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.AlignmentBasicWritable;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.WindowsBasedWritable;
+import org.bgi.flexlab.gaea.data.structure.alignment.AlignmentsBasic;
 import org.bgi.flexlab.gaea.data.structure.pileup.ReadsPool;
 import org.bgi.flexlab.gaea.data.structure.reference.ReferenceShare;
 import org.bgi.flexlab.gaea.data.structure.variant.VariantCallContext;
@@ -56,6 +57,7 @@ public class GenotyperReducer extends Reducer<WindowsBasedWritable, AlignmentBas
         genomeShare.loadChromosomeList(options.getReference());
         engine = new VariantCallingEngine(options, header);
         variantContextWritable = new VariantContextWritable();
+        AlignmentsBasic.initIdSampleHash(header.getReadGroups());
     }
 
     @Override

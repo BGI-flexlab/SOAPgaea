@@ -210,7 +210,7 @@ public class PairHMMIndelErrorModel {
         final double readLikelihoods[][] = new double[pileup.getNumberOfElements()][haplotypeMap.size()];
 
         int readIdx=0;
-        for (PileupReadInfo p: pileup.getPlp()) {
+        for (PileupReadInfo p: pileup.getFilteredPileup()) {
             // > 1 when the read is a consensus read representing multiple independent observations
             readCounts[readIdx] = 1; //p.getRepresentativeCount();
 

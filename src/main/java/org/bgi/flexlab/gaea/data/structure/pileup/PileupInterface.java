@@ -1,6 +1,7 @@
 package org.bgi.flexlab.gaea.data.structure.pileup;
 
 import org.bgi.flexlab.gaea.data.structure.alignment.AlignmentsBasic;
+import org.bgi.flexlab.gaea.tools.mapreduce.genotyper.GenotyperOptions;
 
 import java.util.ArrayList;
 
@@ -8,7 +9,7 @@ import java.util.ArrayList;
  * Created by zhangyong on 2016/12/26.
  */
 public interface PileupInterface<T extends PileupReadInfo> {
-    void calculateBaseInfo();
+    void calculateBaseInfo(GenotyperOptions options);
 
     void remove();
 
@@ -18,5 +19,4 @@ public interface PileupInterface<T extends PileupReadInfo> {
 
     void addReads(AlignmentsBasic read);
 
-    ArrayList<T> getFinalPileup();
 }
