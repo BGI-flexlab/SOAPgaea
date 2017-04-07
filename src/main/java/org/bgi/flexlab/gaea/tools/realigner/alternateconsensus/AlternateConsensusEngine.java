@@ -112,7 +112,7 @@ public class AlternateConsensusEngine {
 					.getCigar());
 
 			if (numBlocks == 2) {
-				Cigar newCigar = AlignmentUtil.leftAlignIndel(read.getCigar(),
+				Cigar newCigar = AlignmentUtil.leftAlignIndel(GaeaCigar.unclipCigar(read.getCigar()),
 						reference, read.getReadBases(),
 						read.getAlignmentStart() - leftmostIndex, 0);
 				alignedRead.setCigar(newCigar, false);

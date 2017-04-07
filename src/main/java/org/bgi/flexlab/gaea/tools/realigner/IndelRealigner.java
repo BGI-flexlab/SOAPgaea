@@ -175,6 +175,7 @@ public class IndelRealigner {
 		consensusEngine.consensusByKnowIndels(knowIndelsSet, leftMostIndex, reference);
 		long totalRawQuality = consensusEngine.consensusByReads(reads, refReads, altReads, readsForConsensus,
 				leftMostIndex, reference);
+		
 		// function is empty
 		consensusEngine.consensusBySmithWaterman();
 
@@ -225,7 +226,7 @@ public class IndelRealigner {
 		} else if (location.overlaps(currentInterval)) {
 			effectiveNotCleanReadCount++;
 
-			if (RealignerFilter.needToClean(read, option.getMaxInsertSize())) {
+			if (!RealignerFilter.needToClean(read, option.getMaxInsertSize())) {
 				needRealignementReads.add(read);
 
 				for (VariantContext variant : knowIndels) {
@@ -245,9 +246,10 @@ public class IndelRealigner {
 		}
 	}
 
-	private void write(RealignerWriter writer) {
-		if (needRealignementReads.getReads() != null)
+	private void write(RealignerWriter writer) {	
+		if (needRealignementReads.getReads() != null){
 			notNeedRealignementReads.addAll(needRealignementReads.getReads());
+		}
 
 		if (writer instanceof RealignerContextWriter) {
 			((RealignerContextWriter) writer).getContext().getCounter("REALIGNER", "clean reads")
