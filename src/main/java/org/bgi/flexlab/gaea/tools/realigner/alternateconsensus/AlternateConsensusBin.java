@@ -101,13 +101,14 @@ public class AlternateConsensusBin {
 			case I:
 				indelCount++;
 				for (j = 0; j < length; j++) {
-					byte base = read[readIndex++];
+					byte base = read[readIndex+j];
 					if (!BaseUtils.isRegularBase(base)) {
 						valid = false;
 						break;
 					}
-					sb.append((char) read[readIndex++]);
+					sb.append((char) base);
 				}
+				readIndex += length;
 				elements.add(ce);
 				break;
 			case D:

@@ -48,7 +48,7 @@ public class AlternateConsensusEngine {
 		byte[] qualities = read.getReadQualities();
 
 		for (int readIndex = 0; readIndex < readSeq.length; readIndex++) {
-			if (posOnRef > ref.length) {
+			if (posOnRef >= ref.length) {
 				mismatchQualitySum += (readSeq.length - readIndex)
 						* MAX_QUALITY;
 				break;
@@ -112,7 +112,7 @@ public class AlternateConsensusEngine {
 					.getCigar());
 
 			if (numBlocks == 2) {
-				Cigar newCigar = AlignmentUtil.leftAlignIndel(read.getCigar(),
+				Cigar newCigar = AlignmentUtil.leftAlignIndel(GaeaCigar.unclipCigar(read.getCigar()),
 						reference, read.getReadBases(),
 						read.getAlignmentStart() - leftmostIndex, 0);
 				alignedRead.setCigar(newCigar, false);
@@ -171,6 +171,8 @@ public class AlternateConsensusEngine {
 				if (readScore >= read.getAlignerMismatchScore()
 						|| readScore > read.getMismatchScore())
 					readScore = read.getAlignerMismatchScore();
+				else
+					currentConsensus.add(new Pair<Integer, Integer>(i, best.first));
 
 				if (!read.getRead().isDuplicateRead())
 					currentConsensus.addMismatch(readScore);
@@ -215,7 +217,7 @@ public class AlternateConsensusEngine {
 	public boolean needRealignment(ArrayList<GaeaAlignedSamRecord> reads,
 			byte[] ref, int leftMostIndex) {
 		if (model != AlternateConsensusModel.DBSNP
-				&& lookForEntropy(reads, ref, leftMostIndex))
+				&& !lookForEntropy(reads, ref, leftMostIndex))
 			return true;
 		return false;
 	}
@@ -346,7 +348,7 @@ public class AlternateConsensusEngine {
 				case X:
 				case EQ:
 					for (i = 0; i < length; i++, refIndex++, readIndex++) {
-						if (refIndex > refLength)
+						if (refIndex >= refLength)
 							break;
 						totalCleanQuality[refIndex] += quality[readIndex];
 						if (ref[refIndex] != seq[readIndex])
