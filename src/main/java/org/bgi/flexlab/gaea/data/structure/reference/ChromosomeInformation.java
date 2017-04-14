@@ -16,12 +16,12 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.structure.reference;
 
+import org.bgi.flexlab.gaea.util.SystemConfiguration;
+
 import java.io.BufferedOutputStream;
 import java.io.DataOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-
-import org.bgi.flexlab.gaea.util.SystemConfiguration;
 
 /**
  * 染色体信息

@@ -42,15 +42,6 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.recalibrator.report;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.tools.mapreduce.realigner.RecalibratorOptions;
 import org.bgi.flexlab.gaea.tools.recalibrator.RecalibratorDatum;
@@ -58,14 +49,11 @@ import org.bgi.flexlab.gaea.tools.recalibrator.RecalibratorUtil;
 import org.bgi.flexlab.gaea.tools.recalibrator.covariate.Covariate;
 import org.bgi.flexlab.gaea.tools.recalibrator.quality.QualityQuantizer;
 import org.bgi.flexlab.gaea.tools.recalibrator.table.RecalibratorTable;
-import org.bgi.flexlab.gaea.util.EventType;
-import org.bgi.flexlab.gaea.util.GaeaFilesReader;
-import org.bgi.flexlab.gaea.util.MathUtils;
-import org.bgi.flexlab.gaea.util.NestedObjectArray;
-import org.bgi.flexlab.gaea.util.Pair;
-import org.bgi.flexlab.gaea.util.QualityUtils;
-import org.bgi.flexlab.gaea.util.StandardDataType;
-import org.bgi.flexlab.gaea.util.StringUtils;
+import org.bgi.flexlab.gaea.util.*;
+
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class RecalibratorReportTable {
 	public static final String INVALID_TABLE_NAME_REGEX = "[^a-zA-Z0-9_\\-\\.]";

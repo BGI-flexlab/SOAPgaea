@@ -248,10 +248,13 @@ public class PairHMMIndelErrorModel {
                 //GaeaSAMRecord read = ReadClipper.hardClipAdaptorSequence(p.getRead());
                 AlignmentsBasic read = p.getReadInfo();
 
-                if (!read.isEmpty() && (read.getSoftEnd() > refWindowStop && read.getSoftStart() < refWindowStop))
+                int readSoftStart = read.getSoftStart();
+                int readSoftEnd = read.getSoftEnd();
+                //System.err.println("read soft start:" + readSoftStart + "\tread soft end:" + readSoftEnd);
+                if (!read.isEmpty() && (readSoftEnd > refWindowStop && readSoftStart < refWindowStop))
                     read = ReadClipper.hardClipByReferenceCoordinatesRightTail(read, refWindows.getStop());
 
-                if (!read.isEmpty() && (read.getSoftStart() < refWindowStart && read.getSoftEnd() > refWindowStart))
+                if (!read.isEmpty() && (readSoftStart < refWindowStart && readSoftEnd > refWindowStart))
                     read = ReadClipper.hardClipByReferenceCoordinatesLeftTail (read, refWindows.getStart());
 
                 if (read.isEmpty())
@@ -277,10 +280,12 @@ public class PairHMMIndelErrorModel {
                 // compute total number of clipped bases (soft or hard clipped) and only use them if necessary
                 final boolean softClips = useSoftClippedBases(read, eventStartPos, eventLength);
                 final int numStartSoftClippedBases = softClips ? read.getPosition()- read.getSoftStart() : 0;
-                final int numEndSoftClippedBases = softClips ? read.getSoftEnd()- read.getPosition() : 0 ;
+                final int numEndSoftClippedBases = softClips ? read.getSoftEnd()- p.getEnd() : 0 ;
                 final byte [] unclippedReadBases = read.getReadBases();
                 final byte [] unclippedReadQuals = read.getQualities();
                 final int extraOffset = Math.abs(eventLength);
+
+                //System.err.println("read:" + read.getPosition());
 
                 /**
                  * Compute genomic locations that candidate haplotypes will span.
@@ -315,7 +320,10 @@ public class PairHMMIndelErrorModel {
                 // ok, we now figured out the total number of clipped bases on both ends.
                 // Figure out where we want to place the haplotype to score read against
 
-            
+                /*System.err.println("softClips:" + softClips + "\tnumStartSoftClippedBases:" + numStartSoftClippedBases +
+                        "\tnumEndSoftClippedBases:" + numEndSoftClippedBases + "\textraOffset:" + extraOffset +
+                        "\tstartLocationInRefForHaplotypes:" + startLocationInRefForHaplotypes + "\tstopLocationInRefForHaplotypes:"
+                        + stopLocationInRefForHaplotypes + "\treadLength:" + readLength);*/
 
                // LinkedHashMap<Allele,Double> readEl = new LinkedHashMap<Allele,Double>();
 
@@ -357,6 +365,10 @@ public class PairHMMIndelErrorModel {
 
                         final long indStart = startLocationInRefForHaplotypes - haplotype.getStartPosition();
                         final long indStop =  stopLocationInRefForHaplotypes - haplotype.getStartPosition();
+
+                        /*System.err.println("startLocationInRefForHaplotypes:" + startLocationInRefForHaplotypes +
+                        "\tstopLocationInRefForHaplotypes:" + stopLocationInRefForHaplotypes + "\thaplotype start:" + haplotype.getStartPosition() +
+                        "\tindStart:" + indStart + "\tindStop:" + indStop);*/
 
                         double readLikelihood;
 

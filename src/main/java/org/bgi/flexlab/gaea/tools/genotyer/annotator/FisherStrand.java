@@ -44,11 +44,6 @@
 package org.bgi.flexlab.gaea.tools.genotyer.annotator;
 
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
 import cern.jet.math.Arithmetic;
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.VariantContext;
@@ -60,11 +55,16 @@ import org.bgi.flexlab.gaea.data.structure.pileup.Pileup;
 import org.bgi.flexlab.gaea.data.structure.pileup.PileupReadInfo;
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
 import org.bgi.flexlab.gaea.data.structure.vcf.VariantDataTracker;
-import org.bgi.flexlab.gaea.tools.genotyer.genotypeLikelihoodCalculator.PerReadAlleleLikelihoodMap;
 import org.bgi.flexlab.gaea.tools.genotyer.annotator.interfaces.ActiveRegionBasedAnnotation;
 import org.bgi.flexlab.gaea.tools.genotyer.annotator.interfaces.InfoFieldAnnotation;
 import org.bgi.flexlab.gaea.tools.genotyer.annotator.interfaces.StandardAnnotation;
+import org.bgi.flexlab.gaea.tools.genotyer.genotypeLikelihoodCalculator.PerReadAlleleLikelihoodMap;
 import org.bgi.flexlab.gaea.util.QualityUtils;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -297,7 +297,7 @@ public class FisherStrand extends InfoFieldAnnotation implements StandardAnnotat
 
         for ( String sample : mpileup.getCurrentPosPileup().keySet() ) {
             Pileup pileup = mpileup.getCurrentPosPileup().get(sample);
-            for (PileupReadInfo p : pileup.getFilteredPileup()) {
+            for (PileupReadInfo p : pileup.getTotalPileup()) {
 
                 // ignore reduced reads because they are always on the forward strand!
                 // TODO -- when het compression is enabled in RR, we somehow need to allow those reads through into the Fisher test

@@ -34,24 +34,11 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.annotator.effect;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import org.bgi.flexlab.gaea.tools.annotator.codons.CodonTable;
 import org.bgi.flexlab.gaea.tools.annotator.config.Config;
-import org.bgi.flexlab.gaea.tools.annotator.interval.BioType;
-import org.bgi.flexlab.gaea.tools.annotator.interval.Custom;
-import org.bgi.flexlab.gaea.tools.annotator.interval.Exon;
-import org.bgi.flexlab.gaea.tools.annotator.interval.Gene;
-import org.bgi.flexlab.gaea.tools.annotator.interval.Intron;
-import org.bgi.flexlab.gaea.tools.annotator.interval.Marker;
-import org.bgi.flexlab.gaea.tools.annotator.interval.Regulation;
-import org.bgi.flexlab.gaea.tools.annotator.interval.Transcript;
-import org.bgi.flexlab.gaea.tools.annotator.interval.TranscriptSupportLevel;
-import org.bgi.flexlab.gaea.tools.annotator.interval.Variant;
+import org.bgi.flexlab.gaea.tools.annotator.interval.*;
+
+import java.util.*;
 
 /**
  * Effect of a variant.

@@ -42,14 +42,10 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.recalibrator.quality;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.TreeSet;
-
 import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.util.QualityUtils;
+
+import java.util.*;
 
 public class QualityQuantizer {
 	private List<Long> observationNumbers = null;

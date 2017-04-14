@@ -16,14 +16,6 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.structure.memoryshare;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
@@ -31,6 +23,10 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.util.LineReader;
+
+import java.io.*;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 public abstract class WholeGenomeShare {
 	protected static String DISTRIBUTE_CACHE_FLAG = "distribute.cache.flag";

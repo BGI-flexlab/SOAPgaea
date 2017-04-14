@@ -16,10 +16,10 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.mapreduce.input.cram;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-
+import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.cram.build.CramContainerIterator;
+import htsjdk.samtools.cram.structure.Container;
+import htsjdk.samtools.seekablestream.SeekableStream;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -29,10 +29,9 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.util.LineReader;
 import org.seqdoop.hadoop_bam.util.WrapSeekable;
 
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.cram.build.CramContainerIterator;
-import htsjdk.samtools.cram.structure.Container;
-import htsjdk.samtools.seekablestream.SeekableStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 public class ChromosomeIndex {
 	private String cramFileName;

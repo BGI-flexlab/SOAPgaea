@@ -42,6 +42,7 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.recalibrator;
 
+import htsjdk.samtools.SAMReadGroupRecord;
 import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.sequenceplatform.NGSPlatform;
@@ -50,8 +51,6 @@ import org.bgi.flexlab.gaea.tools.recalibrator.covariate.QualityCovariate;
 import org.bgi.flexlab.gaea.tools.recalibrator.covariate.ReadGroupCovariate;
 import org.bgi.flexlab.gaea.util.BaseUtils;
 import org.bgi.flexlab.gaea.util.ReadUtils;
-
-import htsjdk.samtools.SAMReadGroupRecord;
 
 public class RecalibratorUtil {
 	/**

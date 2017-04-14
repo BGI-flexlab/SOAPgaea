@@ -17,9 +17,6 @@
 package org.bgi.flexlab.gaea.data.structure.alignment;
 
 import htsjdk.samtools.SAMReadGroupRecord;
-import ngs.ReadGroup;
-import org.apache.htrace.fasterxml.jackson.annotation.JsonTypeInfo;
-import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.bam.SAMCompressionInformationBasic;
 
 import java.util.HashMap;

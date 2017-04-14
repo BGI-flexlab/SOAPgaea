@@ -44,19 +44,11 @@
 package org.bgi.flexlab.gaea.util;
 
 
-import java.net.InetAddress;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
+import htsjdk.samtools.util.StringUtil;
 import org.apache.log4j.Logger;
 
-import htsjdk.samtools.util.StringUtil;
+import java.net.InetAddress;
+import java.util.*;
 
 public class Utils {
     /** our log, which we want to capture anything from this class */

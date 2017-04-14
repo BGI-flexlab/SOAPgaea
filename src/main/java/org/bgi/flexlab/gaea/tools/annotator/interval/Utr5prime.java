@@ -34,9 +34,6 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.annotator.interval;
 
-import java.util.Collections;
-import java.util.List;
-
 import org.bgi.flexlab.gaea.tools.annotator.codons.CodonTable;
 import org.bgi.flexlab.gaea.tools.annotator.codons.CodonTables;
 import org.bgi.flexlab.gaea.tools.annotator.effect.EffectType;
@@ -44,6 +41,9 @@ import org.bgi.flexlab.gaea.tools.annotator.effect.VariantEffect;
 import org.bgi.flexlab.gaea.tools.annotator.effect.VariantEffects;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Variant.VariantType;
 import org.bgi.flexlab.gaea.tools.annotator.util.GprSeq;
+
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Interval for a UTR (5 prime UTR and 3 prime UTR

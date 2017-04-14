@@ -169,7 +169,7 @@ public class HaplotypeScore extends InfoFieldAnnotation implements StandardAnnot
         final PriorityQueue<Haplotype> candidateHaplotypeQueue = new PriorityQueue<Haplotype>(100, new HaplotypeComparator());
         final PriorityQueue<Haplotype> consensusHaplotypeQueue = new PriorityQueue<Haplotype>(MAX_CONSENSUS_HAPLOTYPES_TO_CONSIDER, new HaplotypeComparator());
 
-        for (final PileupReadInfo p : pileup.getFilteredPileup()) {
+        for (final PileupReadInfo p : pileup.getTotalPileup()) {
             final Haplotype haplotypeFromRead = getHaplotypeFromRead(p, contextSize, locus);
             candidateHaplotypeQueue.add(haplotypeFromRead);
         }
@@ -312,7 +312,7 @@ public class HaplotypeScore extends InfoFieldAnnotation implements StandardAnnot
         if (DEBUG) System.out.printf("HAP2: %s%n", haplotypes.get(1));
 
         final ArrayList<double[]> haplotypeScores = new ArrayList<double[]>();
-        for (final PileupReadInfo p : pileup.getFilteredPileup()) {
+        for (final PileupReadInfo p : pileup.getTotalPileup()) {
             // Score all the reads in the pileup, even the filtered ones
             final double[] scores = new double[haplotypes.size()];
             for (int i = 0; i < haplotypes.size(); i++) {

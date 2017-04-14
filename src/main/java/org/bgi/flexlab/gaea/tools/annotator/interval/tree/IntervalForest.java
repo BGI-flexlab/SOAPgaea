@@ -34,18 +34,13 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.annotator.interval.tree;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-
 import org.bgi.flexlab.gaea.tools.annotator.interval.Chromosome;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Marker;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Markers;
 import org.bgi.flexlab.gaea.tools.annotator.util.Gpr;
+
+import java.io.Serializable;
+import java.util.*;
 
 /**
  * A set of interval trees (e.g. one per chromosome, one per transcript ID, etc)

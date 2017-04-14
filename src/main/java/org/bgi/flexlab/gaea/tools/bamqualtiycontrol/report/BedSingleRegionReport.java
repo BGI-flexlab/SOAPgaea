@@ -16,10 +16,11 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report;
 
-import java.util.concurrent.ConcurrentHashMap;
 import org.bgi.flexlab.gaea.data.structure.positioninformation.IntPositionInformation;
 import org.bgi.flexlab.gaea.data.structure.region.SingleRegion;
 import org.bgi.flexlab.gaea.data.structure.region.statistic.BedSingleRegionStatistic;
+
+import java.util.concurrent.ConcurrentHashMap;
 
 public class BedSingleRegionReport extends
 		SingleRegionReport<BedSingleRegionStatistic> {

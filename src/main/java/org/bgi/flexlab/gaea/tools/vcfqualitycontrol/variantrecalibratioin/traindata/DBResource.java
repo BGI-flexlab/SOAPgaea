@@ -42,13 +42,12 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin.traindata;
 
+import htsjdk.variant.variantcontext.VariantContext;
+import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-
-import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
-
-import htsjdk.variant.variantcontext.VariantContext;
 
 public class DBResource implements ResourceType{
 

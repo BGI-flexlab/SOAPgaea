@@ -16,13 +16,13 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.bgi.flexlab.gaea.data.structure.positioninformation.IntPositionInformation;
 import org.bgi.flexlab.gaea.data.structure.region.SingleRegion;
 import org.bgi.flexlab.gaea.data.structure.region.SingleRegion.Regiondata;
 import org.bgi.flexlab.gaea.data.structure.region.statistic.SingleRegionStatistic;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public abstract class SingleRegionReport<T extends SingleRegionStatistic> {
 	protected SingleRegion singleReigon;

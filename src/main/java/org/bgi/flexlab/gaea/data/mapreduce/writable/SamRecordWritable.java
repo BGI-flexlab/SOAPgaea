@@ -42,17 +42,16 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.mapreduce.writable;
 
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
-
+import htsjdk.samtools.BAMRecordCodec;
+import htsjdk.samtools.SAMRecord;
 import org.apache.hadoop.io.Writable;
 import org.seqdoop.hadoop_bam.LazyBAMRecordFactory;
 import org.seqdoop.hadoop_bam.util.DataInputWrapper;
 import org.seqdoop.hadoop_bam.util.DataOutputWrapper;
 
-import htsjdk.samtools.BAMRecordCodec;
-import htsjdk.samtools.SAMRecord;
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
 
 public class SamRecordWritable implements Writable{
 	private static final BamRecordCodec lazyCodec =

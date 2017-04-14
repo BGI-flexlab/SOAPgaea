@@ -46,10 +46,9 @@ import htsjdk.samtools.CigarElement;
 import htsjdk.samtools.CigarOperator;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMUtils;
+import org.bgi.flexlab.gaea.data.exception.UserException;
 
 import java.util.Arrays;
-
-import org.bgi.flexlab.gaea.data.exception.UserException;
 
 public class SamRecordUtils {
 

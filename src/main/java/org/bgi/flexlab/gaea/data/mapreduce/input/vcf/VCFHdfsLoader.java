@@ -16,15 +16,16 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.mapreduce.input.vcf;
 
-import java.io.IOException;
-import java.io.InputStream;
+import htsjdk.tribble.readers.AsciiLineReader;
+import htsjdk.tribble.readers.AsciiLineReaderIterator;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.bgi.flexlab.gaea.data.mapreduce.util.HdfsFileManager;
 import org.bgi.flexlab.gaea.data.structure.vcf.AbstractVCFLoader;
 import org.seqdoop.hadoop_bam.util.WrapSeekable;
-import htsjdk.tribble.readers.AsciiLineReader;
-import htsjdk.tribble.readers.AsciiLineReaderIterator;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 public class VCFHdfsLoader extends AbstractVCFLoader{
 

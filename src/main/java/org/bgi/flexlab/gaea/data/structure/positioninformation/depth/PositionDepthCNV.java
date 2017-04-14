@@ -16,13 +16,13 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.structure.positioninformation.depth;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.bgi.flexlab.gaea.data.structure.positioninformation.CalculatePositionInforamtionInterface;
 import org.bgi.flexlab.gaea.data.structure.positioninformation.CompoundInformation;
 import org.bgi.flexlab.gaea.util.SamRecordDatum;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class PositionDepthCNV implements CalculatePositionInforamtionInterface<SamRecordDatum>{
 	private ArrayList<PositionDepthCNVLane> cnvUsedDepth = new ArrayList<PositionDepthCNVLane>();

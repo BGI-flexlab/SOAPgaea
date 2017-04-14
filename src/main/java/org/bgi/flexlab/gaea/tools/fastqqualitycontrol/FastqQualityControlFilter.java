@@ -16,14 +16,14 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.fastqqualitycontrol;
 
-import java.io.IOException;
-import java.util.ArrayList;
-
 import org.bgi.flexlab.gaea.data.mapreduce.input.fastq.FastqMultipleSample;
 import org.bgi.flexlab.gaea.data.structure.reads.ReadBasicStatistics;
 import org.bgi.flexlab.gaea.data.structure.reads.ReadInformationWithSampleID;
 import org.bgi.flexlab.gaea.data.structure.reads.report.FastqQualityControlReport;
 import org.bgi.flexlab.gaea.tools.mapreduce.fastqqualitycontrol.FastqQualityControlOptions;
+
+import java.io.IOException;
+import java.util.ArrayList;
 
 public class FastqQualityControlFilter {
 	private FastqQualityControlOptions option;

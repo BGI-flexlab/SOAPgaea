@@ -16,16 +16,16 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.mapreduce.input.fastq;
 
-import java.io.IOException;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.util.LineReader;
+
+import java.io.IOException;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class FastqMultipleSample {
 	private Map<String,FastqSample> sampleList = new ConcurrentHashMap<String,FastqSample>();

@@ -42,15 +42,14 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.recalibrator.report;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import htsjdk.samtools.SAMFileHeader;
 import org.bgi.flexlab.gaea.tools.mapreduce.realigner.RecalibratorOptions;
 import org.bgi.flexlab.gaea.tools.recalibrator.covariate.Covariate;
 import org.bgi.flexlab.gaea.tools.recalibrator.table.RecalibratorTable;
 import org.bgi.flexlab.gaea.tools.recalibrator.table.RecalibratorTableCombiner;
 
-import htsjdk.samtools.SAMFileHeader;
+import java.util.ArrayList;
+import java.util.List;
 
 public class RecalibratorReportTableEngine {
 	private RecalibratorOptions option = null;

@@ -42,12 +42,12 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.recalibrator.quality;
 
+import org.bgi.flexlab.gaea.util.QualityUtils;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-
-import org.bgi.flexlab.gaea.util.QualityUtils;
 
 public class QualityInterval implements Comparable<QualityInterval> {
 	public static final Set<QualityInterval> MY_EMPTY_SET = Collections.emptySet();

@@ -16,8 +16,6 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.mapreduce.realigner;
 
-import java.io.IOException;
-
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer.Context;
@@ -27,6 +25,8 @@ import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.tools.realigner.RealignerWriter;
 import org.bgi.flexlab.gaea.tools.recalibrator.RecalibratorWriter;
 import org.bgi.flexlab.gaea.tools.recalibrator.table.RecalibratorTable;
+
+import java.io.IOException;
 
 public class RecalibratorContextWriter extends RealignerWriter implements RecalibratorWriter {
 	public final static String RECALIBRATOR_TABLE_TAG = "bqsr";

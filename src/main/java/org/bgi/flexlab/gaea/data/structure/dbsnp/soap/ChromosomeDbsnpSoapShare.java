@@ -16,12 +16,12 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.structure.dbsnp.soap;
 
+import org.bgi.flexlab.gaea.data.structure.memoryshare.BioMemoryShare;
+
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
-
-import org.bgi.flexlab.gaea.data.structure.memoryshare.BioMemoryShare;
 
 /**
  * dbSNP信息共享内存

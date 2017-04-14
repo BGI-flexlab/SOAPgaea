@@ -16,9 +16,13 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.mapreduce.vcfqualitycontrol.variantrecalibratioin;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import htsjdk.samtools.reference.FastaSequenceFile;
+import htsjdk.tribble.readers.AsciiLineReader;
+import htsjdk.tribble.readers.AsciiLineReaderIterator;
+import htsjdk.variant.variantcontext.VariantContext;
+import htsjdk.variant.vcf.VCFCodec;
+import htsjdk.variant.vcf.VCFHeader;
+import htsjdk.variant.vcf.VCFHeaderVersion;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.Path;
@@ -36,13 +40,9 @@ import org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin.VCFRec
 import org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin.traindata.VariantDatumMessenger;
 import org.seqdoop.hadoop_bam.VariantContextWritable;
 
-import htsjdk.samtools.reference.FastaSequenceFile;
-import htsjdk.tribble.readers.AsciiLineReader;
-import htsjdk.tribble.readers.AsciiLineReaderIterator;
-import htsjdk.variant.variantcontext.VariantContext;
-import htsjdk.variant.vcf.VCFCodec;
-import htsjdk.variant.vcf.VCFHeader;
-import htsjdk.variant.vcf.VCFHeaderVersion;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 
 
 public class VariantRecalibrationReducer extends Reducer<IntWritable, Text, NullWritable, VariantContextWritable>{

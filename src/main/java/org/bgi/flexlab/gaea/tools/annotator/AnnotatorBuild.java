@@ -16,8 +16,6 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.annotator;
 
-import java.io.Serializable;
-
 import org.bgi.flexlab.gaea.tools.annotator.config.Config;
 import org.bgi.flexlab.gaea.tools.annotator.effect.SnpEffectPredictor;
 import org.bgi.flexlab.gaea.tools.annotator.effect.factory.SnpEffPredictorFactory;
@@ -27,6 +25,8 @@ import org.bgi.flexlab.gaea.tools.annotator.interval.SpliceSite;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Transcript;
 import org.bgi.flexlab.gaea.tools.annotator.interval.TranscriptSupportLevel;
 import org.bgi.flexlab.gaea.tools.annotator.util.Timer;
+
+import java.io.Serializable;
 
 class AnnotatorBuild implements Serializable{
 	

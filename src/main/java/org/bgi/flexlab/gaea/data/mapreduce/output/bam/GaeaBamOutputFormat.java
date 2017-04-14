@@ -44,14 +44,13 @@ package org.bgi.flexlab.gaea.data.mapreduce.output.bam;
 
 import htsjdk.samtools.util.Log;
 import htsjdk.samtools.util.Log.LogLevel;
-
-import java.io.IOException;
-
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.SamRecordWritable;
+
+import java.io.IOException;
 
 public class GaeaBamOutputFormat<K> extends FileOutputFormat<K,SamRecordWritable> {
 	private boolean writeHeader = true;

@@ -16,28 +16,24 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report;
 
+import org.bgi.flexlab.gaea.data.structure.positioninformation.depth.PositionDepth;
+import org.bgi.flexlab.gaea.data.structure.region.FlankRegion;
+import org.bgi.flexlab.gaea.data.structure.region.Region;
+import org.bgi.flexlab.gaea.data.structure.region.TargetRegion;
+import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.BaseCounter;
+import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.CounterProperty.*;
+import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.ReadsCounter;
+import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.Tracker;
+import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.Tracker.BaseTracker;
+import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.Tracker.ReadsTracker;
+import org.bgi.flexlab.gaea.util.SamRecordDatum;
+
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
-
-import org.bgi.flexlab.gaea.data.structure.positioninformation.depth.PositionDepth;
-import org.bgi.flexlab.gaea.data.structure.region.TargetRegion;
-import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.BaseCounter;
-import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.ReadsCounter;
-import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.Tracker;
-import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.CounterProperty.BaseType;
-import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.CounterProperty.Depth;
-import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.CounterProperty.DepthType;
-import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.CounterProperty.Interval;
-import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.CounterProperty.ReadType;
-import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.Tracker.BaseTracker;
-import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.Tracker.ReadsTracker;
-import org.bgi.flexlab.gaea.data.structure.region.FlankRegion;
-import org.bgi.flexlab.gaea.data.structure.region.Region;
-import org.bgi.flexlab.gaea.util.SamRecordDatum;
 
 public class RegionReport{
 	

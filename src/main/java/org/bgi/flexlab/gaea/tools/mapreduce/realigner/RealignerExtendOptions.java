@@ -16,15 +16,15 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.mapreduce.realigner;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.ParseException;
 import org.apache.hadoop.conf.Configuration;
 import org.bgi.flexlab.gaea.data.mapreduce.options.HadoopOptions;
 import org.bgi.flexlab.gaea.data.options.GaeaOptions;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 
 public class RealignerExtendOptions extends GaeaOptions implements HadoopOptions {
 	public final static String SOFTWARE_NAME = "Realigner";

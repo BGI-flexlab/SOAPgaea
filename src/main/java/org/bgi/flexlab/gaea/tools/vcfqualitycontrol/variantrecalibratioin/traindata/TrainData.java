@@ -42,10 +42,10 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin.traindata;
 
-import java.util.ArrayList;
+import htsjdk.variant.variantcontext.VariantContext;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
 
-import htsjdk.variant.variantcontext.VariantContext;
+import java.util.ArrayList;
 
 public class TrainData {	
 	

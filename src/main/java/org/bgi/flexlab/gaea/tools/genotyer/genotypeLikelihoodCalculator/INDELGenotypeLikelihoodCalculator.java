@@ -65,9 +65,8 @@ import java.util.Map;
 public class INDELGenotypeLikelihoodCalculator extends GenotypeLikelihoodCalculator {
     private static final int HAPLOTYPE_SIZE = 80;
 
-    public static int REF_WIN_START = -200;
+    public static int REF_WIN_Extend = 200;
 
-    public static int REF_WIN_STOP = 200;
 
     private boolean ignoreSNPAllelesWhenGenotypingIndels = false;
 
@@ -106,26 +105,29 @@ public class INDELGenotypeLikelihoodCalculator extends GenotypeLikelihoodCalcula
         haplotypeMap.clear();
         perReadAlleleLikelihoodMap.clear();
 
-        int winStart = Math.max( position - REF_WIN_START, 1 );
-        int winStop = Math.min( position + REF_WIN_STOP, reference.getLength() );
+        int winStart = Math.max( position - REF_WIN_Extend, 0 );
+        int winStop = Math.min( position + REF_WIN_Extend, reference.getLength() );
         GenomeLocation refWindows = locationParser.createGenomeLocation(reference.getChromosomeName(), winStart, winStop);
 
         //construct haplotypes
         ///get alleles from pileup
+        //System.err.println("get indel alleles");
         alleleList = getConsensusAlleles(pileups, position, reference, options, locationParser);
         if (alleleList.isEmpty())
             return null;
         ///construct haplotypes
+        //System.err.println("construct haplotypes");
         getHaplotypeMapFromAlleles(alleleList, reference, position, refWindows,locationParser, haplotypeMap);
         if (haplotypeMap == null || haplotypeMap.isEmpty())
             return null;
 
+        //System.err.println("make variant context");
         // start making the VariantContext
         // For all non-snp VC types, VC end location is just startLocation + length of ref allele including padding base.
         final int endLoc = position + alleleList.get(0).length() - 1;
         final int eventLength = getEventLength(alleleList);
 
-        final VariantContextBuilder builder = new VariantContextBuilder("UG_call", reference.getChromosomeName(), position, endLoc, alleleList);
+        final VariantContextBuilder builder = new VariantContextBuilder("UG_call", reference.getChromosomeName(), position + 1, endLoc + 1, alleleList);
 
         // create the genotypes; no-call everyone for now
         GenotypesContext genotypes = GenotypesContext.create();
@@ -134,7 +136,7 @@ public class INDELGenotypeLikelihoodCalculator extends GenotypeLikelihoodCalcula
 
         // For each sample, get genotype likelihoods based on pileup
         // compute prior likelihoods on haplotypes, and initialize haplotype likelihood matrix with them.
-
+        //System.err.println("cal likelihoods");
         for (String sample : pileups.keySet()) {
             Pileup pileup = pileups.get(sample);
 
@@ -182,7 +184,7 @@ public class INDELGenotypeLikelihoodCalculator extends GenotypeLikelihoodCalcula
             final int eventLength = getEventLength(alleleList);
             final int hsize = refWindows.size() - Math.abs(eventLength) - 1;
             final int numPrefBases = position - refWindows.getStart() + 1;
-
+            //System.err.println("event length:" + eventLength + "\thsize:" + hsize + "\tnumPrefBases:" + numPrefBases);
             if (hsize <= 0) { // protect against event lengths larger than ref window sizes
                 haplotypeMap.clear();
             }

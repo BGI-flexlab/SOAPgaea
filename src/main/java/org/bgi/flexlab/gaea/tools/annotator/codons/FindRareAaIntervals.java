@@ -34,13 +34,13 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.annotator.codons;
 
-import java.util.HashMap;
-
 import org.bgi.flexlab.gaea.tools.annotator.interval.Gene;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Genome;
 import org.bgi.flexlab.gaea.tools.annotator.interval.RareAminoAcid;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Transcript;
 import org.bgi.flexlab.gaea.tools.annotator.util.GprSeq;
+
+import java.util.HashMap;
 
 /**
  * Find intervals where rare amino acids occur

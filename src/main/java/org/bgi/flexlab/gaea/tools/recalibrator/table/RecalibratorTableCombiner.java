@@ -42,6 +42,7 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.recalibrator.table;
 
+import htsjdk.samtools.SAMFileHeader;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PathFilter;
 import org.bgi.flexlab.gaea.data.mapreduce.util.HdfsFilesReader;
@@ -51,8 +52,6 @@ import org.bgi.flexlab.gaea.tools.recalibrator.RecalibratorDatum;
 import org.bgi.flexlab.gaea.tools.recalibrator.covariate.Covariate;
 import org.bgi.flexlab.gaea.tools.recalibrator.covariate.CovariateUtil;
 import org.bgi.flexlab.gaea.util.NestedObjectArray;
-
-import htsjdk.samtools.SAMFileHeader;
 
 public class RecalibratorTableCombiner {
 	private HdfsFilesReader reader = null;

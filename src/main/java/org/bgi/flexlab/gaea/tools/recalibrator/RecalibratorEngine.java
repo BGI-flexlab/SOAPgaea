@@ -42,8 +42,7 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.recalibrator;
 
-import java.util.ArrayList;
-
+import htsjdk.samtools.SAMFileHeader;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.SamRecordWritable;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.bam.filter.BaseRecalibrationFilter;
@@ -61,7 +60,7 @@ import org.bgi.flexlab.gaea.util.BaseUtils;
 import org.bgi.flexlab.gaea.util.EventType;
 import org.bgi.flexlab.gaea.util.NestedObjectArray;
 
-import htsjdk.samtools.SAMFileHeader;
+import java.util.ArrayList;
 
 public class RecalibratorEngine {
 	private SAMFileHeader mHeader = null;

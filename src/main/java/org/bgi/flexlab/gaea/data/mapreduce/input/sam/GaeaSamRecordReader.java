@@ -42,12 +42,8 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.mapreduce.input.sam;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringWriter;
-import java.io.UnsupportedEncodingException;
-
+import hbparquet.hadoop.util.ContextUtil;
+import htsjdk.samtools.*;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
@@ -61,14 +57,7 @@ import org.bgi.flexlab.gaea.data.mapreduce.writable.SamRecordWritable;
 import org.seqdoop.hadoop_bam.BAMRecordReader;
 import org.seqdoop.hadoop_bam.util.SAMHeaderReader;
 
-import hbparquet.hadoop.util.ContextUtil;
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SAMFileReader;
-import htsjdk.samtools.SAMFormatException;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMRecordIterator;
-import htsjdk.samtools.SAMTextHeaderCodec;
-import htsjdk.samtools.ValidationStringency;
+import java.io.*;
 
 public class GaeaSamRecordReader extends RecordReader<LongWritable,SamRecordWritable>
 {

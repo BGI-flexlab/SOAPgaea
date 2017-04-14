@@ -51,8 +51,8 @@ import org.bgi.flexlab.gaea.data.structure.pileup.Pileup;
 import org.bgi.flexlab.gaea.data.structure.pileup.PileupReadInfo;
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
 import org.bgi.flexlab.gaea.data.structure.vcf.VariantDataTracker;
-import org.bgi.flexlab.gaea.tools.genotyer.genotypeLikelihoodCalculator.PerReadAlleleLikelihoodMap;
 import org.bgi.flexlab.gaea.tools.genotyer.annotator.interfaces.InfoFieldAnnotation;
+import org.bgi.flexlab.gaea.tools.genotyer.genotypeLikelihoodCalculator.PerReadAlleleLikelihoodMap;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -78,7 +78,7 @@ public class LowMQ extends InfoFieldAnnotation {
         for ( String sample : mpileup.getCurrentPosPileup().keySet() )
 		{
             Pileup pileup = mpileup.getCurrentPosPileup().get(sample);
-            for ( PileupReadInfo p : pileup.getFilteredPileup() )
+            for ( PileupReadInfo p : pileup.getTotalPileup() )
 			{
                 if ( p.getMappingQuality() == 0 )  { mq0 += 1; }
                 if ( p.getMappingQuality() <= 10 ) { mq10 += 1; }

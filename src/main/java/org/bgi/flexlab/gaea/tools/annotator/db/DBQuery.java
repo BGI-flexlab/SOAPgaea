@@ -16,15 +16,15 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.annotator.db;
 
+import org.bgi.flexlab.gaea.tools.annotator.config.DatabaseInfo.DbType;
+import org.bgi.flexlab.gaea.tools.annotator.effect.AnnotationContext;
+
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
-
-import org.bgi.flexlab.gaea.tools.annotator.config.DatabaseInfo.DbType;
-import org.bgi.flexlab.gaea.tools.annotator.effect.AnnotationContext;
 
 /**
  * @author huangzhibo

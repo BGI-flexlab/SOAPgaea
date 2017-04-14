@@ -49,8 +49,8 @@ import htsjdk.variant.vcf.VCFInfoHeaderLine;
 import org.bgi.flexlab.gaea.data.structure.alignment.AlignmentsBasic;
 import org.bgi.flexlab.gaea.data.structure.pileup.Pileup;
 import org.bgi.flexlab.gaea.data.structure.pileup.PileupReadInfo;
-import org.bgi.flexlab.gaea.tools.genotyer.genotypeLikelihoodCalculator.PerReadAlleleLikelihoodMap;
 import org.bgi.flexlab.gaea.tools.genotyer.annotator.interfaces.StandardAnnotation;
+import org.bgi.flexlab.gaea.tools.genotyer.genotypeLikelihoodCalculator.PerReadAlleleLikelihoodMap;
 
 import java.util.Arrays;
 import java.util.List;
@@ -75,7 +75,7 @@ public class MappingQualityRankSumTest extends RankSumTest implements StandardAn
 
         if (pileup != null && likelihoodMap == null) {
             // old UG snp-only path through the annotations
-            for ( final PileupReadInfo p : pileup.getFilteredPileup() ) {
+            for ( final PileupReadInfo p : pileup.getTotalPileup() ) {
                 if ( isUsableBase(p) ) {
                     if ( allAlleles.get(0).equals(Allele.create((byte)p.getBase(), true)) ) {
                         refQuals.add((double)p.getMappingQuality());

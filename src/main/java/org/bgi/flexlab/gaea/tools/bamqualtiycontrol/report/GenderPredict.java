@@ -16,21 +16,15 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.Map.Entry;
-
 import org.bgi.flexlab.gaea.data.exception.BAMQCException;
 import org.bgi.flexlab.gaea.data.structure.region.SingleRegion;
 import org.bgi.flexlab.gaea.data.structure.region.SingleRegion.Regiondata;
 import org.bgi.flexlab.gaea.data.structure.region.statistic.BedSingleRegionStatistic;
 import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report.RegionReport.Sex;
 import org.bgi.flexlab.gaea.util.Lowess;
+
+import java.util.*;
+import java.util.Map.Entry;
 
 
 public class GenderPredict {

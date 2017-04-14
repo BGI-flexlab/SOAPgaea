@@ -16,19 +16,15 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.structure.reference.index;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import org.bgi.flexlab.gaea.data.exception.NullFilePathException;
+import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformation;
+import org.bgi.flexlab.gaea.util.ChromosomeUtils;
+
+import java.io.*;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
-
-import org.bgi.flexlab.gaea.data.exception.NullFilePathException;
-import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformation;
-import org.bgi.flexlab.gaea.util.ChromosomeUtils;
 
 /**
  * create reference and dbSNP file index

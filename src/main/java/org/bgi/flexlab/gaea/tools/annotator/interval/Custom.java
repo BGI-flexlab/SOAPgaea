@@ -34,12 +34,12 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.annotator.interval;
 
-import java.util.Collections;
-import java.util.Iterator;
-
 import org.bgi.flexlab.gaea.tools.annotator.effect.EffectType;
 import org.bgi.flexlab.gaea.tools.annotator.effect.VariantEffects;
 import org.bgi.flexlab.gaea.tools.annotator.util.KeyValue;
+
+import java.util.Collections;
+import java.util.Iterator;
 
 /**
  * This is a custom interval (i.e. intervals provided by the user)

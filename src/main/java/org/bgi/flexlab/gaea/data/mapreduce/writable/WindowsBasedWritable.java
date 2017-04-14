@@ -16,16 +16,15 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.mapreduce.writable;
 
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
-
+import htsjdk.samtools.SAMRecord;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.WritableComparable;
 import org.bgi.flexlab.gaea.data.exception.OutOfBoundException;
 
-import htsjdk.samtools.SAMRecord;
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
 
 public class WindowsBasedWritable implements WritableComparable<WindowsBasedWritable> {
 	private LongWritable windowsInfo = new LongWritable();

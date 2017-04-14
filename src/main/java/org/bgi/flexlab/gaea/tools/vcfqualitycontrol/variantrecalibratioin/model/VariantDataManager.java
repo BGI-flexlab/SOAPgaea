@@ -42,13 +42,9 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin.model;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-
+import htsjdk.variant.variantcontext.Allele;
+import htsjdk.variant.variantcontext.VariantContextBuilder;
+import htsjdk.variant.variantcontext.writer.VariantContextWriter;
 import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.data.structure.header.VCFConstants;
 import org.bgi.flexlab.gaea.tools.mapreduce.vcfqualitycontrol.VCFQualityControl;
@@ -58,9 +54,7 @@ import org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin.traind
 import org.bgi.flexlab.gaea.util.ExpandingArrayList;
 import org.bgi.flexlab.gaea.util.RandomUtils;
 
-import htsjdk.variant.variantcontext.Allele;
-import htsjdk.variant.variantcontext.VariantContextBuilder;
-import htsjdk.variant.variantcontext.writer.VariantContextWriter;
+import java.util.*;
 
 public class VariantDataManager {
 	private ExpandingArrayList<VariantDatum> data;

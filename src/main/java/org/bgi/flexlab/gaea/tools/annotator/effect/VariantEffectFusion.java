@@ -34,11 +34,7 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.annotator.effect;
 
-import org.bgi.flexlab.gaea.tools.annotator.interval.Gene;
-import org.bgi.flexlab.gaea.tools.annotator.interval.Marker;
-import org.bgi.flexlab.gaea.tools.annotator.interval.Transcript;
-import org.bgi.flexlab.gaea.tools.annotator.interval.Variant;
-import org.bgi.flexlab.gaea.tools.annotator.interval.VariantTranslocation;
+import org.bgi.flexlab.gaea.tools.annotator.interval.*;
 import org.bgi.flexlab.gaea.tools.annotator.interval.codonchange.CodonChange;
 
 /**

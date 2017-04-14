@@ -42,12 +42,12 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.mapreduce.input.cram;
 
-import java.io.IOException;
-
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
+
+import java.io.IOException;
 
 public class GaeaCramChromosomeRecordReader extends GaeaCramRecordReader {
 	private int sequenceId = Integer.MIN_VALUE;

@@ -42,14 +42,13 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.recalibrator.covariate;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import htsjdk.samtools.SAMFileHeader;
 import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.tools.mapreduce.realigner.RecalibratorOptions;
 import org.bgi.flexlab.gaea.util.Pair;
 
-import htsjdk.samtools.SAMFileHeader;
+import java.util.ArrayList;
+import java.util.List;
 
 public class CovariateUtil {
 	@SuppressWarnings({ "unchecked", "rawtypes" })

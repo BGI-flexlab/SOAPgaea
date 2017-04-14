@@ -16,12 +16,8 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
+import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.SAMReadGroupRecord;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
@@ -35,15 +31,18 @@ import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
 import org.bgi.flexlab.gaea.data.structure.reference.ReferenceShare;
 import org.bgi.flexlab.gaea.data.structure.region.RegionChromosomeInformation;
 import org.bgi.flexlab.gaea.data.structure.region.SingleRegion;
-import org.bgi.flexlab.gaea.data.structure.region.TargetRegion;
 import org.bgi.flexlab.gaea.data.structure.region.SingleRegion.Regiondata;
+import org.bgi.flexlab.gaea.data.structure.region.TargetRegion;
 import org.bgi.flexlab.gaea.data.structure.region.statistic.BedSingleRegionStatistic;
 import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report.RegionReport.Sex;
 import org.bgi.flexlab.gaea.tools.mapreduce.bamqualitycontrol.BamQualityControlOptions;
 import org.bgi.flexlab.gaea.util.SamRecordDatum;
 
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SAMReadGroupRecord;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 public class RegionResultReport extends ResultReport{
 	

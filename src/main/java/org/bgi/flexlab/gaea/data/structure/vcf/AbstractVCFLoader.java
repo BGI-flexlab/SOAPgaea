@@ -42,19 +42,6 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.structure.vcf;
 
-import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
-import java.util.zip.GZIPInputStream;
-
-import org.bgi.flexlab.gaea.util.ChromosomeUtils;
-
 import htsjdk.tribble.FeatureCodecHeader;
 import htsjdk.tribble.TribbleException;
 import htsjdk.tribble.readers.AsciiLineReaderIterator;
@@ -62,6 +49,13 @@ import htsjdk.tribble.readers.PositionalBufferedStream;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFCodec;
 import htsjdk.variant.vcf.VCFHeader;
+import org.bgi.flexlab.gaea.util.ChromosomeUtils;
+
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.*;
+import java.util.zip.GZIPInputStream;
 
 public abstract class AbstractVCFLoader {
 	

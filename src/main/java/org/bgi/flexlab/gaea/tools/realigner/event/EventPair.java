@@ -42,9 +42,9 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.realigner.event;
 
-import java.util.TreeSet;
-
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
+
+import java.util.TreeSet;
 
 public class EventPair {
 	private Event left,right;

@@ -42,14 +42,13 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.structure.location;
 
-import org.bgi.flexlab.gaea.data.exception.UserException;
-
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.SAMSequenceRecord;
 import htsjdk.tribble.Feature;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFConstants;
+import org.bgi.flexlab.gaea.data.exception.UserException;
 
 public class GenomeLocationParser {
 	private SAMSequenceDictionary SINGLE_MASTER_SEQUENCE_DICTIONARY;

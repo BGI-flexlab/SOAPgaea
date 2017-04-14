@@ -34,10 +34,10 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.annotator.effect;
 
-import java.util.HashMap;
-
 import org.bgi.flexlab.gaea.tools.annotator.effect.VariantEffect.EffectImpact;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Variant;
+
+import java.util.HashMap;
 
 /**
  * Effect type:

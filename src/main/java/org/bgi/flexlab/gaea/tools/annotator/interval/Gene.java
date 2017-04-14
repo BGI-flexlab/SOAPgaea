@@ -34,16 +34,16 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.annotator.interval;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Set;
-
 import org.bgi.flexlab.gaea.tools.annotator.config.Config;
 import org.bgi.flexlab.gaea.tools.annotator.effect.EffectType;
 import org.bgi.flexlab.gaea.tools.annotator.effect.VariantEffect;
 import org.bgi.flexlab.gaea.tools.annotator.effect.VariantEffect.ErrorWarningType;
 import org.bgi.flexlab.gaea.tools.annotator.effect.VariantEffects;
 import org.bgi.flexlab.gaea.tools.annotator.util.Gpr;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Set;
 
 /**
  * Interval for a gene, as well as transcripts

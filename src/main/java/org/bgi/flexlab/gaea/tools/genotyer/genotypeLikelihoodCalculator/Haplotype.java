@@ -249,9 +249,13 @@ public class Haplotype {
         final int startAfter = Math.min(startIdxInReference + numPrefBases + refAllele.getBases().length - 1, refWindows.getStop());
         final String basesAfterVariant = ref.getBaseSequence(startAfter, refWindows.getStop());//new String(Arrays.copyOfRange(refBases, startAfter, refBases.length));
 
+        //System.err.println("start index in reference:" + startIdxInReference + "\tstart after:" + startAfter);
+        //System.err.println("before bases:" + basesBeforeVariant);
+        //System.err.println("after bases:" + basesAfterVariant);
+
         // Create location for all haplotypes
-        final int startLoc = refWindows.getStart() + startIdxInReference;
-        final int stopLoc = startLoc + haplotypeSize-1;
+        final int startLoc = startIdxInReference;
+        final int stopLoc = startLoc + haplotypeSize - 1;
 
         final GenomeLocation locus = locationParser.createGenomeLocation(ref.getChromosomeName(),startLoc,stopLoc);
 
@@ -262,6 +266,7 @@ public class Haplotype {
             // use string concatenation
             String haplotypeString = basesBeforeVariant + new String(Arrays.copyOfRange(alleleBases, 1, alleleBases.length)) + basesAfterVariant;
             haplotypeString = haplotypeString.substring(0,haplotypeSize);
+            //System.err.println("haplotype bases:" + haplotypeString);
 
             haplotypeMap.put(a,new Haplotype(haplotypeString.getBytes(), locus));
         }

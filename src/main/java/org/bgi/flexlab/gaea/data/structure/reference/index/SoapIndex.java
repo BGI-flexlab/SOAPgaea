@@ -16,17 +16,9 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.structure.reference.index;
 
-import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformation;
+
+import java.io.*;
 
 public class SoapIndex extends ReferenceIndex {
 

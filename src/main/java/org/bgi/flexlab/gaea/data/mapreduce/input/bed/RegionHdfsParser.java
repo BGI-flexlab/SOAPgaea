@@ -16,10 +16,10 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.mapreduce.input.bed;
 
-import java.io.IOException;
-
 import org.bgi.flexlab.gaea.data.structure.region.TargetRegion;
 import org.bgi.flexlab.gaea.util.FileIterator;
+
+import java.io.IOException;
 
 public class RegionHdfsParser extends TargetRegion{
 	

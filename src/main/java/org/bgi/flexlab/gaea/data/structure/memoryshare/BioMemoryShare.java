@@ -16,6 +16,8 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.structure.memoryshare;
 
+import org.bgi.flexlab.gaea.data.exception.OutOfBoundException;
+
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.lang.reflect.Method;
@@ -24,8 +26,6 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-
-import org.bgi.flexlab.gaea.data.exception.OutOfBoundException;
 
 public class BioMemoryShare {
 	protected int capacity = Byte.SIZE / 4;

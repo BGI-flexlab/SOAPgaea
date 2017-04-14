@@ -34,8 +34,6 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.annotator.interval.codonchange;
 
-import java.util.List;
-
 import org.bgi.flexlab.gaea.tools.annotator.codons.CodonTable;
 import org.bgi.flexlab.gaea.tools.annotator.effect.EffectType;
 import org.bgi.flexlab.gaea.tools.annotator.effect.VariantEffect;
@@ -45,6 +43,8 @@ import org.bgi.flexlab.gaea.tools.annotator.interval.Exon;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Marker;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Transcript;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Variant;
+
+import java.util.List;
 
 /**
  * Analyze codon changes based on a variant and a Transcript

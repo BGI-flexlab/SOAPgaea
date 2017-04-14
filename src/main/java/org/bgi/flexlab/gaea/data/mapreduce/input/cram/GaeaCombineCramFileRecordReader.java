@@ -42,8 +42,6 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.mapreduce.input.cram;
 
-import java.io.IOException;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FileStatus;
@@ -56,6 +54,8 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.CombineFileSplit;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.seqdoop.hadoop_bam.SAMRecordWritable;
+
+import java.io.IOException;
 
 public class GaeaCombineCramFileRecordReader extends
 		RecordReader<LongWritable, SAMRecordWritable> {

@@ -16,8 +16,6 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.mapreduce.fastqqualitycontrol;
 
-import java.util.Map;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
@@ -35,6 +33,8 @@ import org.bgi.flexlab.gaea.data.structure.reads.report.FastqQualityControlRepor
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.BioJob;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.PairEndAggregatorMapper;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.ToolsRunner;
+
+import java.util.Map;
 
 public class FastqQualityControl extends ToolsRunner {
 

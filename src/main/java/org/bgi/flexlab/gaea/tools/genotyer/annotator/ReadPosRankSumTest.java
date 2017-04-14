@@ -42,15 +42,16 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.genotyer.annotator;
 
+import htsjdk.samtools.Cigar;
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.vcf.VCFHeaderLineType;
 import htsjdk.variant.vcf.VCFInfoHeaderLine;
 import org.bgi.flexlab.gaea.data.structure.alignment.AlignmentsBasic;
 import org.bgi.flexlab.gaea.data.structure.pileup.Pileup;
 import org.bgi.flexlab.gaea.data.structure.pileup.PileupReadInfo;
+import org.bgi.flexlab.gaea.tools.genotyer.annotator.interfaces.StandardAnnotation;
 import org.bgi.flexlab.gaea.tools.genotyer.genotypeLikelihoodCalculator.PairHMMIndelErrorModel;
 import org.bgi.flexlab.gaea.tools.genotyer.genotypeLikelihoodCalculator.PerReadAlleleLikelihoodMap;
-import org.bgi.flexlab.gaea.tools.genotyer.annotator.interfaces.StandardAnnotation;
 import org.bgi.flexlab.gaea.util.ReadUtils;
 import org.bgi.flexlab.gaea.util.SystemConfiguration;
 
@@ -81,7 +82,7 @@ public class ReadPosRankSumTest extends RankSumTest implements StandardAnnotatio
 
         if (alleleLikelihoodMap == null) {
             // use old UG SNP-based version if we don't have per-read allele likelihoods
-            for ( final PileupReadInfo p : pileup.getFilteredPileup() ) {
+            for ( final PileupReadInfo p : pileup.getTotalPileup() ) {
                 if ( isUsableBase(p) ) {
                     int readPos = p.calcAlignmentByteArrayOffset(0, 0);
 
@@ -96,15 +97,16 @@ public class ReadPosRankSumTest extends RankSumTest implements StandardAnnotatio
             }
             return;
         }
-/**
- * not support for now
+
         for (Map.Entry<AlignmentsBasic,Map<Allele,Double>> el : alleleLikelihoodMap.getLikelihoodReadMap().entrySet()) {
             final AlignmentsBasic read = el.getKey();
-            final int offset = ReadUtils.getReadCoordinateForReferenceCoordinate( read.getSoftStart(), read.getCigars(), refLoc, ReadUtils.ClippingTail.RIGHT_TAIL, true );
+            Cigar cigar = read.getCigar();
+            int softStart = read.getSoftStart();
+            final int offset = ReadUtils.getReadCoordinateForReferenceCoordinate( softStart, cigar, refLoc, ReadUtils.ClippingTail.RIGHT_TAIL, true );
             if ( offset == ReadUtils.CLIPPING_GOAL_NOT_REACHED )
                 continue;
-            int readPos = .calcAlignmentByteArrayOffset( false, false, 0, 0 );
-            final int numAlignedBases = AlignmentUtils.getNumAlignedBasesCountingSoftClips( read );
+            int readPos = read.calcAlignmentByteArrayOffset(  cigar, offset, false, false, 0, 0 );
+            final int numAlignedBases = read.getNumAlignedBasesCountingSoftClips( cigar );
             if (readPos > numAlignedBases / 2)
                 readPos = numAlignedBases - (readPos + 1);
 
@@ -120,7 +122,6 @@ public class ReadPosRankSumTest extends RankSumTest implements StandardAnnotatio
                 altQuals.add((double)readPos);
 
         }
- */
     }
 
     int getFinalReadPosition(AlignmentsBasic read, int initialReadPosition) {

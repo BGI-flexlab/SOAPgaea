@@ -34,10 +34,10 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.annotator.interval;
 
-import java.util.ArrayList;
-
 import org.bgi.flexlab.gaea.tools.annotator.effect.EffectType;
 import org.bgi.flexlab.gaea.tools.annotator.effect.VariantEffects;
+
+import java.util.ArrayList;
 
 /**
  * Intron

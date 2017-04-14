@@ -45,8 +45,6 @@ package org.bgi.flexlab.gaea.tools.genotyer.genotypeLikelihoodCalculator;
 import org.bgi.flexlab.gaea.util.BaseUtils;
 import org.bgi.flexlab.gaea.util.DiploidGenotype;
 
-import static org.apache.commons.math3.util.FastMath.log10;
-
 
 /**
  * Created by zhangyong on 2016/12/27.

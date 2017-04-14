@@ -42,9 +42,9 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.realigner;
 
-import java.util.ArrayList;
-
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
+
+import java.util.ArrayList;
 
 public abstract class RealignerWriter {
 	public abstract void write(GaeaSamRecord read);
