@@ -16,13 +16,13 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.mapreduce.bamqualitycontrol;
 
-import java.io.IOException;
-
 import org.apache.commons.cli.ParseException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.util.GenericOptionsParser;
 import org.bgi.flexlab.gaea.data.mapreduce.options.HadoopOptions;
 import org.bgi.flexlab.gaea.data.options.GaeaOptions;
+
+import java.io.IOException;
 
 public class BamQualityControlOptions extends GaeaOptions implements HadoopOptions {
 	private final static String SOFTWARE_NAME = "Bam Quality Control";

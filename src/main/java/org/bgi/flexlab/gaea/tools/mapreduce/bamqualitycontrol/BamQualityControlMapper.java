@@ -16,10 +16,8 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.mapreduce.bamqualitycontrol;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-
+import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.SAMReadGroupRecord;
 import org.apache.commons.lang.math.RandomUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.LongWritable;
@@ -31,8 +29,9 @@ import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.util.SamRecordDatum;
 import org.bgi.flexlab.gaea.util.SamRecordUtils;
 
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SAMReadGroupRecord;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class BamQualityControlMapper extends Mapper<LongWritable, SamRecordWritable, Text, Text>{
 	/**

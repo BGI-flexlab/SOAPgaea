@@ -16,23 +16,16 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.structure.region;
 
-import java.io.BufferedInputStream;
+import org.bgi.flexlab.gaea.util.ChromosomeUtils;
+import org.bgi.flexlab.gaea.util.FileIterator;
+
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
-import org.bgi.flexlab.gaea.util.ChromosomeUtils;
-import org.bgi.flexlab.gaea.util.FileIterator;
-
-import htsjdk.tribble.index.Index;
-import htsjdk.tribble.readers.AsciiLineReader;
-import htsjdk.tribble.readers.AsciiLineReaderIterator;
 
 public class TargetRegion extends Region {
 

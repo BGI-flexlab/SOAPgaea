@@ -16,10 +16,9 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.exception;
 
-import java.io.File;
-
-
 import htsjdk.samtools.SAMRecord;
+
+import java.io.File;
 
 public class UserException extends RuntimeException {
 	private static final long serialVersionUID = 4451398435363715205L;

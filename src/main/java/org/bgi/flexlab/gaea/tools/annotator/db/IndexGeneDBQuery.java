@@ -16,12 +16,12 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.annotator.db;
 
+import org.bgi.flexlab.gaea.tools.annotator.effect.AnnotationContext;
+
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map.Entry;
-
-import org.bgi.flexlab.gaea.tools.annotator.effect.AnnotationContext;
 
 public class IndexGeneDBQuery extends DBQuery {
 

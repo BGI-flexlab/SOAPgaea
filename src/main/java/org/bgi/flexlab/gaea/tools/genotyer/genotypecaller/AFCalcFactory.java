@@ -43,7 +43,6 @@
 package org.bgi.flexlab.gaea.tools.genotyer.genotypecaller;
 
 import org.bgi.flexlab.gaea.data.exception.UserException;
-import org.bgi.flexlab.gaea.tools.genotyer.VariantCallingEngine;
 import org.bgi.flexlab.gaea.tools.mapreduce.genotyper.GenotyperOptions;
 
 import java.lang.reflect.Constructor;

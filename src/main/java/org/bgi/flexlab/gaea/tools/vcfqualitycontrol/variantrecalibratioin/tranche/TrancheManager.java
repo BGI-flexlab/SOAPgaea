@@ -42,16 +42,16 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin.tranche;
 
+import org.bgi.flexlab.gaea.data.exception.UserException;
+import org.bgi.flexlab.gaea.tools.mapreduce.vcfqualitycontrol.VCFQualityControlOptions;
+import org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin.traindata.VariantDatum;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import org.bgi.flexlab.gaea.data.exception.UserException;
-import org.bgi.flexlab.gaea.tools.mapreduce.vcfqualitycontrol.VCFQualityControlOptions;
-import org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin.traindata.VariantDatum;
 
 public class TrancheManager {
 	 public static abstract class SelectionMetric {

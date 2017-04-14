@@ -16,17 +16,11 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.mapreduce.writable;
 
-import java.io.InputStream;
-
-import htsjdk.samtools.BAMRecord;
-import htsjdk.samtools.BAMRecordCodec;
-import htsjdk.samtools.DefaultSAMRecordFactory;
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SAMFormatException;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMRecordFactory;
+import htsjdk.samtools.*;
 import htsjdk.samtools.util.BinaryCodec;
 import htsjdk.samtools.util.RuntimeEOFException;
+
+import java.io.InputStream;
 
 public class BamRecordCodec extends BAMRecordCodec{
 

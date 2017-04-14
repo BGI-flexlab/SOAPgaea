@@ -16,9 +16,9 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.mapreduce.input.adaptor;
 
-import java.io.IOException;
-
 import org.apache.hadoop.io.Text;
+
+import java.io.IOException;
 
 public class AdaptorSpecialRecordReader extends AdaptorRecordReader {
 	@Override

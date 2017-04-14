@@ -42,15 +42,15 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin.traindata;
 
-import java.io.IOException;
-import java.util.ArrayList;
-
+import htsjdk.variant.variantcontext.VariantContext;
 import org.bgi.flexlab.gaea.data.structure.dbsnp.ChromosomeDbsnpShare;
 import org.bgi.flexlab.gaea.data.structure.dbsnp.DbsnpShare;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
 import org.bgi.flexlab.gaea.data.structure.reference.index.VcfIndex;
 import org.bgi.flexlab.gaea.data.structure.vcf.VCFLocalLoader;
-import htsjdk.variant.variantcontext.VariantContext;
+
+import java.io.IOException;
+import java.util.ArrayList;
 
 public class FileResource implements ResourceType{
 	private VCFLocalLoader loader;

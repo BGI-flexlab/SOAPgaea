@@ -371,7 +371,7 @@ public class GenotyperOptions extends GaeaOptions implements HadoopOptions {
             throw new UserException.BadArgumentValueException("r", "reference can not be null.");
 
         if(reducerNumber <= 0 ) {
-            throw new UserException.BadArgumentValueException("r", "reducer number can not be less than 1.");
+            throw new UserException.BadArgumentValueException("R", "reducer number can not be less than 1.");
         }
     }
 

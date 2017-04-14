@@ -34,9 +34,6 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.annotator.interval;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-
 import org.bgi.flexlab.gaea.tools.annotator.config.Config;
 import org.bgi.flexlab.gaea.tools.annotator.effect.EffectType;
 import org.bgi.flexlab.gaea.tools.annotator.effect.VariantEffect.ErrorWarningType;
@@ -45,6 +42,9 @@ import org.bgi.flexlab.gaea.tools.annotator.interval.Variant.VariantType;
 import org.bgi.flexlab.gaea.tools.annotator.interval.codonchange.CodonChange;
 import org.bgi.flexlab.gaea.tools.annotator.util.Gpr;
 import org.bgi.flexlab.gaea.tools.annotator.util.GprSeq;
+
+import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * Interval for an exon

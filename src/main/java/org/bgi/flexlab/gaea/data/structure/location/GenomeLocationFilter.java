@@ -16,9 +16,9 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.structure.location;
 
-import java.util.ArrayList;
-
 import org.bgi.flexlab.gaea.util.Window;
+
+import java.util.ArrayList;
 
 public abstract class GenomeLocationFilter {
 	public abstract boolean filter(GenomeLocation location,Window win);

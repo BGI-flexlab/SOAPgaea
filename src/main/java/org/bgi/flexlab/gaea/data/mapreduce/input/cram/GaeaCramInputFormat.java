@@ -44,9 +44,6 @@ package org.bgi.flexlab.gaea.data.mapreduce.input.cram;
 
 import htsjdk.samtools.util.Log;
 import htsjdk.samtools.util.Log.LogLevel;
-
-import java.io.IOException;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
@@ -56,6 +53,8 @@ import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.seqdoop.hadoop_bam.SAMRecordWritable;
+
+import java.io.IOException;
 
 public class GaeaCramInputFormat extends
 		FileInputFormat<LongWritable, SAMRecordWritable> {

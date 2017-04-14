@@ -16,13 +16,13 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report;
 
+import org.apache.hadoop.io.Text;
+import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.CounterProperty.ReadType;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
-import org.apache.hadoop.io.Text;
-import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.CounterProperty.ReadType;
 
 public class UnmappedReport {
 	

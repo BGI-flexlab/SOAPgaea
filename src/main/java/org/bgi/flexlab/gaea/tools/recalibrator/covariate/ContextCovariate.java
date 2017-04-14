@@ -42,8 +42,6 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.recalibrator.covariate;
 
-import java.util.ArrayList;
-
 import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.bam.clipper.ReadClipper;
@@ -52,6 +50,8 @@ import org.bgi.flexlab.gaea.data.structure.bam.clipper.algorithm.ReadClippingAlg
 import org.bgi.flexlab.gaea.tools.mapreduce.realigner.RecalibratorOptions;
 import org.bgi.flexlab.gaea.tools.recalibrator.ReadCovariates;
 import org.bgi.flexlab.gaea.util.BaseUtils;
+
+import java.util.ArrayList;
 
 public class ContextCovariate implements OptionalCovariate {
 	private static final int LENGTH_BITS = 4;

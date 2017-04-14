@@ -43,11 +43,10 @@
 package org.bgi.flexlab.gaea.tools.genotyer.genotypeLikelihoodCalculator;
 
 import htsjdk.variant.variantcontext.*;
-
+import org.bgi.flexlab.gaea.data.structure.location.GenomeLocationParser;
 import org.bgi.flexlab.gaea.data.structure.pileup.Mpileup;
 import org.bgi.flexlab.gaea.data.structure.pileup.Pileup;
 import org.bgi.flexlab.gaea.data.structure.pileup.PileupReadInfo;
-import org.bgi.flexlab.gaea.data.structure.location.GenomeLocationParser;
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
 import org.bgi.flexlab.gaea.tools.genotyer.VariantCallingEngine;
 import org.bgi.flexlab.gaea.tools.mapreduce.genotyper.GenotyperOptions;
@@ -182,29 +181,29 @@ public class SNPGenotypeLikelihoodCalculator extends GenotypeLikelihoodCalculato
         if ( indexOfRefBase == -1 )
             return null;
         final Allele refAllele = Allele.create(refBase, true);
-        System.err.print("ref:" + (char) refBase);
+        //System.err.print("ref:" + (char) refBase);
         // calculate the GLs
         ArrayList<SampleGenotypeData> gls = new ArrayList<>(mpileup.getSize());
         Map<String, Pileup> pileups = mpileup.getCurrentPosPileup();
         int position = mpileup.getPosition();
         if (pileups != null) {
             //calculate the genotype likelihood
-            System.err.println("\tat:" + position);
+            //System.err.println("\tat:" + position);
             for(String sample : pileups.keySet()) {
                 Pileup pileup = pileups.get(sample);
                 //System.err.println(sample);
                 //depth too low to calculate genotype likelihood
-                if (pileup.getFilteredPileup().size() < options.getMinDepth()) {
+                if (pileup.getTotalPileup().size() < options.getMinDepth()) {
                     continue;
                 }
 
                 //calculation genotype likelihoods
-                SampleGenotypeData sampleGenotypeData = getGenotypeLikelihood(pileup, options.isCapBaseQualsAtMappingQual());
+                SampleGenotypeData sampleGenotypeData = getGenotypeLikelihood(pileup, options.isCapBaseQualsAtMappingQual(), options.getMinBaseQuality());
                 if(sampleGenotypeData.getDepth() > 0) {
                     sampleGenotypeData.setName(sample);
                     gls.add(sampleGenotypeData);
                 }
-                System.err.println("genotype likelihood result:" + sampleGenotypeData.toString());
+                //System.err.println("genotype likelihood result:" + sampleGenotypeData.toString());
             }
         }
 
@@ -214,7 +213,7 @@ public class SNPGenotypeLikelihoodCalculator extends GenotypeLikelihoodCalculato
         VariantContextBuilder builder = new VariantContextBuilder("GaeaCall", reference.getChromosomeName(),
                 position + 1, position + 1, alleles);
 
-        System.err.println("determine alt alleles:");
+        //System.err.println("determine alt alleles:");
         alleles.addAll(determineAlternateAlleles(refBase, gls));
         // if there are no non-ref alleles...
         if ( alleles.size() == 1 ) {
@@ -284,10 +283,14 @@ public class SNPGenotypeLikelihoodCalculator extends GenotypeLikelihoodCalculato
 
         // based on the GLs, find the alternate alleles with enough probability
         for ( SampleGenotypeData sampleData : sampleDataList ) {
+            //System.err.println(sampleData.toString());
             final double[] likelihoods = sampleData.getLog10Likelihoods();
             final int PLindexOfBestGL = MathUtils.maxElementIndex(likelihoods);
+            //System.err.println("ref index:" + PLindexOfRef + "\t best genotype index:" + PLindexOfBestGL);
             if ( PLindexOfBestGL != PLindexOfRef ) {
                 GenotypeLikelihoodsAllelePair alleles = getAllelePair(PLindexOfBestGL);
+               // System.err.println("best genotype allele1:" + (char) BaseUtils.baseIndexToSimpleBase(alleles.alleleIndex1) +
+               //         "\tbest genotype allele2:" + (char) BaseUtils.baseIndexToSimpleBase(alleles.alleleIndex2));
                 if ( alleles.alleleIndex1 != baseIndexOfRef )
                     likelihoodSums[alleles.alleleIndex1] += likelihoods[PLindexOfBestGL] - likelihoods[PLindexOfRef];
                 // don't double-count it
@@ -299,7 +302,7 @@ public class SNPGenotypeLikelihoodCalculator extends GenotypeLikelihoodCalculato
         final List<Allele> allelesToUse = new ArrayList<>();
         for ( int i = 0; i < 4; i++ ) {
             if ( likelihoodSums[i] > 0.0 ) {
-                System.err.println("allele:" + (char) BaseUtils.baseIndexToSimpleBase(i) + "\tlikelihood sum:" + likelihoodSums[i]);
+                //System.err.println("allele:" + (char) BaseUtils.baseIndexToSimpleBase(i) + "\tlikelihood sum:" + likelihoodSums[i]);
                 allelesToUse.add(Allele.create(BaseUtils.baseIndexToSimpleBase(i), false));
             }
         }
@@ -313,11 +316,11 @@ public class SNPGenotypeLikelihoodCalculator extends GenotypeLikelihoodCalculato
      * @param isCapBaseQualsAtMappingQual options
      * @return sample genotype likelihoods data
      */
-    private SampleGenotypeData getGenotypeLikelihood(Pileup pileup, boolean isCapBaseQualsAtMappingQual) {
+    private SampleGenotypeData getGenotypeLikelihood(Pileup pileup, boolean isCapBaseQualsAtMappingQual, int minBaseQuality) {
         int goodBaseCount = 0;
         SampleGenotypeData sampleGenotypeData = new SampleGenotypeData();
-        System.err.println("depth:" + pileup.getFilteredPileup().size());
-        for(PileupReadInfo readInfo : pileup.getFilteredPileup()) {
+        System.err.println("depth:" + pileup.getTotalPileup().size());
+        for(PileupReadInfo readInfo : pileup.getTotalPileup()) {
             byte base = readInfo.getBinaryBase();
             byte quality = readInfo.getBaseQuality();
 
@@ -326,13 +329,15 @@ public class SNPGenotypeLikelihoodCalculator extends GenotypeLikelihoodCalculato
             if(isCapBaseQualsAtMappingQual && quality > readInfo.getMappingQuality()) {
                 quality = (byte)readInfo.getMappingQuality();
             }
+            if(quality < minBaseQuality)
+                quality = 0;
 
             if(base < 0 || base > 3) {
-                System.err.println("bad base" + readInfo.getBase());
+                //System.err.println("bad base" + readInfo.getBase());
                 continue;
             }
 
-            System.err.println("base after:" + (char) BaseUtils.baseIndexToSimpleBase(base) + "\tquality:" + (char) (quality + 33));
+            //System.err.println("base after:" + (char) BaseUtils.baseIndexToSimpleBase(base) + "\tquality:" + (char) (quality + 33));
 
             goodBaseCount++;
             if(hasCACHE(base, quality)) {
@@ -366,8 +371,8 @@ public class SNPGenotypeLikelihoodCalculator extends GenotypeLikelihoodCalculato
             double p_base = 0.0;
             p_base += pow(10, log10FourBaseLikelihoods[BaseUtils.simpleBaseToBaseIndex(g.base1)] - ploidyAdjustment);
             p_base += pow(10, log10FourBaseLikelihoods[BaseUtils.simpleBaseToBaseIndex(g.base2)] - ploidyAdjustment);
-
             final double likelihood = log10(p_base);
+            //System.err.println("genotype:" + g.name() + "\tlikelihood:" + p_base);
             genotypeData.log10Likelihoods[g.ordinal()] += likelihood;
         }
         return genotypeData;

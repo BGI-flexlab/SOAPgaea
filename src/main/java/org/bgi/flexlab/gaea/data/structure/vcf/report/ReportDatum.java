@@ -16,11 +16,11 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.structure.vcf.report;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.VariantContextUtils;
+
+import java.util.HashSet;
+import java.util.Set;
 
 public class ReportDatum {
 	private int snpCount;

@@ -42,8 +42,11 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.mapreduce.input.bam;
 
-import java.io.IOException;
-
+import hbparquet.hadoop.util.ContextUtil;
+import htsjdk.samtools.BAMRecordCodec;
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.ValidationStringency;
+import htsjdk.samtools.util.BlockCompressedInputStream;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
@@ -58,11 +61,7 @@ import org.seqdoop.hadoop_bam.util.MurmurHash3;
 import org.seqdoop.hadoop_bam.util.SAMHeaderReader;
 import org.seqdoop.hadoop_bam.util.WrapSeekable;
 
-import hbparquet.hadoop.util.ContextUtil;
-import htsjdk.samtools.BAMRecordCodec;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.ValidationStringency;
-import htsjdk.samtools.util.BlockCompressedInputStream;
+import java.io.IOException;
 
 public class GaeaBamRecordReader extends RecordReader<LongWritable, SamRecordWritable> {
 	private final LongWritable key = new LongWritable();

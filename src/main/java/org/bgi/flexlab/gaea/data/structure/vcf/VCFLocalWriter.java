@@ -42,20 +42,15 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.structure.vcf;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.file.FileSystem;
-import java.util.EnumSet;
-
+import htsjdk.samtools.util.BlockCompressedOutputStream;
+import htsjdk.samtools.util.RuntimeEOFException;
 import org.apache.hadoop.conf.Configuration;
 import org.bgi.flexlab.gaea.data.mapreduce.input.vcf.VCFHdfsLoader;
 
-import htsjdk.samtools.util.BlockCompressedOutputStream;
-import htsjdk.samtools.util.IOUtil;
-import htsjdk.samtools.util.RuntimeEOFException;
-import htsjdk.tribble.AbstractFeatureReader;
-import htsjdk.variant.variantcontext.writer.VariantContextWriterBuilder.OutputType;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.EnumSet;
 
 public class VCFLocalWriter extends VCFFileWriter {
 	

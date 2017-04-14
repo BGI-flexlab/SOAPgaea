@@ -20,10 +20,6 @@ import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFCodec;
 import htsjdk.variant.vcf.VCFHeader;
 import htsjdk.variant.vcf.VCFHeaderVersion;
-
-import java.io.IOException;
-import java.util.List;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
@@ -36,6 +32,9 @@ import org.bgi.flexlab.gaea.tools.annotator.config.Config;
 import org.bgi.flexlab.gaea.tools.annotator.db.DBAnnotator;
 import org.bgi.flexlab.gaea.tools.annotator.effect.VcfAnnotationContext;
 import org.bgi.flexlab.gaea.tools.annotator.effect.VcfAnnotator;
+
+import java.io.IOException;
+import java.util.List;
 
 public class VariantAnnotationMapper extends Mapper<LongWritable, Text, NullWritable, Text> {
 

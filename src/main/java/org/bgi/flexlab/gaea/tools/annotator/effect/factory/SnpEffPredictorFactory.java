@@ -34,30 +34,13 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.annotator.effect.factory;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
-
 import org.bgi.flexlab.gaea.tools.annotator.config.Config;
 import org.bgi.flexlab.gaea.tools.annotator.effect.SnpEffectPredictor;
-import org.bgi.flexlab.gaea.tools.annotator.interval.Cds;
-import org.bgi.flexlab.gaea.tools.annotator.interval.Chromosome;
-import org.bgi.flexlab.gaea.tools.annotator.interval.Exon;
-import org.bgi.flexlab.gaea.tools.annotator.interval.FrameType;
-import org.bgi.flexlab.gaea.tools.annotator.interval.Gene;
-import org.bgi.flexlab.gaea.tools.annotator.interval.Genome;
-import org.bgi.flexlab.gaea.tools.annotator.interval.GffType;
-import org.bgi.flexlab.gaea.tools.annotator.interval.IntervalComparatorByEnd;
-import org.bgi.flexlab.gaea.tools.annotator.interval.IntervalComparatorByStart;
-import org.bgi.flexlab.gaea.tools.annotator.interval.Marker;
-import org.bgi.flexlab.gaea.tools.annotator.interval.Transcript;
+import org.bgi.flexlab.gaea.tools.annotator.interval.*;
 import org.bgi.flexlab.gaea.tools.annotator.util.Gpr;
 import org.bgi.flexlab.gaea.tools.annotator.util.GprSeq;
+
+import java.util.*;
 
 /**
  * This class creates a SnpEffectPredictor from a file (or a set of files) and a configuration

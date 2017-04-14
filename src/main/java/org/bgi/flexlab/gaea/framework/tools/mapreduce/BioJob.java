@@ -16,8 +16,7 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.framework.tools.mapreduce;
 
-import java.io.IOException;
-
+import htsjdk.samtools.SAMFileHeader;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.Job;
@@ -30,7 +29,7 @@ import org.bgi.flexlab.gaea.data.mapreduce.partitioner.WindowsBasedSort;
 import org.bgi.flexlab.gaea.data.structure.bam.filter.util.SamRecordFilter;
 import org.seqdoop.hadoop_bam.SAMFormat;
 
-import htsjdk.samtools.SAMFileHeader;
+import java.io.IOException;
 
 public class BioJob extends Job {
 

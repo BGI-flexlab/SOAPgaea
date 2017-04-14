@@ -47,7 +47,6 @@ package org.bgi.flexlab.gaea.tools.genotyer.genotypecaller;
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.GenotypesContext;
-import htsjdk.variant.variantcontext.VariantContextUtils;
 import org.bgi.flexlab.gaea.util.GaeaVariantContextUtils;
 import org.bgi.flexlab.gaea.util.MathUtils;
 

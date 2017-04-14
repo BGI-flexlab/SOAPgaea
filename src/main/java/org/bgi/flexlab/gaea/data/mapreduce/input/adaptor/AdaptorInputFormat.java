@@ -16,8 +16,6 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.mapreduce.input.adaptor;
 
-import java.io.IOException;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
@@ -29,6 +27,8 @@ import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.bgi.flexlab.gaea.data.mapreduce.input.fastq.FastqRecordReader;
+
+import java.io.IOException;
 
 public class AdaptorInputFormat extends FileInputFormat<Text, Text> {
 	@Override

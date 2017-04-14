@@ -42,12 +42,7 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.recalibrator.report;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
+import htsjdk.samtools.SAMFileHeader;
 import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.data.mapreduce.util.HdfsFilesReader;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
@@ -60,13 +55,9 @@ import org.bgi.flexlab.gaea.tools.recalibrator.covariate.Covariate;
 import org.bgi.flexlab.gaea.tools.recalibrator.covariate.CovariateUtil;
 import org.bgi.flexlab.gaea.tools.recalibrator.quality.QualityQuantizer;
 import org.bgi.flexlab.gaea.tools.recalibrator.table.RecalibratorTable;
-import org.bgi.flexlab.gaea.util.EventType;
-import org.bgi.flexlab.gaea.util.MathUtils;
-import org.bgi.flexlab.gaea.util.NestedObjectArray;
-import org.bgi.flexlab.gaea.util.QualityUtils;
-import org.bgi.flexlab.gaea.util.SAMUtils;
+import org.bgi.flexlab.gaea.util.*;
 
-import htsjdk.samtools.SAMFileHeader;
+import java.util.*;
 
 public class RecalibratorReport {
 	public static final int MAXIMUM_RECALIBRATED_READ_LENGTH = 2000;

@@ -16,10 +16,10 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.structure.bam;
 
-import java.util.ArrayList;
-
 import org.bgi.flexlab.gaea.util.CigarState;
 import org.bgi.flexlab.gaea.util.SystemConfiguration;
+
+import java.util.ArrayList;
 
 public class ParseSAMBasic {
 	

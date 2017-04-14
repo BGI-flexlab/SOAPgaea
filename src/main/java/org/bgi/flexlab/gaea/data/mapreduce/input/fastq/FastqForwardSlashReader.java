@@ -16,11 +16,11 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.mapreduce.input.fastq;
 
-import java.io.IOException;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
+
+import java.io.IOException;
 
 public class FastqForwardSlashReader extends FastqBasicReader{
 

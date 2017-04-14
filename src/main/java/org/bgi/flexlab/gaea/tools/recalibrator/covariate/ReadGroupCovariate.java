@@ -42,15 +42,14 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.recalibrator.covariate;
 
-import java.util.HashMap;
-import java.util.List;
-
+import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.SAMReadGroupRecord;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.tools.mapreduce.realigner.RecalibratorOptions;
 import org.bgi.flexlab.gaea.tools.recalibrator.ReadCovariates;
 
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SAMReadGroupRecord;
+import java.util.HashMap;
+import java.util.List;
 
 public class ReadGroupCovariate implements RequiredCovariate {
 	private final HashMap<String, Integer> readGroupLookupTable = new HashMap<String, Integer>();

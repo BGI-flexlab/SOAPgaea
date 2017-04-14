@@ -18,7 +18,6 @@ package org.bgi.flexlab.gaea.framework.tools.mapreduce;
 
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMRecord;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Writable;
 import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamHdfsFileHeader;

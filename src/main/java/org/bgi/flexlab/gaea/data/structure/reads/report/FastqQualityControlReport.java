@@ -16,11 +16,11 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.structure.reads.report;
 
-import java.math.RoundingMode;
-import java.text.DecimalFormat;
-
 import org.bgi.flexlab.gaea.data.structure.reads.ReadBasicStatistics;
 import org.bgi.flexlab.gaea.util.ArrayListLongWrap;
+
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
 
 public class FastqQualityControlReport {
 	public final static int STATIC_COUNT = 24;

@@ -17,7 +17,6 @@
 package org.bgi.flexlab.gaea.framework.tools.mapreduce;
 
 import htsjdk.samtools.SAMRecord;
-import org.apache.hadoop.mapreduce.Mapper;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.AlignmentBasicWritable;
 import org.bgi.flexlab.gaea.data.structure.alignment.AlignmentsBasic;
 

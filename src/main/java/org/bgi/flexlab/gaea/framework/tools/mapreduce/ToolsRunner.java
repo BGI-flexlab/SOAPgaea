@@ -16,12 +16,12 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.framework.tools.mapreduce;
 
-import java.io.IOException;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.hadoop.util.Tool;
+
+import java.io.IOException;
 
 public abstract class ToolsRunner extends Configured implements Tool{
 	

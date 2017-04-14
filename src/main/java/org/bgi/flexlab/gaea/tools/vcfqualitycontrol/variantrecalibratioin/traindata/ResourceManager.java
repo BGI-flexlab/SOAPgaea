@@ -42,12 +42,11 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin.traindata;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import htsjdk.variant.variantcontext.VariantContext;
 import org.bgi.flexlab.gaea.tools.mapreduce.vcfqualitycontrol.VCFQualityControlOptions;
 
-import htsjdk.variant.variantcontext.VariantContext;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ResourceManager {
 	private final double[] annotations;

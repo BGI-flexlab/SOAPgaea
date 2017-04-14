@@ -16,11 +16,6 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.structure.reference;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
@@ -30,6 +25,11 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.util.LineReader;
 import org.bgi.flexlab.gaea.data.structure.memoryshare.WholeGenomeShare;
 import org.bgi.flexlab.gaea.util.ChromosomeUtils;
+
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Genome内存共享

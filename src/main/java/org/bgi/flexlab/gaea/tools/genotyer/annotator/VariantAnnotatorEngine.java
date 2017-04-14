@@ -53,8 +53,8 @@ import org.bgi.flexlab.gaea.data.structure.pileup.Mpileup;
 import org.bgi.flexlab.gaea.data.structure.pileup.Pileup;
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
 import org.bgi.flexlab.gaea.data.structure.vcf.VariantDataTracker;
-import org.bgi.flexlab.gaea.tools.genotyer.genotypeLikelihoodCalculator.PerReadAlleleLikelihoodMap;
 import org.bgi.flexlab.gaea.tools.genotyer.annotator.interfaces.*;
+import org.bgi.flexlab.gaea.tools.genotyer.genotypeLikelihoodCalculator.PerReadAlleleLikelihoodMap;
 
 import java.util.*;
 
@@ -170,6 +170,9 @@ public class VariantAnnotatorEngine {
             Map<String, Object> annotationsFromCurrentType = annotationType.annotate(tracker, ref, mpileup, vc, perReadAlleleLikelihoodMap);
             if ( annotationsFromCurrentType != null )
                 infoAnnotations.putAll(annotationsFromCurrentType);
+            else {
+                System.err.println("variant:" + vc.getStart() + "-" + vc.getEnd() + " error annotation:" + annotationType.getKeyNames());
+            }
         }
        // if(vc.getStart()==145413)
        // 	System.out.println("vc annotator3:"+vc.toString());

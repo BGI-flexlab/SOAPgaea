@@ -16,8 +16,6 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.mapreduce.input.fastq;
 
-import java.io.IOException;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
@@ -28,6 +26,8 @@ import org.apache.hadoop.io.compress.CompressionCodec;
 import org.apache.hadoop.io.compress.CompressionCodecFactory;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.apache.hadoop.util.LineReader;
+
+import java.io.IOException;
 
 public abstract class FastqBasicReader {
 	protected static final Log LOG = LogFactory.getLog(FastqBasicReader.class

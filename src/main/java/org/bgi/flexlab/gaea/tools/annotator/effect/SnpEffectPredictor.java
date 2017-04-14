@@ -34,28 +34,16 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.annotator.effect;
 
+import org.bgi.flexlab.gaea.tools.annotator.config.Config;
+import org.bgi.flexlab.gaea.tools.annotator.effect.VariantEffect.ErrorWarningType;
+import org.bgi.flexlab.gaea.tools.annotator.interval.*;
+import org.bgi.flexlab.gaea.tools.annotator.interval.tree.IntervalForest;
+import org.bgi.flexlab.gaea.tools.annotator.interval.tree.Itree;
+
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import org.bgi.flexlab.gaea.tools.annotator.config.Config;
-import org.bgi.flexlab.gaea.tools.annotator.effect.VariantEffect.ErrorWarningType;
-import org.bgi.flexlab.gaea.tools.annotator.interval.Chromosome;
-import org.bgi.flexlab.gaea.tools.annotator.interval.Exon;
-import org.bgi.flexlab.gaea.tools.annotator.interval.Gene;
-import org.bgi.flexlab.gaea.tools.annotator.interval.Genome;
-import org.bgi.flexlab.gaea.tools.annotator.interval.Intergenic;
-import org.bgi.flexlab.gaea.tools.annotator.interval.Intron;
-import org.bgi.flexlab.gaea.tools.annotator.interval.Marker;
-import org.bgi.flexlab.gaea.tools.annotator.interval.Markers;
-import org.bgi.flexlab.gaea.tools.annotator.interval.SpliceSite;
-import org.bgi.flexlab.gaea.tools.annotator.interval.Transcript;
-import org.bgi.flexlab.gaea.tools.annotator.interval.TranscriptSupportLevel;
-import org.bgi.flexlab.gaea.tools.annotator.interval.Utr;
-import org.bgi.flexlab.gaea.tools.annotator.interval.Variant;
-import org.bgi.flexlab.gaea.tools.annotator.interval.tree.IntervalForest;
-import org.bgi.flexlab.gaea.tools.annotator.interval.tree.Itree;
 
 /**
  * Predicts effects of Variants

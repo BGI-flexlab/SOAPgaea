@@ -16,6 +16,13 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.structure.header;
 
+import htsjdk.variant.vcf.VCFHeader;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.mapreduce.Job;
+
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.URI;
@@ -24,15 +31,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.filecache.DistributedCache;
-import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.mapreduce.Job;
-
-import htsjdk.variant.vcf.VCFHeader;
 
 public class MultipleVCFHeader extends  GaeaVCFHeader implements Serializable{
 	/**

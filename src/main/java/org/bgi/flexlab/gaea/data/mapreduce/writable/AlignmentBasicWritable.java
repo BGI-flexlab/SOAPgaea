@@ -16,14 +16,15 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.mapreduce.writable;
 
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
 import org.apache.hadoop.io.WritableComparable;
 import org.bgi.flexlab.gaea.data.structure.alignment.AlignmentsBasic;
 import org.bgi.flexlab.gaea.data.structure.alignment.AlignmentsBasicCodec;
 import org.seqdoop.hadoop_bam.util.DataInputWrapper;
 import org.seqdoop.hadoop_bam.util.DataOutputWrapper;
+
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
 
 public class AlignmentBasicWritable implements WritableComparable<AlignmentBasicWritable> {
 	private static final AlignmentsBasicCodec codec = new AlignmentsBasicCodec();

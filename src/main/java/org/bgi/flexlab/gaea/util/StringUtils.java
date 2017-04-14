@@ -42,10 +42,10 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.util;
 
+import org.bgi.flexlab.gaea.data.exception.UserException;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import org.bgi.flexlab.gaea.data.exception.UserException;
 
 public class StringUtils {
 	public static String join(String[] str, String seperator) {

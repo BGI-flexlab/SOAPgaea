@@ -16,12 +16,12 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.structure.region.statistic;
 
+import org.bgi.flexlab.gaea.data.structure.region.SingleRegion.Regiondata;
+
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
-
-import org.bgi.flexlab.gaea.data.structure.region.SingleRegion.Regiondata;
 
 
 public class CNVSingleRegionStatistic extends SingleRegionStatistic{

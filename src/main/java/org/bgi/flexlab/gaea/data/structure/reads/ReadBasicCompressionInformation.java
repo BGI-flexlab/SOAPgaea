@@ -16,9 +16,7 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.structure.reads;
 
-import org.apache.hadoop.hbase.util.Bytes;
 import org.bgi.flexlab.gaea.data.exception.UserException;
-import org.bgi.flexlab.gaea.util.BaseUtils;
 import org.bgi.flexlab.gaea.util.SAMUtils;
 
 import java.util.Arrays;
@@ -51,33 +49,18 @@ public class ReadBasicCompressionInformation {
 
 	/**
 	 * hard clip read
-	 * @param toStartLength length to start
-	 * @param toEndLength length to end
+	 * @param start length to start
+	 * @param end length to end
 	 */
-	public void hardClip(int toStartLength, int toEndLength) {
-		if(toStartLength < 0 && toEndLength < 0)
-			throw new UserException("both start and end < 0 for clip read");
-
+	public void hardClip(int start, int end) {
+		if(start < 0 || end < 0 || end > readBases.length - 1)
+			throw new UserException("start or end < 0 or end > read length for clip read.");
 
 		//bases
-		readBases = Arrays.copyOfRange(readBases, toStartLength, readBases.length - toEndLength);
-		/*
-		if(toStartLength % 2 != 0) {
-			byte[] readBases = new byte[(getReadLength() - toStartLength - toEndLength - 1) / 2 + 1];
-			int i, j = 0;
-			for(i = toStartLength / 2; i < readBases.length - (toEndLength / 2) - 1; i++) {
-				readBases[j] = (byte) ((this.readBases[i] << 4) | (this.readBases[i + 1] & 0xf));
-			}
-			if(toEndLength % 2 == 0)
-				readBases[j] = (byte) (this.readBases[i] << 4);
-			this.readBases = readBases;
-		} else {
-			readBases = Arrays.copyOfRange(readBases, toStartLength / 2, readBases.length - (toEndLength / 2));
-		} */
-
+		readBases = Arrays.copyOfRange(readBases, start, end);
 
 		//qualities
-		qualities = Arrays.copyOfRange(qualities, toStartLength, qualities.length - toEndLength);
+		qualities = Arrays.copyOfRange(qualities, start, end);
 	}
 
 	/**
@@ -145,11 +128,11 @@ public class ReadBasicCompressionInformation {
 	 * @param length
 	 * @return
 	 */
-	public byte[] getReadBases(int qStart, int length) {
-		byte[] bases = new byte[length];
+	public char[] getReadBases(int qStart, int length) {
+		char[] bases = new char[length];
 
 		for(int i = 0; i < length; i++) {
-			bases[i] = readBases[qStart +i];
+			bases[i] = (char)readBases[qStart + i];
 		}
 		return bases;
 	}

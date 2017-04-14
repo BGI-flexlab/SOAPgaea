@@ -46,13 +46,13 @@ public enum DiploidGenotype {
     AA ('A', 'A'),
     AC ('A', 'C'),
     CC ('C', 'C'),
-    AG ('A', 'G'),
-    CG ('C', 'G'),
-    GG ('G', 'G'),
     AT ('A', 'T'),
     CT ('C', 'T'),
+    TT ('T', 'T'),
+    AG ('A', 'G'),
+    CG ('C', 'G'),
     GT ('G', 'T'),
-    TT ('T', 'T');
+    GG ('G', 'G');
 
     public byte base1, base2;
 

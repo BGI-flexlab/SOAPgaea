@@ -42,13 +42,9 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import htsjdk.variant.variantcontext.Allele;
+import htsjdk.variant.variantcontext.VariantContext;
+import htsjdk.variant.variantcontext.VariantContextBuilder;
 import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.data.structure.header.VCFConstants;
 import org.bgi.flexlab.gaea.tools.mapreduce.vcfqualitycontrol.VCFQualityControl;
@@ -61,9 +57,8 @@ import org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin.tranch
 import org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin.tranche.TrancheManager;
 import org.bgi.flexlab.gaea.util.ExpandingArrayList;
 
-import htsjdk.variant.variantcontext.Allele;
-import htsjdk.variant.variantcontext.VariantContext;
-import htsjdk.variant.variantcontext.VariantContextBuilder;
+import java.io.IOException;
+import java.util.*;
 
 public class VCFRecalibrationTable {
 	/**

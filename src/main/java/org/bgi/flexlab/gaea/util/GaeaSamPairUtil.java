@@ -44,11 +44,10 @@ package org.bgi.flexlab.gaea.util;
 
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMTag;
+import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 
 import java.util.Iterator;
 import java.util.List;
-
-import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 
 public class GaeaSamPairUtil {
 

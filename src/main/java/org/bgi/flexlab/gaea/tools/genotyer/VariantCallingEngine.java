@@ -50,12 +50,12 @@ import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.VariantContextBuilder;
 import htsjdk.variant.vcf.*;
 import org.bgi.flexlab.gaea.data.exception.UserException;
-import org.bgi.flexlab.gaea.data.structure.alignment.AlignmentsBasic;
 import org.bgi.flexlab.gaea.data.structure.header.VCFConstants;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocationParser;
 import org.bgi.flexlab.gaea.data.structure.pileup.Mpileup;
 import org.bgi.flexlab.gaea.data.structure.pileup.ReadsPool;
+import org.bgi.flexlab.gaea.data.structure.pileup.filter.PileupMappingBaseQualFilter;
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
 import org.bgi.flexlab.gaea.data.structure.variant.VariantCallContext;
 import org.bgi.flexlab.gaea.data.structure.vcf.VariantDataTracker;
@@ -188,7 +188,8 @@ public class VariantCallingEngine {
         if(reference == null) {
             throw new UserException("reference is null");
         }
-        mpileup = new Mpileup(readsPool, win.getStart(), win.getStop(), options);
+        PileupMappingBaseQualFilter pileupFilter = new PileupMappingBaseQualFilter(options.getMinMappingQuality(), options.getMinBaseQuality());
+        mpileup = new Mpileup(readsPool, win.getStart(), win.getStop(), pileupFilter);
         this.reference = reference;
     }
 
@@ -408,7 +409,7 @@ public class VariantCallingEngine {
             int depth = 0;
 
             if ( isCovered ) {
-                depth = mpileup.getCurrentPosPileup().get(sample).depthOfCoverage();
+                depth = mpileup.getCurrentPosPileup().get(sample).depthOfCoverage(false);
             }
 
             P_of_ref *= 1.0 - (theta / 2.0) * getRefBinomialProb(depth);

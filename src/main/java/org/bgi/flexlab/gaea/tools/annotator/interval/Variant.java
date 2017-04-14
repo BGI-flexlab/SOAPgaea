@@ -34,12 +34,12 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.annotator.interval;
 
-import java.util.LinkedList;
-import java.util.List;
-
 import org.bgi.flexlab.gaea.tools.annotator.effect.EffectType;
 import org.bgi.flexlab.gaea.tools.annotator.util.GprSeq;
 import org.bgi.flexlab.gaea.tools.annotator.util.IubString;
+
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * A variant represents a change in a reference sequence

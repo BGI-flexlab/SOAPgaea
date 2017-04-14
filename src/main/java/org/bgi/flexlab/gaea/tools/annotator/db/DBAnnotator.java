@@ -16,6 +16,12 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.annotator.db;
 
+import org.bgi.flexlab.gaea.tools.annotator.config.Config;
+import org.bgi.flexlab.gaea.tools.annotator.config.DatabaseInfo;
+import org.bgi.flexlab.gaea.tools.annotator.config.DatabaseInfo.DbType;
+import org.bgi.flexlab.gaea.tools.annotator.effect.AnnotationContext;
+import org.bgi.flexlab.gaea.tools.annotator.effect.VcfAnnotationContext;
+
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
@@ -23,12 +29,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
-
-import org.bgi.flexlab.gaea.tools.annotator.config.Config;
-import org.bgi.flexlab.gaea.tools.annotator.config.DatabaseInfo;
-import org.bgi.flexlab.gaea.tools.annotator.config.DatabaseInfo.DbType;
-import org.bgi.flexlab.gaea.tools.annotator.effect.AnnotationContext;
-import org.bgi.flexlab.gaea.tools.annotator.effect.VcfAnnotationContext;
 
 public class DBAnnotator implements Serializable{
 	

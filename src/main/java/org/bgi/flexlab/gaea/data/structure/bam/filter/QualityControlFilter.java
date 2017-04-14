@@ -17,7 +17,6 @@
 package org.bgi.flexlab.gaea.data.structure.bam.filter;
 
 import htsjdk.samtools.SAMRecord;
-
 import org.bgi.flexlab.gaea.data.structure.bam.filter.util.FiltersMethod;
 import org.bgi.flexlab.gaea.data.structure.bam.filter.util.MalformedReadFilter;
 import org.bgi.flexlab.gaea.data.structure.bam.filter.util.ReadsFilter;

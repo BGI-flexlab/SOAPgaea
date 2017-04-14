@@ -43,13 +43,6 @@
 package org.bgi.flexlab.gaea.data.mapreduce.input.bam;
 
 import hbparquet.hadoop.util.ContextUtil;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
@@ -63,6 +56,12 @@ import org.bgi.flexlab.gaea.data.mapreduce.input.sam.GaeaSamInputFormat;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.SamRecordWritable;
 import org.seqdoop.hadoop_bam.FileVirtualSplit;
 import org.seqdoop.hadoop_bam.SAMFormat;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class GaeaAnySAMInputFormat extends
 		FileInputFormat<LongWritable, SamRecordWritable> {

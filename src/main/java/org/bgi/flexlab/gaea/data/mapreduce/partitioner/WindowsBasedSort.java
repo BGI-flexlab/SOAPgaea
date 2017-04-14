@@ -16,11 +16,11 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.mapreduce.partitioner;
 
-import java.io.IOException;
-
 import org.apache.hadoop.io.DataInputBuffer;
 import org.apache.hadoop.io.RawComparator;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.WindowsBasedWritable;
+
+import java.io.IOException;
 
 public class WindowsBasedSort implements RawComparator<WindowsBasedWritable> {
 	@Override

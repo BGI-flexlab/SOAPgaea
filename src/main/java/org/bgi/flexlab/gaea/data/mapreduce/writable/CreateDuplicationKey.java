@@ -16,10 +16,9 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.mapreduce.writable;
 
-import org.bgi.flexlab.gaea.util.RandomUtils;
-
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMRecord;
+import org.bgi.flexlab.gaea.util.RandomUtils;
 
 public class CreateDuplicationKey {
 	private String LB;

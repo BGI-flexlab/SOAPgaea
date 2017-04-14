@@ -17,9 +17,6 @@
 package org.bgi.flexlab.gaea.tools.mapreduce.realigner;
 
 import htsjdk.samtools.SAMFileHeader;
-
-import java.io.IOException;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
@@ -28,6 +25,8 @@ import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamHdfsFileHeader;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.SamRecordWritable;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.util.GaeaSamPairUtil;
+
+import java.io.IOException;
 
 public class FixmateReducer extends
 		Reducer<Text, SamRecordWritable, NullWritable, SamRecordWritable> {

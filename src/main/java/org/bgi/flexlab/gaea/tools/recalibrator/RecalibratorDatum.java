@@ -42,11 +42,11 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.recalibrator;
 
-import java.util.Random;
-
 import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.tools.recalibrator.report.RecalibratorReportTable;
 import org.bgi.flexlab.gaea.util.QualityUtils;
+
+import java.util.Random;
 
 public class RecalibratorDatum {
 	private final static double DEFAULT_DOUBLE = -1.0;

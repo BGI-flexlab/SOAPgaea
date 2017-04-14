@@ -42,10 +42,10 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.realigner.event;
 
-import java.util.ArrayList;
-
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocationParser;
+
+import java.util.ArrayList;
 
 public class Event {
 	public enum EVENT_TYPE {

@@ -42,9 +42,8 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.realigner;
 
-import java.util.ArrayList;
-import java.util.Map;
-
+import htsjdk.samtools.SAMFileHeader;
+import htsjdk.variant.variantcontext.VariantContext;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocationParser;
@@ -55,11 +54,11 @@ import org.bgi.flexlab.gaea.data.structure.pileup.ReadsPool;
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
 import org.bgi.flexlab.gaea.tools.mapreduce.realigner.RealignerOptions;
 import org.bgi.flexlab.gaea.tools.realigner.event.Event;
-import org.bgi.flexlab.gaea.tools.realigner.event.EventPair;
 import org.bgi.flexlab.gaea.tools.realigner.event.Event.EVENT_TYPE;
+import org.bgi.flexlab.gaea.tools.realigner.event.EventPair;
 
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.variant.variantcontext.VariantContext;
+import java.util.ArrayList;
+import java.util.Map;
 
 public class IdentifyRegionsCreator {
 	private RealignerOptions option = null;
@@ -94,7 +93,7 @@ public class IdentifyRegionsCreator {
 
 		long totalQuality = 0, mismatchQuality = 0;
 		
-		pileup.calculateBaseInfo(null);
+		pileup.calculateBaseInfo();
 
 		for (PileupReadInfo p : pileup.getTotalPileup()) {
 			furthestPosition = Math.max(furthestPosition, p.getAlignmentEnd());

@@ -17,16 +17,16 @@
 package org.bgi.flexlab.gaea.util;
 
 
+import cern.jet.math.Arithmetic;
+import cern.jet.random.Normal;
+import org.apache.commons.math3.distribution.NormalDistribution;
+import org.bgi.flexlab.gaea.data.exception.UserException;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Random;
 import java.util.TreeSet;
-
-import cern.jet.math.Arithmetic;
-import cern.jet.random.Normal;
-import org.apache.commons.math3.distribution.NormalDistribution;
-import org.bgi.flexlab.gaea.data.exception.UserException;
 
 public class MannWhitneyU {
 

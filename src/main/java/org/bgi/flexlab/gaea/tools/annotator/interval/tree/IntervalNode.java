@@ -34,11 +34,11 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.annotator.interval.tree;
 
-import java.io.Serializable;
-
 import org.bgi.flexlab.gaea.tools.annotator.interval.Interval;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Marker;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Markers;
+
+import java.io.Serializable;
 
 /**
  * Node for interval tree structure

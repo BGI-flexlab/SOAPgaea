@@ -42,29 +42,22 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.mapreduce.input.bam;
 
-import htsjdk.samtools.SAMRecord;
-
-import java.io.InputStream;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.util.Arrays;
-
-import org.apache.hadoop.conf.Configuration;
-import org.bgi.flexlab.gaea.data.structure.bam.GaeaCigar;
-
-import htsjdk.samtools.BAMRecordCodec;
-import htsjdk.samtools.Cigar;
-import htsjdk.samtools.FileTruncatedException;
-import htsjdk.samtools.SAMFormatException;
+import htsjdk.samtools.*;
 import htsjdk.samtools.seekablestream.SeekableStream;
 import htsjdk.samtools.util.BlockCompressedInputStream;
 import htsjdk.samtools.util.RuntimeEOFException;
 import htsjdk.samtools.util.RuntimeIOException;
-
+import org.apache.hadoop.conf.Configuration;
+import org.bgi.flexlab.gaea.data.structure.bam.GaeaCigar;
 import org.seqdoop.hadoop_bam.LazyBAMRecordFactory;
 import org.seqdoop.hadoop_bam.util.SAMHeaderReader;
 import org.seqdoop.hadoop_bam.util.SeekableArrayStream;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.util.Arrays;
 
 /**
  * A class for heuristically finding BAM record positions inside an area of a

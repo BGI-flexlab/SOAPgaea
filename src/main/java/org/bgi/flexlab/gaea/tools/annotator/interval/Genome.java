@@ -34,22 +34,14 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.annotator.interval;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Properties;
-
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
 import org.bgi.flexlab.gaea.data.structure.reference.ReferenceShare;
 import org.bgi.flexlab.gaea.tools.annotator.effect.EffectType;
 import org.bgi.flexlab.gaea.tools.annotator.util.Gpr;
 import org.bgi.flexlab.gaea.tools.annotator.util.GprSeq;
+
+import java.io.Serializable;
+import java.util.*;
 
 /**
  *

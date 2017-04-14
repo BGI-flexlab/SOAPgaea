@@ -16,15 +16,15 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.mapreduce.writable;
 
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
-
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.hadoop.io.BooleanWritable;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.WritableComparable;
+
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
 
 public class DuplicationKeyWritable implements
 		WritableComparable<DuplicationKeyWritable> {
