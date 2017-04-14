@@ -146,10 +146,10 @@ public class IndelRealigner {
 		double improvement = (bestConsensus == null ? -1
 				: ((double) (totalRawMismatchQuality - bestConsensus.getMismatch())) / 10.0);
 
-		int threshold = 0;
+		double threshold = 5.0;
 		if (improvement < threshold)
 			return;
-
+		
 		int posOnRef = bestConsensus.getPositionOnReference();
 		Cigar newCigar = AlignmentUtil.leftAlignIndel(bestConsensus.getCigar(), ref, bestConsensus.getSequence(),
 				posOnRef, posOnRef);
@@ -162,7 +162,11 @@ public class IndelRealigner {
 				return;
 		}
 
-		if (consensusEngine.needRealignment(reads, ref, leftMostIndex)) {
+		boolean condi = consensusEngine.needRealignment(reads, ref, leftMostIndex);
+		
+		System.err.println(bestConsensus.getCigar().toString()+"\t"+condi);
+		
+		if (condi) {
 			for (Pair<Integer, Integer> indexPair : bestConsensus.getReadIndexes()) {
 				alignRead = reads.get(indexPair.first);
 				if (alignRead.statusFinalize()) {
@@ -215,6 +219,7 @@ public class IndelRealigner {
 		final LinkedList<GaeaAlignedSamRecord> readsForConsensus = new LinkedList<GaeaAlignedSamRecord>();
 
 		consensusEngine.consensusByKnowIndels(knowIndelsSet, leftMostIndex, reference);
+
 		long totalRawQuality = consensusEngine.consensusByReads(reads, refReads, altReads, readsForConsensus,
 				leftMostIndex, reference);
 		
@@ -225,8 +230,14 @@ public class IndelRealigner {
 
 		realignerCore(bestConsensus, altReads, reference, currentInterval, totalRawQuality, leftMostIndex);
 		
-		if(bestConsensus != null)
+		if(bestConsensus != null){
 			bestConsensus.clear();
+		}
+		
+		refReads.clear();
+		altReads.clear();
+		readsForConsensus.clear();
+		consensusEngine.clear();
 	}
 
 	private void realignerAndPending(ArrayList<VariantContext> knowIndels, GaeaSamRecord read, GenomeLocation location,
@@ -234,7 +245,7 @@ public class IndelRealigner {
 		if (needRealignementReads.size() > 0) {
 			consensusAndRealigner(needRealignementReads);
 		}
-
+		
 		write(writer);
 
 		do {
@@ -268,7 +279,7 @@ public class IndelRealigner {
 		} else if (location.overlaps(currentInterval)) {
 			effectiveNotCleanReadCount++;
 
-			if (!RealignerFilter.needToClean(read, option.getMaxInsertSize())) {
+			if (RealignerFilter.needToClean(read, option.getMaxInsertSize())) {
 				needRealignementReads.add(read);
 
 				for (VariantContext variant : knowIndels) {
@@ -322,6 +333,7 @@ public class IndelRealigner {
 			if (needRealignementReads.size() > 0) {
 				consensusAndRealigner(needRealignementReads);
 			}
+			
 			write(writer);
 		}
 	}

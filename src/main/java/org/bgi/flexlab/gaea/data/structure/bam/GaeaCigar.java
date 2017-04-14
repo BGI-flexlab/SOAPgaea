@@ -74,6 +74,8 @@ public class GaeaCigar {
 			CigarOperator op = read.getCigar().getCigarElement(i).getOperator();
 			if (isClipOperator(op))
 				elements.add(read.getCigar().getCigarElement(i));
+			else
+				break;
 		}
 
 		elements.addAll(cigar.getCigarElements());
@@ -82,6 +84,8 @@ public class GaeaCigar {
 			CigarOperator op = read.getCigar().getCigarElement(i).getOperator();
 			if (isClipOperator(op))
 				elements.add(read.getCigar().getCigarElement(i));
+			else
+				break;
 		}
 
 		return new Cigar(elements);

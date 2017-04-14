@@ -48,16 +48,16 @@ import htsjdk.samtools.CigarOperator;
 
 import java.util.Arrays;
 
-import org.bgi.flexlab.gaea.data.structure.bam.GaeaAlignedSamRecord;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaCigar;
+import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 
 public class AlignmentUtil {
 
-	public static int mismatchQualityCount(GaeaAlignedSamRecord read, byte[] ref, int posOnRef) {
-		return mismatchQualityCount(read, ref, posOnRef, 0, read.getRead().getReadLength());
+	public static int mismatchQualityCount(GaeaSamRecord read, byte[] ref, int posOnRef) {
+		return mismatchQualityCount(read, ref, posOnRef, 0, read.getReadLength());
 	}
 
-	public static int mismatchQualityCount(GaeaAlignedSamRecord read, byte[] ref, int posOnRef, int posOnRead,
+	public static int mismatchQualityCount(GaeaSamRecord read, byte[] ref, int posOnRef, int posOnRead,
 			int baseLength) {
 		int mismatchQualitySum = 0;
 
@@ -65,7 +65,7 @@ public class AlignmentUtil {
 		int endIndex = posOnRead + baseLength - 1;
 
 		byte[] readSeq = read.getReadBases();
-		byte[] qualities = read.getReadQualities();
+		byte[] qualities = read.getBaseQualities();
 
 		for (CigarElement element : read.getCigar().getCigarElements()) {
 			int length = element.getLength();
@@ -98,6 +98,14 @@ public class AlignmentUtil {
 				break;
 			case EQ:
 				readIndex += length;
+				posOnRef += length;
+				break;
+			case I:
+			case S:
+				readIndex += length;
+				break;
+			case D:
+			case N:
 				posOnRef += length;
 				break;
 			default:

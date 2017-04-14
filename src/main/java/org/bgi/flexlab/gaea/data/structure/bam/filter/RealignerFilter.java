@@ -25,12 +25,12 @@ import htsjdk.samtools.SAMRecord;
 public class RealignerFilter extends ReadsFilter {
 
 	public static boolean needToClean(GaeaSamRecord read,int maxInsertSize) {
-		return read.getReadUnmappedFlag() || read.getNotPrimaryAlignmentFlag()
+		return !(read.getReadUnmappedFlag() || read.getNotPrimaryAlignmentFlag()
 				|| read.getReadFailsVendorQualityCheckFlag()
 				|| read.getMappingQuality() == 0
 				|| read.getAlignmentStart() == SAMRecord.NO_ALIGNMENT_START
 				|| iSizeTooBigToMove(read, maxInsertSize)
-				|| ReadUtils.is454Read(read) || ReadUtils.isIonRead(read);
+				|| ReadUtils.is454Read(read) || ReadUtils.isIonRead(read));
 	}
 
 	public static boolean iSizeTooBigToMove(GaeaSamRecord read,

@@ -187,9 +187,13 @@ public class GaeaAlignedSamRecord {
 	public Cigar getCigar() {
 		return newCigar == null ? read.getCigar() : newCigar;
 	}
+	
+	public Cigar getNewCigar(){
+		return newCigar;
+	}
 
 	public int getAlignmentStart() {
-		return newStart == -1 ? read.getAlignmentStart() : newStart+1;
+		return newStart == -1 ? read.getAlignmentStart() : newStart;
 	}
 
 	public int getMismatchScore() {
