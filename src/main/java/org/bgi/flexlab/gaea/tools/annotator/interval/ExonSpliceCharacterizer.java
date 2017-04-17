@@ -34,14 +34,14 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.annotator.interval;
 
-import java.util.HashMap;
-
 import org.bgi.flexlab.gaea.tools.annotator.config.Config;
 import org.bgi.flexlab.gaea.tools.annotator.effect.SnpEffectPredictor;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Exon.ExonSpliceType;
 import org.bgi.flexlab.gaea.tools.annotator.util.CountByType;
 import org.bgi.flexlab.gaea.tools.annotator.util.Gpr;
 import org.bgi.flexlab.gaea.tools.annotator.util.Timer;
+
+import java.util.HashMap;
 
 /**
  * Characterize exons based on alternative splicing

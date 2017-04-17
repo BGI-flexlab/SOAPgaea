@@ -16,20 +16,16 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.mapreduce.util;
 
-import java.io.IOException;
-import java.util.ArrayList;
-
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FSDataInputStream;
-import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.PathFilter;
+import org.apache.hadoop.fs.*;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.util.LineReader;
 import org.bgi.flexlab.gaea.data.exception.FileNotExistException;
 import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamHdfsFileHeader.HeaderPathFilter;
 import org.bgi.flexlab.gaea.util.GaeaFilesReader;
+
+import java.io.IOException;
+import java.util.ArrayList;
 
 public class HdfsFilesReader extends GaeaFilesReader{
 	private Configuration conf;

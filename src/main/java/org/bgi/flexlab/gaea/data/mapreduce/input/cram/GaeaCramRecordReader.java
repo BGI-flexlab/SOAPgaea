@@ -49,10 +49,6 @@ import htsjdk.samtools.ValidationStringency;
 import htsjdk.samtools.cram.build.CramIO;
 import htsjdk.samtools.cram.ref.ReferenceSource;
 import htsjdk.samtools.seekablestream.SeekableStream;
-
-import java.io.File;
-import java.io.IOException;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
@@ -64,6 +60,9 @@ import org.seqdoop.hadoop_bam.SAMRecordWritable;
 import org.seqdoop.hadoop_bam.util.MurmurHash3;
 import org.seqdoop.hadoop_bam.util.SAMHeaderReader;
 import org.seqdoop.hadoop_bam.util.WrapSeekable;
+
+import java.io.File;
+import java.io.IOException;
 
 public class GaeaCramRecordReader extends
 		RecordReader<LongWritable, SAMRecordWritable> {

@@ -42,24 +42,16 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin.traindata;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
-import org.bgi.flexlab.gaea.data.structure.header.VCFConstants;
-
 import htsjdk.samtools.util.RuntimeEOFException;
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.VariantContextBuilder;
-import htsjdk.variant.vcf.AbstractVCFCodec;
-import htsjdk.variant.vcf.VCFCodec;
+import org.bgi.flexlab.gaea.data.structure.header.VCFConstants;
+
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class KnownDatabase {
 	private static final String DBDRIVER = "com.mysql.jdbc.Driver";

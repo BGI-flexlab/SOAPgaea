@@ -16,9 +16,8 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.structure.bam.filter.util;
 
-import org.bgi.flexlab.gaea.data.structure.region.Region;
-
 import htsjdk.samtools.SAMRecord;
+import org.bgi.flexlab.gaea.data.structure.region.Region;
 
 public interface SamRecordFilter {
 	

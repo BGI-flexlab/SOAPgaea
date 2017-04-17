@@ -16,8 +16,6 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.mapreduce.input.adaptor;
 
-import java.io.IOException;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
@@ -32,6 +30,8 @@ import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.apache.hadoop.util.LineReader;
+
+import java.io.IOException;
 
 public class AdaptorRecordReader extends RecordReader<Text, Text>{
 	protected static final Log LOG = LogFactory.getLog(AdaptorRecordReader.class.getName());

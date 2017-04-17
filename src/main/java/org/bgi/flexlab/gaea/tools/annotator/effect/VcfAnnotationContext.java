@@ -36,18 +36,13 @@ package org.bgi.flexlab.gaea.tools.annotator.effect;
 
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.VariantContext;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-
 import org.bgi.flexlab.gaea.tools.annotator.config.Config;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Chromosome;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Genome;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Variant;
 import org.bgi.flexlab.gaea.tools.annotator.realignment.VcfRefAltAlign;
+
+import java.util.*;
 
 /**
  *  AnnotationContext + VariantContext

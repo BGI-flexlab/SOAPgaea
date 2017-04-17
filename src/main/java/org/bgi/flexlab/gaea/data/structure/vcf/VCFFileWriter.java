@@ -16,18 +16,16 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.structure.vcf;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.Serializable;
-import java.util.EnumSet;
-
-import org.apache.hadoop.conf.Configuration;
-
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.writer.Options;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
 import htsjdk.variant.variantcontext.writer.VariantContextWriterBuilder;
 import htsjdk.variant.vcf.VCFHeader;
+import org.apache.hadoop.conf.Configuration;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.Serializable;
 
 public abstract class VCFFileWriter implements Serializable{
 

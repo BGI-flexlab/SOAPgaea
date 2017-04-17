@@ -42,6 +42,59 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.mapreduce.markduplicate;
 
-public class MarkDuplicate {
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.bgi.flexlab.gaea.data.mapreduce.input.bam.GaeaBamInputFormat;
+import org.bgi.flexlab.gaea.data.mapreduce.output.bam.GaeaBamOutputFormat;
+import org.bgi.flexlab.gaea.framework.tools.mapreduce.BioJob;
+import org.bgi.flexlab.gaea.framework.tools.mapreduce.ToolsRunner;
 
+import java.io.IOException;
+
+public class MarkDuplicate extends ToolsRunner{
+
+    public MarkDuplicate(){
+        this.toolsDescription = "Gaea Mark PCR duplication";
+    }
+
+    public int runMarkDuplicate(String[] args) throws IOException, ClassNotFoundException, InterruptedException {
+        BioJob job = BioJob.getInstance();
+        Configuration conf = job.getConfiguration();
+        String[] remainArgs = remainArgs(args, conf);
+        MarkDuplicateOptions options = new MarkDuplicateOptions();
+        options.parse(remainArgs);
+        options.setHadoopConf(remainArgs, conf);
+
+        job.setJobName("GaeaMarkDuplicate");
+        job.setJarByClass(MarkDuplicate.class);
+        job.setReducerClass(MarkDuplicateReducer.class);
+        if(options.getInputFormat() != 0 && options.isSE()){
+            job.setMapperClass(MarkDuplicateSamMappper.class);
+            job.setInputFormatClass(TextInputFormat.class);
+        }else {
+            job.setMapperClass(MarkDuplicateMappper.class);
+            job.setInputFormatClass(GaeaBamInputFormat.class);
+        }
+
+        job.setOutputFormatClass(GaeaBamOutputFormat.class);
+
+        if(options.isSE()){
+            FileInputFormat.setInputPaths(job, options.getInputFileList().toArray(new Path[options.getInputFileList().size()]));
+        }else {
+            FileInputFormat.setInputPaths(job, options.getInput());
+        }
+        Path oPath = new Path(options.getOutput());
+        FileOutputFormat.setOutputPath(job, oPath);
+        boolean success = job.waitForCompletion(true);
+        return success ? 0 : 1;
+    }
+
+    @Override
+    public int run(String[] args) throws Exception {
+        MarkDuplicate md = new MarkDuplicate();
+        return md.runMarkDuplicate(args);
+    }
 }

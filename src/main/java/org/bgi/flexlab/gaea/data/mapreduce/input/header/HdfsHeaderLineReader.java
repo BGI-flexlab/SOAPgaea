@@ -16,15 +16,14 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.mapreduce.input.header;
 
-import java.io.IOException;
-
+import htsjdk.samtools.util.LineReader;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 
-import htsjdk.samtools.util.LineReader;
+import java.io.IOException;
 
 public class HdfsHeaderLineReader implements LineReader{
 	private int lineNumber;

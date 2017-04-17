@@ -53,25 +53,21 @@ import org.bgi.flexlab.gaea.data.structure.pileup.Pileup;
 import org.bgi.flexlab.gaea.data.structure.pileup.PileupReadInfo;
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
 import org.bgi.flexlab.gaea.data.structure.vcf.VariantDataTracker;
-import org.bgi.flexlab.gaea.tools.genotyer.genotypeLikelihoodCalculator.PerReadAlleleLikelihoodMap;
 import org.bgi.flexlab.gaea.tools.genotyer.annotator.interfaces.ActiveRegionBasedAnnotation;
 import org.bgi.flexlab.gaea.tools.genotyer.annotator.interfaces.InfoFieldAnnotation;
+import org.bgi.flexlab.gaea.tools.genotyer.genotypeLikelihoodCalculator.PerReadAlleleLikelihoodMap;
 import org.bgi.flexlab.gaea.util.MannWhitneyU;
 import org.bgi.flexlab.gaea.util.Pair;
 import org.bgi.flexlab.gaea.util.QualityUtils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 
 /**
  * Abstract root for all RankSum based annotations
  */
 public abstract class RankSumTest extends InfoFieldAnnotation implements ActiveRegionBasedAnnotation {
-    static final boolean DEBUG = false;
+    //static final boolean DEBUG = false;
     private boolean useDithering = true;
 
     public Map<String, Object> annotate(final VariantDataTracker tracker,
@@ -108,14 +104,14 @@ public abstract class RankSumTest extends InfoFieldAnnotation implements ActiveR
             return null;
 
         final MannWhitneyU mannWhitneyU = new MannWhitneyU(useDithering);
-        //System.out.println("useDithering:"+useDithering);
+        //System.err.println("useDithering:"+useDithering);
         for (final Double qual : altQuals) {
             mannWhitneyU.add(qual, MannWhitneyU.USet.SET1);
-            //System.out.println("add alt:"+qual);
+            //System.err.println("add alt:"+qual);
         }
         for (final Double qual : refQuals) {
             mannWhitneyU.add(qual, MannWhitneyU.USet.SET2);
-            //System.out.println("add ref:"+qual);
+            //System.err.println("add ref:"+qual);
         }
 
        /* System.out.format("%s, REF QUALS:", this.getClass().getName());
@@ -129,8 +125,8 @@ public abstract class RankSumTest extends InfoFieldAnnotation implements ActiveR
         
         // we are testing that set1 (the alt bases) have lower quality scores than set2 (the ref bases)
         final Pair<Double, Double> testResults = mannWhitneyU.runOneSidedTest(MannWhitneyU.USet.SET1);
-        //System.out.println(getKeyNames().get(0));
-        //System.out.println("testResult:"+testResults.getFirst()+"\t"+testResults.getSecond());
+        //System.err.println(getKeyNames().get(0));
+        //System.err.println("testResult:"+testResults.getFirst()+"\t"+testResults.getSecond());
         final Map<String, Object> map = new HashMap<String, Object>();
         if (!Double.isNaN(testResults.first))
             map.put(getKeyNames().get(0), String.format("%.3f", testResults.first));

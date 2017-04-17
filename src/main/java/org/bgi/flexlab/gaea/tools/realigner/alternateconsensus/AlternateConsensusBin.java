@@ -47,12 +47,11 @@ import htsjdk.samtools.CigarElement;
 import htsjdk.samtools.CigarOperator;
 import htsjdk.samtools.util.StringUtil;
 import htsjdk.variant.variantcontext.VariantContext;
+import org.bgi.flexlab.gaea.util.BaseUtils;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.Set;
-
-import org.bgi.flexlab.gaea.util.BaseUtils;
 
 public class AlternateConsensusBin {
 	private Set<AlternateConsensus> consensus = null;

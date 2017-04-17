@@ -16,11 +16,6 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
@@ -31,6 +26,11 @@ import org.apache.hadoop.io.compress.CompressionOutputStream;
 import org.bgi.flexlab.gaea.data.structure.region.SingleRegion;
 import org.bgi.flexlab.gaea.data.structure.region.SingleRegion.Regiondata;
 import org.bgi.flexlab.gaea.tools.mapreduce.bamqualitycontrol.BamQualityControlOptions;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 public class CNVDepthReport {
 	private static Map<String, Map<Integer, Integer>> bedIndex = null;

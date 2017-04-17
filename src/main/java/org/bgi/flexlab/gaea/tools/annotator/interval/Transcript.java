@@ -34,14 +34,6 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.annotator.interval;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.bgi.flexlab.gaea.tools.annotator.config.Config;
 import org.bgi.flexlab.gaea.tools.annotator.effect.EffectType;
 import org.bgi.flexlab.gaea.tools.annotator.effect.VariantEffect.ErrorWarningType;
@@ -49,6 +41,8 @@ import org.bgi.flexlab.gaea.tools.annotator.effect.VariantEffects;
 import org.bgi.flexlab.gaea.tools.annotator.interval.codonchange.CodonChange;
 import org.bgi.flexlab.gaea.tools.annotator.util.Gpr;
 import org.bgi.flexlab.gaea.tools.annotator.util.GprSeq;
+
+import java.util.*;
 
 /**
  * Codon position

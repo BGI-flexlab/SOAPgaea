@@ -16,11 +16,6 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.mapreduce.vcfqualitycontrol;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-
 import org.apache.commons.cli.ParseException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
@@ -32,6 +27,11 @@ import org.bgi.flexlab.gaea.data.options.GaeaOptions;
 import org.bgi.flexlab.gaea.data.structure.header.GaeaVCFHeader;
 import org.seqdoop.hadoop_bam.KeyIgnoringVCFOutputFormat;
 import org.seqdoop.hadoop_bam.VCFOutputFormat;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
 
 public class VCFQualityControlOptions extends GaeaOptions implements HadoopOptions{
 	private final static String SOFTWARE_NAME = "VCFQualityControl";

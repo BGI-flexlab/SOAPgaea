@@ -54,8 +54,8 @@ import org.bgi.flexlab.gaea.data.structure.pileup.Pileup;
 import org.bgi.flexlab.gaea.data.structure.pileup.PileupReadInfo;
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
 import org.bgi.flexlab.gaea.data.structure.vcf.VariantDataTracker;
-import org.bgi.flexlab.gaea.tools.genotyer.genotypeLikelihoodCalculator.PerReadAlleleLikelihoodMap;
 import org.bgi.flexlab.gaea.tools.genotyer.annotator.interfaces.GenotypeAnnotation;
+import org.bgi.flexlab.gaea.tools.genotyer.genotypeLikelihoodCalculator.PerReadAlleleLikelihoodMap;
 
 import java.util.Arrays;
 import java.util.List;
@@ -75,7 +75,7 @@ public class MappingQualityZeroBySample extends GenotypeAnnotation {
             return;
 
         int mq0 = 0;
-        for (PileupReadInfo p : pileup.getFilteredPileup() ) {
+        for (PileupReadInfo p : pileup.getTotalPileup() ) {
             if ( p.getMappingQuality() == 0 )
                 mq0++;
         }

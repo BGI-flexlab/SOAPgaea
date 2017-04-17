@@ -45,11 +45,7 @@ package org.bgi.flexlab.gaea.tools.genotyer.annotator.interfaces;
 import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.util.classloader.PluginManager;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.TreeSet;
+import java.util.*;
 
 
 public class AnnotationInterfaceManager {

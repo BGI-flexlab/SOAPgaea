@@ -34,19 +34,9 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.annotator.effect;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import org.bgi.flexlab.gaea.tools.annotator.interval.*;
 
-import org.bgi.flexlab.gaea.tools.annotator.interval.Chromosome;
-import org.bgi.flexlab.gaea.tools.annotator.interval.Gene;
-import org.bgi.flexlab.gaea.tools.annotator.interval.Marker;
-import org.bgi.flexlab.gaea.tools.annotator.interval.Markers;
-import org.bgi.flexlab.gaea.tools.annotator.interval.Transcript;
-import org.bgi.flexlab.gaea.tools.annotator.interval.Variant;
-import org.bgi.flexlab.gaea.tools.annotator.interval.VariantTranslocation;
+import java.util.*;
 
 /**
  * Effect of a structural variant affecting multiple genes

@@ -16,11 +16,6 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.annotator;
 
-import java.io.BufferedReader;
-import java.io.FileOutputStream;
-import java.io.InputStreamReader;
-import java.util.zip.GZIPOutputStream;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.FSDataInputStream;
@@ -32,6 +27,11 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.bgi.flexlab.gaea.data.structure.reference.ReferenceShare;
+
+import java.io.BufferedReader;
+import java.io.FileOutputStream;
+import java.io.InputStreamReader;
+import java.util.zip.GZIPOutputStream;
 
 public class VariantAnnotation extends Configured implements Tool{
 	

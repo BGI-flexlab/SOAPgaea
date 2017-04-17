@@ -16,12 +16,11 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.variant.filter;
 
-import java.io.IOException;
-import java.util.ArrayList;
-
+import htsjdk.variant.variantcontext.VariantContext;
 import org.bgi.flexlab.gaea.data.structure.vcf.VCFLocalLoader;
 
-import htsjdk.variant.variantcontext.VariantContext;
+import java.io.IOException;
+import java.util.ArrayList;
 
 public abstract class VariantFilter {
 	public abstract int filter(VariantContext context, int start, int end);

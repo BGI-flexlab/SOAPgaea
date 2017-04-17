@@ -16,12 +16,12 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.structure.pileup;
 
+import org.bgi.flexlab.gaea.data.structure.alignment.AlignmentsBasic;
+import org.bgi.flexlab.gaea.data.structure.pileup.filter.PileupFilter;
+
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-
-import org.bgi.flexlab.gaea.data.structure.alignment.AlignmentsBasic;
-import org.bgi.flexlab.gaea.tools.mapreduce.genotyper.GenotyperOptions;
 
 public class Mpileup implements MpileupInterface<Pileup>{
 
@@ -51,9 +51,9 @@ public class Mpileup implements MpileupInterface<Pileup>{
 	private AlignmentsBasic tmpRead = null;
 
 	/**
-	 * options for filter
+	 * make the pileup filter to static so that we do not need to store this in each pileup
 	 */
-	private GenotyperOptions options;
+	private PileupFilter filter;
 
 	/**
 	 * constructor
@@ -61,11 +61,11 @@ public class Mpileup implements MpileupInterface<Pileup>{
 	 * @param position start
 	 * @param end end
 	 */
-	public Mpileup(ReadsPool readsPool, int position, int end, GenotyperOptions options) {
+	public Mpileup(ReadsPool readsPool, int position, int end, PileupFilter filter) {
 		this.readsPool = readsPool;
 		this.position = position;
 		this.end = end;
-		this.options = options;
+		this.filter = filter;
 	}
 
 	/**
@@ -173,7 +173,10 @@ public class Mpileup implements MpileupInterface<Pileup>{
 			java.util.Map.Entry entry = (java.util.Map.Entry) it.next();
 			Pileup plp = (Pileup)entry.getValue();
 			if (plp.getPosition() == minPosition) {
-				plp.calculateBaseInfo(options);
+				plp.calculateBaseInfo();
+				if(filter != null) {
+					plp.setFilterPileup(filter.filter(plp));
+				}
 				String sample = (String)entry.getKey();
 				posPlps.put(sample, plp);
 			}
@@ -218,7 +221,8 @@ public class Mpileup implements MpileupInterface<Pileup>{
 		Pileup joinedPileup = new Pileup();
 		joinedPileup.setPosition(position);
 		for(Pileup pileup : pileups.values()) {
-			joinedPileup.getFilteredPileup().addAll(pileup.getFilteredPileup());
+			if(joinedPileup.getFilteredPileup() != null)
+				joinedPileup.getFilteredPileup().addAll(pileup.getFilteredPileup());
 			joinedPileup.getTotalPileup().addAll(pileup.getTotalPileup());
 		}
 		return joinedPileup;
@@ -240,10 +244,10 @@ public class Mpileup implements MpileupInterface<Pileup>{
 		pileups.clear();
 	}
 
-	public int totalDepth() {
+	public int totalDepth(boolean isFiltered) {
 		int depth = 0;
 		for(String sample : pileups.keySet()) {
-			depth += pileups.get(sample).depthOfCoverage();
+			depth += pileups.get(sample).depthOfCoverage(isFiltered);
 		}
 		return depth;
 	}

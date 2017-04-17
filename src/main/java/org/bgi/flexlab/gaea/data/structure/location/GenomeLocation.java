@@ -42,14 +42,10 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.structure.location;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-
 import org.bgi.flexlab.gaea.data.exception.UserException;
+
+import java.io.Serializable;
+import java.util.*;
 
 public class GenomeLocation implements Comparable<GenomeLocation>,
 		Comparator<GenomeLocation>, Serializable {

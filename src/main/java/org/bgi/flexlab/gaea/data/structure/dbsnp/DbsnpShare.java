@@ -16,17 +16,17 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.structure.dbsnp;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.Job;
 import org.bgi.flexlab.gaea.data.structure.memoryshare.WholeGenomeShare;
 import org.bgi.flexlab.gaea.data.structure.reference.index.VcfIndex;
 import org.bgi.flexlab.gaea.util.ChromosomeUtils;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class DbsnpShare extends WholeGenomeShare {
 	private static final String CACHE_NAME = "dbsnpList";

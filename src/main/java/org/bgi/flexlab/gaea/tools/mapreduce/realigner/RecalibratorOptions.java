@@ -16,9 +16,6 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.mapreduce.realigner;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.commons.cli.ParseException;
 import org.apache.hadoop.conf.Configuration;
 import org.bgi.flexlab.gaea.data.mapreduce.options.HadoopOptions;
@@ -28,6 +25,9 @@ import org.bgi.flexlab.gaea.tools.recalibrator.RecalibratorUtil.SolidNocallStrat
 import org.bgi.flexlab.gaea.tools.recalibrator.RecalibratorUtil.SolidRecallMode;
 import org.bgi.flexlab.gaea.tools.recalibrator.report.RecalibratorReportTable;
 import org.bgi.flexlab.gaea.util.QualityUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class RecalibratorOptions extends GaeaOptions implements HadoopOptions {
 	private final static String SOFTWARE_NAME = "BaseRecalibration";

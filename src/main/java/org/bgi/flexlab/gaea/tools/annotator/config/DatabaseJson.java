@@ -16,10 +16,10 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.annotator.config;
 
+import org.bgi.flexlab.gaea.tools.annotator.config.DatabaseInfo.DbType;
+
 import java.io.Serializable;
 import java.util.HashMap;
-
-import org.bgi.flexlab.gaea.tools.annotator.config.DatabaseInfo.DbType;
 
 public class DatabaseJson implements Serializable{
 

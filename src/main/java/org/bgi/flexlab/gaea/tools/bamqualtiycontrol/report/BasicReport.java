@@ -16,23 +16,23 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report;
 
+import org.apache.hadoop.mapreduce.Reducer.Context;
+import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
+import org.bgi.flexlab.gaea.data.structure.reference.ReferenceShare;
+import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.BaseCounter;
+import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.CounterProperty.BaseType;
+import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.CounterProperty.ReadType;
+import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.ReadsCounter;
+import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.Tracker;
+import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.Tracker.BaseTracker;
+import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.Tracker.ReadsTracker;
+import org.bgi.flexlab.gaea.util.SamRecordDatum;
+
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
-
-import org.apache.hadoop.mapreduce.Reducer.Context;
-import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
-import org.bgi.flexlab.gaea.data.structure.reference.ReferenceShare;
-import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.BaseCounter;
-import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.ReadsCounter;
-import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.Tracker;
-import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.CounterProperty.BaseType;
-import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.CounterProperty.ReadType;
-import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.Tracker.BaseTracker;
-import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.Tracker.ReadsTracker;
-import org.bgi.flexlab.gaea.util.SamRecordDatum;
 
 public class BasicReport{
 	

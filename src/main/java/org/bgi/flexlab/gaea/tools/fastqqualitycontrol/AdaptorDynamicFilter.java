@@ -16,9 +16,10 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.fastqqualitycontrol;
 
-import java.util.ArrayList;
 import org.bgi.flexlab.gaea.data.structure.reads.ReadInformationWithSampleID;
 import org.bgi.flexlab.gaea.tools.mapreduce.fastqqualitycontrol.FastqQualityControlOptions;
+
+import java.util.ArrayList;
 
 public class AdaptorDynamicFilter {
 	private DynamicAdaptor dpt;

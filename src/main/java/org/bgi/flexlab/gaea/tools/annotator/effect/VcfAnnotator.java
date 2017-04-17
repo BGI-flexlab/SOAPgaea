@@ -35,13 +35,12 @@
 package org.bgi.flexlab.gaea.tools.annotator.effect;
 
 import htsjdk.variant.variantcontext.VariantContext;
+import org.bgi.flexlab.gaea.tools.annotator.config.Config;
+import org.bgi.flexlab.gaea.tools.annotator.interval.Variant;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-
-import org.bgi.flexlab.gaea.tools.annotator.config.Config;
-import org.bgi.flexlab.gaea.tools.annotator.interval.Variant;
 
 /**
  * Annotate a VCF entry

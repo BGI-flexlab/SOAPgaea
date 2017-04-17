@@ -16,8 +16,14 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.mapreduce.vcfqualitycontrol;
 
-import java.io.IOException;
-
+import hbparquet.hadoop.util.ContextUtil;
+import htsjdk.tribble.FeatureCodecHeader;
+import htsjdk.tribble.readers.AsciiLineReader;
+import htsjdk.tribble.readers.AsciiLineReaderIterator;
+import htsjdk.variant.variantcontext.VariantContext;
+import htsjdk.variant.vcf.VCFCodec;
+import htsjdk.variant.vcf.VCFHeader;
+import htsjdk.variant.vcf.VCFHeaderLine;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
@@ -42,14 +48,7 @@ import org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin.VCFRec
 import org.seqdoop.hadoop_bam.KeyIgnoringVCFOutputFormat;
 import org.seqdoop.hadoop_bam.VariantContextWritable;
 
-import hbparquet.hadoop.util.ContextUtil;
-import htsjdk.tribble.FeatureCodecHeader;
-import htsjdk.tribble.readers.AsciiLineReader;
-import htsjdk.tribble.readers.AsciiLineReaderIterator;
-import htsjdk.variant.variantcontext.VariantContext;
-import htsjdk.variant.vcf.VCFCodec;
-import htsjdk.variant.vcf.VCFHeader;
-import htsjdk.variant.vcf.VCFHeaderLine;
+import java.io.IOException;
 
 public class VCFQualityControl extends ToolsRunner{
 	public static final String VQS_LOD_KEY = "VQSLOD"; // Log odds ratio of being a true variant versus being false under the trained gaussian mixture model

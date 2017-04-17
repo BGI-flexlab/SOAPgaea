@@ -16,9 +16,11 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.mapreduce.input.header;
 
-import java.io.IOException;
-import java.util.ArrayList;
-
+import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.SAMFileReader;
+import htsjdk.samtools.SamFileHeaderMerger;
+import htsjdk.samtools.cram.build.CramIO;
+import htsjdk.samtools.seekablestream.SeekableStream;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
@@ -30,11 +32,8 @@ import org.bgi.flexlab.gaea.data.exception.FileNotExistException;
 import org.bgi.flexlab.gaea.data.structure.header.SamFileHeader;
 import org.seqdoop.hadoop_bam.util.WrapSeekable;
 
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SAMFileReader;
-import htsjdk.samtools.SamFileHeaderMerger;
-import htsjdk.samtools.cram.build.CramIO;
-import htsjdk.samtools.seekablestream.SeekableStream;
+import java.io.IOException;
+import java.util.ArrayList;
 
 /* *
  * bam header io for hdfs

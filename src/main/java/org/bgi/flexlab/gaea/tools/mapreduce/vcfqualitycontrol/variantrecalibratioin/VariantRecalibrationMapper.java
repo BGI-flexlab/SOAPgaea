@@ -16,8 +16,8 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.mapreduce.vcfqualitycontrol.variantrecalibratioin;
 
-import java.io.File;
-import java.io.IOException;
+import htsjdk.samtools.reference.FastaSequenceFile;
+import htsjdk.variant.variantcontext.VariantContext;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
@@ -25,15 +25,11 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocationParser;
 import org.bgi.flexlab.gaea.tools.mapreduce.vcfqualitycontrol.VCFQualityControlOptions;
-import org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin.traindata.DBResource;
-import org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin.traindata.FileResource;
-import org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin.traindata.ResourceManager;
-import org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin.traindata.TrainData;
-import org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin.traindata.VariantDatumMessenger;
+import org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin.traindata.*;
 import org.seqdoop.hadoop_bam.VariantContextWritable;
 
-import htsjdk.samtools.reference.FastaSequenceFile;
-import htsjdk.variant.variantcontext.VariantContext;
+import java.io.File;
+import java.io.IOException;
 
 public class VariantRecalibrationMapper extends Mapper<LongWritable, VariantContextWritable, IntWritable, Text>{
 

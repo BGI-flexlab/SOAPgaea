@@ -16,10 +16,6 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.mapreduce.vcf.sort;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Map;
-
 import org.apache.commons.cli.ParseException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
@@ -33,6 +29,10 @@ import org.bgi.flexlab.gaea.data.options.GaeaOptions;
 import org.bgi.flexlab.gaea.data.structure.header.GaeaVCFHeader;
 import org.seqdoop.hadoop_bam.KeyIgnoringVCFOutputFormat;
 import org.seqdoop.hadoop_bam.VCFOutputFormat;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Map;
 
 public class VCFSortOptions extends GaeaOptions implements HadoopOptions{
 	private final static String SOFTWARE_NAME = "VCFSort";

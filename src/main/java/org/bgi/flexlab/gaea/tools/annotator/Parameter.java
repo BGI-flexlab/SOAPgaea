@@ -16,13 +16,13 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.annotator;
 
+import org.apache.commons.cli.ParseException;
+import org.bgi.flexlab.gaea.data.options.GaeaOptions;
+
 import java.io.File;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-
-import org.apache.commons.cli.ParseException;
-import org.bgi.flexlab.gaea.data.options.GaeaOptions;
 
 
 public class Parameter extends GaeaOptions implements Serializable {

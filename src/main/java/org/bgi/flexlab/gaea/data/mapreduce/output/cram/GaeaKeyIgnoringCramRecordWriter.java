@@ -42,22 +42,21 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.mapreduce.output.cram;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.net.URI;
-import java.nio.file.Paths;
-
 import htsjdk.samtools.CRAMContainerStreamWriter;
-import htsjdk.samtools.cram.ref.ReferenceSource;
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMTagUtil;
-
+import htsjdk.samtools.cram.ref.ReferenceSource;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.seqdoop.hadoop_bam.SAMRecordWritable;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.URI;
+import java.nio.file.Paths;
 
 public class GaeaKeyIgnoringCramRecordWriter<K> extends
 		RecordWriter<K, SAMRecordWritable> {

@@ -16,20 +16,14 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.structure.reference.index;
 
-import java.io.BufferedOutputStream;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.Arrays;
-
+import htsjdk.variant.variantcontext.VariantContext;
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformation;
 import org.bgi.flexlab.gaea.data.structure.vcf.AbstractVCFLoader.PositionalVariantContext;
 import org.bgi.flexlab.gaea.data.structure.vcf.VCFLocalLoader;
 import org.bgi.flexlab.gaea.util.ChromosomeUtils;
 
-import htsjdk.variant.variantcontext.VariantContext;
+import java.io.*;
+import java.util.Arrays;
 
 public class VcfIndex extends ReferenceIndex {
 	public final static String INDEX_SUFFIX = ".window.idx";

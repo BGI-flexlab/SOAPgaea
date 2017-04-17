@@ -73,12 +73,9 @@ public class AlternateConsensusEngine {
 		model = AlternateConsensusModel.READS;
 	}
 
-	public AlternateConsensusEngine(AlternateConsensusModel model,
-			double threshold, double cleanThreshold) {
+	public AlternateConsensusEngine(AlternateConsensusModel model) {
 		consensusBin = new AlternateConsensusBin();
 		this.model = model;
-		this.mismatchThreshold = threshold;
-		this.mismatchColumnCleanedFraction = cleanThreshold;
 	}
 
 	public int mismatchQualitySumIgnoreCigar(GaeaAlignedSamRecord read,
@@ -91,22 +88,19 @@ public class AlternateConsensusEngine {
 
 		for (int readIndex = 0; readIndex < readSeq.length; readIndex++) {
 			if (posOnRef >= ref.length) {
-				mismatchQualitySum += (readSeq.length - readIndex)
-						* MAX_QUALITY;
+				mismatchQualitySum += ((readSeq.length - readIndex) * MAX_QUALITY);
 				break;
-			}
-			byte refBase = ref[posOnRef++];
-			byte readBase = readSeq[readIndex];
+			}else{
+				byte refBase = ref[posOnRef++];
+				byte readBase = readSeq[readIndex];
 
-			if (BaseUtils.isRegularAndNotEqualBase(readBase, refBase)) {
-				mismatchQualitySum += qualities[readIndex];
-				if (mismatchQualitySum > threshold)
-					return -1;
+				if (BaseUtils.isRegularAndNotEqualBase(readBase, refBase)) {
+					mismatchQualitySum += qualities[readIndex];
+					if (mismatchQualitySum > threshold)
+						return mismatchQualitySum;
+				}
 			}
 		}
-
-		if (mismatchQualitySum > threshold)
-			mismatchQualitySum = -1;
 
 		return mismatchQualitySum;
 	}
@@ -172,7 +166,7 @@ public class AlternateConsensusEngine {
 					totalRawMismatchSum += rawMismatchScore;
 				alignedRead.setMismatchScore(rawMismatchScore);
 				alignedRead.setAlignerMismatchScore(AlignmentUtil
-						.mismatchQualityCount(alignedRead, reference,
+						.mismatchQualityCount(alignedRead.getRead(), reference,
 								startOnRef));
 
 				if (model != AlternateConsensusModel.DBSNP
@@ -210,13 +204,13 @@ public class AlternateConsensusEngine {
 						currentConsensus.getSequence(), read, leftMostIndex);
 
 				int readScore = best.second;
-				if (readScore >= read.getAlignerMismatchScore()
-						|| readScore > read.getMismatchScore())
-					readScore = read.getAlignerMismatchScore();
+				if (readScore > read.getAlignerMismatchScore()
+						|| readScore >= read.getMismatchScore())
+					readScore = read.getMismatchScore();
 				else
 					currentConsensus.add(new Pair<Integer, Integer>(i, best.first));
 
-				if (!read.getRead().isDuplicateRead())
+				if (!read.getRead().getDuplicateReadFlag())
 					currentConsensus.addMismatch(readScore);
 
 				if (bestConsensus != null
@@ -260,8 +254,8 @@ public class AlternateConsensusEngine {
 			byte[] ref, int leftMostIndex) {
 		if (model != AlternateConsensusModel.DBSNP
 				&& !lookForEntropy(reads, ref, leftMostIndex))
-			return true;
-		return false;
+			return false;
+		return true;
 	}
 
 	public boolean updateRead(final Cigar consensusCigar, final int posOnRef,
@@ -350,6 +344,7 @@ public class AlternateConsensusEngine {
 		}
 		if (readRemaining > 0)
 			newCigar.add(new CigarElement(readRemaining, CigarOperator.M));
+		
 		alignedRead.setCigar(newCigar);
 
 		return true;
@@ -362,6 +357,11 @@ public class AlternateConsensusEngine {
 		long[] cleanMismatchQuality = new long[refLength];
 		long[] totalRawQuality = new long[refLength];
 		long[] totalCleanQuality = new long[refLength];
+		
+		int i;
+		for(i = 0 ; i < refLength ; i++){
+			rawMismatchQuality[i] = cleanMismatchQuality[i] = totalRawQuality[i] = totalCleanQuality[i] = 0;
+		}
 
 		for (GaeaAlignedSamRecord read : reads) {
 			if (read.getRead().getAlignmentBlocks().size() > 1)
@@ -371,14 +371,12 @@ public class AlternateConsensusEngine {
 			byte[] seq = read.getReadBases();
 			byte[] quality = read.getReadQualities();
 
-			int i;
-			for (i = 0; i < seq.length; i++) {
-				if (refIndex < 0 || refIndex > refLength)
+			for (i = 0; i < seq.length; i++,refIndex++) {
+				if (refIndex < 0 || refIndex >= refLength)
 					break;
 				totalRawQuality[refIndex] += quality[i];
 				if (ref[refIndex] != seq[i])
 					rawMismatchQuality[refIndex] += quality[i];
-				refIndex++;
 			}
 
 			refIndex = read.getAlignmentStart() - leftMostIndex;
@@ -409,15 +407,15 @@ public class AlternateConsensusEngine {
 		}
 
 		int rawColumns = 0, cleanedColumns = 0;
-		for (int i = 0; i < refLength; i++) {
+		for (i = 0; i < refLength; i++) {
 			if (rawMismatchQuality[i] == cleanMismatchQuality[i])
 				continue;
-			if (rawMismatchQuality[i] > cleanMismatchQuality[i]
+			if (rawMismatchQuality[i] > totalRawQuality[i]
 					* mismatchThreshold) {
 				rawColumns++;
 				if (totalCleanQuality[i] > 0
-						&& ((double) cleanMismatchQuality[i] / (double) totalCleanQuality[i]) > ((double) rawMismatchQuality[i] / (double) totalRawQuality[i])
-								* (1.0 - mismatchColumnCleanedFraction)) {
+						&& (((double) cleanMismatchQuality[i] / (double) totalCleanQuality[i]) > ((double) rawMismatchQuality[i] / (double) totalRawQuality[i])
+								* (1.0 - mismatchColumnCleanedFraction))) {
 					cleanedColumns++;
 				}
 			} else if (cleanMismatchQuality[i] > totalCleanQuality[i]
@@ -431,43 +429,43 @@ public class AlternateConsensusEngine {
 
 	private Pair<Integer, Integer> findBestOffset(final byte[] ref,
 			final GaeaAlignedSamRecord read, final int leftmostIndex) {
-		final int originalAlignment = read.getRead().getAlignmentStart()
-				- leftmostIndex;
-		int bestScore = Integer.MAX_VALUE;
-		int bestIndex = originalAlignment;
-		final int end = ref.length - read.getRead().getReadLength();
-		final int maxLength = end - originalAlignment;
+		int originalAlignment = read.getRead().getAlignmentStart() - leftmostIndex;
+        int bestScore = mismatchQualitySumIgnoreCigar(read, ref, originalAlignment, Integer.MAX_VALUE);
+        int bestIndex = originalAlignment;
+        final int maxPossibleStart = ref.length - read.getReadLength();
 
-		for (int i = 0; i <= maxLength; i++) {
-			int left = originalAlignment - i;
-			if (left >= 0) {
-				int score = mismatchQualitySumIgnoreCigar(read, ref, left,
-						bestScore);
-				if (score < bestScore) {
-					bestScore = score;
-					bestIndex = left;
-				}
+        if ( bestScore == 0 )
+            return new Pair<Integer, Integer>(bestIndex, 0);
 
-				if (bestScore == 0)
-					return new Pair<Integer, Integer>(bestIndex, 0);
-			}
-			int right = originalAlignment + i;
-			if (left == right)
-				continue;
+        for ( int i = 0; i <= maxPossibleStart; i++ ) {
+        	if( i == originalAlignment)
+        		continue;
+        	
+            int score = mismatchQualitySumIgnoreCigar(read, ref, i, bestScore);
+            if ( score < bestScore ) {
+                bestScore = score;
+                bestIndex = i;
+            }
+            
+            if ( bestScore == 0 )
+                return new Pair<Integer, Integer>(bestIndex, 0);
+        }
 
-			if (right <= end) {
-				int score = mismatchQualitySumIgnoreCigar(read, ref, right,
-						bestScore);
-				if (score < bestScore) {
-					bestScore = score;
-					bestIndex = right;
-				}
-
-				if (bestScore == 0)
-					return new Pair<Integer, Integer>(bestIndex, 0);
-			}
+        return new Pair<Integer, Integer>(bestIndex, bestScore);
+	}
+	
+	public int size(){
+		return consensusBin.get().size();
+	}
+	
+	public void consensusPrints(){
+		
+		for(AlternateConsensus consensus : consensusBin.get()){
+			System.err.println(consensus.toString());
 		}
-
-		return new Pair<Integer, Integer>(bestIndex, bestScore);
+	}
+	
+	public void clear(){
+		consensusBin.get().clear();
 	}
 }

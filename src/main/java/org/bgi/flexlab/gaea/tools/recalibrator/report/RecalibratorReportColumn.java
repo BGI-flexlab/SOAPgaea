@@ -42,11 +42,11 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.recalibrator.report;
 
-import java.util.Arrays;
-import java.util.Collection;
-
 import org.apache.commons.lang.math.NumberUtils;
 import org.bgi.flexlab.gaea.util.StandardDataType;
+
+import java.util.Arrays;
+import java.util.Collection;
 
 public class RecalibratorReportColumn {
 	private boolean isRightAlignment = false;

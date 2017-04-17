@@ -16,12 +16,12 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.framework.tools.mapreduce;
 
+import org.bgi.flexlab.gaea.data.options.ToolsOptions;
+import org.bgi.flexlab.gaea.util.ArrayUtils;
+
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Properties;
-
-import org.bgi.flexlab.gaea.data.options.ToolsOptions;
-import org.bgi.flexlab.gaea.util.ArrayUtils;
 
 public class Main {
 	private static HashMap<String, String> getTools(Properties properties) {

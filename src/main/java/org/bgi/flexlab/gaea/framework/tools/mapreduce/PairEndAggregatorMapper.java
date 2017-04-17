@@ -17,14 +17,13 @@
 package org.bgi.flexlab.gaea.framework.tools.mapreduce;
 
 import htsjdk.samtools.SAMRecord;
-
-import java.io.IOException;
-
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.seqdoop.hadoop_bam.SAMRecordWritable;
+
+import java.io.IOException;
 
 public class PairEndAggregatorMapper extends
 		Mapper<Writable, Writable, Writable, Writable> {

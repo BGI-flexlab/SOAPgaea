@@ -16,19 +16,15 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.annotator.db;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Set;
-
 import org.bgi.flexlab.gaea.tools.annotator.config.Config;
 import org.bgi.flexlab.gaea.tools.annotator.config.DatabaseInfo;
 import org.bgi.flexlab.gaea.tools.annotator.config.DatabaseInfo.ConditionKey;
 import org.bgi.flexlab.gaea.tools.annotator.config.DatabaseInfo.DbType;
 import org.bgi.flexlab.gaea.tools.annotator.config.RefTableInfo;
 import org.bgi.flexlab.gaea.tools.annotator.effect.VcfAnnotationContext;
+
+import java.io.Serializable;
+import java.util.*;
 
 /**
  * @author huangzhibo

@@ -34,12 +34,12 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.annotator.interval.tree;
 
-import java.io.Serializable;
-import java.util.Iterator;
-
 import org.bgi.flexlab.gaea.tools.annotator.interval.Interval;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Marker;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Markers;
+
+import java.io.Serializable;
+import java.util.Iterator;
 
 /**
  * An Interval Tree is essentially a map from intervals to objects, which

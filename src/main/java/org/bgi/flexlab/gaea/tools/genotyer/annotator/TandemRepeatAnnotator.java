@@ -51,9 +51,10 @@ import htsjdk.variant.vcf.VCFInfoHeaderLine;
 import org.bgi.flexlab.gaea.data.structure.pileup.Mpileup;
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
 import org.bgi.flexlab.gaea.data.structure.vcf.VariantDataTracker;
-import org.bgi.flexlab.gaea.tools.genotyer.genotypeLikelihoodCalculator.PerReadAlleleLikelihoodMap;
 import org.bgi.flexlab.gaea.tools.genotyer.annotator.interfaces.InfoFieldAnnotation;
 import org.bgi.flexlab.gaea.tools.genotyer.annotator.interfaces.StandardAnnotation;
+import org.bgi.flexlab.gaea.tools.genotyer.genotypeLikelihoodCalculator.INDELGenotypeLikelihoodCalculator;
+import org.bgi.flexlab.gaea.tools.genotyer.genotypeLikelihoodCalculator.PerReadAlleleLikelihoodMap;
 import org.bgi.flexlab.gaea.util.GaeaVariantContextUtils;
 import org.bgi.flexlab.gaea.util.Pair;
 
@@ -74,8 +75,10 @@ public class TandemRepeatAnnotator extends InfoFieldAnnotation implements Standa
                                         final Map<String, PerReadAlleleLikelihoodMap> stratifiedPerReadAlleleLikelihoodMap) {
         if ( !vc.isIndel())
             return null;
-
-        Pair<List<Integer>,byte[]> result = GaeaVariantContextUtils.getNumTandemRepeatUnits(vc, ref.getBaseBytes(Math.max(0, mpileup.getPosition() - 200), mpileup.getPosition() - 1));
+        //System.err.println("variant:" + vc.getReference() + "," + vc.getAlternateAllele(0) +
+        //        "\nforward seq:" + ref.getBaseSequence(mpileup.getPosition(), Math.min(ref.getLength(), mpileup.getPosition() + INDELGenotypeLikelihoodCalculator.REF_WIN_Extend)));
+        Pair<List<Integer>,byte[]> result = GaeaVariantContextUtils.getNumTandemRepeatUnits(vc,
+                ref.getBaseBytes(mpileup.getPosition(), Math.min(ref.getLength(), mpileup.getPosition() + INDELGenotypeLikelihoodCalculator.REF_WIN_Extend)));
         if (result == null)
             return null;
 

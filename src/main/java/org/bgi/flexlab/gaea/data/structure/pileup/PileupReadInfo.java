@@ -125,7 +125,7 @@ public class PileupReadInfo {
 
 		eventLength = cigarState.getEventLength();
 		if (isNextInsertBase())
-			eventBases = readInfo.getReadBasesString(qpos, eventLength);
+			eventBases = readInfo.getReadBasesString(qpos + 1, eventLength);
 		else
 			eventBases = null;                  // ignore argument in any other case
 	}
@@ -323,7 +323,7 @@ public class PileupReadInfo {
 	 * @return
 	 */
 	public char getBase() {
-		if(qpos < 0)
+		if(qpos < 0 || isDeletionBase())
 			return 0;
 		return (char) readInfo.getReadBase(qpos);
 	}
@@ -341,7 +341,8 @@ public class PileupReadInfo {
 	 * @return
 	 */
 	public byte getBinaryBase() {
-
+		if(qpos < 0)
+			return -1;
 		return readInfo.getBinaryBase(qpos);
 	}
 
@@ -351,16 +352,8 @@ public class PileupReadInfo {
 	 */
 	public byte getBaseQuality() {
 		if(qpos < 0)
-			return -1;
+			return 0;
 		return readInfo.getBaseQuality(qpos);
-	}
-
-	/**
-	 * return base quality in char
-	 * @return
-	 */
-	public char getByteBaseQuality() {
-		return (char)getBaseQuality();
 	}
 
 	/**

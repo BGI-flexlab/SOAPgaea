@@ -16,14 +16,14 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.mapreduce.realigner;
 
-import java.io.IOException;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.Path;
 import org.bgi.flexlab.gaea.data.mapreduce.util.HdfsFileManager;
 import org.bgi.flexlab.gaea.tools.recalibrator.report.RecalibratorReportTable;
 import org.bgi.flexlab.gaea.tools.recalibrator.report.RecalibratorReportWriter;
+
+import java.io.IOException;
 
 public class RecalibratorHdfsReportWriter implements RecalibratorReportWriter{
 	private FSDataOutputStream stream = null;

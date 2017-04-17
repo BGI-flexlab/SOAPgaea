@@ -52,10 +52,10 @@ import org.bgi.flexlab.gaea.data.structure.pileup.Pileup;
 import org.bgi.flexlab.gaea.data.structure.pileup.PileupReadInfo;
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
 import org.bgi.flexlab.gaea.data.structure.vcf.VariantDataTracker;
-import org.bgi.flexlab.gaea.tools.genotyer.genotypeLikelihoodCalculator.PerReadAlleleLikelihoodMap;
 import org.bgi.flexlab.gaea.tools.genotyer.annotator.interfaces.ActiveRegionBasedAnnotation;
 import org.bgi.flexlab.gaea.tools.genotyer.annotator.interfaces.InfoFieldAnnotation;
 import org.bgi.flexlab.gaea.tools.genotyer.annotator.interfaces.StandardAnnotation;
+import org.bgi.flexlab.gaea.tools.genotyer.genotypeLikelihoodCalculator.PerReadAlleleLikelihoodMap;
 import org.bgi.flexlab.gaea.util.MathUtils;
 import org.bgi.flexlab.gaea.util.QualityUtils;
 
@@ -79,13 +79,13 @@ public class RMSMappingQuality extends InfoFieldAnnotation implements StandardAn
         if (mpileup != null) {
             if ( mpileup.getSize() == 0 )
                 return null;
-            totalSize = mpileup.totalDepth();
+            totalSize = mpileup.totalDepth(false);
 
             qualities = new int[totalSize];
 
             for ( String sample : mpileup.getCurrentPosPileup().keySet() ) {
                 Pileup pileup = mpileup.getCurrentPosPileup().get(sample);
-                for (PileupReadInfo p : pileup.getFilteredPileup() )
+                for (PileupReadInfo p : pileup.getTotalPileup() )
                     index = fillMappingQualitiesFromPileupAndUpdateIndex(p.getReadInfo(), index, qualities);
             }
         }

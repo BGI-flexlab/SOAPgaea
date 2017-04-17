@@ -42,13 +42,12 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.structure.bam.filter.util;
 
-import org.bgi.flexlab.gaea.data.exception.UserException;
-import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
-import org.bgi.flexlab.gaea.data.structure.region.Region;
-
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMSequenceRecord;
+import org.bgi.flexlab.gaea.data.exception.UserException;
+import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
+import org.bgi.flexlab.gaea.data.structure.region.Region;
 
 public class MalformedReadFilter implements SamRecordFilter {
 

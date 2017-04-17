@@ -34,11 +34,11 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.annotator.codons;
 
-import java.util.HashMap;
-import java.util.Iterator;
-
 import org.bgi.flexlab.gaea.tools.annotator.interval.Chromosome;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Genome;
+
+import java.util.HashMap;
+import java.util.Iterator;
 
 /**
  * All codon tables are stored here. Mapping for genome/chromosome to codon table are also stored here

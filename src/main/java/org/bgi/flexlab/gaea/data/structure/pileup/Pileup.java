@@ -17,8 +17,6 @@
 package org.bgi.flexlab.gaea.data.structure.pileup;
 
 import org.bgi.flexlab.gaea.data.structure.alignment.AlignmentsBasic;
-import org.bgi.flexlab.gaea.tools.mapreduce.genotyper.Genotyper;
-import org.bgi.flexlab.gaea.tools.mapreduce.genotyper.GenotyperOptions;
 
 import java.util.ArrayList;
 
@@ -64,11 +62,12 @@ public class Pileup implements PileupInterface<PileupReadInfo> {
 	public Pileup() {
 		position = -1;
 		plp = new ArrayList<>();
+		filterPileup = new ArrayList<>();
 	}
 
 	/**
 	 * add readInfo to pileup
-	 * 
+	 *
 	 * @param readInfo
 	 *            read info in AlignmentsBasic
 	 */
@@ -100,6 +99,10 @@ public class Pileup implements PileupInterface<PileupReadInfo> {
 		}
 	}
 
+	/**
+	 * forward the pileup
+	 * @param size forward loc length
+	 */
 	public void forwardPosition(int size) {
 		position += size;
 
@@ -109,23 +112,19 @@ public class Pileup implements PileupInterface<PileupReadInfo> {
 			position = Integer.MAX_VALUE;
 	}
 
+	/**
+	 * calculate read base info
+	 */
 	@Override
-	public void calculateBaseInfo(GenotyperOptions options) {
+	public void calculateBaseInfo() {
 		deletionCount = 0;
 		nextDeletionCount = 0;
 		nextInsertionCount = 0;
-		if(options != null)
-			filterPileup = new ArrayList<>();
 		if (position != Integer.MAX_VALUE) {
+			filterPileup = new ArrayList<>();
 			for (int i = 0; i < plp.size(); i++) {
 				PileupReadInfo posRead = plp.get(i);
 				posRead.calculateQueryPosition(position);
-				if(options != null) {
-					if(posRead.getMappingQuality() < options.getMinMappingQuality() ||
-							posRead.getBaseQuality() < options.getMinBaseQuality())
-						continue;
-					filterPileup.add(posRead);
-				}
 				if (posRead.isDeletionBase())
 					deletionCount++;
 				if (posRead.isNextDeletionBase())
@@ -138,6 +137,10 @@ public class Pileup implements PileupInterface<PileupReadInfo> {
 		}
 	}
 
+	/**
+	 * get pileup bases
+	 * @return pileup bases
+	 */
 	public char[] getBases() {
 		int i = 0;
 		char[] bases = new char[plp.size()];
@@ -148,13 +151,24 @@ public class Pileup implements PileupInterface<PileupReadInfo> {
 		return bases;
 	}
 
+	/**
+	 * get pileup coverage
+	 * FIXME:: maybe need to be fixed with filters.
+	 * @return coverage depth
+	 */
+	public int depthOfCoverage(boolean isFiltered) {
+		if(isFiltered)
+			return filterPileup.size();
+		return plp.size();
+	}
+
 	public int getNumberOfDeletions() {
 		return deletionCount;
 	}
 
 	/**
 	 * is plp empty
-	 * 
+	 *
 	 * @return
 	 */
 	public boolean isEmpty() {
@@ -163,7 +177,7 @@ public class Pileup implements PileupInterface<PileupReadInfo> {
 
 	/**
 	 * get position
-	 * 
+	 *
 	 * @return
 	 */
 	public int getPosition() {
@@ -172,7 +186,7 @@ public class Pileup implements PileupInterface<PileupReadInfo> {
 
 	/**
 	 * set position
-	 * 
+	 *
 	 * @param position
 	 *            position
 	 */
@@ -188,12 +202,13 @@ public class Pileup implements PileupInterface<PileupReadInfo> {
 		return plp;
 	}
 
-	/**
-	 *
-	 * @return
-	 */
+
 	public ArrayList<PileupReadInfo> getFilteredPileup() {
 		return filterPileup;
+	}
+
+	public void setFilterPileup(ArrayList<PileupReadInfo> filterPileup) {
+		this.filterPileup = filterPileup;
 	}
 
 	public int getDeletionCount() {
@@ -213,15 +228,6 @@ public class Pileup implements PileupInterface<PileupReadInfo> {
 	}
 
 	public int getNumberOfElements() {
-		return plp.size();
-	}
-
-	/**
-	 * get coverage
-	 * FIXME:: maybe need to be fixed with filters.
-	 * @return coverage depth
-	 */
-	public int depthOfCoverage() {
 		return plp.size();
 	}
 }

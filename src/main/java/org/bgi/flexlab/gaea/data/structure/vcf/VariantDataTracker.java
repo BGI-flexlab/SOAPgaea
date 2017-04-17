@@ -16,21 +16,16 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.structure.vcf;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-
+import htsjdk.tribble.index.Index;
+import htsjdk.variant.variantcontext.VariantContext;
+import htsjdk.variant.vcf.VCFHeader;
 import org.bgi.flexlab.gaea.data.mapreduce.input.vcf.VCFHdfsLoader;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
 import org.bgi.flexlab.gaea.data.structure.vcf.index.IndexCreator;
 import org.bgi.flexlab.gaea.util.Window;
 
-import htsjdk.tribble.index.Index;
-import htsjdk.variant.variantcontext.VariantContext;
-import htsjdk.variant.vcf.VCFHeader;
+import java.io.IOException;
+import java.util.*;
 
 
 

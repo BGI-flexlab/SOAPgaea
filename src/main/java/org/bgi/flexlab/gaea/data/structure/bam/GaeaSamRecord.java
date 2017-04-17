@@ -42,26 +42,12 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.structure.bam;
 
-import htsjdk.samtools.CigarElement;
-import htsjdk.samtools.CigarOperator;
-import htsjdk.samtools.SAMException;
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SAMReadGroupRecord;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMSequenceRecord;
-import htsjdk.samtools.SAMTagUtil;
-import htsjdk.samtools.SAMUtils;
-import htsjdk.samtools.SAMValidationError;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import htsjdk.samtools.*;
 import org.bgi.flexlab.gaea.data.structure.sequenceplatform.NGSPlatform;
 import org.bgi.flexlab.gaea.util.EventType;
 import org.bgi.flexlab.gaea.util.ReadUtils;
+
+import java.util.*;
 
 public class GaeaSamRecord extends SAMRecord {
 	/**

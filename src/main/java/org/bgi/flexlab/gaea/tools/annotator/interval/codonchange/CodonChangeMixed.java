@@ -34,14 +34,14 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.annotator.interval.codonchange;
 
-import java.util.List;
-
 import org.bgi.flexlab.gaea.tools.annotator.effect.EffectType;
 import org.bgi.flexlab.gaea.tools.annotator.effect.VariantEffect;
 import org.bgi.flexlab.gaea.tools.annotator.effect.VariantEffects;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Transcript;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Variant;
 import org.bgi.flexlab.gaea.tools.annotator.util.Gpr;
+
+import java.util.List;
 
 /**
  * Calculate codon changes produced by a 'mixed' variant

@@ -16,9 +16,7 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.mapreduce.realigner;
 
-import java.io.IOException;
-import java.util.ArrayList;
-
+import htsjdk.samtools.SAMFileHeader;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
@@ -42,7 +40,8 @@ import org.bgi.flexlab.gaea.tools.recalibrator.report.RecalibratorReportTableEng
 import org.bgi.flexlab.gaea.tools.recalibrator.table.RecalibratorTableCombiner.NonRecalibratorPathFilter;
 import org.seqdoop.hadoop_bam.SAMFormat;
 
-import htsjdk.samtools.SAMFileHeader;
+import java.io.IOException;
+import java.util.ArrayList;
 
 public class Realigner extends ToolsRunner {
 

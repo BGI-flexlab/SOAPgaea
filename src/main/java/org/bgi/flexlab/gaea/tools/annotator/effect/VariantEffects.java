@@ -34,17 +34,17 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.annotator.effect;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-
 import org.bgi.flexlab.gaea.tools.annotator.effect.VariantEffect.EffectImpact;
 import org.bgi.flexlab.gaea.tools.annotator.effect.VariantEffect.ErrorWarningType;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Marker;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Transcript;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Variant;
 import org.bgi.flexlab.gaea.tools.annotator.util.Gpr;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * A sorted collection of variant effects

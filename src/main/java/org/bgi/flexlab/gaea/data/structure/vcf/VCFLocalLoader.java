@@ -16,14 +16,14 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.structure.vcf;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import org.tukaani.xz.SeekableFileInputStream;
-
 import htsjdk.tribble.readers.AsciiLineReader;
 import htsjdk.tribble.readers.AsciiLineReaderIterator;
 import htsjdk.tribble.util.ParsingUtils;
+import org.tukaani.xz.SeekableFileInputStream;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 
 public class VCFLocalLoader extends AbstractVCFLoader{
 

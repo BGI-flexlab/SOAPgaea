@@ -16,7 +16,6 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.mapreduce.bamqualitycontrol;
 
-import java.io.IOException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
@@ -24,11 +23,13 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.bgi.flexlab.gaea.data.structure.positioninformation.CompoundInformation;
 import org.bgi.flexlab.gaea.data.structure.positioninformation.depth.PositionDepth;
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
-import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report.ResultReport;
 import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report.RegionResultReport;
 import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report.ReportBuilder;
+import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report.ResultReport;
 import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report.WholeGenomeResultReport;
 import org.bgi.flexlab.gaea.util.SamRecordDatum;
+
+import java.io.IOException;
 
 public class BamQualityControlReducer extends Reducer<Text, Text, NullWritable, Text>{
 	

@@ -19,16 +19,10 @@ package org.bgi.flexlab.gaea.framework.tools.mapreduce;
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMReadGroupRecord;
 import htsjdk.samtools.SAMRecord;
-
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.hadoop.mapreduce.Reducer;
 import org.bgi.flexlab.gaea.data.exception.FileNotExistException;
 import org.bgi.flexlab.gaea.data.mapreduce.input.bed.RegionHdfsParser;
 import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamHdfsFileHeader;
@@ -36,6 +30,10 @@ import org.bgi.flexlab.gaea.data.mapreduce.writable.SamRecordWritable;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.WindowsBasedWritable;
 import org.bgi.flexlab.gaea.data.structure.bam.filter.util.SamRecordFilter;
 import org.bgi.flexlab.gaea.util.SamRecordUtils;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
 
 public abstract class WindowsBasedMapper<VALUEOUT extends Writable> extends
 		Mapper<LongWritable, SamRecordWritable, WindowsBasedWritable, VALUEOUT> {

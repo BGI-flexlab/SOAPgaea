@@ -17,10 +17,10 @@
 package org.bgi.flexlab.gaea.tools.mapreduce.genotyper;
 
 import htsjdk.samtools.SAMFileHeader;
-import htsjdk.variant.variantcontext.VariantContext;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Reducer;
+import org.bgi.flexlab.gaea.data.mapreduce.input.bed.RegionHdfsParser;
 import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamHdfsFileHeader;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.AlignmentBasicWritable;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.WindowsBasedWritable;
@@ -64,8 +64,13 @@ public class GenotyperReducer extends Reducer<WindowsBasedWritable, AlignmentBas
      */
     private VariantContextWritable variantContextWritable;
 
+    /**
+     * region
+     */
+    private RegionHdfsParser region = null;
+
     @Override
-    protected void setup(Context context) {
+    protected void setup(Context context) throws IOException {
         Configuration conf = context.getConfiguration();
         options.getOptionsFromHadoopConf(conf);
         header = SamHdfsFileHeader.getHeader(conf);
@@ -74,6 +79,11 @@ public class GenotyperReducer extends Reducer<WindowsBasedWritable, AlignmentBas
         engine = new VariantCallingEngine(options, header);
         variantContextWritable = new VariantContextWritable();
         AlignmentsBasic.initIdSampleHash(header.getReadGroups());
+
+        if (options.getBedRegionFile() != null) {
+            region = new RegionHdfsParser();
+            region.parseBedFileFromHDFS(options.getBedRegionFile(), false);
+        }
     }
 
     @Override
@@ -86,9 +96,14 @@ public class GenotyperReducer extends Reducer<WindowsBasedWritable, AlignmentBas
         while(variantContexts != null) {
             if(variantContexts.size() == 0)
                 continue;
-            for (VariantContext vc : variantContexts) {
-                variantContextWritable.set(vc);
-                context.write(NullWritable.get(), variantContextWritable);
+            for (VariantCallContext vc : variantContexts) {
+                if(vc.shouldEmit && vc.getStart() >= win.getStart() && vc.getStart() <= win.getStop()) {
+                    if(region != null && !region.isPositionInRegion(vc.getContig(), vc.getStart() - 1)) {
+                        continue;
+                    }
+                    variantContextWritable.set(vc);
+                    context.write(NullWritable.get(), variantContextWritable);
+                }
             }
             variantContexts = engine.reduce();
         }

@@ -16,7 +16,6 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.structure.alignment;
 
-import com.esotericsoftware.kryo.KryoException;
 import htsjdk.samtools.util.BinaryCodec;
 import htsjdk.samtools.util.RuntimeEOFException;
 import org.bgi.flexlab.gaea.data.structure.bam.SAMCompressionInformationBasic;

@@ -51,7 +51,6 @@ import org.bgi.flexlab.gaea.data.structure.pileup.Pileup;
 import org.bgi.flexlab.gaea.data.structure.pileup.PileupReadInfo;
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
 import org.bgi.flexlab.gaea.util.GaeaVariantContextUtils;
-import org.bgi.flexlab.gaea.util.Pair;
 
 import java.util.*;
 
@@ -105,13 +104,13 @@ public class ConsensusAlleleCounter {
             final int nIndelReads = pileup.getNextDeletionCount() + pileup.getNextInsertionCount();
             final int nReadsOverall = pileup.getNumberOfElements();
 
-            System.err.println("indel reads number:" + nIndelReads + "\ntotal reads number:" + nReadsOverall);
+            //System.err.println("indel reads number:" + nIndelReads + "\ntotal reads number:" + nReadsOverall);
 
             if (nIndelReads == 0 || (nIndelReads / (1.0 * nReadsOverall)) < minFractionInOneSample) {
                 continue;
             }
 
-            for (PileupReadInfo p : pileup.getFilteredPileup()) {
+            for (PileupReadInfo p : pileup.getTotalPileup()) {
                 AlignmentsBasic read = p.getReadInfo();
                 if (read == null)
                     continue;
@@ -126,6 +125,8 @@ public class ConsensusAlleleCounter {
                     if (indelString == null)
                         continue;
 
+                    //FIXME::wierd for NGS data and alinger like BWA
+                    /*
                     boolean foundKey = false;
                     // copy of hashmap into temp arrayList
                     ArrayList<Pair<String, Integer>> cList = new ArrayList<Pair<String, Integer>>();
@@ -133,7 +134,7 @@ public class ConsensusAlleleCounter {
                         cList.add(new Pair<String, Integer>(s.getKey(), s.getValue()));
                     }
 
-                    //FIXME::wierd for NGS data and alinger like BWA
+
                     if (p.getEnd() == position) {
                         // first corner condition: a read has an insertion at the end, and we're right at the insertion.
                         // In this case, the read could have any of the inserted bases and we need to build a consensus
@@ -187,7 +188,9 @@ public class ConsensusAlleleCounter {
                     consensusIndelStrings.clear();
                     for (Pair<String, Integer> pair : cList) {
                         consensusIndelStrings.put(pair.getFirst(), pair.getSecond());
-                    }
+                    }*/
+                    int cnt = consensusIndelStrings.containsKey(indelString) ? consensusIndelStrings.get(indelString) : 0;
+                    consensusIndelStrings.put(indelString, cnt + 1);
 
                 } else if (p.isNextDeletionBase()) {
                     indelString = String.format("D%d", p.getEventLength());
@@ -195,7 +198,7 @@ public class ConsensusAlleleCounter {
                     consensusIndelStrings.put(indelString, cnt + 1);
 
                 }
-                System.out.println("indel:" + indelString);
+                //System.out.println("indel:" + indelString);
             }
         }
         return consensusIndelStrings;
@@ -212,8 +215,10 @@ public class ConsensusAlleleCounter {
             int stop = 0;
 
             // if observed count if above minimum threshold, we will genotype this allele
-            if (curCnt < minIndelCountForGenotyping)
+            if (curCnt < minIndelCountForGenotyping) {
+                //System.err.println("min indel count filter:" + s);
                 continue;
+            }
 
             if (s.startsWith("D")) {
                 // get deletion length
@@ -225,7 +230,7 @@ public class ConsensusAlleleCounter {
                 if (Allele.acceptableAlleleBases(refBases, false)) {
                     refAllele = Allele.create(refBases, true);
                     altAllele = Allele.create((byte) reference.getBase(position), false);
-                    System.out.println("delete ref allele:" + refAllele + "\talt allele:" + altAllele);
+                    //System.err.println("delete ref allele:" + refAllele + "\talt allele:" + altAllele);
                 }
                 else continue; // don't go on with this allele if refBases are non-standard
             } else {
@@ -234,7 +239,7 @@ public class ConsensusAlleleCounter {
                 if (Allele.acceptableAlleleBases(insertionBases, false)) { // don't allow N's in insertions
                     refAllele = Allele.create((byte) reference.getBase(position), true);
                     altAllele = Allele.create(insertionBases, false);
-                    System.out.println("insert ref allele:" + refAllele + "\talt allele:" + altAllele);
+                    //System.err.println("insert ref allele:" + refAllele + "\talt allele:" + altAllele);
                     stop = position + 1;
                 }
                 else continue; // go on to next allele if consensus insertion has any non-standard base.

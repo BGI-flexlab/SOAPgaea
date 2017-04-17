@@ -16,19 +16,13 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.structure.region;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
+import org.bgi.flexlab.gaea.util.FileIterator;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
-import org.bgi.flexlab.gaea.util.FileIterator;
-
-import htsjdk.tribble.readers.AsciiLineReader;
-import htsjdk.tribble.readers.AsciiLineReaderIterator;
 
 
 public class SingleRegion {

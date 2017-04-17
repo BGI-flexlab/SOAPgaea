@@ -35,28 +35,11 @@
 package org.bgi.flexlab.gaea.tools.annotator.effect;
 
 import htsjdk.variant.vcf.VCFConstants;
+import org.bgi.flexlab.gaea.tools.annotator.effect.VariantEffect.FunctionalClass;
+import org.bgi.flexlab.gaea.tools.annotator.interval.*;
 
 import java.io.Serializable;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
-import org.bgi.flexlab.gaea.tools.annotator.effect.VariantEffect.FunctionalClass;
-import org.bgi.flexlab.gaea.tools.annotator.interval.BioType;
-import org.bgi.flexlab.gaea.tools.annotator.interval.Custom;
-import org.bgi.flexlab.gaea.tools.annotator.interval.Exon;
-import org.bgi.flexlab.gaea.tools.annotator.interval.Gene;
-import org.bgi.flexlab.gaea.tools.annotator.interval.Intergenic;
-import org.bgi.flexlab.gaea.tools.annotator.interval.Intron;
-import org.bgi.flexlab.gaea.tools.annotator.interval.Marker;
-import org.bgi.flexlab.gaea.tools.annotator.interval.ProteinStructuralInteractionLocus;
-import org.bgi.flexlab.gaea.tools.annotator.interval.Regulation;
-import org.bgi.flexlab.gaea.tools.annotator.interval.Transcript;
-import org.bgi.flexlab.gaea.tools.annotator.interval.Variant;
+import java.util.*;
 
 /**
  * Common annotation context

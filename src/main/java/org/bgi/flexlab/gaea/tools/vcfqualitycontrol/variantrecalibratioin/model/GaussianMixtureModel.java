@@ -42,16 +42,15 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin.model;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
+import Jama.Matrix;
+import cern.jet.random.Normal;
 import org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin.traindata.VariantDatum;
 import org.bgi.flexlab.gaea.util.MathUtils;
 import org.bgi.flexlab.gaea.util.RandomUtils;
 
-import Jama.Matrix;
-import cern.jet.random.Normal;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class GaussianMixtureModel {
 	private final ArrayList<MultipleVariateGaussian> gaussians;

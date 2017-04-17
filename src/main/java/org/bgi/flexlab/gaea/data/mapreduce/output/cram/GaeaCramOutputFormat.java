@@ -44,14 +44,13 @@ package org.bgi.flexlab.gaea.data.mapreduce.output.cram;
 
 import htsjdk.samtools.util.Log;
 import htsjdk.samtools.util.Log.LogLevel;
-
-import java.io.IOException;
-
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.seqdoop.hadoop_bam.SAMRecordWritable;
+
+import java.io.IOException;
 
 public class GaeaCramOutputFormat<K> extends FileOutputFormat<K,SAMRecordWritable>{
 	private boolean writeHeader = false;

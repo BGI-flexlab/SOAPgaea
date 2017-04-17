@@ -43,12 +43,11 @@
 package org.bgi.flexlab.gaea.data.structure.bam;
 
 import htsjdk.samtools.util.StringUtil;
-
-import java.util.ArrayList;
-
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocationParser;
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
+
+import java.util.ArrayList;
 
 public class GaeaSamRecordBin {
 	private ArrayList<GaeaSamRecord> records = null;

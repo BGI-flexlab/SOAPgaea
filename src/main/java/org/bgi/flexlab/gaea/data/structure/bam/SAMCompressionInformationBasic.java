@@ -16,9 +16,11 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.structure.bam;
 
+import htsjdk.samtools.Cigar;
 import htsjdk.samtools.CigarElement;
 import htsjdk.samtools.CigarOperator;
 import htsjdk.samtools.SAMRecord;
+import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.data.structure.reads.ReadBasicCompressionInformation;
 import org.bgi.flexlab.gaea.util.SystemConfiguration;
 
@@ -130,7 +132,7 @@ public class SAMCompressionInformationBasic extends ReadBasicCompressionInformat
 	 * @return
 	 */
 	public int getSoftEnd() {
-		int end = position;
+		int end = calculateReadEnd();
 		int cigar = cigars[cigars.length - 1];
 		int cigarOp = (cigar & SystemConfiguration.BAM_CIGAR_MASK);
 
@@ -168,6 +170,82 @@ public class SAMCompressionInformationBasic extends ReadBasicCompressionInformat
 				hardClippedBasesNum += cigarLength;
 		}
 		return hardClippedBasesNum;
+	}
+
+	public int getNumAlignedBasesCountingSoftClips(Cigar cigar) {
+		int n = 0;
+		if (cigar == null) return 0;
+
+		for (final CigarElement e : cigar.getCigarElements())
+			if (e.getOperator() == CigarOperator.M || e.getOperator() == CigarOperator.S)
+				n += e.getLength();
+
+		return n;
+	}
+
+	public int calcAlignmentByteArrayOffset(final Cigar cigar, final int offset, final boolean isInsertionAtBeginningOfRead, final boolean isDeletion, final int alignmentStart, final int refLocus) {
+		int pileupOffset = offset;
+
+		// Special case for reads starting with insertion
+		if (isInsertionAtBeginningOfRead)
+			return 0;
+
+		// Reassign the offset if we are in the middle of a deletion because of the modified representation of the read bases
+		if (isDeletion) {
+			pileupOffset = refLocus - alignmentStart;
+			final CigarElement ce = cigar.getCigarElement(0);
+			if (ce.getOperator() == CigarOperator.S) {
+				pileupOffset += ce.getLength();
+			}
+		}
+
+		int pos = 0;
+		int alignmentPos = 0;
+
+		for (int iii = 0; iii < cigar.numCigarElements(); iii++) {
+			final CigarElement ce = cigar.getCigarElement(iii);
+			final int elementLength = ce.getLength();
+
+			switch (ce.getOperator()) {
+				case I:
+				case S:
+					pos += elementLength;
+					if (pos >= pileupOffset) {
+						return alignmentPos;
+					}
+					break;
+				case D:
+					if (!isDeletion) {
+						alignmentPos += elementLength;
+					} else {
+						if (pos + elementLength - 1 >= pileupOffset) {
+							return alignmentPos + (pileupOffset - pos);
+						} else {
+							pos += elementLength;
+							alignmentPos += elementLength;
+						}
+					}
+					break;
+				case M:
+				case EQ:
+				case X:
+					if (pos + elementLength - 1 >= pileupOffset) {
+						return alignmentPos + (pileupOffset - pos);
+					} else {
+						pos += elementLength;
+						alignmentPos += elementLength;
+					}
+					break;
+				case H:
+				case P:
+				case N:
+					break;
+				default:
+					throw new UserException("Unsupported cigar operator: " + ce.getOperator());
+			}
+		}
+
+		return alignmentPos;
 	}
 
 	/**
@@ -295,6 +373,22 @@ public class SAMCompressionInformationBasic extends ReadBasicCompressionInformat
 	 */
 	public int[] getCigars() {
 		return cigars;
+	}
+
+	/**
+	 *
+	 * @return
+	 */
+	public Cigar getCigar() {
+		Cigar cigar = new Cigar();
+		for(int cigarInt : cigars) {
+			CigarOperator operator = CigarOperator.binaryToEnum(cigarInt & 0x0f);
+			int length = cigarInt >> 4;
+			CigarElement cigarElement = new CigarElement(length, operator);
+			cigar.add(cigarElement);
+		}
+
+		return cigar;
 	}
 
 	/**
