@@ -103,8 +103,7 @@ public class IndelRealigner {
 	@SuppressWarnings("unchecked")
 	private void initialization() {
 		filter = new VariantRegionFilter();
-		consensusEngine = new AlternateConsensusEngine(option.getConsensusModel(), option.getMismatchThreshold(),
-				option.getLODThreshold());
+		consensusEngine = new AlternateConsensusEngine(option.getConsensusModel());
 		needRealignementReads = new GaeaSamRecordBin(parser);
 		notNeedRealignementReads = new ArrayList<GaeaSamRecord>();
 		knowIndelsSet = new TreeSet<VariantContext>(new KnowIndelComparator());
@@ -163,8 +162,6 @@ public class IndelRealigner {
 		}
 
 		boolean condi = consensusEngine.needRealignment(reads, ref, leftMostIndex);
-		
-		System.err.println(bestConsensus.getCigar().toString()+"\t"+condi);
 		
 		if (condi) {
 			for (Pair<Integer, Integer> indexPair : bestConsensus.getReadIndexes()) {
@@ -234,9 +231,6 @@ public class IndelRealigner {
 			bestConsensus.clear();
 		}
 		
-		refReads.clear();
-		altReads.clear();
-		readsForConsensus.clear();
 		consensusEngine.clear();
 	}
 
