@@ -57,10 +57,10 @@ public class ReadBasicCompressionInformation {
 			throw new UserException("start or end < 0 or end > read length for clip read.");
 
 		//bases
-		readBases = Arrays.copyOfRange(readBases, start, end);
+		readBases = Arrays.copyOfRange(readBases, start, end + 1);
 
 		//qualities
-		qualities = Arrays.copyOfRange(qualities, start, end);
+		qualities = Arrays.copyOfRange(qualities, start, end + 1);
 	}
 
 	/**

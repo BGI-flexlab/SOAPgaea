@@ -187,17 +187,16 @@ public class Mpileup implements MpileupInterface<Pileup>{
 	public Map<String, Pileup> getNextPosPileup() {
 		if (position > end)
 			return null;
-
+		//System.err.println("forward position:" + position);
 		int minPosition = forwardPosition(position, 1);
-
+		//System.err.println("add reads:" + minPosition);
 		position = addReads(minPosition);
 
 		if (minPosition != Integer.MAX_VALUE && position != minPosition)
-			throw new RuntimeException("error in" + position + "\t"
-					+ minPosition);
+			throw new RuntimeException("error in" + position + "\t" + minPosition);
 		if (position > end || allEmpty())
 			return null;
-
+		//System.err.println("syn pileups:" + position);
 		Map<String, Pileup> posPlps = new HashMap<String, Pileup>();
 		syn(position, posPlps);
 

@@ -20,13 +20,15 @@ import htsjdk.samtools.Cigar;
 import htsjdk.samtools.CigarElement;
 import htsjdk.samtools.CigarOperator;
 import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.util.Locatable;
 import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.data.structure.reads.ReadBasicCompressionInformation;
 import org.bgi.flexlab.gaea.util.SystemConfiguration;
 
+import java.io.Serializable;
 import java.util.Arrays;
 
-public class SAMCompressionInformationBasic extends ReadBasicCompressionInformation implements ParseSAMInterface{
+public class SAMCompressionInformationBasic extends ReadBasicCompressionInformation implements ParseSAMInterface, Cloneable, Serializable {
 	/**
 	 * flag
 	 */
@@ -119,7 +121,8 @@ public class SAMCompressionInformationBasic extends ReadBasicCompressionInformat
 		for(int cigar : cigars) {
 			int cigarOp = (cigar & SystemConfiguration.BAM_CIGAR_MASK);
 			int cigarLength = cigar >> SystemConfiguration.BAM_CIGAR_SHIFT;
-			if(cigarOp == SystemConfiguration.BAM_CMATCH || cigarOp == SystemConfiguration.BAM_CDEL || cigarOp == SystemConfiguration.BAM_CREF_SKIP || cigarOp == SystemConfiguration.BAM_CEQUAL) {
+			if(cigarOp == SystemConfiguration.BAM_CMATCH || cigarOp == SystemConfiguration.BAM_CDEL ||
+					cigarOp == SystemConfiguration.BAM_CREF_SKIP || cigarOp == SystemConfiguration.BAM_CEQUAL) {
 				end += cigarLength;
 			}
 		}

@@ -73,12 +73,9 @@ public class AlternateConsensusEngine {
 		model = AlternateConsensusModel.READS;
 	}
 
-	public AlternateConsensusEngine(AlternateConsensusModel model,
-			double threshold, double cleanThreshold) {
+	public AlternateConsensusEngine(AlternateConsensusModel model) {
 		consensusBin = new AlternateConsensusBin();
 		this.model = model;
-		this.mismatchThreshold = threshold;
-		this.mismatchColumnCleanedFraction = cleanThreshold;
 	}
 
 	public int mismatchQualitySumIgnoreCigar(GaeaAlignedSamRecord read,
@@ -257,8 +254,8 @@ public class AlternateConsensusEngine {
 			byte[] ref, int leftMostIndex) {
 		if (model != AlternateConsensusModel.DBSNP
 				&& !lookForEntropy(reads, ref, leftMostIndex))
-			return true;
-		return false;
+			return false;
+		return true;
 	}
 
 	public boolean updateRead(final Cigar consensusCigar, final int posOnRef,
@@ -360,6 +357,11 @@ public class AlternateConsensusEngine {
 		long[] cleanMismatchQuality = new long[refLength];
 		long[] totalRawQuality = new long[refLength];
 		long[] totalCleanQuality = new long[refLength];
+		
+		int i;
+		for(i = 0 ; i < refLength ; i++){
+			rawMismatchQuality[i] = cleanMismatchQuality[i] = totalRawQuality[i] = totalCleanQuality[i] = 0;
+		}
 
 		for (GaeaAlignedSamRecord read : reads) {
 			if (read.getRead().getAlignmentBlocks().size() > 1)
@@ -369,14 +371,12 @@ public class AlternateConsensusEngine {
 			byte[] seq = read.getReadBases();
 			byte[] quality = read.getReadQualities();
 
-			int i;
-			for (i = 0; i < seq.length; i++) {
-				if (refIndex < 0 || refIndex > refLength)
+			for (i = 0; i < seq.length; i++,refIndex++) {
+				if (refIndex < 0 || refIndex >= refLength)
 					break;
 				totalRawQuality[refIndex] += quality[i];
 				if (ref[refIndex] != seq[i])
 					rawMismatchQuality[refIndex] += quality[i];
-				refIndex++;
 			}
 
 			refIndex = read.getAlignmentStart() - leftMostIndex;
@@ -407,7 +407,7 @@ public class AlternateConsensusEngine {
 		}
 
 		int rawColumns = 0, cleanedColumns = 0;
-		for (int i = 0; i < refLength; i++) {
+		for (i = 0; i < refLength; i++) {
 			if (rawMismatchQuality[i] == cleanMismatchQuality[i])
 				continue;
 			if (rawMismatchQuality[i] > totalRawQuality[i]

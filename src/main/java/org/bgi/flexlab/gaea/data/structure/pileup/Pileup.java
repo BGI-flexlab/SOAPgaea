@@ -80,7 +80,7 @@ public class Pileup implements PileupInterface<PileupReadInfo> {
 				position = read.getPosition();
 				plp.add(read);
 			} else if (position < read.getPosition() || position > read.getEnd()) {
-				throw new RuntimeException("add read to plp error.");
+				throw new RuntimeException("add read to plp error：" + read.getReadInfo().toString());
 			}
 		}
 	}

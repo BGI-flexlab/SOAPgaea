@@ -198,7 +198,7 @@ public class ConsensusAlleleCounter {
                     consensusIndelStrings.put(indelString, cnt + 1);
 
                 }
-                //System.out.println("indel:" + indelString);
+                //System.err.println("indel:" + indelString);
             }
         }
         return consensusIndelStrings;
@@ -226,6 +226,7 @@ public class ConsensusAlleleCounter {
                 // get ref bases of accurate deletion
                 final byte[] refBases = reference.getBaseBytes(position, position + dLen);
                 stop = position + dLen + 1;
+                //System.err.println("indel string:" + s + "\tdeletion len:" + dLen + "\tref:" + new String(refBases));
 
                 if (Allele.acceptableAlleleBases(refBases, false)) {
                     refAllele = Allele.create(refBases, true);

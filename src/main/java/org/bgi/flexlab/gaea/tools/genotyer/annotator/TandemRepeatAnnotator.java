@@ -78,7 +78,7 @@ public class TandemRepeatAnnotator extends InfoFieldAnnotation implements Standa
         //System.err.println("variant:" + vc.getReference() + "," + vc.getAlternateAllele(0) +
         //        "\nforward seq:" + ref.getBaseSequence(mpileup.getPosition(), Math.min(ref.getLength(), mpileup.getPosition() + INDELGenotypeLikelihoodCalculator.REF_WIN_Extend)));
         Pair<List<Integer>,byte[]> result = GaeaVariantContextUtils.getNumTandemRepeatUnits(vc,
-                ref.getBaseBytes(mpileup.getPosition(), Math.min(ref.getLength(), mpileup.getPosition() + INDELGenotypeLikelihoodCalculator.REF_WIN_Extend)));
+                ref.getBaseBytes(mpileup.getPosition(), Math.min(ref.getLength() - 1, mpileup.getPosition() + INDELGenotypeLikelihoodCalculator.REF_WIN_Extend)));
         if (result == null)
             return null;
 

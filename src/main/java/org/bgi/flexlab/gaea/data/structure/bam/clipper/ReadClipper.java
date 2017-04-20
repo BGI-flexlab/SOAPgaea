@@ -164,7 +164,7 @@ public class ReadClipper {
 		int start;
 		int stop;
 		CigarState cigarState = new CigarState();
-		cigarState.setCigarState(read.getCigars());
+		cigarState.parseCigar(read.getCigars());
 
 		// Determine the read coordinate to start and stop hard clipping
 		if (refStart < 0) {
@@ -197,7 +197,7 @@ public class ReadClipper {
 		int[] newCigars;
 		//clip start
 		if(refStart > 0 ) {
-			clippedRead.hardClip(start, 0);
+			clippedRead.hardClip(start, read.getReadLength() - 1);
 			int currentCigarIndex = cigarState.getCigarState()[0];
 			newCigars = new int[read.getCigars().length - currentCigarIndex + 1];
 			int currentCigar = cigarState.getCurrentCigar();
@@ -239,8 +239,8 @@ public class ReadClipper {
 		if ( readStart > readStop )
 			throw new UserException(String.format("START (%d) > (%d) STOP -- this should never happen -- call Mauricio!", readStart, readStop));
 
-		if ( readStart > 0 && readStop < read.getReadLength() - 1)
-			throw new UserException(String.format("Trying to clip the middle of the read: start %d, stop %d", readStart, readStop));
+		//if ( readStart > 0 && readStop < read.getReadLength() - 1)
+		//	throw new UserException(String.format("Trying to clip the middle of the read: start %d, stop %d", readStart, readStop));
 
 		//System.err.println("clipped read start:" + readStart + "\tclipped read end:" + readStop);
 

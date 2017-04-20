@@ -34,7 +34,7 @@ public class ChromosomeInformationShare extends BioMemoryShare {
 	/**
 	 * get base from reference position
 	 * 
-	 * @param position
+	 * @param pos
 	 * @return base
 	 */
 	public byte getBinaryBase(int pos) {
@@ -64,32 +64,19 @@ public class ChromosomeInformationShare extends BioMemoryShare {
 		byte[] bases = getBytes(start, end);
 		return isSNPs(bases, start, end);
 	}
-
-	public boolean[] isSNPs(byte[] bases, int start, int end) {
+	
+	public boolean[] isSNPs(byte[] bases,int start,int end){
 		boolean[] snps = new boolean[end - start + 1];
-
-		int index = 0;
-		if ((start & 0x1) == 0) {
-			snps[index++] = ((bases[0] >> 3) & 0x1) == 1 ? true : false;
-			snps[index++] = ((bases[0] >> 7) & 0x1) == 1 ? true : false;
-		} else
-			snps[index++] = ((bases[0] >> 7) & 0x1) == 1 ? true : false;
-
-		if (end == start)
-			return snps;
-
-		for (int i = 1; i < bases.length - 1; i++) {
-			snps[index++] = ((bases[i] >> 3) & 0x1) == 1 ? true : false;
-			snps[index++] = ((bases[i] >> 7) & 0x1) == 1 ? true : false;
+		
+		for(int i = start ; i < (end + 1) ; i++) {
+			int posi = (i-start) / capacity;
+			
+			if((i & 0x1) == 0)
+				snps[i-start] = ((bases[posi] >> 3) & 0x1) == 1 ? true : false;
+			else
+				snps[i-start] = ((bases[posi] >> 7) & 0x1) == 1 ? true : false;
 		}
-
-		if ((end & 0x1) == 0) {
-			snps[index++] = ((bases[bases.length - 1] >> 3) & 0x1) == 1 ? true : false;
-		} else {
-			snps[index++] = ((bases[bases.length - 1] >> 3) & 0x1) == 1 ? true : false;
-			snps[index++] = ((bases[bases.length - 1] >> 7) & 0x1) == 1 ? true : false;
-		}
-
+		
 		return snps;
 	}
 
@@ -103,32 +90,25 @@ public class ChromosomeInformationShare extends BioMemoryShare {
 	 */
 	public String getBaseSequence(int start, int end) {
 		byte[] bases = getBytes(start, end);
-
 		return getBaseSequence(bases, start, end);
 	}
+	
+	public String getBaseSequence(byte[] bases,int start,int end){
+		StringBuilder seq = new StringBuilder();
+		
+		for(int i = start ; i < (end+1) ; i++){
+			int posi = (i-start) / capacity;
 
-	public String getBaseSequence(byte[] bases, int start, int end) {
-		StringBuffer seq = new StringBuffer();
-		if ((start & 0x1) == 0) {
-			seq.append(SystemConfiguration.getFastaAbb(bases[0] & 0x0f));
-			seq.append(SystemConfiguration.getFastaAbb((bases[0] >> 4) & 0x0f));
-		} else {
-			seq.append(SystemConfiguration.getFastaAbb((bases[0] >> 4) & 0x0f));
+			try {
+				if ((i & 0x1) == 0)
+					seq.append(SystemConfiguration.getFastaAbb(bases[posi] & 0x0f));
+				else
+					seq.append(SystemConfiguration.getFastaAbb((bases[posi] >> 4) & 0x0f));
+			} catch(Exception e) {
+				throw  new RuntimeException("start-end:" + start + "-" + end + "\ti:" + i + "\tposi:" +posi);
+			}
 		}
-		// 取一个位点
-		if (start == end) {
-			return seq.toString();
-		}
-		for (int i = 1; i < bases.length - 1; i++) {
-			seq.append(SystemConfiguration.getFastaAbb(bases[i] & 0x0f));
-			seq.append(SystemConfiguration.getFastaAbb((bases[i] >> 4) & 0x0f));
-		}
-		if ((end & 0x1) == 0) {
-			seq.append(SystemConfiguration.getFastaAbb(bases[bases.length - 1] & 0x0f));
-		} else {
-			seq.append(SystemConfiguration.getFastaAbb(bases[bases.length - 1] & 0x0f));
-			seq.append(SystemConfiguration.getFastaAbb((bases[bases.length - 1] >> 4) & 0x0f));
-		}
+		
 		return seq.toString();
 	}
 
