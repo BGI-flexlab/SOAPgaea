@@ -13,12 +13,8 @@ import org.bgi.flexlab.gaea.tools.markduplicate.MarkDuplicatesFunc;
 import java.io.IOException;
 import java.util.ArrayList;
 
-
-/**
- * Created by huangzhibo on 2017/4/14.
- */
 public class MarkDuplicateReducer extends Reducer<DuplicationKeyWritable, SamRecordWritable, NullWritable, SamRecordWritable>{
-    MarkDuplicatesFunc mark = new MarkDuplicatesFunc();
+    private MarkDuplicatesFunc mark = new MarkDuplicatesFunc();
     private SAMFileHeader samHeader;
 
     @Override
@@ -35,6 +31,7 @@ public class MarkDuplicateReducer extends Reducer<DuplicationKeyWritable, SamRec
                 sam.setHeader(samHeader);
                 SamRecordWritable w = new SamRecordWritable();
                 w.set(sam);
+                sam.setReferenceIndex(key.getChrIndex());
                 context.write(NullWritable.get(), w);
             }
             return;
@@ -46,6 +43,7 @@ public class MarkDuplicateReducer extends Reducer<DuplicationKeyWritable, SamRec
         for(SamRecordWritable s : values) {
             SAMRecord sam=s.get();
             sam.setHeader(samHeader);
+            sam.setReferenceIndex(key.getChrIndex());
             if (n>5000) {
                 sam.setDuplicateReadFlag(true);
                 SamRecordWritable w = new SamRecordWritable();
