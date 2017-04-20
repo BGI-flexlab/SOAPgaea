@@ -34,7 +34,7 @@ public class ChromosomeInformationShare extends BioMemoryShare {
 	/**
 	 * get base from reference position
 	 * 
-	 * @param position
+	 * @param pos
 	 * @return base
 	 */
 	public byte getBinaryBase(int pos) {
@@ -98,11 +98,15 @@ public class ChromosomeInformationShare extends BioMemoryShare {
 		
 		for(int i = start ; i < (end+1) ; i++){
 			int posi = (i-start) / capacity;
-			
-			if((i & 0x1) == 0)
-				seq.append(SystemConfiguration.getFastaAbb(bases[posi] & 0x0f));
-			else
-				seq.append(SystemConfiguration.getFastaAbb((bases[posi] >> 4) & 0x0f));
+
+			try {
+				if ((i & 0x1) == 0)
+					seq.append(SystemConfiguration.getFastaAbb(bases[posi] & 0x0f));
+				else
+					seq.append(SystemConfiguration.getFastaAbb((bases[posi] >> 4) & 0x0f));
+			} catch(Exception e) {
+				throw  new RuntimeException("start-end:" + start + "-" + end + "\ti:" + i + "\tposi:" +posi);
+			}
 		}
 		
 		return seq.toString();

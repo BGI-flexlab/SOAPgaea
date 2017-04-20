@@ -170,9 +170,9 @@ public class VariantAnnotatorEngine {
             Map<String, Object> annotationsFromCurrentType = annotationType.annotate(tracker, ref, mpileup, vc, perReadAlleleLikelihoodMap);
             if ( annotationsFromCurrentType != null )
                 infoAnnotations.putAll(annotationsFromCurrentType);
-            else {
+            /*else {
                 System.err.println("variant:" + vc.getStart() + "-" + vc.getEnd() + " error annotation:" + annotationType.getKeyNames());
-            }
+            }*/
         }
        // if(vc.getStart()==145413)
        // 	System.out.println("vc annotator3:"+vc.toString());

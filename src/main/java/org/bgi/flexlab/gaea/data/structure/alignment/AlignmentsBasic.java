@@ -19,11 +19,12 @@ package org.bgi.flexlab.gaea.data.structure.alignment;
 import htsjdk.samtools.SAMReadGroupRecord;
 import org.bgi.flexlab.gaea.data.structure.bam.SAMCompressionInformationBasic;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class AlignmentsBasic extends SAMCompressionInformationBasic {
+public class AlignmentsBasic extends SAMCompressionInformationBasic implements Cloneable, Serializable {
 	protected static Map<Integer, String> Id2Sample = new HashMap<Integer, String>();
 	protected static Map<String, Integer> Sample2Id = new HashMap<String, Integer>();
 

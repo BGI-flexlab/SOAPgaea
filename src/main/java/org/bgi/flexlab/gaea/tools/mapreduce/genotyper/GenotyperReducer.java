@@ -92,21 +92,27 @@ public class GenotyperReducer extends Reducer<WindowsBasedWritable, AlignmentBas
         ReadsPool readsPool = new ReadsPool(values.iterator());
         engine.init(readsPool, win, genomeShare.getChromosomeInfo(header.getSequence(key.getChromosomeIndex()).getSequenceName()));
 
+        //System.err.println("win:" + win.getContigName() + ":" + win.getStart() + "-" + win.getStop());
         List<VariantCallContext> variantContexts = engine.reduce();
         while(variantContexts != null) {
-            if(variantContexts.size() == 0)
+            if(variantContexts.size() == 0) {
+                variantContexts = engine.reduce();
                 continue;
+            }
+            //System.err.println("output variant before filter.");
             for (VariantCallContext vc : variantContexts) {
                 if(vc.shouldEmit && vc.getStart() >= win.getStart() && vc.getStart() <= win.getStop()) {
                     if(region != null && !region.isPositionInRegion(vc.getContig(), vc.getStart() - 1)) {
                         continue;
                     }
+                    //System.err.println("output variant after filter.");
                     variantContextWritable.set(vc);
                     context.write(NullWritable.get(), variantContextWritable);
                 }
             }
             variantContexts = engine.reduce();
         }
+        //System.err.println("finished all.");
     }
 
     @Override

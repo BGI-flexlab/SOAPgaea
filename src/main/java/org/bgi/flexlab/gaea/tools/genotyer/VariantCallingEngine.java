@@ -66,10 +66,7 @@ import org.bgi.flexlab.gaea.tools.genotyer.genotypecaller.AFCalcFactory;
 import org.bgi.flexlab.gaea.tools.genotyer.genotypecaller.AFCalcResult;
 import org.bgi.flexlab.gaea.tools.genotyer.genotypecaller.AlleleFrequencyCalculator;
 import org.bgi.flexlab.gaea.tools.mapreduce.genotyper.GenotyperOptions;
-import org.bgi.flexlab.gaea.util.GaeaVariantContextUtils;
-import org.bgi.flexlab.gaea.util.MathUtils;
-import org.bgi.flexlab.gaea.util.QualityUtils;
-import org.bgi.flexlab.gaea.util.Window;
+import org.bgi.flexlab.gaea.util.*;
 
 import java.util.*;
 
@@ -196,13 +193,18 @@ public class VariantCallingEngine {
     public List<VariantCallContext> reduce() {
         if(mpileup.getNextPosPileup() == null)
             return null;
+        //System.err.println("start calling at:" + reference.getChromosomeName() + ":" + mpileup.getPosition());
         List<VariantCallContext> vcList = new ArrayList<>();
         final Map<String, PerReadAlleleLikelihoodMap> perReadAlleleLikelihoodMap = new HashMap<>();
         for(GenotypeLikelihoodCalculator.Model model : GenotypeLikelihoodCalculator.modelsToUse) {
+            //System.err.print("cal genotype likelihood.");
             VariantContext vc = GenotypeLikelihoodCalculator.glcm.get(model.name()).genotypeLikelihoodCalculate(mpileup, reference, options, genomeLocationParser, perReadAlleleLikelihoodMap);
-            if(vc != null)
+            if (vc != null) {
+                //System.err.print("\tcalling variant.");
                 vcList.add(calculateGenotypes(tracker, reference, vc, false, perReadAlleleLikelihoodMap, model));
+            }
         }
+        //System.err.println("\tfinish calling.");
 
         return vcList;
     }

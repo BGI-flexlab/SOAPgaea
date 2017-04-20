@@ -34,6 +34,7 @@ public class GenotyperFilter implements SamRecordFilter{
     @Override
     public boolean filter(SAMRecord sam, Region region) {
         return (malformedReadFilter.filter(sam, region) || readsFilter.filter(sam, region) ||
-                FiltersMethod.filterBadMate(sam) || !region.isSamRecordInRegion(sam));
+                FiltersMethod.matchBaseNumberZero(sam) || FiltersMethod.filterBadMate(sam) ||
+                (region != null && !region.isSamRecordInRegion(sam)));
     }
 }
