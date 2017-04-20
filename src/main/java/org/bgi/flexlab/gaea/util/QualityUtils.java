@@ -56,8 +56,8 @@ public class QualityUtils {
 		for(byte quality = 0; quality < MAXIMUM_USABLE_QUALITY_SCORE + 1; quality++) {
 			double errorProbability = qualityToErrorProbability(quality);
 			QUALITY_PROB[quality] = errorProbability;
-			QUALITY_PROB_LOG10[quality] = Math.log10(errorProbability);
-			MINUS_QUALITY_PROB_LOG10[quality] = Math.log10(1 - errorProbability);
+			QUALITY_PROB_LOG10[quality] = quality / -10.0;
+			MINUS_QUALITY_PROB_LOG10[quality] = Math.log10(1.0 - errorProbability);
 		}
 	}
 
@@ -75,7 +75,7 @@ public class QualityUtils {
 	}
 
 	public static double qualityToErrorProbability(final double qual) {
-		return Math.pow(10.0, ((double) qual) / -10.0);
+		return Math.pow(10.0, qual / -10.0);
 	}
 	
 	static public double qualityToProbability(double qual) {
