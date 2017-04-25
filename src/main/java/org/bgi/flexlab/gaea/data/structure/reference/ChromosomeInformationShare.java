@@ -96,8 +96,10 @@ public class ChromosomeInformationShare extends BioMemoryShare {
 	public String getBaseSequence(byte[] bases,int start,int end){
 		StringBuilder seq = new StringBuilder();
 		
+		int deviation = (start & 0x1) == 1 ? 1 : 0;
+			
 		for(int i = start ; i < (end+1) ; i++){
-			int posi = (i-start) / capacity;
+			int posi = (i-start+deviation) / capacity;
 
 			try {
 				if ((i & 0x1) == 0)
