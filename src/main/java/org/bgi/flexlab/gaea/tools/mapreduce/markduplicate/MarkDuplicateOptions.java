@@ -53,7 +53,7 @@ public class MarkDuplicateOptions extends GaeaOptions implements HadoopOptions {
         addOption("O", "outputFormat", true, "output Format. 0:BAM; 1:SAM [0]");
         addOption("D", "outputDupRead", false, "output Duplicates reads [true]");
         addOption("S", "isSE", false, "input is SE data [false]");
-        addOption("R", "reducer", true, "reducer numbers [null]");
+        addOption("R", "reducer", true, "reducer numbers [30]");
         addOption("W", "windowSize", true, "window size that sharding the data [100000]");
         addOption("E", "extendSize", true, "The extend size (must greater than read length) [100]");
         addOption("h", "help", false, "print help information.");
@@ -64,17 +64,14 @@ public class MarkDuplicateOptions extends GaeaOptions implements HadoopOptions {
 
     @Override
     public void parse(String[] args) {
-//        try {
-//            cmdLine = parser.parse(options, args);
-//        } catch (ParseException e) {
-//            printHelpInfotmation(SOFTWARE_NAME);
-//            throw new RuntimeException(e);
-//        }
         try {
             cmdLine = parser.parse(options, args);
+            if(cmdLine.hasOption("h")) {
+                helpInfo.printHelp("Options:", options, true);
+                System.exit(1);
+            }
         } catch (ParseException e) {
-            System.err.println(e.getMessage());
-            FormatHelpInfo(SOFTWARE_NAME, SOFTWARE_VERSION);
+            helpInfo.printHelp("Options:", options, true);
             System.exit(1);
         }
 

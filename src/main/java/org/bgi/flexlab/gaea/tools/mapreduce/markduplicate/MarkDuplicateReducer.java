@@ -13,12 +13,8 @@ import org.bgi.flexlab.gaea.tools.markduplicate.MarkDuplicatesFunc;
 import java.io.IOException;
 import java.util.ArrayList;
 
-
-/**
- * Created by huangzhibo on 2017/4/14.
- */
 public class MarkDuplicateReducer extends Reducer<DuplicationKeyWritable, SamRecordWritable, NullWritable, SamRecordWritable>{
-    MarkDuplicatesFunc mark = new MarkDuplicatesFunc();
+    private MarkDuplicatesFunc mark = new MarkDuplicatesFunc();
     private SAMFileHeader samHeader;
 
     @Override
@@ -32,9 +28,11 @@ public class MarkDuplicateReducer extends Reducer<DuplicationKeyWritable, SamRec
         if(key.getChrIndex() == -1) {
             for(SamRecordWritable s : values) {
                 SAMRecord sam = s.get();
+                int referenceIndex = sam.getReferenceIndex();
                 sam.setHeader(samHeader);
                 SamRecordWritable w = new SamRecordWritable();
                 w.set(sam);
+                sam.setReferenceIndex(referenceIndex);
                 context.write(NullWritable.get(), w);
             }
             return;
@@ -45,7 +43,9 @@ public class MarkDuplicateReducer extends Reducer<DuplicationKeyWritable, SamRec
         int n = 0;
         for(SamRecordWritable s : values) {
             SAMRecord sam=s.get();
+            int referenceIndex = sam.getReferenceIndex();
             sam.setHeader(samHeader);
+            sam.setReferenceIndex(referenceIndex);
             if (n>5000) {
                 sam.setDuplicateReadFlag(true);
                 SamRecordWritable w = new SamRecordWritable();
@@ -55,9 +55,6 @@ public class MarkDuplicateReducer extends Reducer<DuplicationKeyWritable, SamRec
                 sams.add(sam);
             }
             n++;
-        }
-        if (n>5000) {
-            System.err.println("Dup > 5000. Pos:" + key.getChrIndex() + ":"+key.getPosition());
         }
 
         if(sams.size() > 1)
