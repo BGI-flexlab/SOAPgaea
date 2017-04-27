@@ -69,8 +69,15 @@ public class FastqQualityControlFilter {
 			} else {
 				ReadInformationWithSampleID fqInfo = new ReadInformationWithSampleID(
 						readLine);
-				if (option.getTrimStart() != 0 || option.getTrimEnd() != 0) {
-					fqInfo.trim(option.getTrimStart(), option.getTrimEnd());
+				int[] trim = option.getTrim();
+				if(fqInfo.isFirstRead()){
+					if (trim[0] != 0 || trim[1] != 0) {
+						fqInfo.trim(trim[0], trim[1]);
+					}
+				}else {
+					if (trim[2] != 0 || trim[3] != 0) {
+						fqInfo.trim(trim[2], trim[3]);
+					}
 				}
 				int index = readLine[0].lastIndexOf("/");
 				String tempkey = readLine[0].substring(index + 1).trim();
