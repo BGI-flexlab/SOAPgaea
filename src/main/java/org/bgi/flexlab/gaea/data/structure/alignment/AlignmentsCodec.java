@@ -66,7 +66,7 @@ public abstract class AlignmentsCodec <T extends SAMCompressionInformationBasic>
 	}
 	
 	private void writeBasic(T alignments) {
-		binaryCodec.writeByte(alignments.getFlag());
+		binaryCodec.writeShort((short)alignments.getFlag());
 		binaryCodec.writeInt(alignments.getChrNameIndex());
 		binaryCodec.writeInt(alignments.getPosition());
 		binaryCodec.writeShort(alignments.getMappingQual());
@@ -84,7 +84,7 @@ public abstract class AlignmentsCodec <T extends SAMCompressionInformationBasic>
 	private boolean readBasic() {
 		//System.out.print("read record : ");
 		try {
-			alignments.setFlag(binaryCodec.readByte());
+			alignments.setFlag(binaryCodec.readShort());
 		} catch (RuntimeEOFException e) {
 			return false;
 		}
