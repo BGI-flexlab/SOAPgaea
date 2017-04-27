@@ -15,14 +15,14 @@ public class MarkDuplicatesFunc {
         Map<String, ArrayList<SAMRecord>> samPairs = new HashMap<>();
 
         for (SAMRecord sam : sams){
-            ReadEnds ends = null;
-            ArrayList<SAMRecord> samPair = null;
+            ReadEnds ends;
+            ArrayList<SAMRecord> samPair;
             if(!readsEnds.containsKey(sam.getReadName())) {
                 ends = new ReadEnds();
                 buildReadEnds(sam, ends);
                 readsEnds.put(sam.getReadName(), ends);
 
-                samPair = new ArrayList<SAMRecord>();
+                samPair = new ArrayList<>();
                 samPair.add(sam);
                 samPairs.put(sam.getReadName(), samPair);
             } else {
@@ -36,14 +36,14 @@ public class MarkDuplicatesFunc {
         }
 
         //get clusters
-        Map<ClusterIndex, ArrayList<String>> clusters = new HashMap<ClusterIndex, ArrayList<String>>();
+        Map<ClusterIndex, ArrayList<String>> clusters = new HashMap<>();
         for(String rName : readsEnds.keySet()) {
             ReadEnds ends = readsEnds.get(rName);
             ClusterIndex index = new ClusterIndex(ends);
             if(clusters.containsKey(index)) {
                 clusters.get(index).add(rName);
             } else {
-                ArrayList<String> pairName = new ArrayList<String>();
+                ArrayList<String> pairName = new ArrayList<>();
                 pairName.add(rName);
                 clusters.put(index, pairName);
             }
@@ -70,15 +70,10 @@ public class MarkDuplicatesFunc {
             }
 
             //mark rest pairs
-            ArrayList<String> highScoreNames = new ArrayList<String>();
+            ArrayList<String> highScoreNames = new ArrayList<>();
             for(String rName : rNames) {
                 ArrayList<SAMRecord> samPair = samPairs.get(rName);
-                boolean keep = false;
-                if(maxScoreName != "" && !rName.equals(maxScoreName)) {
-                    keep = false;
-                } else
-                    keep = true;
-
+                boolean keep = !(maxScoreName.equals("") && !rName.equals(maxScoreName));
                 if(keep) {
                     highScoreNames.add(rName);
                 } else {
@@ -92,9 +87,7 @@ public class MarkDuplicatesFunc {
             if(highScoreNames.size() > 1) {
                 int keepIndex = (RandomUtils.getRandomGenerator().nextInt()) % highScoreNames.size();
                 for(int i = 0; i < highScoreNames.size(); i++) {
-                    if(i == keepIndex)
-                        continue;
-                    else {
+                    if (i != keepIndex) {
                         for(SAMRecord sam : samPairs.get(highScoreNames.get(i))) {
                             sam.setDuplicateReadFlag(true);
                         }
@@ -185,7 +178,7 @@ public class MarkDuplicatesFunc {
         private int read2SequenceIndex=-1;
         private int read2Coordinate   = -1;
 
-        public ClusterIndex(ReadEnds ends) {
+        ClusterIndex(ReadEnds ends) {
             orientation = ends.orientation;
             read1SequenceIndex = ends.read1SequenceIndex;
             read1Coordinate = ends.read1Coordinate;
@@ -218,10 +211,7 @@ public class MarkDuplicatesFunc {
                 return true;
 
             ClusterIndex index = (ClusterIndex) obj;
-            if(this.compareTo(index) == 0)
-                return true;
-
-            return false;
+            return this.compareTo(index) == 0;
         }
     }
 
