@@ -193,13 +193,13 @@ public class SNPGenotypeLikelihoodCalculator extends GenotypeLikelihoodCalculato
                 Pileup pileup = pileups.get(sample);
                 //System.err.println(sample);
                 //depth too low to calculate genotype likelihood
-                if (pileup.getTotalPileup().size() < options.getMinDepth()) {
+                if (pileup.getFilteredPileup().size() < options.getMinDepth() || pileup.getDeletionRate() > 0.2) {
                     continue;
                 }
 
                 //calculation genotype likelihoods
                 SampleGenotypeData sampleGenotypeData = getGenotypeLikelihood(pileup, options.isCapBaseQualsAtMappingQual(), options.getMinBaseQuality());
-                if(sampleGenotypeData.getDepth() > 0) {
+                if(sampleGenotypeData.getDepth() > options.getMinDepth()) {
                     sampleGenotypeData.setName(sample);
                     gls.add(sampleGenotypeData);
                 }
@@ -321,6 +321,9 @@ public class SNPGenotypeLikelihoodCalculator extends GenotypeLikelihoodCalculato
         SampleGenotypeData sampleGenotypeData = new SampleGenotypeData();
        // System.err.println("depth:" + pileup.getTotalPileup().size());
         for(PileupReadInfo readInfo : pileup.getTotalPileup()) {
+            if(readInfo.isDeletionBase())
+                continue;
+
             byte base = readInfo.getBinaryBase();
             byte quality = readInfo.getBaseQuality();
 
@@ -417,6 +420,16 @@ public class SNPGenotypeLikelihoodCalculator extends GenotypeLikelihoodCalculato
             return QualityUtils.MINUS_QUALITY_PROB_LOG10[baseQuality];
         else
             return QualityUtils.QUALITY_PROB_LOG10[baseQuality] - log10_3;
+    }
+
+    protected int getFilteredDepth(Pileup pileup) {
+        int count = 0;
+        for ( PileupReadInfo p : pileup.getTotalPileup() ) {
+            if ( !p.isDeletionBase() && BaseUtils.isRegularBase( p.getByteBase() ) )
+                count += 1;
+        }
+
+        return count;
     }
 
 }
