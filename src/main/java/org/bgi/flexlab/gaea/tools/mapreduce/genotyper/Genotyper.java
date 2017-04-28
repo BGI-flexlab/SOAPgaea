@@ -80,7 +80,7 @@ public class Genotyper extends ToolsRunner {
         if(options.getBedRegionFile() != null)
             conf.set(REFERENCE_REGION, options.getBedRegionFile());
         job.setFilterClass(GenotyperFilter.class);
-        job.setWindowsBasicMapperClass(WindowsBasedAlignmentMapper.class, options.getWindowSize());
+        job.setWindowsBasicMapperClass(WindowsBasedAlignmentMapper.class, options.getWindowSize(),0);
         job.setReducerClass(GenotyperReducer.class);
         job.setNumReduceTasks(options.getReducerNumber());
 

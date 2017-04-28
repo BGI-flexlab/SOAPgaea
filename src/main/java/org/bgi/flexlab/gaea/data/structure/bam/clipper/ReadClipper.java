@@ -189,17 +189,27 @@ public class ReadClipper {
 		if ( start > 0 && stop < read.getReadLength() - 1)
 			throw new UserException(String.format("Trying to clip the middle of the read: start %d, stop %d", start, stop));
 
-		//System.err.println("clipped read start:" + start + "\tclipped read end:" + stop);
+		if(start == 0 && stop == read.getReadLength() - 1)
+			return read;
 
+		//System.err.println("clipped read ref start:" + refStart + "\tclipped ref read end:" + refStop);
+		//System.err.println("clipped read start:" + start + "\tclipped read end:" + stop);
 
 		AlignmentsBasic clippedRead = new AlignmentsBasic(read);
 
 		int[] newCigars;
 		//clip start
 		if(refStart > 0 ) {
+			//base and quality
 			clippedRead.hardClip(start, read.getReadLength() - 1);
+
+			//position
+			if(refStart > clippedRead.getPosition())
+				clippedRead.setPosition(refStart);
+
+			//cigar
 			int currentCigarIndex = cigarState.getCigarState()[0];
-			newCigars = new int[read.getCigars().length - currentCigarIndex + 1];
+			newCigars = new int[read.getCigars().length - currentCigarIndex];
 			int currentCigar = cigarState.getCurrentCigar();
 
 			if((currentCigar & 0xf) == SystemConfiguration.BAM_CDEL) {
@@ -210,8 +220,12 @@ public class ReadClipper {
 				newCigars[i - currentCigarIndex] = read.getCigars()[i];
 			}
 			clippedRead.setCigars(newCigars);
-		} else if(refStop > 0) {
+		} else if(refStop > 0 ) {
+			//base and quality
 			clippedRead.hardClip(0, stop);
+			//no need to deal with position
+
+			//cigar
 			int currentCigarIndex = cigarState.getCigarState()[0];
 			newCigars = new int[currentCigarIndex + 1];
 			int currentCigar = cigarState.getCurrentCigar();
@@ -220,11 +234,14 @@ public class ReadClipper {
 				newCigars[i] = read.getCigars()[i];
 			}
 			if((currentCigar & 0xf) == SystemConfiguration.BAM_CDEL) {
-				newCigars[currentCigarIndex] = ((currentCigar & 0xf) | (refStart - cigarState.getCigarState()[1] << 4));
+				newCigars[currentCigarIndex] = ((currentCigar & 0xf) | (refStop - cigarState.getCigarState()[1] << 4));
 			} else
-				newCigars[currentCigarIndex] = ((currentCigar & 0xf) | (start - cigarState.getCigarState()[2] << 4));
+				newCigars[currentCigarIndex] = ((currentCigar & 0xf) | (stop - cigarState.getCigarState()[2] << 4));
 			clippedRead.setCigars(newCigars);
 		}
+		//System.err.println("read:" + read.toString());
+		//System.err.println("clipped read:" + clippedRead.toString());
+
 		return clippedRead;
 		//return hardClipByReadCoordinates(read, start, stop);
 	}
@@ -255,12 +272,18 @@ public class ReadClipper {
 			int[] cigars = new int[1];
 			cigars[0] = ((newCigarLen << 4));
 			clippedRead.setCigars(cigars);
+
+			clippedRead.setPosition(clippedRead.getPosition() + readStart);
+
+			//System.err.println("read:" + read.toString());
+			//System.err.println("clipped read:" + clippedRead.toString());
 			return clippedRead;
 		}
 
 		ArrayList<Integer> newCigars = new ArrayList<>();
 		int cigarForwardIndex = -1;
 		int cigarReadPosition = 0;
+		int position = read.getPosition();
 		for(int i = 0; i < read.getCigars().length; i++) {
 			int cigar = read.getCigars()[i];
 			int op = cigar & 0xf;
@@ -276,23 +299,39 @@ public class ReadClipper {
 						int newCigar = (op | (newCigarLen << 4));
 						newCigars.add(newCigar);
 						cigarForwardIndex = i;
-					} else if (cigarReadPosition + len <= readStop) //have not meet read stop
-						newCigars.add(cigar);
-					else { //meet read stop
-						int newCigarLen;
-						if(cigarForwardIndex == i) {// same cigar as the read start
+
+						if(op != SystemConfiguration.BAM_CSOFT_CLIP && op != SystemConfiguration.BAM_CINS) {
+							position += readStart - cigarReadPosition;
+						}
+
+						if(cigarReadPosition + len > readStop) {// same cigar as the read start
 							newCigars.remove(newCigars.size() - 1);
 							newCigarLen = readStop - readStart + 1;
-						} else
-							newCigarLen = readStop - cigarReadPosition + 1;
-						int newCigar = (op | (newCigarLen << 4));
-						newCigars.add(newCigar);
-						break;
+							newCigar = (op | (newCigarLen << 4));
+							newCigars.add(newCigar);
+							break;
+						}
+					} else {
+						if (cigarReadPosition + len <= readStop) //have not meet read stop
+							newCigars.add(cigar);
+						else { //meet read stop
+							int newCigarLen = readStop - cigarReadPosition + 1;
+							int newCigar = (op | (newCigarLen << 4));
+							newCigars.add(newCigar);
+							break;
+						}
 					}
 				}
 				cigarReadPosition += len;
+			} else
+				newCigars.add(cigar);
+
+			if (cigarForwardIndex == -1 && (op == SystemConfiguration.BAM_CDEL || op == SystemConfiguration.BAM_CMATCH
+					|| op == SystemConfiguration.BAM_CEQUAL || op == SystemConfiguration.BAM_CDIFF)) {
+				position += len;
 			}
 		}
+		clippedRead.setPosition(position);
 
 		int[] finalCigars = new int[newCigars.size()];
 		int index = 0;
@@ -301,6 +340,8 @@ public class ReadClipper {
 		}
 		clippedRead.setCigars(finalCigars);
 
+		//System.err.println("read:" + read.toString());
+		//System.err.println("clipped read:" + clippedRead.toString());
 		return clippedRead;
 	}
 

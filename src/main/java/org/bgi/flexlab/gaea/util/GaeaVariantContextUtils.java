@@ -143,7 +143,7 @@ public class GaeaVariantContextUtils {
         }
     }
 
-    static private Allele determineReferenceAllele(List<VariantContext> VCs) {
+    static public Allele determineReferenceAllele(List<VariantContext> VCs) {
         Allele ref = null;
 
         for (VariantContext vc : VCs) {
@@ -157,7 +157,7 @@ public class GaeaVariantContextUtils {
         return ref;
     }
 
-    private static class AlleleMapper {
+    public static class AlleleMapper {
         private VariantContext vc = null;
         private Map<Allele, Allele> map = null;
 
@@ -203,7 +203,7 @@ public class GaeaVariantContextUtils {
     }
 
 
-    static private AlleleMapper resolveIncompatibleAlleles(Allele refAllele, VariantContext vc, Set<Allele> allAlleles) {
+    static public AlleleMapper resolveIncompatibleAlleles(Allele refAllele, VariantContext vc, Set<Allele> allAlleles) {
         if (refAllele.equals(vc.getReference()))
             return new AlleleMapper(vc);
         else {

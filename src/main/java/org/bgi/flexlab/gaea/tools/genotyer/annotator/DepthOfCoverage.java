@@ -95,7 +95,7 @@ public class DepthOfCoverage extends InfoFieldAnnotation implements StandardAnno
 
             for (PerReadAlleleLikelihoodMap maps : perReadAlleleLikelihoodMap.values() ) {
                 for (Map.Entry<AlignmentsBasic, Map<Allele,Double>> el : maps.getLikelihoodReadMap().entrySet()) {
-                    final AlignmentsBasic read = el.getKey();
+                    //final AlignmentsBasic read = el.getKey();
                     depth += 1;
                 }
             }

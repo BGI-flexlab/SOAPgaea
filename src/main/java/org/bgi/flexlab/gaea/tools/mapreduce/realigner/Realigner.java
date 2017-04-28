@@ -83,7 +83,7 @@ public class Realigner extends ToolsRunner {
 				SamRecordWritable.class);
 
 		job.setJarByClass(Realigner.class);
-		job.setWindowsBasicMapperClass(WindowsBasedSamRecordMapper.class, option.getWindowsSize());
+		job.setWindowsBasicMapperClass(WindowsBasedSamRecordMapper.class, option.getWindowsSize(),option.getExtendSize());
 		job.setReducerClass(RealignerReducer.class);
 		job.setNumReduceTasks(option.getReducerNumber());
 

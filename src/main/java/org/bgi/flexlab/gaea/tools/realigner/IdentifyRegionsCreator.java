@@ -185,10 +185,6 @@ public class IdentifyRegionsCreator {
 
 		while (pileups != null) {
 			int currPosition = mpileup.getPosition()+1;
-			/*if(currPosition < start){
-				pileups = mpileup.getNextPosPileup();
-				continue;
-			}*/
 			for (String key : pileups.keySet()) {
 				VariantState state = new VariantState();
 				state.filterVariant(knowIndels, currPosition);

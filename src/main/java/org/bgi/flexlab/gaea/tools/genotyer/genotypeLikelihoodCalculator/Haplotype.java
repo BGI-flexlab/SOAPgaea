@@ -260,7 +260,7 @@ public class Haplotype {
         final GenomeLocation locus = locationParser.createGenomeLocation(ref.getChromosomeName(),startLoc,stopLoc);
 
         for (final Allele a : alleleList) {
-            //System.out.println("mk hp allele:" + a.getBaseString());
+            //System.err.println("mk hp allele:" + a.getBaseString());
 
             final byte[] alleleBases = a.getBases();
             // use string concatenation
