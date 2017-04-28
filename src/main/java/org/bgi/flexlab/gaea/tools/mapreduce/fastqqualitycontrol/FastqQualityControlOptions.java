@@ -44,10 +44,8 @@ public class FastqQualityControlOptions extends GaeaOptions implements
 		addOption("q", "qualityRate", true, "low quality rate(default:0.5)");
 		addOption("t", "readType", true, "read name type.(default:0)\n0: reads_xxx/1\n1: reads_xx: 1:N:XX\n2: reads_xx");
 		addOption("N", "NRate", true, "Maximum N rate(default:0.1)");
-		addOption("s", "trimStart", true,
-				"cut n bp of reads from start(default:0)");
-		addOption("e", "trimEnd", true,
-				"cut n bp of reads from end(default:0)");
+		addOption("s", "trim", true,
+				"trim some bp of the read's head and tail, they means: (read1's head and tail and read2's head and tail  [0,0,0,0]");
 		addOption("5", "ignored1fq", false, "not output reads from fastq1");
 		addOption("6", "ignored2fq", false, "not output reads from fastq2");
 		addOption("m", "multiSample", true, "Mulit samples list");
@@ -78,8 +76,7 @@ public class FastqQualityControlOptions extends GaeaOptions implements
 
 	private int minimumQualityScore;
 	private int Q;
-	private int trimStart;
-	private int trimEnd;
+	private int[] trim;
 	private int reducerNumber;
 	private int lowQual;
 	private int cest;
@@ -123,8 +120,7 @@ public class FastqQualityControlOptions extends GaeaOptions implements
 		NRate = getOptionDoubleValue("N", 0.1);
 
 		Q = getOptionIntValue("Q", 1);
-		trimStart = getOptionIntValue("s", 0);
-		trimEnd = getOptionIntValue("e", 0);
+		setTrim(getOptionValue("s", "0,0,0,0"));
 		reducerNumber = getOptionIntValue("n", 100);
 		lowQual = getOptionIntValue("l", 5);
 		cest = getOptionIntValue("T", 3);
@@ -235,12 +231,21 @@ public class FastqQualityControlOptions extends GaeaOptions implements
 		SEdata = sEdata;
 	}
 
-	public int getTrimEnd() {
-		return trimEnd;
+	// trimStr : read1HeadTrim,read1TailTrim,read2HeadTrim,read2TailTrim  (int,int,int,int)
+	private void setTrim(String trimStr) {
+		trim = new int[4];
+		String[] trimTemp = trimStr.trim().split(",");
+		for (int i = 0; i < 4 ; i++){
+			if(i < trimTemp.length) {
+				trim[i] = Integer.parseInt(trimTemp[i]);
+			}else {
+				trim[i] = 0;
+			}
+		}
 	}
 
-	public int getTrimStart() {
-		return trimStart;
+	public int[] getTrim() {
+		return trim;
 	}
 
 	public boolean isFilterSE() {
