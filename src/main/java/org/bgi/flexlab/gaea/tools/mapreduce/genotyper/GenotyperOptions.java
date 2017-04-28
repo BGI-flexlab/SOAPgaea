@@ -229,7 +229,7 @@ public class GenotyperOptions extends GaeaOptions implements HadoopOptions {
     /**
      * window size
      */
-    private int windowSize = 100000;
+    private int windowSize = 10000;
 
     public GenotyperOptions() {
         addOption("i", "input", true, "Input file containing sequence data (BAM or CRAM)");
