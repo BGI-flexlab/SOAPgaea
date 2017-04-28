@@ -78,7 +78,7 @@ public class Event {
 	}
 	
 	public String toString(){
-    	return eventStartPosition+"-"+eventStopPosition+"->"+furthestStopPosition+":"+type.toString();
+    	return location.getContig()+"-"+eventStartPosition+"-"+eventStopPosition+"->"+furthestStopPosition+":"+type.toString();
     }
 
 	public GenomeLocation createLocation(GenomeLocationParser parser) {

@@ -151,7 +151,7 @@ public class AlternateConsensusEngine {
 				Cigar newCigar = AlignmentUtil.leftAlignIndel(GaeaCigar.unclipCigar(read.getCigar()),
 						reference, read.getReadBases(),
 						read.getAlignmentStart() - leftmostIndex, 0);
-				alignedRead.setCigar(newCigar, false);
+				alignedRead.setCigar(newCigar);
 			}
 
 			final int startOnRef = read.getAlignmentStart() - leftmostIndex;
