@@ -90,7 +90,7 @@ public class FastqQualityControlOptions extends GaeaOptions implements
 	private boolean qualTrim;
 	private boolean dyncut = false;
 	private boolean multiStatis = true;
-	private boolean qualFreq = false;
+  private boolean qualFreq = false;
 	private boolean ignoredfastq1;
 	private boolean ignoredfastq2;
 
@@ -284,7 +284,7 @@ public class FastqQualityControlOptions extends GaeaOptions implements
 		return this.Q;
 	}
 
-	public boolean isQualityFrequency() {
+  public boolean isQualityFrequency() {
 		return qualFreq;
 	}
 
