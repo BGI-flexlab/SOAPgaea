@@ -51,7 +51,7 @@ public class FastqQualityControlOptions extends GaeaOptions implements
 		addOption("m", "multiSample", true, "Mulit samples list");
 		addOption("n", "reducerNumber", true, "reducer number");
 		addOption("o", "output", true, "output directory", true);
-		addOption("q", "qualityFreq", false, "output quality frequency statice");
+		addOption("d", "qualityFreq", false, "output quality frequency statice");
 		addOption("M", "ignoredSample", false, "QC statictis together");
 		addOption("D", "dyncut", false, "run dyncutadaptor process");
 		addOption("S", "seed", true, "initial length of adaptor.(default:10)");
@@ -132,7 +132,7 @@ public class FastqQualityControlOptions extends GaeaOptions implements
 		qualTrim = getOptionBooleanValue("C", false);
 		dyncut = getOptionBooleanValue("D", false);
 		multiStatis = getOptionBooleanValue("M", true);
-		qualFreq = getOptionBooleanValue("q", false);
+		qualFreq = getOptionBooleanValue("d", false);
 		ignoredfastq1 = getOptionBooleanValue("5", false);
 		ignoredfastq2 = getOptionBooleanValue("6", false);
 
