@@ -44,11 +44,14 @@ package org.bgi.flexlab.gaea.tools.mapreduce.markduplicate;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.bgi.flexlab.gaea.data.mapreduce.input.bam.GaeaBamInputFormat;
 import org.bgi.flexlab.gaea.data.mapreduce.output.bam.GaeaBamOutputFormat;
+import org.bgi.flexlab.gaea.data.mapreduce.writable.DuplicationKeyWritable;
+import org.bgi.flexlab.gaea.data.mapreduce.writable.SamRecordWritable;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.BioJob;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.ToolsRunner;
 
@@ -68,9 +71,13 @@ public class MarkDuplicate extends ToolsRunner{
         options.parse(remainArgs);
         options.setHadoopConf(remainArgs, conf);
 
+        job.setHeader(new Path(options.getInput()), new Path(options.getOutput()));
+
         job.setJobName("GaeaMarkDuplicate");
         job.setJarByClass(MarkDuplicate.class);
         job.setReducerClass(MarkDuplicateReducer.class);
+        job.setNumReduceTasks(options.getReducerNum());
+
         if(options.getInputFormat() != 0 && options.isSE()){
             job.setMapperClass(MarkDuplicateSamMappper.class);
             job.setInputFormatClass(TextInputFormat.class);
@@ -79,14 +86,22 @@ public class MarkDuplicate extends ToolsRunner{
             job.setInputFormatClass(GaeaBamInputFormat.class);
         }
 
-        job.setOutputFormatClass(GaeaBamOutputFormat.class);
+        job.setMapOutputKeyClass(DuplicationKeyWritable.class);
+        job.setMapOutputValueClass(SamRecordWritable.class);
+
+        job.setOutputKeyClass(NullWritable.class);
+        job.setOutputValueClass(SamRecordWritable.class);
+
+        if(options.getOutputFormat() == 0){
+            job.setOutputFormatClass(GaeaBamOutputFormat.class);
+        }
 
         if(options.isSE()){
             FileInputFormat.setInputPaths(job, options.getInputFileList().toArray(new Path[options.getInputFileList().size()]));
         }else {
             FileInputFormat.setInputPaths(job, options.getInput());
         }
-        Path oPath = new Path(options.getOutput());
+        Path oPath = new Path(options.getOutput()+"/Mark");
         FileOutputFormat.setOutputPath(job, oPath);
         boolean success = job.waitForCompletion(true);
         return success ? 0 : 1;

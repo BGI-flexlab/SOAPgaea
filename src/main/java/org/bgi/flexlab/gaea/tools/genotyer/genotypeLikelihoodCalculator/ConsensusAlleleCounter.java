@@ -198,14 +198,14 @@ public class ConsensusAlleleCounter {
                     consensusIndelStrings.put(indelString, cnt + 1);
 
                 }
-                //System.out.println("indel:" + indelString);
+                //System.err.println("indel:" + indelString);
             }
         }
         return consensusIndelStrings;
     }
 
     private List<Allele> consensusCountsToAlleles(int position, ChromosomeInformationShare reference, Map<String, Integer> consensusIndelStrings, GenomeLocationParser locationParser) {
-        final Collection<VariantContext> vcs = new ArrayList<VariantContext>();
+        final List<VariantContext> vcs = new ArrayList<VariantContext>();
         int maxAlleleCnt = 0;
         Allele refAllele, altAllele;
 
@@ -226,11 +226,12 @@ public class ConsensusAlleleCounter {
                 // get ref bases of accurate deletion
                 final byte[] refBases = reference.getBaseBytes(position, position + dLen);
                 stop = position + dLen + 1;
+                //System.err.println("indel string:" + s + "\tdeletion len:" + dLen + "\tref:" + new String(refBases));
 
                 if (Allele.acceptableAlleleBases(refBases, false)) {
                     refAllele = Allele.create(refBases, true);
                     altAllele = Allele.create((byte) reference.getBase(position), false);
-                    //System.err.println("delete ref allele:" + refAllele + "\talt allele:" + altAllele);
+                    //System.err.println("delete ref allele:" + refAllele + "\talt allele:" + altAllele + "\tcount:" + curCnt);
                 }
                 else continue; // don't go on with this allele if refBases are non-standard
             } else {
@@ -239,7 +240,7 @@ public class ConsensusAlleleCounter {
                 if (Allele.acceptableAlleleBases(insertionBases, false)) { // don't allow N's in insertions
                     refAllele = Allele.create((byte) reference.getBase(position), true);
                     altAllele = Allele.create(insertionBases, false);
-                    //System.err.println("insert ref allele:" + refAllele + "\talt allele:" + altAllele);
+                    //System.err.println("insert ref allele:" + refAllele + "\talt allele:" + altAllele + "\tcount:" + curCnt);
                     stop = position + 1;
                 }
                 else continue; // go on to next allele if consensus insertion has any non-standard base.
@@ -264,11 +265,41 @@ public class ConsensusAlleleCounter {
         if (vcs.isEmpty())
             return Collections.emptyList(); // nothing else to do, no alleles passed minimum count criterion
 
+        return mergeAllels(vcs);
+        /*
         final VariantContext mergedVC = GaeaVariantContextUtils.simpleMerge(locationParser, vcs, null, GaeaVariantContextUtils.FilteredRecordMergeType.KEEP_IF_ANY_UNFILTERED, GaeaVariantContextUtils.GenotypeMergeType.UNSORTED, false, false, null, false, false);
         //System.out.println("mergedVC:");
         //for(Allele a : mergedVC.getAlleles()) {
         //	System.out.println(a.getBaseString());
         //}
         return mergedVC.getAlleles();
+        */
+    }
+
+    public List<Allele> mergeAllels(List<VariantContext> vcs) {
+        final Set<Allele> alleles = new LinkedHashSet<Allele>();
+        Allele refAllele = GaeaVariantContextUtils.determineReferenceAllele(vcs);
+
+        for (final VariantContext vc : vcs) {
+            GaeaVariantContextUtils.AlleleMapper alleleMapping = GaeaVariantContextUtils.resolveIncompatibleAlleles(refAllele, vc, alleles);
+            //System.err.println("merge alleles:" + vc.getReference().getBaseString() + "\t" + vc.getAlternateAllele(0));
+            alleles.addAll(alleleMapping.values());
+        }
+
+        List<Allele> finalAlleles = new ArrayList<>();
+        for(Allele allele : alleles) {
+            if(allele.isReference()) {
+                finalAlleles.add(allele);
+                break;
+            }
+        }
+
+        for(Allele allele : alleles) {
+            if (!allele.isReference()) {
+                finalAlleles.add(allele);
+            }
+        }
+
+        return finalAlleles;
     }
 }

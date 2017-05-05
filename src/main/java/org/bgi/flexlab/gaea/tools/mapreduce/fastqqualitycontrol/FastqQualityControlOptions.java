@@ -44,16 +44,14 @@ public class FastqQualityControlOptions extends GaeaOptions implements
 		addOption("q", "qualityRate", true, "low quality rate(default:0.5)");
 		addOption("t", "readType", true, "read name type.(default:0)\n0: reads_xxx/1\n1: reads_xx: 1:N:XX\n2: reads_xx");
 		addOption("N", "NRate", true, "Maximum N rate(default:0.1)");
-		addOption("s", "trimStart", true,
-				"cut n bp of reads from start(default:0)");
-		addOption("e", "trimEnd", true,
-				"cut n bp of reads from end(default:0)");
+		addOption("s", "trim", true,
+				"trim some bp of the read's head and tail, they means: (read1's head and tail and read2's head and tail  [0,0,0,0]");
 		addOption("5", "ignored1fq", false, "not output reads from fastq1");
 		addOption("6", "ignored2fq", false, "not output reads from fastq2");
 		addOption("m", "multiSample", true, "Mulit samples list");
 		addOption("n", "reducerNumber", true, "reducer number");
 		addOption("o", "output", true, "output directory", true);
-		addOption("q", "qualityFreq", false, "output quality frequency statice");
+		addOption("d", "qualityFreq", false, "output quality frequency statice");
 		addOption("M", "ignoredSample", false, "QC statictis together");
 		addOption("D", "dyncut", false, "run dyncutadaptor process");
 		addOption("S", "seed", true, "initial length of adaptor.(default:10)");
@@ -78,8 +76,7 @@ public class FastqQualityControlOptions extends GaeaOptions implements
 
 	private int minimumQualityScore;
 	private int Q;
-	private int trimStart;
-	private int trimEnd;
+	private int[] trim;
 	private int reducerNumber;
 	private int lowQual;
 	private int cest;
@@ -93,7 +90,7 @@ public class FastqQualityControlOptions extends GaeaOptions implements
 	private boolean qualTrim;
 	private boolean dyncut = false;
 	private boolean multiStatis = true;
-	private boolean qualFreq = false;
+  private boolean qualFreq = false;
 	private boolean ignoredfastq1;
 	private boolean ignoredfastq2;
 
@@ -123,8 +120,7 @@ public class FastqQualityControlOptions extends GaeaOptions implements
 		NRate = getOptionDoubleValue("N", 0.1);
 
 		Q = getOptionIntValue("Q", 1);
-		trimStart = getOptionIntValue("s", 0);
-		trimEnd = getOptionIntValue("e", 0);
+		setTrim(getOptionValue("s", "0,0,0,0"));
 		reducerNumber = getOptionIntValue("n", 100);
 		lowQual = getOptionIntValue("l", 5);
 		cest = getOptionIntValue("T", 3);
@@ -136,7 +132,7 @@ public class FastqQualityControlOptions extends GaeaOptions implements
 		qualTrim = getOptionBooleanValue("C", false);
 		dyncut = getOptionBooleanValue("D", false);
 		multiStatis = getOptionBooleanValue("M", true);
-		qualFreq = getOptionBooleanValue("q", false);
+		qualFreq = getOptionBooleanValue("d", false);
 		ignoredfastq1 = getOptionBooleanValue("5", false);
 		ignoredfastq2 = getOptionBooleanValue("6", false);
 
@@ -235,12 +231,21 @@ public class FastqQualityControlOptions extends GaeaOptions implements
 		SEdata = sEdata;
 	}
 
-	public int getTrimEnd() {
-		return trimEnd;
+	// trimStr : read1HeadTrim,read1TailTrim,read2HeadTrim,read2TailTrim  (int,int,int,int)
+	private void setTrim(String trimStr) {
+		trim = new int[4];
+		String[] trimTemp = trimStr.trim().split(",");
+		for (int i = 0; i < 4 ; i++){
+			if(i < trimTemp.length) {
+				trim[i] = Integer.parseInt(trimTemp[i]);
+			}else {
+				trim[i] = 0;
+			}
+		}
 	}
 
-	public int getTrimStart() {
-		return trimStart;
+	public int[] getTrim() {
+		return trim;
 	}
 
 	public boolean isFilterSE() {
@@ -279,7 +284,7 @@ public class FastqQualityControlOptions extends GaeaOptions implements
 		return this.Q;
 	}
 
-	public boolean isQualityFrequency() {
+  public boolean isQualityFrequency() {
 		return qualFreq;
 	}
 

@@ -248,6 +248,7 @@ public class PairHMMIndelErrorModel {
                 //GaeaSAMRecord read = ReadClipper.hardClipAdaptorSequence(p.getRead());
                 AlignmentsBasic read = p.getReadInfo();
 
+                read.checkCigar();
                 int readSoftStart = read.getSoftStart();
                 int readSoftEnd = read.getSoftEnd();
                 //System.err.println("read soft start:" + readSoftStart + "\tread soft end:" + readSoftEnd);
@@ -260,6 +261,7 @@ public class PairHMMIndelErrorModel {
                 if (read.isEmpty())
                     continue;
 
+                read.checkCigar();
                 // hard-clip low quality ends - this may introduce extra H elements in CIGAR string
                 read = ReadClipper.hardClipLowQualEnds(read, (byte) BASE_QUAL_THRESHOLD );
 

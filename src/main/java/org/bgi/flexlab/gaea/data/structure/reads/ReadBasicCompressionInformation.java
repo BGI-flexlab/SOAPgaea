@@ -48,22 +48,6 @@ public class ReadBasicCompressionInformation {
 	}
 
 	/**
-	 * hard clip read
-	 * @param start length to start
-	 * @param end length to end
-	 */
-	public void hardClip(int start, int end) {
-		if(start < 0 || end < 0 || end > readBases.length - 1)
-			throw new UserException("start or end < 0 or end > read length for clip read.");
-
-		//bases
-		readBases = Arrays.copyOfRange(readBases, start, end);
-
-		//qualities
-		qualities = Arrays.copyOfRange(qualities, start, end);
-	}
-
-	/**
 	 *  set minimum base quality
 	 * @param minimumBaseQuality
 	 */

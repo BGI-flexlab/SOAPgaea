@@ -106,7 +106,7 @@ public class INDELGenotypeLikelihoodCalculator extends GenotypeLikelihoodCalcula
         perReadAlleleLikelihoodMap.clear();
 
         int winStart = Math.max( position - REF_WIN_Extend, 0 );
-        int winStop = Math.min( position + REF_WIN_Extend, reference.getLength() );
+        int winStop = Math.min( position + REF_WIN_Extend, reference.getLength() - 1 );
         GenomeLocation refWindows = locationParser.createGenomeLocation(reference.getChromosomeName(), winStart, winStop);
 
         //construct haplotypes
@@ -160,7 +160,7 @@ public class INDELGenotypeLikelihoodCalculator extends GenotypeLikelihoodCalcula
     }
 
     public static List<Allele> getConsensusAlleles(Map<String, Pileup> pileups, int positon, ChromosomeInformationShare reference, GenotyperOptions options, GenomeLocationParser locationParser) {
-        ConsensusAlleleCounter counter = new ConsensusAlleleCounter(false, options.getMinIndelCountForGenotyping(), options.getMinIndelFractionPerSample());
+        ConsensusAlleleCounter counter = new ConsensusAlleleCounter(true, options.getMinIndelCountForGenotyping(), options.getMinIndelFractionPerSample());
         return counter.computeConsensusAlleles(reference, pileups, positon, locationParser);
     }
 
@@ -216,7 +216,7 @@ public class INDELGenotypeLikelihoodCalculator extends GenotypeLikelihoodCalcula
     // so that per-sample DP will include deletions covering the event.
     protected int getFilteredDepth(Pileup pileup) {
         int count = 0;
-        for (PileupReadInfo p : pileup.getFilteredPileup()) {
+        for (PileupReadInfo p : pileup.getTotalPileup()) {
             if (p.isDeletionBase() || p.isInsertionAtBeginningOfRead() || BaseUtils.isRegularBase(p.getByteBase()))
                 count += 1; //p.getRepresentativeCount();
         }

@@ -69,7 +69,7 @@ public class ReadCovariates {
 		currCovIndex = index;
 	}
 
-	public void addCovariate(final int readOffset, final int... keys) {
+	private void setCovariate(final int readOffset, final int... keys) {
 		int len = keys.length;
 		for (int i = 0; i < len; i++) {
 			mkeys[i][readOffset][currCovIndex] = keys[i];
@@ -78,9 +78,9 @@ public class ReadCovariates {
 
 	public void addCovariate(final int mismatch, final int insertion, final int deletion, final int readOffset) {
 		if (!largeKeys)
-			addCovariate(readOffset, mismatch);
+			setCovariate(readOffset, mismatch);
 		else {
-			addCovariate(readOffset, mismatch, insertion, deletion);
+			setCovariate(readOffset, mismatch, insertion, deletion);
 		}
 	}
 
@@ -130,6 +130,10 @@ public class ReadCovariates {
 		if (!largeKeys)
 			throw new RuntimeException("deletetion model not match");
 		return mkeys[EventType.Deletion.index];
+	}
+	
+	public int[][][] getMKeys(){
+		return mkeys;
 	}
 
 	public void clear() {

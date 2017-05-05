@@ -172,18 +172,18 @@ public class GenotyperOptions extends GaeaOptions implements HadoopOptions {
      * confidence >= this threshold are emitted as called sites. A reasonable threshold is 30 for high-pass calling (this
      * is the default).
      */
-    public double standardConfidenceForCalling = 10.0;
+    private double standardConfidenceForCalling = 10.0;
 
     /**
      * This argument allows you to emit low quality calls as filtered records.
      */
-    public double standardConfidenceForEmitting = 30.0;
+    private double standardConfidenceForEmitting = 30.0;
 
     /**
      * The expected heterozygosity value used to compute prior likelihoods for any locus. The default priors are:
      * het = 1e-3, P(hom-ref genotype) = 1 - 3 * het / 2, P(het genotype) = het, P(hom-var genotype) = het / 2
      */
-    public Double heterozygosity = VariantCallingEngine.HUMAN_SNP_HETEROZYGOSITY;
+    private Double heterozygosity = VariantCallingEngine.HUMAN_SNP_HETEROZYGOSITY;
 
     /**
      * Standard deviation of eterozygosity for SNP and indel calling.
@@ -193,13 +193,13 @@ public class GenotyperOptions extends GaeaOptions implements HadoopOptions {
     /**
      * This argument informs the prior probability of having an indel at a site.
      */
-    public double indelHeterozygosity = 1.0/8000;
+    private double indelHeterozygosity = 1.0/8000;
 
     /**
      * Depending on the value of the --max_alternate_alleles argument, we may genotype only a fraction of the alleles being sent on for genotyping.
      * Using this argument instructs the genotyper to annotate (in the INFO field) the number of alternate alleles that were originally discovered at the site.
      */
-    public boolean annotateNumberOfAllelesDiscovered = false;
+    private boolean annotateNumberOfAllelesDiscovered = false;
 
     /**
      * The PCR error rate to be used for computing fragment-based likelihoods
@@ -229,7 +229,7 @@ public class GenotyperOptions extends GaeaOptions implements HadoopOptions {
     /**
      * window size
      */
-    private int windowSize = 100000;
+    private int windowSize = 10000;
 
     public GenotyperOptions() {
         addOption("i", "input", true, "Input file containing sequence data (BAM or CRAM)");

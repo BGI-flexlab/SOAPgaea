@@ -17,6 +17,7 @@
 package org.bgi.flexlab.gaea.data.structure.pileup;
 
 import org.bgi.flexlab.gaea.data.structure.alignment.AlignmentsBasic;
+import org.bgi.flexlab.gaea.util.MathUtils;
 
 import java.util.ArrayList;
 
@@ -80,7 +81,7 @@ public class Pileup implements PileupInterface<PileupReadInfo> {
 				position = read.getPosition();
 				plp.add(read);
 			} else if (position < read.getPosition() || position > read.getEnd()) {
-				throw new RuntimeException("add read to plp error.");
+				throw new RuntimeException("add read to plp error：" + read.getReadInfo().toString());
 			}
 		}
 	}
@@ -157,9 +158,16 @@ public class Pileup implements PileupInterface<PileupReadInfo> {
 	 * @return coverage depth
 	 */
 	public int depthOfCoverage(boolean isFiltered) {
+		ArrayList<PileupReadInfo> pileupElements = plp;
 		if(isFiltered)
-			return filterPileup.size();
-		return plp.size();
+			pileupElements = filterPileup;
+
+		int depth = pileupElements.size();
+		/*for(PileupReadInfo p : pileupElements) {
+			depth += p.isDeletionBase() ?  : 1;
+		}*/
+
+		return depth;
 	}
 
 	public int getNumberOfDeletions() {
@@ -213,6 +221,10 @@ public class Pileup implements PileupInterface<PileupReadInfo> {
 
 	public int getDeletionCount() {
 		return deletionCount;
+	}
+
+	public double getDeletionRate() {
+		return deletionCount / (double) depthOfCoverage(false);
 	}
 
 	public int getNextDeletionCount() {

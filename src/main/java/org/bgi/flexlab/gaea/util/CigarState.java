@@ -165,8 +165,8 @@ public class CigarState {
 			if(op == SystemConfiguration.BAM_CSOFT_CLIP || op == SystemConfiguration.BAM_CMATCH ||
 					op == SystemConfiguration.BAM_CDEL || op == SystemConfiguration.BAM_CREF_SKIP ||
 					op == SystemConfiguration.BAM_CEQUAL || op == SystemConfiguration.BAM_CDIFF) {
-				if(refPosition < cigarState[1]) { //current cigar
-					if(op == SystemConfiguration.BAM_CDEL) {
+				if(refPosition >= cigarState[1] && refPosition < cigarState[1] + len) { //current cigar
+					if(op == SystemConfiguration.BAM_CDEL || op == SystemConfiguration.BAM_CREF_SKIP) {
 						return cigarState[2];
 					} else {
 						return cigarState[2] + refPosition - cigarState[1];

@@ -111,6 +111,7 @@ public class RecalibratorReport {
 		// read group table parse
 		readGroupParser(tables.get(RecalibratorUtil.RECALIBRATOR_TABLE_NAME[0]),
 				recalTable.getTable(RecalibratorTable.Type.READ_GROUP_TABLE));
+		
 		// quality group table parse
 		qualityScoreParser(tables.get(RecalibratorUtil.RECALIBRATOR_TABLE_NAME[1]),
 				recalTable.getTable(RecalibratorTable.Type.QUALITY_SCORE_TABLE));
@@ -262,22 +263,22 @@ public class RecalibratorReport {
 				continue;
 			}
 
-			final byte[] qaulities = read.getBaseQualities(errorModel);
+			final byte[] qualities = read.getBaseQualities(errorModel);
 			final int[][] fullReadKeySet = readCovariates.getKeySet(errorModel);
 
 			final int readLength = read.getReadLength();
 			for (int offset = 0; offset < readLength; offset++) {
 
-				final byte originalQualityScore = qaulities[offset];
+				final byte originalQualityScore = qualities[offset];
 
 				if (originalQualityScore >= this.preserveQualityLessThan) {
 					final int[] keySet = fullReadKeySet[offset];
 					final byte recalibratedQualityScore = performSequentialQualityCalculation(keySet, errorModel);
-					qaulities[offset] = recalibratedQualityScore;
+					qualities[offset] = recalibratedQualityScore;
 				}
 			}
 			
-			read.setBaseQualities(qaulities, errorModel);
+			read.setBaseQualities(qualities, errorModel);
 		}
 	}
 

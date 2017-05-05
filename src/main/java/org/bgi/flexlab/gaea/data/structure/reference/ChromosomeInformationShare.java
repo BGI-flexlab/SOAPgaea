@@ -34,7 +34,7 @@ public class ChromosomeInformationShare extends BioMemoryShare {
 	/**
 	 * get base from reference position
 	 * 
-	 * @param position
+	 * @param pos
 	 * @return base
 	 */
 	public byte getBinaryBase(int pos) {
@@ -61,15 +61,23 @@ public class ChromosomeInformationShare extends BioMemoryShare {
 	}
 
 	public boolean[] isSNPs(int start, int end) {
+		if(end >= length)
+			end = length - 1;
+		
 		byte[] bases = getBytes(start, end);
 		return isSNPs(bases, start, end);
 	}
 	
 	public boolean[] isSNPs(byte[] bases,int start,int end){
+		if(end >= length)
+			end = length - 1;
+		
 		boolean[] snps = new boolean[end - start + 1];
 		
+		int deviation = (start & 0x1) == 1 ? 1 : 0;
+		
 		for(int i = start ; i < (end + 1) ; i++) {
-			int posi = (i-start) / capacity;
+			int posi = (i-start+deviation) / capacity;
 			
 			if((i & 0x1) == 0)
 				snps[i-start] = ((bases[posi] >> 3) & 0x1) == 1 ? true : false;
@@ -89,20 +97,32 @@ public class ChromosomeInformationShare extends BioMemoryShare {
 	 * @return String 序列
 	 */
 	public String getBaseSequence(int start, int end) {
+		if(end >= length)
+			end = length -1;
+		
 		byte[] bases = getBytes(start, end);
 		return getBaseSequence(bases, start, end);
 	}
 	
 	public String getBaseSequence(byte[] bases,int start,int end){
+		if(end >= length)
+			end = length-1;
+		
 		StringBuilder seq = new StringBuilder();
 		
-		for(int i = start ; i < (end+1) ; i++){
-			int posi = (i-start) / capacity;
+		int deviation = (start & 0x1) == 1 ? 1 : 0;
 			
-			if((i & 0x1) == 0)
-				seq.append(SystemConfiguration.getFastaAbb(bases[posi] & 0x0f));
-			else
-				seq.append(SystemConfiguration.getFastaAbb((bases[posi] >> 4) & 0x0f));
+		for(int i = start ; i < (end+1) ; i++){
+			int posi = (i-start+deviation) / capacity;
+
+			try {
+				if ((i & 0x1) == 0)
+					seq.append(SystemConfiguration.getFastaAbb(bases[posi] & 0x0f));
+				else
+					seq.append(SystemConfiguration.getFastaAbb((bases[posi] >> 4) & 0x0f));
+			} catch(Exception e) {
+				throw  new RuntimeException(chrName+"\tstart-end:" + start + "-" + end + "\ti:" + i + "\tposi:" +posi+"\t"+bases.length);
+			}
 		}
 		
 		return seq.toString();

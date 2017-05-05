@@ -20,13 +20,15 @@ import htsjdk.samtools.Cigar;
 import htsjdk.samtools.CigarElement;
 import htsjdk.samtools.CigarOperator;
 import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.util.Locatable;
 import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.data.structure.reads.ReadBasicCompressionInformation;
 import org.bgi.flexlab.gaea.util.SystemConfiguration;
 
+import java.io.Serializable;
 import java.util.Arrays;
 
-public class SAMCompressionInformationBasic extends ReadBasicCompressionInformation implements ParseSAMInterface{
+public class SAMCompressionInformationBasic extends ReadBasicCompressionInformation implements ParseSAMInterface, Cloneable, Serializable {
 	/**
 	 * flag
 	 */
@@ -96,7 +98,7 @@ public class SAMCompressionInformationBasic extends ReadBasicCompressionInformat
 		cigars = new int[cigarLength];
 		for(int i = 0; i < cigarLength; i++) {
 			CigarElement cigar = samRecord.getCigar().getCigarElement(i);
-			int cigarInt = (cigar.getLength() << 4) | CigarOperator.enumToBinary(cigar.getOperator());
+			int cigarInt = (cigar.getLength() << SystemConfiguration.BAM_CIGAR_SHIFT) | CigarOperator.enumToBinary(cigar.getOperator());
 			cigars[i] = cigarInt;
 		}
 
@@ -119,7 +121,8 @@ public class SAMCompressionInformationBasic extends ReadBasicCompressionInformat
 		for(int cigar : cigars) {
 			int cigarOp = (cigar & SystemConfiguration.BAM_CIGAR_MASK);
 			int cigarLength = cigar >> SystemConfiguration.BAM_CIGAR_SHIFT;
-			if(cigarOp == SystemConfiguration.BAM_CMATCH || cigarOp == SystemConfiguration.BAM_CDEL || cigarOp == SystemConfiguration.BAM_CREF_SKIP || cigarOp == SystemConfiguration.BAM_CEQUAL) {
+			if(cigarOp == SystemConfiguration.BAM_CMATCH || cigarOp == SystemConfiguration.BAM_CDEL ||
+					cigarOp == SystemConfiguration.BAM_CREF_SKIP || cigarOp == SystemConfiguration.BAM_CEQUAL) {
 				end += cigarLength;
 			}
 		}
@@ -159,6 +162,23 @@ public class SAMCompressionInformationBasic extends ReadBasicCompressionInformat
 		}
 
 		return start;
+	}
+
+
+	/**
+	 * hard clip read
+	 * @param start length to start
+	 * @param end length to end
+	 */
+	public void hardClip(int start, int end) {
+		if(start < 0 || end < 0 || end > readBases.length - 1)
+			throw new UserException("start or end < 0 or end > read length for clip read.");
+
+		//bases
+		readBases = Arrays.copyOfRange(readBases, start, end + 1);
+
+		//qualities
+		qualities = Arrays.copyOfRange(qualities, start, end + 1);
 	}
 
 	public int getNumHardClippedBases() {
@@ -391,6 +411,16 @@ public class SAMCompressionInformationBasic extends ReadBasicCompressionInformat
 		return cigar;
 	}
 
+	public void checkCigar() {
+		for (int cigar : cigars) {
+			//int cigarOp = (cigar & SystemConfiguration.BAM_CIGAR_MASK);
+			int cigarLength = cigar >> SystemConfiguration.BAM_CIGAR_SHIFT;
+			if(cigarLength < 0) {
+				throw new RuntimeException("bad cigar:" + toString());
+			}
+		}
+	}
+
 	/**
 	 * set cigars
 	 * @param cigars
@@ -424,25 +454,24 @@ public class SAMCompressionInformationBasic extends ReadBasicCompressionInformat
 		sb.append("\t");
 		sb.append(mappingQual);
 		sb.append("\t");
-		sb.append(cigarsToString());
+		sb.append(CigarToString(cigars));
 		sb.append("\t");
 		sb.append(new String(readBases));
 		sb.append("\t");
-		sb.append(new String(qualities));
+		sb.append(qualitiesToString(qualities));
 
 		return sb.toString();
 	}
 
-	public String cigarsToString() {
-		StringBuilder sb = new StringBuilder();
-		for(int cigar : cigars) {
-			int cigarOp = (cigar & SystemConfiguration.BAM_CIGAR_MASK);
-			int cigarLength = cigar >> SystemConfiguration.BAM_CIGAR_SHIFT;
-			sb.append(cigarLength);
-			sb.append(SystemConfiguration.cigar2String.get(cigarOp));
+	private String qualitiesToString(byte[] qualities) {
+		byte[] newQual = new byte[qualities.length];
+		for(int i = 0; i < qualities.length; i++) {
+			newQual[i] = (byte) (qualities[i] + 64);
 		}
-		return sb.toString();
+
+		return new String(newQual);
 	}
+
 
 	public static String CigarToString(int[] cigars) {
 		StringBuilder sb = new StringBuilder();

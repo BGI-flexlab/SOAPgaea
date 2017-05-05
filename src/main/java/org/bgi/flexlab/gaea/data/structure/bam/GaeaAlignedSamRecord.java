@@ -44,6 +44,7 @@ package org.bgi.flexlab.gaea.data.structure.bam;
 
 import htsjdk.samtools.Cigar;
 import htsjdk.samtools.CigarElement;
+import htsjdk.samtools.CigarOperator;
 
 public class GaeaAlignedSamRecord {
 	public static final String ORIGINAL_CIGAR_TAG = "OC";
@@ -89,12 +90,12 @@ public class GaeaAlignedSamRecord {
 		setCigar(cigar, true);
 	}
 
-	public void setCigar(Cigar cigar, boolean reclip) {
+	private void setCigar(Cigar cigar, boolean reclip) {
 		if (cigar == null) {
 			return;
 		}
 
-		if (reclip && getReadBases().length < read.getReadLength()) {
+		if(reclip && hasClipOperator(read.getCigar())){
 			cigar = GaeaCigar.reclipCigar(cigar, read);
 		}
 
@@ -103,6 +104,15 @@ public class GaeaAlignedSamRecord {
 		}
 
 		newCigar = cigar;
+	}
+	
+	private boolean hasClipOperator(Cigar cigar){
+		for(CigarElement ce : cigar.getCigarElements()){
+			if(ce.getOperator() == CigarOperator.S)
+				return true;
+		}
+		
+		return false;
 	}
 
 	public boolean statusFinalize() {
