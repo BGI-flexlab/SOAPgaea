@@ -100,13 +100,12 @@ public class ReadBasicStatistics {
 		if(hasAdaptor[flag])
 			return;
 
-		if (((double) ((double) nCount / length)) >= option.getNRate()) {
+		if (nCount != 0 && (double)nCount/length >= option.getNRate()) {
 			tooManyNCounter[flag] = true;
 			return;
 		}
-		if (((double) lowQual / length) >= option.getQualityRate()) {
+		if (lowQual != 0 && (double)lowQual/length >= option.getQualityRate()) {
 			lowQualityRead[flag] = true;
-			return;
 		}
 	}
 

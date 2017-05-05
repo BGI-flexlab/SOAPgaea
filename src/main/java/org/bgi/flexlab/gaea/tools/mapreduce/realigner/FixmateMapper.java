@@ -48,7 +48,7 @@ public class FixmateMapper extends PairEndAggregatorMapper {
 			if (input == null)
 				throw new RuntimeException("bqsr report table is null!!!");
 			RecalibratorOptions bqsrOption = option.getBqsrOptions();
-			report = new RecalibratorReport(input, header, bqsrOption.QUANTIZING_LEVELS,
+			report = new RecalibratorReport(input, header, 0,
 					bqsrOption.PRESERVE_QSCORES_LESS_THAN);
 		}
 	}

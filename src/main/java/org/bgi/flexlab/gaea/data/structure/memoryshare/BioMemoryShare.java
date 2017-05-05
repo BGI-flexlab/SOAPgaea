@@ -88,7 +88,7 @@ public class BioMemoryShare {
 	}
 
 	public byte[] getBytes(int start, int end) {
-		if (start > length)
+		if (start >= length)
 			throw new OutOfBoundException(length, start);
 
 		byte[] bases;
