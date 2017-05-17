@@ -76,16 +76,9 @@ public class MarkDuplicate extends ToolsRunner{
 
         job.setJobName("GaeaMarkDuplicate");
         job.setJarByClass(MarkDuplicate.class);
+        job.setMapperClass(MarkDuplicateMappper.class);
         job.setReducerClass(MarkDuplicateReducer.class);
         job.setNumReduceTasks(options.getReducerNum());
-
-        if(options.getInputFormat().equals(SAMFormat.SAM)){
-            job.setMapperClass(MarkDuplicateSamMappper.class);
-            job.setAnySamInputFormat(options.getInputFormat());
-        }else {
-            job.setMapperClass(MarkDuplicateMappper.class);
-            job.setInputFormatClass(GaeaBamInputFormat.class);
-        }
 
         job.setMapOutputKeyClass(DuplicationKeyWritable.class);
         job.setMapOutputValueClass(SamRecordWritable.class);
@@ -93,6 +86,7 @@ public class MarkDuplicate extends ToolsRunner{
         job.setOutputKeyClass(NullWritable.class);
         job.setOutputValueClass(SamRecordWritable.class);
 
+        job.setAnySamInputFormat(options.getInputFormat());
         if(options.getOutputFormat() == 0){
             job.setOutputFormatClass(GaeaBamOutputFormat.class);
         }
