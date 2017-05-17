@@ -54,6 +54,7 @@ import org.bgi.flexlab.gaea.data.mapreduce.writable.DuplicationKeyWritable;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.SamRecordWritable;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.BioJob;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.ToolsRunner;
+import org.seqdoop.hadoop_bam.SAMFormat;
 
 import java.io.IOException;
 
@@ -78,9 +79,9 @@ public class MarkDuplicate extends ToolsRunner{
         job.setReducerClass(MarkDuplicateReducer.class);
         job.setNumReduceTasks(options.getReducerNum());
 
-        if(options.getInputFormat() != 0 && options.isSE()){
+        if(options.getInputFormat().equals(SAMFormat.SAM)){
             job.setMapperClass(MarkDuplicateSamMappper.class);
-            job.setInputFormatClass(TextInputFormat.class);
+            job.setAnySamInputFormat(options.getInputFormat());
         }else {
             job.setMapperClass(MarkDuplicateMappper.class);
             job.setInputFormatClass(GaeaBamInputFormat.class);
@@ -96,11 +97,7 @@ public class MarkDuplicate extends ToolsRunner{
             job.setOutputFormatClass(GaeaBamOutputFormat.class);
         }
 
-        if(options.isSE()){
-            FileInputFormat.setInputPaths(job, options.getInputFileList().toArray(new Path[options.getInputFileList().size()]));
-        }else {
-            FileInputFormat.setInputPaths(job, options.getInput());
-        }
+        FileInputFormat.setInputPaths(job, options.getInputFileList().toArray(new Path[options.getInputFileList().size()]));
         Path oPath = new Path(options.getOutput()+"/Mark");
         FileOutputFormat.setOutputPath(job, oPath);
         boolean success = job.waitForCompletion(true);

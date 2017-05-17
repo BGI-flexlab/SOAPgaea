@@ -23,6 +23,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.bgi.flexlab.gaea.data.mapreduce.options.HadoopOptions;
 import org.bgi.flexlab.gaea.data.options.GaeaOptions;
+import org.seqdoop.hadoop_bam.SAMFormat;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -146,8 +147,8 @@ public class MarkDuplicateOptions extends GaeaOptions implements HadoopOptions {
         return input;
     }
 
-    public int getInputFormat() {
-        return inputFormat;
+    public SAMFormat getInputFormat(){
+        return inputFormat == 0 ? SAMFormat.BAM :SAMFormat.SAM;
     }
 
     public String getOutput() {
