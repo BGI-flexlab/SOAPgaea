@@ -48,7 +48,7 @@ public class MarkDuplicateOptions extends GaeaOptions implements HadoopOptions {
 
     public MarkDuplicateOptions() {
         addOption("i", "input", true, "input directory [required]", true);
-        addOption("I", "inputFormat", false, "input Format. 0:BAM; 1:SAM [0]");
+        addOption("I", "inputFormat", true, "input Format. 0:BAM; 1:SAM [1]");
         addOption("o", "output", true, "output directory [required]", true);
         addOption("O", "outputFormat", true, "output Format. 0:BAM; 1:SAM [0]");
         addOption("D", "outputDupRead", false, "output Duplicates reads [true]");
@@ -81,7 +81,7 @@ public class MarkDuplicateOptions extends GaeaOptions implements HadoopOptions {
         }
 
         input = getOptionValue("i", null);
-        inputFormat = getOptionIntValue("I", 0);
+        inputFormat = getOptionIntValue("I", 1);
         output = getOptionValue("o", null);
         outputFormat = getOptionIntValue("O", 0);
         outputDupRead = getOptionBooleanValue("D", true);
