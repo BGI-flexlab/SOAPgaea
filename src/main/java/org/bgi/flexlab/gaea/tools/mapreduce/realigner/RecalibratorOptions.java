@@ -135,7 +135,7 @@ public class RecalibratorOptions extends GaeaOptions implements HadoopOptions {
 
 			if (argument.equals("covariate") && value != null)
 				COVARIATES = value.toString().split(",");
-			else if (argument.equals("standard_covs"))
+			else if (argument.equals("no_standard_covs"))
 				DO_NOT_USE_STANDARD_COVARIATES = Boolean.parseBoolean((String) value);
 			else if (argument.equals("solid_recal_mode"))
 				SOLID_RECAL_MODE = RecalibratorUtil.SolidRecallMode.recalModeFromString((String) value);
