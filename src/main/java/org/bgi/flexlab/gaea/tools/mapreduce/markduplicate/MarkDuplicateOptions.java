@@ -23,6 +23,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.bgi.flexlab.gaea.data.mapreduce.options.HadoopOptions;
 import org.bgi.flexlab.gaea.data.options.GaeaOptions;
+import org.seqdoop.hadoop_bam.SAMFormat;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -48,7 +49,7 @@ public class MarkDuplicateOptions extends GaeaOptions implements HadoopOptions {
 
     public MarkDuplicateOptions() {
         addOption("i", "input", true, "input directory [required]", true);
-        addOption("I", "inputFormat", false, "input Format. 0:BAM; 1:SAM [0]");
+        addOption("I", "inputFormat", true, "input Format. 0:BAM; 1:SAM [1]");
         addOption("o", "output", true, "output directory [required]", true);
         addOption("O", "outputFormat", true, "output Format. 0:BAM; 1:SAM [0]");
         addOption("D", "outputDupRead", false, "output Duplicates reads [true]");
@@ -81,7 +82,7 @@ public class MarkDuplicateOptions extends GaeaOptions implements HadoopOptions {
         }
 
         input = getOptionValue("i", null);
-        inputFormat = getOptionIntValue("I", 0);
+        inputFormat = getOptionIntValue("I", 1);
         output = getOptionValue("o", null);
         outputFormat = getOptionIntValue("O", 0);
         outputDupRead = getOptionBooleanValue("D", true);
@@ -146,8 +147,8 @@ public class MarkDuplicateOptions extends GaeaOptions implements HadoopOptions {
         return input;
     }
 
-    public int getInputFormat() {
-        return inputFormat;
+    public SAMFormat getInputFormat(){
+        return inputFormat == 0 ? SAMFormat.BAM :SAMFormat.SAM;
     }
 
     public String getOutput() {
