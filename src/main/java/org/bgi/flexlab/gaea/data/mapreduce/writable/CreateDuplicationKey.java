@@ -18,6 +18,8 @@ package org.bgi.flexlab.gaea.data.mapreduce.writable;
 
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMRecord;
+
+import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.util.RandomUtils;
 
 public class CreateDuplicationKey {
@@ -36,7 +38,8 @@ public class CreateDuplicationKey {
 	/**
 	 * get duplication key;
 	 */
-	public void getKey(SAMRecord sam,DuplicationKeyWritable key) {
+	public void getKey(SAMRecord s,DuplicationKeyWritable key) {
+		GaeaSamRecord sam = new GaeaSamRecord(header,s);
 		sam.setHeader(header);
 		sam.setDuplicateReadFlag(false);
 		LB = getLibrary(sam);
