@@ -140,7 +140,10 @@ public abstract class WindowsBasedMapper<VALUEOUT extends Writable> extends
 
 		if (SamRecordUtils.isUnmapped(sam)) {
 			if(!bqsrOnly){
-				setKey(sam.getReadGroup().getSample(), -1, sam.getReadName().hashCode(), sam.getReadName().hashCode());
+				int readNameHashCode = sam.getReadName().hashCode();
+				if(readNameHashCode >= Integer.MAX_VALUE)
+					readNameHashCode = 0;
+				setKey(sam.getReadGroup().getSample(), -1, readNameHashCode, readNameHashCode);
 				context.write(keyout, outputValue);
 			}
 			return;
