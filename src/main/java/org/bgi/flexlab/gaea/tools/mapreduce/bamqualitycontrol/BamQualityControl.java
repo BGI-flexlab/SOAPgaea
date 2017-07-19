@@ -46,10 +46,10 @@ public class BamQualityControl extends ToolsRunner{
 	public int run(String[] args) throws Exception {
 		BioJob job = BioJob.getInstance();
 		Configuration conf = job.getConfiguration();
-		
+		String[] remainArgs =  remainArgs(args,conf);
 		options = new BamQualityControlOptions();
-		options.parse(args);
-		options.setHadoopConf(args, conf);
+		options.parse(remainArgs);
+		options.setHadoopConf(remainArgs, conf);
 		
 		if(options.isDistributeCache()) {
 			ReferenceShare.distributeCache(options.getReferenceSequencePath(), job);
