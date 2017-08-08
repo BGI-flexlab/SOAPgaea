@@ -74,6 +74,9 @@ public class Realigner extends ToolsRunner {
 			jobName = "GaeaRecalibrator";
 		}else if(options.isRealignment() && !options.isRecalibration())
 			jobName = "GaeaRealigner";
+		
+		if(option.isMultiSample())
+			job.setMultipleSample();
 
 		job.setJobName(jobName);
 		
