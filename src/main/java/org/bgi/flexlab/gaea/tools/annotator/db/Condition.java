@@ -84,7 +84,17 @@ public class Condition implements Serializable{
 				sb.append(conditionMap.get(ConditionKey.valueOf(conKeys[i]))+'-');
 			}
 			sb.append(conditionMap.get(ConditionKey.valueOf(conKeys[conKeys.length-1])));
-		}else {
+		}else if(dbType == DbType.TSV){
+			for (int i = 0; i < conKeys.length-1; i++) {
+				sb.append(conditionMap.get(ConditionKey.valueOf(conKeys[i]))+'-');
+			}
+			sb.append(conditionMap.get(ConditionKey.valueOf(conKeys[conKeys.length-1])));
+		}else if(dbType == DbType.VCF){
+			for (int i = 0; i < conKeys.length-1; i++) {
+				sb.append(conditionMap.get(ConditionKey.valueOf(conKeys[i]))+'\t');
+			}
+			sb.append(conditionMap.get(ConditionKey.valueOf(conKeys[conKeys.length-1])));
+		}else{
 			sb.append("where ");
 			for (int i = 0; i < conKeys.length-1; i++) {
 				sb.append(conKeys[i] + " = " + conditionMap.get(conKeys[i])+" and ");
