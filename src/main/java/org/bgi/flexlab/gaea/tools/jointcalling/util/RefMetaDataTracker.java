@@ -19,20 +19,8 @@ public class RefMetaDataTracker {
 		return location;
 	}
 	
-	public List<VariantContext> getValues(ArrayList<VariantContext> binding,GenomeLocation loc,boolean requireStartHere){
-		List<VariantContext> values = new ArrayList<VariantContext>();
-		
-		for(VariantContext ctx : binding){
-			if ( ! requireStartHere || ctx.getStart() == loc.getStart() ) {
-				values.add(ctx);
-	        }
-		}
-		
-		return values == null ? Collections.emptyList() : values;
-	}
-	
-	public List<VariantContext> getValues(ArrayList<VariantContext> binding,GenomeLocation loc){
-		return getValues(binding,loc,true);
+	public List<VariantContext> getValues(ArrayList<VariantContext> binding){
+		return binding;
 	}
 	
 	@SuppressWarnings("unchecked")
