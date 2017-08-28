@@ -77,7 +77,6 @@ public class FastqForwardSlashReader extends FastqBasicReader{
 				
 				key.set(tempkey);
 				value.set(st[0] + "\t" + st[1] + "\t" + st[2] + "\t" + st[3]);
-				System.err.println(st[0] + "\t" + st[1] + "\t" + st[2] + "\t" + st[3]);
 			} else {
 				LOG.warn("wrong fastq reads:blank line among fq file or end of file!");
 			}

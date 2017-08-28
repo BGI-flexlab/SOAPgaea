@@ -46,7 +46,7 @@ import java.util.ArrayList;
 public class Realigner extends ToolsRunner {
 
 	public Realigner() {
-		this.toolsDescription = "Gaea realigner\n";
+		this.toolsDescription = "Gaea realigner and base quality recalibrator!\n";
 	}
 
 	public final static String RECALIBRATOR_REPORT_TABLE_NAME = "bqsr.report.table";
@@ -66,13 +66,20 @@ public class Realigner extends ToolsRunner {
 		options.parse(remainArgs);
 
 		option = options.getRealignerOptions();
-
-		job.setJobName("GaeaRealigner");
+		
+		String jobName = "Gaea realigner and recalibrator";
 
 		if (options.isRecalibration() && !options.isRealignment()) {
 			job.setOnlyBaseRecalibrator(true);
-		}
+			jobName = "GaeaRecalibrator";
+		}else if(options.isRealignment() && !options.isRecalibration())
+			jobName = "GaeaRealigner";
+		
+		if(option.isMultiSample())
+			job.setMultipleSample();
 
+		job.setJobName(jobName);
+		
 		option.setHadoopConf(remainArgs, conf);
 
 		header = job.setHeader(new Path(option.getRealignerInput()), new Path(options.getCommonOutput()));
@@ -106,7 +113,8 @@ public class Realigner extends ToolsRunner {
 
 	private int runFixMate(String[] args) throws IOException, ClassNotFoundException, InterruptedException {
 		BioJob job = BioJob.getInstance();
-		job.setJobName("GaeaFixMate");
+		
+		String jobName = "Gaea fixmate and print reads";
 
 		Configuration conf = job.getConfiguration();
 
@@ -136,13 +144,19 @@ public class Realigner extends ToolsRunner {
 		job.setReducerClass(FixmateReducer.class);
 
 		if (!options.isRealignment()) {
+			jobName = "GaeaPrintReads";
 			job.setNumReduceTasks(0);
 			job.setOutputKeyValue(NullWritable.class, SamRecordWritable.class, NullWritable.class,
 					SamRecordWritable.class);
 		} else {
 			job.setOutputKeyValue(Text.class, SamRecordWritable.class, NullWritable.class, SamRecordWritable.class);
 			job.setNumReduceTasks(option.getReducerNumber());
+			
+			if(!options.isRecalibration())
+				jobName = "GaeaFixmate";
 		}
+		
+		job.setJobName(jobName);
 		
 		ArrayList<Path> lists = inputFilter(option.getFixmateInput(options.isRealignment()),conf,new NonRecalibratorPathFilter());
 		
