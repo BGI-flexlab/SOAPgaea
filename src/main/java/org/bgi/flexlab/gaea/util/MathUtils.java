@@ -46,17 +46,21 @@ import org.bgi.flexlab.gaea.data.exception.UserException;
 
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 public class MathUtils {
 
     public static DecimalFormat doubleformat = new DecimalFormat("0.000");
     public final static double LOG10_P_OF_ZERO = -1000000.0;
+    public static final double LOG_ONE_HALF = -Math.log10(2.0);
 
     /**
      * Private constructor.  No instantiating this class!
      */
-    private MathUtils() {
+    protected MathUtils() {
     }
     
     
@@ -68,11 +72,11 @@ public class MathUtils {
     public static final double[] log10FactorialCache;
     private static final int MAXN = 50000;
     private static final int LOG10_CACHE_SIZE = 4 * MAXN;  // we need to be able to go up to 2*(2N) when calculating some of the coefficients
-    private static final double JACOBIAN_LOG_TABLE_STEP = 0.001;
-    private static final double JACOBIAN_LOG_TABLE_INV_STEP = 1.0 / 0.001;
-    private static final double MAX_JACOBIAN_TOLERANCE = 8.0;
-    private static final int JACOBIAN_LOG_TABLE_SIZE = (int) (MAX_JACOBIAN_TOLERANCE / JACOBIAN_LOG_TABLE_STEP) + 1;
-    private static final double[] jacobianLogTable;
+    protected static final double JACOBIAN_LOG_TABLE_STEP = 0.001;
+    protected static final double JACOBIAN_LOG_TABLE_INV_STEP = 1.0 / 0.001;
+    protected static final double MAX_JACOBIAN_TOLERANCE = 8.0;
+    protected static final int JACOBIAN_LOG_TABLE_SIZE = (int) (MAX_JACOBIAN_TOLERANCE / JACOBIAN_LOG_TABLE_STEP) + 1;
+    protected static final double[] jacobianLogTable;
 
     static {
         log10Cache = new double[LOG10_CACHE_SIZE];
@@ -549,6 +553,16 @@ public class MathUtils {
         for (int i = 0; i < s.length(); i++) {
             count += s.charAt(i) == c ? 1 : 0;
         }
+        return count;
+    }
+    
+    public static int countOccurrences(final boolean element, final boolean[] array) {
+        int count = 0;
+        for (final boolean b : array) {
+            if (element == b)
+                count++;
+        }
+
         return count;
     }
 
