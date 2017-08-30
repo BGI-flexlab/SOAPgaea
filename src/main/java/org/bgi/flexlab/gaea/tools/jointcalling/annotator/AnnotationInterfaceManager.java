@@ -1,4 +1,4 @@
-package org.bgi.flexlab.gaea.tools.jointcalling.genotypegvcfs.annotation;
+package org.bgi.flexlab.gaea.tools.jointcalling.annotator;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -7,6 +7,9 @@ import java.util.List;
 import java.util.TreeSet;
 
 import org.bgi.flexlab.gaea.data.exception.UserException;
+import org.bgi.flexlab.gaea.tools.jointcalling.genotypegvcfs.annotation.GenotypeAnnotation;
+import org.bgi.flexlab.gaea.tools.jointcalling.genotypegvcfs.annotation.InfoFieldAnnotation;
+import org.bgi.flexlab.gaea.tools.jointcalling.genotypegvcfs.annotation.PluginManager;
 
 public class AnnotationInterfaceManager {
 	private static final String NULL_ANNOTATION_NAME = "none";

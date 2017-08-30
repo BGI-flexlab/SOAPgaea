@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
+import org.bgi.flexlab.gaea.tools.jointcalling.annotator.AnnotationType;
 import org.bgi.flexlab.gaea.tools.jointcalling.util.ReducibleAnnotationData;
 import org.bgi.flexlab.gaea.tools.jointcalling.util.RefMetaDataTracker;
 

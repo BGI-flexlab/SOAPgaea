@@ -1,5 +1,7 @@
 package org.bgi.flexlab.gaea.tools.jointcalling.util;
 
+import java.util.Random;
+
 import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.util.MathUtils;
 
@@ -10,6 +12,10 @@ public class GvcfMathUtils extends MathUtils {
 	private static final double LOG1MEXP_THRESHOLD = Math.log(0.5);
 
 	private final static double RAW_MIN_PHRED_SCALED_QUAL = Math.log10(Double.MIN_VALUE);
+	
+	private static final long GAEA_RANDOM_SEED = 47382911L;
+    private static Random randomGenerator = new Random(GAEA_RANDOM_SEED);
+	public static Random getRandomGenerator() { return randomGenerator; }
 
 	/**
 	 * Compute Z=X-Y for two numeric vectors X and Y
@@ -210,5 +216,9 @@ public class GvcfMathUtils extends MathUtils {
 		// abs is necessary for edge base with errorRateLog10 = 0 producing -0.0
 		// doubles
 		return Math.abs(-10.0 * Math.max(errorRateLog10, RAW_MIN_PHRED_SCALED_QUAL));
+	}
+	
+	public static double binomialCoefficient(final int n, final int k) {
+	    return Math.pow(10, log10BinomialCoefficient(n, k));
 	}
 }

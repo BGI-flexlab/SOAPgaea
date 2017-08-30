@@ -1,4 +1,4 @@
-package org.bgi.flexlab.gaea.tools.jointcalling.genotypegvcfs.annotation;
+package org.bgi.flexlab.gaea.tools.jointcalling.annotator;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -45,10 +45,10 @@ public final class VariantOverlapAnnotator {
         return overlapBindings.keySet();
     }
     
-    public VariantContext annotateRsID(final RefMetaDataTracker tracker, final VariantContext vcToAnnotate) {
+    public VariantContext annotateRsID(final VariantContext vcToAnnotate) {
         if ( dbSNPBinding != null ) {
             final GenomeLocation loc = getLocation(vcToAnnotate);
-            return annotateRsID(tracker.getValues(dbSNPBinding, loc), vcToAnnotate);
+            return annotateRsID(RefMetaDataTracker.getValues(dbSNPBinding, loc), vcToAnnotate);
         } else {
             return vcToAnnotate;
         }
@@ -104,13 +104,13 @@ public final class VariantOverlapAnnotator {
         return null;
     }
     
-    public VariantContext annotateOverlaps(final RefMetaDataTracker tracker, final VariantContext vcToAnnotate) {
+    public VariantContext annotateOverlaps(final VariantContext vcToAnnotate) {
         if ( overlapBindings.isEmpty() ) return vcToAnnotate;
 
         VariantContext annotated = vcToAnnotate;
         final GenomeLocation loc = getLocation(vcToAnnotate);
         for ( final Map.Entry<String, ArrayList<VariantContext>> overlapBinding : overlapBindings.entrySet() ) {
-            annotated = annotateOverlap(tracker.getValues(overlapBinding.getValue(), loc), overlapBinding.getKey(), annotated);
+            annotated = annotateOverlap(RefMetaDataTracker.getValues(overlapBinding.getValue(), loc), overlapBinding.getKey(), annotated);
         }
 
         return annotated;

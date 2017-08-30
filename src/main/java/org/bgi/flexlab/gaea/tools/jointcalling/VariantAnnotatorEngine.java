@@ -16,12 +16,12 @@ import org.bgi.flexlab.gaea.data.exception.UserException.BadArgumentValueExcepti
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocationParser;
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
-import org.bgi.flexlab.gaea.tools.jointcalling.genotypegvcfs.annotation.AnnotationInterfaceManager;
+import org.bgi.flexlab.gaea.tools.jointcalling.annotator.AnnotationInterfaceManager;
+import org.bgi.flexlab.gaea.tools.jointcalling.annotator.VariantOverlapAnnotator;
 import org.bgi.flexlab.gaea.tools.jointcalling.genotypegvcfs.annotation.GenotypeAnnotation;
 import org.bgi.flexlab.gaea.tools.jointcalling.genotypegvcfs.annotation.InfoFieldAnnotation;
 import org.bgi.flexlab.gaea.tools.jointcalling.genotypegvcfs.annotation.ReducibleAnnotation;
 import org.bgi.flexlab.gaea.tools.jointcalling.genotypegvcfs.annotation.VariantAnnotatorAnnotation;
-import org.bgi.flexlab.gaea.tools.jointcalling.genotypegvcfs.annotation.VariantOverlapAnnotator;
 import org.bgi.flexlab.gaea.tools.jointcalling.util.GaeaGvcfVariantContextUtils;
 import org.bgi.flexlab.gaea.tools.jointcalling.util.ReducibleAnnotationData;
 import org.bgi.flexlab.gaea.tools.jointcalling.util.RefMetaDataTracker;
@@ -82,10 +82,9 @@ public class VariantAnnotatorEngine {
 	// use this constructor if you want to select specific annotations (and/or
 	// interfaces)
 	public VariantAnnotatorEngine(List<String> annotationGroupsToUse, List<String> annotationsToUse,
-			List<String> annotationsToExclude,ArrayList<VariantContext> dbSNPs,GenomeLocationParser parser) {
+			List<String> annotationsToExclude) {
 		initializeAnnotations(annotationGroupsToUse, annotationsToUse, annotationsToExclude);
 		setReducibleAnnotations();
-		initializeDBs(dbSNPs,parser);
 	}
 
 	private void initializeAnnotations(List<String> annotationGroupsToUse, List<String> annotationsToUse,
@@ -132,13 +131,13 @@ public class VariantAnnotatorEngine {
 		variantOverlapAnnotator = new VariantOverlapAnnotator(dbSNPBindings, overlapBindings,parser);
 	}
 
-	public void invokeAnnotationInitializationMethods(final Set<VCFHeaderLine> headerLines) {
+	public void invokeAnnotationInitializationMethods(final Set<VCFHeaderLine> headerLines,Set<String> sampleList) {
 		for (final VariantAnnotatorAnnotation annotation : requestedInfoAnnotations) {
-			annotation.initialize(headerLines);
+			annotation.initialize(headerLines,sampleList);
 		}
 
 		for (final VariantAnnotatorAnnotation annotation : requestedGenotypeAnnotations) {
-			annotation.initialize(headerLines);
+			annotation.initialize(headerLines,sampleList);
 		}
 	}
 
@@ -199,13 +198,13 @@ public class VariantAnnotatorEngine {
 		final VariantContext annotated = builder.attributes(infoAnnotations).make();
 
 		// annotate db occurrences
-		return annotateDBs(tracker, annotated);
+		return annotateDBs( annotated);
 	}
 	
 	@Requires({"tracker != null && loc != null && vc != null && infoAnnotations != null"})
     @Ensures("result != null")
-    private VariantContext annotateDBs(final RefMetaDataTracker tracker, VariantContext vc) {
-        return variantOverlapAnnotator.annotateOverlaps(tracker, variantOverlapAnnotator.annotateRsID(tracker, vc));
+    private VariantContext annotateDBs(VariantContext vc) {
+        return variantOverlapAnnotator.annotateOverlaps( variantOverlapAnnotator.annotateRsID(vc));
     }
 
 	/**

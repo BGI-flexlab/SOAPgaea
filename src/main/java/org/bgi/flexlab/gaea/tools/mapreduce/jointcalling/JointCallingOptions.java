@@ -16,7 +16,13 @@ public class JointCallingOptions extends GaeaOptions implements HadoopOptions{
 	
 	private int MAX_NUM_PL_VALUES = 100;
 	
+	private int windows_size = 10000;
+	
 	private String output = null;
+	
+	private String reference = null;
+	
+	private String dbsnp = null;
 	
 	private List<String> input = Collections.emptyList();
 	
@@ -33,6 +39,10 @@ public class JointCallingOptions extends GaeaOptions implements HadoopOptions{
 	public boolean ANNOTATE_NUMBER_OF_ALLELES_DISCOVERED = false;
 	
 	public boolean ANNOTATE_ALL_SITES_WITH_PL = false;
+	
+	public boolean INCLUDE_NON_VARIANT = false;
+	
+	private boolean unquifySamples = false;
 	
 	public double STANDARD_CONFIDENCE_FOR_CALLING = 30.0;
 	
@@ -86,11 +96,27 @@ public class JointCallingOptions extends GaeaOptions implements HadoopOptions{
 		return this.MAX_NUM_PL_VALUES;
 	}
 	
+	public int getWindowsSize(){
+		return this.windows_size;
+	}
+	
 	public String getOutput(){
 		return this.output;
 	}
 	
 	public List<String> getInput(){
 		return this.input;
+	}
+	
+	public String getReference(){
+		return this.reference;
+	}
+	
+	public String getDBSnp(){
+		return this.dbsnp;
+	}
+	
+	public boolean isUniquifySamples(){
+		return this.unquifySamples;
 	}
 }
