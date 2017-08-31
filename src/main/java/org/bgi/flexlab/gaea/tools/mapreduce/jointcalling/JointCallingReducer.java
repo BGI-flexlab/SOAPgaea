@@ -6,8 +6,10 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Reducer;
+import org.bgi.flexlab.gaea.data.mapreduce.output.vcf.GaeaVCFOutputFormat;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.WindowsBasedWritable;
 import org.bgi.flexlab.gaea.data.structure.dbsnp.DbsnpShare;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocationParser;
@@ -17,7 +19,10 @@ import org.bgi.flexlab.gaea.data.structure.vcf.VCFLocalLoader;
 import org.bgi.flexlab.gaea.data.variant.filter.VariantRegionFilter;
 import org.bgi.flexlab.gaea.tools.jointcalling.JointCallingEngine;
 import org.seqdoop.hadoop_bam.VariantContextWritable;
+import org.seqdoop.hadoop_bam.util.VCFHeaderReader;
+import org.seqdoop.hadoop_bam.util.WrapSeekable;
 
+import htsjdk.samtools.seekablestream.SeekableStream;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFContigHeaderLine;
 import htsjdk.variant.vcf.VCFHeader;
@@ -41,14 +46,20 @@ public class JointCallingReducer
 	private VCFLocalLoader loader = null;
 	
 	private VariantRegionFilter filter = null;
+	
+	private VCFHeader header = null;
 
 	@Override
 	protected void setup(Context context) throws IOException {
 		Configuration conf = context.getConfiguration();
-		VCFHeader header = null;
 		
 		contigs = new HashMap<Integer, String>();
-
+		
+		Path path = new Path(conf.get(GaeaVCFOutputFormat.OUT_PATH_PROP));
+		SeekableStream in = WrapSeekable.openPath(path.getFileSystem(conf), path);
+		header = VCFHeaderReader.readHeaderFrom(in);
+		in.close();
+		
 		List<VCFContigHeaderLine> lines = header.getContigLines();
 
 		for (int i = 0; i < lines.size(); i++) {
@@ -62,7 +73,7 @@ public class JointCallingReducer
 
 		parser = new GenomeLocationParser(header.getSequenceDictionary());
 
-		engine = new JointCallingEngine(options, parser);
+		engine = new JointCallingEngine(options, parser,header);
 
 		genomeShare = new ReferenceShare();
 		genomeShare.loadChromosomeList(options.getReference());
@@ -73,6 +84,8 @@ public class JointCallingReducer
 		loader = new VCFLocalLoader(options.getDBSnp());
 		
 		filter = new VariantRegionFilter();
+		
+		header = engine.getVCFHeader();
 	}
 
 	@Override
@@ -90,7 +103,7 @@ public class JointCallingReducer
 		for (int iter = start; iter <= end; iter++) {
 			VariantContext variantContext = engine.variantCalling(values.iterator(),
 					parser.createGenomeLocation(chr, iter), genomeShare.getChromosomeInfo(chr));
-			outValue.set(variantContext);
+			outValue.set(variantContext,header);
 			context.write(NullWritable.get(), outValue);
 		}
 	}

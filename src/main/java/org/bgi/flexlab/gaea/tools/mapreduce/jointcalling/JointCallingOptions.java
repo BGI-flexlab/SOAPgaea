@@ -1,52 +1,81 @@
 package org.bgi.flexlab.gaea.tools.mapreduce.jointcalling;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.commons.cli.ParseException;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
+import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.data.mapreduce.options.HadoopOptions;
 import org.bgi.flexlab.gaea.data.options.GaeaOptions;
+import org.bgi.flexlab.gaea.data.structure.vcf.AbstractVCFLoader;
 import org.bgi.flexlab.gaea.tools.jointcalling.UnifiedGenotypingEngine.GenotypingOutputMode;
 import org.bgi.flexlab.gaea.tools.jointcalling.UnifiedGenotypingEngine.OutputMode;
+import org.bgi.flexlab.gaea.tools.mapreduce.realigner.RealignerExtendOptions;
+import org.seqdoop.hadoop_bam.VCFFormat;
+
+import htsjdk.variant.vcf.VCFCodec;
 
 public class JointCallingOptions extends GaeaOptions implements HadoopOptions{
-	private int samplePloidy = 2;
+	private final static String SOFTWARE_NAME = "JointCalling";
+	private final static String SOFTWARE_VERSION = "1.0";
 	
-	private int MAX_ALTERNATE_ALLELES = 6;
+	private int samplePloidy = 2;//C
+	private int MAX_ALTERNATE_ALLELES = 6;//M
+	private int MAX_NUM_PL_VALUES = 100;//m
+	private int windows_size = 10000;//w
+	private int num_reducer = 100;//n
 	
-	private int MAX_NUM_PL_VALUES = 100;
+	private String output = null;//o
+	private String reference = null;//r
+	private String dbsnp = null;//k	
+	private String MAGIC_HEADER_LINE = VCFCodec.VCF4_MAGIC_HEADER;//F
 	
-	private int windows_size = 10000;
+	private double snpHeterozygosity = 1e-3;//b	
+	private double indelHeterozygosity = 1.0/8000;//B
+	public double STANDARD_CONFIDENCE_FOR_CALLING = 30.0;//S
+	public double STANDARD_CONFIDENCE_FOR_EMITTING = 30.0;//s
 	
-	private String output = null;
+	private List<Path> input = Collections.emptyList();//i
+	private List<Double> inputPrior = Collections.emptyList();//p
+	private OutputMode outputMode = OutputMode.EMIT_VARIANTS_ONLY;//O
+	private GenotypingOutputMode genotypeMode = GenotypingOutputMode.DISCOVERY;//G
 	
-	private String reference = null;
+	public boolean ANNOTATE_NUMBER_OF_ALLELES_DISCOVERED = false;//A
+	public boolean ANNOTATE_ALL_SITES_WITH_PL = false;//a
+	public boolean INCLUDE_NON_VARIANT = false;//I
+	private boolean unquifySamples = false;//u
+	private boolean bcfFormat = false;//f
 	
-	private String dbsnp = null;
-	
-	private List<String> input = Collections.emptyList();
-	
-	private double snpHeterozygosity = 1e-3;
-	
-	private double indelHeterozygosity = 1.0/8000;
-	
-	private List<Double> inputPrior = Collections.emptyList();
-	
-	private OutputMode outputMode = OutputMode.EMIT_VARIANTS_ONLY;
-	
-	private GenotypingOutputMode genotypeMode = GenotypingOutputMode.DISCOVERY;
-	
-	public boolean ANNOTATE_NUMBER_OF_ALLELES_DISCOVERED = false;
-	
-	public boolean ANNOTATE_ALL_SITES_WITH_PL = false;
-	
-	public boolean INCLUDE_NON_VARIANT = false;
-	
-	private boolean unquifySamples = false;
-	
-	public double STANDARD_CONFIDENCE_FOR_CALLING = 30.0;
-	
-	public double STANDARD_CONFIDENCE_FOR_EMITTING = 30.0;
+	public JointCallingOptions(){
+		addOption("a","allSitePLs",false,"Annotate all sites with PLs");
+		addOption("A","annotateNDA",false,"If provided, we will annotate records with the number of alternate alleles that were discovered (but not necessarily genotyped) at a given site");
+		addOption("b","hets",true,"Heterozygosity value used to compute prior likelihoods for any locus");
+		addOption("B","indel_hets",true,"Heterozygosity for indel calling");
+		addOption("C","sample_ploidy",true,"Ploidy (number of chromosomes) per sample. For pooled data, set to (Number of samples in each pool * Sample Ploidy).");
+		addOption("f", "format", false, "output format is bcf");
+		//addOption("F", "vcfformat", true, "input vcf format version");
+		addOption("G", "gt_mode",true,"Specifies how to determine the alternate alleles to use for genotyping(DISCOVERY or GENOTYPE_GIVEN_ALLELES)");
+		addOption("i", "input", true, "a gvcf or a gvcf list for input", true);
+		addOption("I","include_non_variant",false,"Include loci found to be non-variant after genotyping");
+		addOption("k", "knowSite", true, "known snp/indel file,the format is VCF4");
+		addOption("n", "reducer", true, "reducer numbers[100]");
+		addOption("m","max_num_PL_values",true,"Maximum number of PL values to output");
+		addOption("M","max_alternate_alleles",true,"Maximum number of alternate alleles to genotype");
+		addOption("o", "output", true, "output directory", true);
+		addOption("O","output_mode",true,"output mode(EMIT_VARIANTS_ONLY,EMIT_ALL_CONFIDENT_SITES,EMIT_ALL_SITES)");
+		addOption("p","input_prior",true,"Input prior for calls(separation by Comma(,))");
+		addOption("r", "reference", true, "reference index(generation by GaeaIndex) file path", true);
+		addOption("s","stand_emit_conf",true,"The minimum phred-scaled confidence threshold at which variants should be emitted (and filtered with LowQual if less than the calling threshold");
+		addOption("S","stand_call_conf",true,"The minimum phred-scaled confidence threshold at which variants should be called");
+		addOption("u","uniquifySamples",false,"Assume duplicate samples are present and uniquify all names with '.variant' and file number index");
+		addOption("w", "keyWindow", true, "window size for key[10000]");
+		FormatHelpInfo(SOFTWARE_NAME,SOFTWARE_VERSION);
+	}
 
 	@Override
 	public void setHadoopConf(String[] args, Configuration conf) {
@@ -61,7 +90,95 @@ public class JointCallingOptions extends GaeaOptions implements HadoopOptions{
 
 	@Override
 	public void parse(String[] args) {
+		try {
+			cmdLine = parser.parse(options, args);
+		} catch (ParseException e) {
+			System.err.println(e.getMessage());
+			FormatHelpInfo(RealignerExtendOptions.SOFTWARE_NAME, RealignerExtendOptions.SOFTWARE_VERSION);
+			System.exit(1);
+		}
 		
+		try {
+			parseInput( getOptionValue("i",null));
+		} catch (IOException e) {
+			throw new UserException(e.toString());
+		}
+		
+		this.samplePloidy = getOptionIntValue("C",2);
+		this.MAX_ALTERNATE_ALLELES = getOptionIntValue("M",6);
+		this.MAX_NUM_PL_VALUES = getOptionIntValue("m",100);
+		this.windows_size = getOptionIntValue("w",10000);
+		this.num_reducer = getOptionIntValue("n",100);
+		
+		this.output = getOptionValue("o",null);
+		this.reference = getOptionValue("r",null);
+		this.dbsnp = getOptionValue("k",null);
+		parseInputPrior(getOptionValue("p",null));
+		parseOutputMode(getOptionValue("O",OutputMode.EMIT_VARIANTS_ONLY.toString()));
+		parseGenotypeMode(getOptionValue("G",GenotypingOutputMode.DISCOVERY.toString()));
+		
+		this.ANNOTATE_ALL_SITES_WITH_PL = getOptionBooleanValue("a",false);
+		this.ANNOTATE_NUMBER_OF_ALLELES_DISCOVERED = getOptionBooleanValue("A",false);
+		this.INCLUDE_NON_VARIANT = getOptionBooleanValue("I",false);
+		this.unquifySamples = getOptionBooleanValue("u",false);
+		this.bcfFormat = getOptionBooleanValue("f",false);
+		
+		this.snpHeterozygosity = getOptionDoubleValue("b",1e-3);
+		this.indelHeterozygosity = getOptionDoubleValue("B",1.0/8000);
+		this.STANDARD_CONFIDENCE_FOR_EMITTING = getOptionDoubleValue("s",30.0);
+		this.STANDARD_CONFIDENCE_FOR_CALLING = getOptionDoubleValue("S",30.0);
+	}
+	
+	private void parseOutputMode(String mode){
+		if(mode.equals(OutputMode.EMIT_ALL_CONFIDENT_SITES.toString()))
+			this.outputMode = OutputMode.EMIT_ALL_CONFIDENT_SITES;
+		else if(mode.equals(OutputMode.EMIT_ALL_SITES.toString()))
+			this.outputMode = OutputMode.EMIT_ALL_SITES;
+		else if(mode.equals(OutputMode.EMIT_VARIANTS_ONLY.toString()))
+			this.outputMode = OutputMode.EMIT_VARIANTS_ONLY;
+		else
+			throw new UserException.BadArgumentValueException("O",mode);
+	}
+	
+	private void parseGenotypeMode(String mode){
+		if(mode.equals(GenotypingOutputMode.DISCOVERY.toString()))
+			this.genotypeMode = GenotypingOutputMode.DISCOVERY;
+		else if(mode.equals(GenotypingOutputMode.GENOTYPE_GIVEN_ALLELES.toString()))
+			this.genotypeMode = GenotypingOutputMode.GENOTYPE_GIVEN_ALLELES;
+		else
+			throw new UserException.BadArgumentValueException("G",mode);
+	}
+	
+	private void parseInputPrior(String prior){
+		if(prior == null || prior.length() == 0)
+			return;
+		String[] str = prior.trim().split(",");
+		
+		for(String s : str){
+			inputPrior.add(Double.parseDouble(s));
+		}
+	}
+	
+	private void parseInput(String inputpath) throws IOException{
+		if(inputpath == null)
+			throw new UserException.BadArgumentValueException("i",inputpath);
+		Path path = new Path(inputpath);
+		Configuration conf = new Configuration();
+		boolean isvcf = AbstractVCFLoader.isVCFStream(path.getFileSystem(conf).open(path), MAGIC_HEADER_LINE);
+		
+		if(isvcf)
+			input.add(path);
+		else{
+			BufferedReader br = new BufferedReader(new FileReader(inputpath));
+			String line ;
+			
+			while((line = br.readLine()) != null){
+				if(line.length() != 0)
+					input.add(new Path(line));
+			}
+			
+			br.close();
+		}
 	}
 
 	public int getSamplePloidy(){
@@ -101,10 +218,13 @@ public class JointCallingOptions extends GaeaOptions implements HadoopOptions{
 	}
 	
 	public String getOutput(){
-		return this.output;
+		if(output.endsWith("/"))
+			return this.output+"vcf";
+		else
+			return this.output+"/vcf";
 	}
 	
-	public List<String> getInput(){
+	public List<Path> getInput(){
 		return this.input;
 	}
 	
@@ -118,5 +238,19 @@ public class JointCallingOptions extends GaeaOptions implements HadoopOptions{
 	
 	public boolean isUniquifySamples(){
 		return this.unquifySamples;
+	}
+	
+	public int getReducerNumber(){
+		return this.num_reducer;
+	}
+	
+	public String getVCFHeaderOutput(){
+		return this.output;
+	}
+	
+	public VCFFormat getOuptputFormat() {
+	    if(bcfFormat)
+	        return VCFFormat.BCF;
+	    return VCFFormat.VCF;
 	}
 }

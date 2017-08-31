@@ -5,11 +5,16 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.mapreduce.Mapper;
+import org.bgi.flexlab.gaea.data.mapreduce.output.vcf.GaeaVCFOutputFormat;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.WindowsBasedWritable;
 import org.seqdoop.hadoop_bam.VariantContextWritable;
+import org.seqdoop.hadoop_bam.util.VCFHeaderReader;
+import org.seqdoop.hadoop_bam.util.WrapSeekable;
 
+import htsjdk.samtools.seekablestream.SeekableStream;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFContigHeaderLine;
 import htsjdk.variant.vcf.VCFHeader;
@@ -26,9 +31,12 @@ public class JointCallingMapper extends
 	protected void setup(Context context) throws IOException, InterruptedException {
 		Configuration conf = context.getConfiguration();
 		
-		chrIndexs = new HashMap<String,Integer>();
-		VCFHeader header = null;
+		Path path = new Path(conf.get(GaeaVCFOutputFormat.OUT_PATH_PROP));
+		SeekableStream in = WrapSeekable.openPath(path.getFileSystem(conf), path);
+		VCFHeader header = VCFHeaderReader.readHeaderFrom(in);
+		in.close();
 		
+		chrIndexs = new HashMap<String,Integer>();
 		List<VCFContigHeaderLine> lines = header.getContigLines();
 		for(int i = 0 ; i < lines.size() ; i++){
 			VCFContigHeaderLine line = lines.get(i);

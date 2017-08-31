@@ -33,7 +33,6 @@ import htsjdk.variant.vcf.VCFConstants;
 import htsjdk.variant.vcf.VCFHeader;
 import htsjdk.variant.vcf.VCFHeaderLine;
 import htsjdk.variant.vcf.VCFStandardHeaderLines;
-import htsjdk.variant.vcf.VCFUtils;
 
 public class JointCallingEngine {
 	private boolean INCLUDE_NON_VARIANTS = false;
@@ -58,10 +57,8 @@ public class JointCallingEngine {
     protected List<String> annotationGroupsToUse = new ArrayList<>(Arrays.asList(new String[]{StandardAnnotation.class.getSimpleName()}));
     
     private final VCFHeader vcfHeader;
-    
-    private final Map<String, VCFHeader> vcfRods;
 
-	public JointCallingEngine(JointCallingOptions options, GenomeLocationParser parser) {
+	public JointCallingEngine(JointCallingOptions options, GenomeLocationParser parser,VCFHeader vcfheader) {
 		variants = new ArrayList<VariantContext>();
 		this.INCLUDE_NON_VARIANTS = options.INCLUDE_NON_VARIANT;
 		this.uniquifySamples = options.isUniquifySamples();
@@ -69,16 +66,17 @@ public class JointCallingEngine {
 		
 		annotationEngine = new VariantAnnotatorEngine(annotationGroupsToUse,annotationsToUse,Collections.<String>emptyList());
 		
-		vcfRods = null;
-		
-		final GaeaGvcfVariantContextUtils.GenotypeMergeType mergeType = uniquifySamples ?
+		/*final GaeaGvcfVariantContextUtils.GenotypeMergeType mergeType = uniquifySamples ?
 				GaeaGvcfVariantContextUtils.GenotypeMergeType.UNIQUIFY : GaeaGvcfVariantContextUtils.GenotypeMergeType.REQUIRE_UNIQUE;
-		Set<String> sampleNames = getSampleList(vcfRods, mergeType);
+		Set<String> sampleNames = getSampleList(vcfRods, mergeType);*/
+		Set<String> sampleNames = getSampleList(vcfheader);
 		
 		genotypingEngine = new UnifiedGenotypingEngine(sampleNames.size(), options);
 		
 		// take care of the VCF headers
-        final Set<VCFHeaderLine> headerLines = VCFUtils.smartMergeHeaders(vcfRods.values(), true);
+        //final Set<VCFHeaderLine> headerLines = VCFUtils.smartMergeHeaders(vcfRods.values(), true);
+		final Set<VCFHeaderLine> headerLines = vcfheader.getMetaDataInInputOrder();
+		
         headerLines.addAll(annotationEngine.getVCFAnnotationDescriptions());
         headerLines.addAll(genotypingEngine.getAppropriateVCFInfoHeaders());
         
@@ -96,16 +94,13 @@ public class JointCallingEngine {
         annotationEngine.invokeAnnotationInitializationMethods(headerLines,sampleNames);
 	}
 	
-	public static Set<String> getSampleList(Map<String, VCFHeader> headers, GaeaGvcfVariantContextUtils.GenotypeMergeType mergeOption) {
-	    Set<String> samples = new TreeSet<String>();
-	    for ( Map.Entry<String, VCFHeader> val : headers.entrySet() ) {
-	        VCFHeader header = val.getValue();
-	        for ( String sample : header.getGenotypeSamples() ) {
-	            samples.add(GaeaGvcfVariantContextUtils.mergedSampleName(val.getKey(), sample, mergeOption == GaeaGvcfVariantContextUtils.GenotypeMergeType.UNIQUIFY));
-	        }
-	    }
-
-	    return samples;
+	public Set<String> getSampleList(VCFHeader header){
+		Set<String> samples = new TreeSet<String>();
+		for ( String sample : header.getGenotypeSamples() ) {
+            samples.add(GaeaGvcfVariantContextUtils.mergedSampleName(null, sample, false));
+        }
+		
+		return samples;
 	}
 	
 	public void init( ArrayList<VariantContext> dbsnps){
@@ -302,5 +297,9 @@ public class JointCallingEngine {
 			recoveredGs.add(builder.noAttributes().attributes(attrs).make());
 		}
 		return recoveredGs;
+	}
+	
+	public VCFHeader getVCFHeader(){
+		return this.vcfHeader;
 	}
 }
