@@ -25,8 +25,11 @@ import org.bgi.flexlab.gaea.data.mapreduce.options.HadoopOptions;
 import org.bgi.flexlab.gaea.data.options.GaeaOptions;
 import org.seqdoop.hadoop_bam.SAMFormat;
 
+import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 /**
  * Created by huangzhibo on 2017/7/7.
@@ -35,17 +38,22 @@ public class AnnotatorOptions extends GaeaOptions implements HadoopOptions{
     private final static String SOFTWARE_NAME = "Annotator";
     private final static String SOFTWARE_VERSION = "1.0";
 
-    private String input;
-    private ArrayList<Path> inputFileList;
-    private int inputFormat;
-    private String output;
-    private int outputFormat;
-    private boolean outputDupRead;
-    private boolean isSE;
+    private String configFile = null; //用户配置文件
+    //	private String outputType = null; //输出格式 txt,vcf
+    private String tmpPath = null; //输出格式 txt,vcf
+    private String outputPath = null;
+    private String inputFilePath = null;
+
+    private String referenceSequencePath = null; //参考序列gaeaindex
+
+    private boolean mutiSample = false;
+    private boolean isCachedRef = false;
+
+    private boolean verbose = false;
+    private boolean debug = false;
+
+    private int mapperNum;
     private int reducerNum;
-    private int windowSize;
-    private int extendSize;
-    FileSystem fs;
 
     public AnnotatorOptions() {
         addOption("i", "input",      true,  "input file(VCF). [request]", true);
@@ -58,9 +66,10 @@ public class AnnotatorOptions extends GaeaOptions implements HadoopOptions{
         addOption(null,"verbose",    false, "display verbose information.");
         addOption(null,"debug",      false, "for debug.");
         addOption("h", "help",       false, "help information.");
+        addOption("R", "reducer", true, "reducer numbers [30]");
+
         FormatHelpInfo(SOFTWARE_NAME,SOFTWARE_VERSION);
 
-        inputFileList = new ArrayList<>();
     }
 
     @Override
@@ -76,27 +85,32 @@ public class AnnotatorOptions extends GaeaOptions implements HadoopOptions{
             System.exit(1);
         }
 
-        input = getOptionValue("i", null);
-        inputFormat = getOptionIntValue("I", 1);
-        output = getOptionValue("o", null);
-        outputFormat = getOptionIntValue("O", 0);
-        outputDupRead = getOptionBooleanValue("D", true);
-        isSE = getOptionBooleanValue("S", false);
+
         reducerNum = getOptionIntValue("R", 30);
-        windowSize = getOptionIntValue("W", 100000);
-        extendSize = getOptionIntValue("E", 100);
+
+        SimpleDateFormat df = new SimpleDateFormat("yyyyMMddHHmmss");
+        tmpPath = "/user/" + System.getProperty("user.name") + "/annotmp-" + df.format(new Date());
+
+        setInputFilePath(cmdLine.getOptionValue("input"));
+        setConfigFile(cmdLine.getOptionValue("config"));
+        setReferenceSequencePath(cmdLine.getOptionValue("reference",""));
+        setMapperNum(getOptionIntValue("mapperNum", 50));
+        setOutputPath(cmdLine.getOptionValue("output"));
+        setCachedRef(getOptionBooleanValue("cacheref", false));
+        setVerbose(getOptionBooleanValue("verbose", false));
+        setDebug(getOptionBooleanValue("debug", false));
     }
 
     @Override
     public void setHadoopConf(String[] args, Configuration conf) {
         conf.setStrings("args", args);
-        Path p = new Path(this.getInput());
-        try {
-            fs = p.getFileSystem(conf);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        traversalInputPath(this.getInput());
+        conf.set("inputFilePath", getInputFilePath());
+        conf.set("reference", getReferenceSequencePath());
+        conf.set("configFile", getConfigFile());
+        conf.set("outputType", getOutputType());
+        conf.setBoolean("cacheref", isCachedRef());
+        conf.setBoolean("verbose", isVerbose());
+        conf.setBoolean("debug", isDebug());
     }
 
     @Override
@@ -105,72 +119,108 @@ public class AnnotatorOptions extends GaeaOptions implements HadoopOptions{
         this.parse(args);
     }
 
-    private void traversalInputPath(String input)
-    {
-        Path path = new Path(input);
-        try {
-            if (!fs.exists(path)) {
-                System.err.println("Input File Path is not exist! Please check -i var.");
-                System.exit(-1);
-            }
-            if (fs.isFile(path)) {
-                inputFileList.add(path);
-            }else {
-                FileStatus stats[]=fs.listStatus(path);
-
-                for (FileStatus file : stats) {
-                    Path filePath=file.getPath();
-
-                    if (!fs.isFile(filePath)) {
-                        String childPath=filePath.toString();
-                        traversalInputPath(childPath);
-                    }else {
-                        inputFileList.add(filePath);
-                    }
-                }
-            }
-        }catch (IOException ioe) {
-            throw new RuntimeException(ioe);
-        }
-    }
-
-    public ArrayList<Path> getInputFileList(){
-        return inputFileList;
-    }
-
-    public String getInput() {
-        return input;
-    }
-
-    public SAMFormat getInputFormat(){
-        return inputFormat == 0 ? SAMFormat.BAM :SAMFormat.SAM;
-    }
-
-    public String getOutput() {
-        return output;
-    }
-
-    public int getOutputFormat() {
-        return outputFormat;
-    }
-
-    public boolean isOutputDupRead() {
-        return outputDupRead;
-    }
-
-    public boolean isSE() {
-        return isSE;
-    }
 
     public int getReducerNum() {
         return reducerNum;
     }
-
-    public int getWindowSize() {
-        return windowSize;
+    private String formatPath(String p) {
+        if (p.startsWith("/")) {
+            p = "file://" + p;
+        }else if (p.startsWith(".")) {
+            p = "file://" + new File(p).getAbsolutePath();
+        }
+        return p;
     }
 
-    public int getExtendSize() {
-        return extendSize;
+    public String getOutputPath() {
+        return outputPath;
     }
+
+    public void setOutputPath(String outputPath) {
+        this.outputPath = outputPath;
+    }
+
+    public String getTmpPath() {
+        return tmpPath;
+    }
+
+    public void setTmpPath(String tmpPath) {
+        this.tmpPath = tmpPath;
+    }
+
+    public String getOutputType() {
+//		return outputType;
+        return "txt";
+    }
+
+    public boolean isMutiSample() {
+        return mutiSample;
+    }
+
+    public void setMutiSample(boolean mutiSample) {
+        this.mutiSample = mutiSample;
+    }
+
+    public boolean isCachedRef() {
+        return isCachedRef;
+    }
+
+    public void setCachedRef(boolean isCachedRef) {
+        this.isCachedRef = isCachedRef;
+    }
+
+    public String getInputFilePath() {
+        return inputFilePath;
+    }
+
+    public void setInputFilePath(String inputFilePath) {
+        this.inputFilePath = formatPath(inputFilePath);
+    }
+
+    public String getConfigFile() {
+        return configFile;
+    }
+
+    public void setConfigFile(String configFile) {
+        this.configFile = formatPath(configFile);
+    }
+
+    public String getReferenceSequencePath() {
+        return referenceSequencePath;
+    }
+
+    public void setReferenceSequencePath(String referenceSequencePath) {
+        this.referenceSequencePath = formatPath(referenceSequencePath);
+    }
+
+    public boolean isVerbose() {
+        return verbose;
+    }
+
+    public void setVerbose(boolean verbose) {
+        this.verbose = verbose;
+    }
+
+    public boolean isDebug() {
+        return debug;
+    }
+
+    public void setDebug(boolean debug) {
+        this.debug = debug;
+    }
+
+    public int getMapperNum() {
+        return mapperNum;
+    }
+
+    public void setMapperNum(int mapperNum) {
+        this.mapperNum = mapperNum;
+    }
+    public String getOutput() {
+        return outputPath;
+    }
+    public String getInput() {
+        return inputFilePath;
+    }
+
 }

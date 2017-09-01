@@ -14,24 +14,19 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  *******************************************************************************/
-package org.bgi.flexlab.gaea.tools.annotator;
-
-import org.apache.hadoop.util.ToolRunner;
+package org.bgi.flexlab.gaea.tools.mapreduce.annotator;
 
 /**
- * Annotator's main command line program!
- *
+ * Created by 黄凯文 on 2017/8/18.
  */
-public class GaeaAnnotator 
-{
-	
-	public int runMR(String[] args) throws Exception {
-		return ToolRunner.run(new VariantAnnotation(), args);
-	}
-	
-	public static void main(String[] args) throws Exception {
-		GaeaAnnotator annotator = new GaeaAnnotator();
-		annotator.runMR(args);
-	}
+public class SampleNameModifier {
+    /*替换MultipleOutputs时非法的字符*/
+    public static String modify(String sampleName)
+    {
+        String rel = sampleName.replaceAll("\\.","dot");
+        rel = rel.replaceAll("\\*","star");
+        rel = rel.replaceAll("-","sub");
 
+        return rel;
+    }
 }
