@@ -50,6 +50,7 @@ public class VariantAnnotatorEngine {
 	private List<GenotypeAnnotation> requestedGenotypeAnnotations = Collections.emptyList();
 	private List<VAExpression> requestedExpressions = new ArrayList<>();
 	private boolean expressionAlleleConcordance = false;
+	private Set<String> overlapNames = new HashSet<String>();
 
 	VariantOverlapAnnotator variantOverlapAnnotator = null;
 
@@ -116,6 +117,11 @@ public class VariantAnnotatorEngine {
 		}
 		requestedGenotypeAnnotations = tempRequestedGenotypeAnnotations;
 	}
+	
+	public void initializeDBs(boolean hasDBSNP){
+		if(hasDBSNP)
+			overlapNames.add(VCFConstants.DBSNP_KEY);
+	}
 
 	public void initializeDBs(final ArrayList<VariantContext> dbSNPs,GenomeLocationParser parser) {
 		// check to see whether comp rods were included
@@ -125,7 +131,7 @@ public class VariantAnnotatorEngine {
 
 		final Map<String, ArrayList<VariantContext>> overlapBindings = new LinkedHashMap<>();
 
-		if (dbSNPBindings != null && !overlapBindings.containsKey(VCFConstants.DBSNP_KEY))
+		if (dbSNPBindings != null )
 			overlapBindings.put( VCFConstants.DBSNP_KEY, dbSNPBindings); 
 
 		variantOverlapAnnotator = new VariantOverlapAnnotator(dbSNPBindings, overlapBindings,parser);
@@ -148,7 +154,7 @@ public class VariantAnnotatorEngine {
 			descriptions.addAll(annotation.getDescriptions());
 		for (final GenotypeAnnotation annotation : requestedGenotypeAnnotations)
 			descriptions.addAll(annotation.getDescriptions());
-		for (final String db : variantOverlapAnnotator.getOverlapNames()) {
+		for (final String db : overlapNames) {
 			if (VCFStandardHeaderLines.getInfoLine(db, false) != null)
 				descriptions.add(VCFStandardHeaderLines.getInfoLine(db));
 			else

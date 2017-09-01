@@ -11,13 +11,12 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.bgi.flexlab.gaea.data.mapreduce.input.vcf.VCFHdfsLoader;
 import org.bgi.flexlab.gaea.data.mapreduce.output.vcf.GaeaVCFOutputFormat;
 import org.bgi.flexlab.gaea.data.mapreduce.output.vcf.VCFHdfsWriter;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.WindowsBasedWritable;
-import org.bgi.flexlab.gaea.data.structure.vcf.VCFLocalLoader;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.BioJob;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.ToolsRunner;
-import org.bgi.flexlab.gaea.framework.tools.mapreduce.WindowsBasedSamRecordMapper;
 import org.bgi.flexlab.gaea.tools.jointcalling.util.GaeaGvcfVariantContextUtils;
 import org.seqdoop.hadoop_bam.KeyIgnoringVCFOutputFormat;
 import org.seqdoop.hadoop_bam.VCFInputFormat;
@@ -37,7 +36,7 @@ public class JointCalling extends ToolsRunner{
 		Set<VCFHeader> headerSet = new HashSet<VCFHeader>();
 		
 		for(Path p : inputs){
-			VCFLocalLoader loader = new VCFLocalLoader(p.toString());
+			VCFHdfsLoader loader = new VCFHdfsLoader(p.toString());
 			headerSet.add(loader.getHeader());
 			loader.close();
 		}
@@ -88,21 +87,18 @@ public class JointCalling extends ToolsRunner{
         
         job.setJobName("Gaea joint calling");
         
-        job.setWindowsBasicMapperClass(WindowsBasedSamRecordMapper.class, options.getWindowsSize(),0);
+        job.setJarByClass(JointCalling.class);
+        job.setMapperClass(JointCallingMapper.class);
         job.setReducerClass(JointCallingReducer.class);
         job.setNumReduceTasks(options.getReducerNumber());
         job.setOutputKeyValue(WindowsBasedWritable.class,VariantContextWritable.class, NullWritable.class, VariantContextWritable.class);
         
+        job.setInputFormatClass(VCFInputFormat.class);
+		job.setOutputFormatClass(GaeaVCFOutputFormat.class);
+        
         FileInputFormat.setInputPaths(job, options.getInput().toArray(new Path[options.getInput().size()]));
 		FileOutputFormat.setOutputPath(job, new Path(options.getOutput()));
 		
-		job.setInputFormatClass(VCFInputFormat.class);
-		job.setOutputFormatClass(GaeaVCFOutputFormat.class);
-		
-		if (job.waitForCompletion(true)) {
-			return 0;
-		}
-
-		return 1;
+		return job.waitForCompletion(true) ? 0 : 1;
 	}
 }

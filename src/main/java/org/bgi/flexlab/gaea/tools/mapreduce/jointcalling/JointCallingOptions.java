@@ -3,7 +3,7 @@ package org.bgi.flexlab.gaea.tools.mapreduce.jointcalling;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.cli.ParseException;
@@ -40,8 +40,8 @@ public class JointCallingOptions extends GaeaOptions implements HadoopOptions{
 	public double STANDARD_CONFIDENCE_FOR_CALLING = 30.0;//S
 	public double STANDARD_CONFIDENCE_FOR_EMITTING = 30.0;//s
 	
-	private List<Path> input = Collections.emptyList();//i
-	private List<Double> inputPrior = Collections.emptyList();//p
+	private List<Path> input = new ArrayList<Path>();//i
+	private List<Double> inputPrior = new ArrayList<Double>();//p
 	private OutputMode outputMode = OutputMode.EMIT_VARIANTS_ONLY;//O
 	private GenotypingOutputMode genotypeMode = GenotypingOutputMode.DISCOVERY;//G
 	
@@ -166,15 +166,17 @@ public class JointCallingOptions extends GaeaOptions implements HadoopOptions{
 		Configuration conf = new Configuration();
 		boolean isvcf = AbstractVCFLoader.isVCFStream(path.getFileSystem(conf).open(path), MAGIC_HEADER_LINE);
 		
-		if(isvcf)
+		if(isvcf){
 			input.add(path);
+		}
 		else{
 			BufferedReader br = new BufferedReader(new FileReader(inputpath));
 			String line ;
 			
 			while((line = br.readLine()) != null){
-				if(line.length() != 0)
+				if(line.length() != 0){
 					input.add(new Path(line));
+				}
 			}
 			
 			br.close();

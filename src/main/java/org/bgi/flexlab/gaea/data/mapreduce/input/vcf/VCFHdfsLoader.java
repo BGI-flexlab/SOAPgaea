@@ -29,8 +29,6 @@ import java.io.InputStream;
 
 public class VCFHdfsLoader extends AbstractVCFLoader{
 
-	private Configuration conf = new Configuration();
-
 	private WrapSeekable seekableStream;
 	
 	public VCFHdfsLoader(String dbSNP) throws IllegalArgumentException, IOException {
@@ -53,7 +51,7 @@ public class VCFHdfsLoader extends AbstractVCFLoader{
 	public void getSeekableStream() {
 		// TODO Auto-generated method stub
 		try {
-			seekableStream = WrapSeekable.openPath(conf, new Path(super.input));
+			seekableStream = WrapSeekable.openPath(new Configuration(), new Path(super.input));
 		} catch (IllegalArgumentException | IOException e) {
 			// TODO Auto-generated catch block
 			throw new RuntimeException(e);
@@ -63,6 +61,6 @@ public class VCFHdfsLoader extends AbstractVCFLoader{
 	@Override
 	public InputStream getInputStream(String input) {
 		// TODO Auto-generated method stub
-		return HdfsFileManager.getInputStream(new Path(super.input), conf);
+		return HdfsFileManager.getInputStream(new Path(super.input), new Configuration());
 	}
 }

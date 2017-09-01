@@ -65,6 +65,7 @@ public class JointCallingEngine {
 		this.parser = parser;
 		
 		annotationEngine = new VariantAnnotatorEngine(annotationGroupsToUse,annotationsToUse,Collections.<String>emptyList());
+		annotationEngine.initializeDBs(options.getDBSnp() != null);
 		
 		/*final GaeaGvcfVariantContextUtils.GenotypeMergeType mergeType = uniquifySamples ?
 				GaeaGvcfVariantContextUtils.GenotypeMergeType.UNIQUIFY : GaeaGvcfVariantContextUtils.GenotypeMergeType.REQUIRE_UNIQUE;
@@ -76,6 +77,9 @@ public class JointCallingEngine {
 		// take care of the VCF headers
         //final Set<VCFHeaderLine> headerLines = VCFUtils.smartMergeHeaders(vcfRods.values(), true);
 		final Set<VCFHeaderLine> headerLines = vcfheader.getMetaDataInInputOrder();
+		
+		if(headerLines == null || headerLines.size() == 0)
+			throw new RuntimeException("header lines is null or empty!");
 		
         headerLines.addAll(annotationEngine.getVCFAnnotationDescriptions());
         headerLines.addAll(genotypingEngine.getAppropriateVCFInfoHeaders());

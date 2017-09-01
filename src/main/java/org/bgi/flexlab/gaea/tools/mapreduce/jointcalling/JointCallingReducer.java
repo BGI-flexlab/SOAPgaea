@@ -36,29 +36,25 @@ public class JointCallingReducer
 	private VariantContextWritable outValue = new VariantContextWritable();
 
 	private JointCallingOptions options = null;
-
 	private GenomeLocationParser parser = null;
-
 	private ReferenceShare genomeShare = null;
-	
 	private DbsnpShare dbsnpShare = null;
-	
 	private VCFLocalLoader loader = null;
-	
 	private VariantRegionFilter filter = null;
-	
 	private VCFHeader header = null;
 
 	@Override
 	protected void setup(Context context) throws IOException {
 		Configuration conf = context.getConfiguration();
-		
 		contigs = new HashMap<Integer, String>();
 		
 		Path path = new Path(conf.get(GaeaVCFOutputFormat.OUT_PATH_PROP));
 		SeekableStream in = WrapSeekable.openPath(path.getFileSystem(conf), path);
 		header = VCFHeaderReader.readHeaderFrom(in);
 		in.close();
+		
+		if(header == null)
+			throw new RuntimeException("header is null !!!");
 		
 		List<VCFContigHeaderLine> lines = header.getContigLines();
 
@@ -67,24 +63,18 @@ public class JointCallingReducer
 			contigs.put(line.getContigIndex(), line.getID());
 		}
 
+		options = new JointCallingOptions();
 		options.getOptionsFromHadoopConf(conf);
 		
 		windowSize = options.getWindowsSize();
-
 		parser = new GenomeLocationParser(header.getSequenceDictionary());
-
 		engine = new JointCallingEngine(options, parser,header);
-
 		genomeShare = new ReferenceShare();
 		genomeShare.loadChromosomeList(options.getReference());
-		
 		dbsnpShare = new DbsnpShare(options.getDBSnp(), options.getReference());
 		dbsnpShare.loadChromosomeList(options.getDBSnp() + VcfIndex.INDEX_SUFFIX);
-		
 		loader = new VCFLocalLoader(options.getDBSnp());
-		
 		filter = new VariantRegionFilter();
-		
 		header = engine.getVCFHeader();
 	}
 
