@@ -76,6 +76,9 @@ public class JointCallingReducer
 		loader = new VCFLocalLoader(options.getDBSnp());
 		filter = new VariantRegionFilter();
 		header = engine.getVCFHeader();
+		
+		if(header == null)
+			throw new RuntimeException("header is null!!!");
 	}
 
 	@Override
@@ -87,12 +90,16 @@ public class JointCallingReducer
 		String chr = contigs.get(key.getChromosomeIndex());
 		
 		long startPosition = dbsnpShare.getStartPosition(chr, winNum, options.getWindowsSize());
-		ArrayList<VariantContext> dbsnps = filter.loadFilter(loader, chr, startPosition, end);
+		ArrayList<VariantContext> dbsnps = null;
+		if(startPosition >= 0)
+			dbsnps = filter.loadFilter(loader, chr, startPosition, end);
 		engine.init(dbsnps);
 		
 		for (int iter = start; iter <= end; iter++) {
 			VariantContext variantContext = engine.variantCalling(values.iterator(),
 					parser.createGenomeLocation(chr, iter), genomeShare.getChromosomeInfo(chr));
+			if(variantContext == null)
+				continue;
 			outValue.set(variantContext,header);
 			context.write(NullWritable.get(), outValue);
 		}

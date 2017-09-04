@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -76,10 +77,8 @@ public class JointCallingEngine {
 		
 		// take care of the VCF headers
         //final Set<VCFHeaderLine> headerLines = VCFUtils.smartMergeHeaders(vcfRods.values(), true);
-		final Set<VCFHeaderLine> headerLines = vcfheader.getMetaDataInInputOrder();
-		
-		if(headerLines == null || headerLines.size() == 0)
-			throw new RuntimeException("header lines is null or empty!");
+		final Set<VCFHeaderLine> headerLines = new HashSet<VCFHeaderLine>();
+		headerLines.addAll(vcfheader.getMetaDataInInputOrder());
 		
         headerLines.addAll(annotationEngine.getVCFAnnotationDescriptions());
         headerLines.addAll(genotypingEngine.getAppropriateVCFInfoHeaders());
@@ -147,8 +146,9 @@ public class JointCallingEngine {
 			if (currentContext.getStart() >= curr && currentContext.getEnd() <= curr)
 				variants.add(currentContext);
 
-			if (iterator.hasNext())
+			if (iterator.hasNext()){
 				currentContext = iterator.next().get();
+			}
 			else
 				currentContext = null;
 		}
