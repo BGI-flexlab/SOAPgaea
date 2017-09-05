@@ -22,6 +22,8 @@ import org.bgi.flexlab.gaea.tools.jointcalling.util.RefMetaDataTracker;
 import org.bgi.flexlab.gaea.tools.jointcalling.util.ReferenceConfidenceVariantContextMerger;
 import org.bgi.flexlab.gaea.tools.mapreduce.jointcalling.JointCallingOptions;
 import org.bgi.flexlab.gaea.util.GaeaVCFConstants;
+import org.seqdoop.hadoop_bam.LazyParsingGenotypesContext;
+import org.seqdoop.hadoop_bam.LazyVCFGenotypesContext;
 import org.seqdoop.hadoop_bam.VariantContextWritable;
 
 import htsjdk.variant.variantcontext.Allele;
@@ -58,6 +60,9 @@ public class JointCallingEngine {
     protected List<String> annotationGroupsToUse = new ArrayList<>(Arrays.asList(new String[]{StandardAnnotation.class.getSimpleName()}));
     
     private final VCFHeader vcfHeader;
+    
+    private LazyVCFGenotypesContext.HeaderDataCache vcfHeaderDataCache =
+    		new LazyVCFGenotypesContext.HeaderDataCache();
 
 	public JointCallingEngine(JointCallingOptions options, GenomeLocationParser parser,VCFHeader vcfheader) {
 		variants = new ArrayList<VariantContext>();
@@ -73,7 +78,7 @@ public class JointCallingEngine {
 		Set<String> sampleNames = getSampleList(vcfRods, mergeType);*/
 		Set<String> sampleNames = getSampleList(vcfheader);
 		
-		genotypingEngine = new UnifiedGenotypingEngine(sampleNames.size(), options);
+		genotypingEngine = new UnifiedGenotypingEngine(sampleNames.size(), options,this.parser);
 		
 		// take care of the VCF headers
         //final Set<VCFHeaderLine> headerLines = VCFUtils.smartMergeHeaders(vcfRods.values(), true);
@@ -92,6 +97,8 @@ public class JointCallingEngine {
             VCFStandardHeaderLines.addStandardInfoLines(headerLines, true, VCFConstants.DBSNP_KEY);
         
         vcfHeader = new VCFHeader(headerLines, sampleNames);
+        
+        vcfHeaderDataCache.setHeader(vcfHeader);
         
         //now that we have all the VCF headers, initialize the annotations (this is particularly important to turn off RankSumTest dithering in integration tests)
         annotationEngine.invokeAnnotationInitializationMethods(headerLines,sampleNames);
@@ -136,15 +143,20 @@ public class JointCallingEngine {
 		}
 
 		if (currentContext == null) {
-			if (iterator.hasNext())
+			if (iterator.hasNext()){
 				currentContext = iterator.next().get();
+			}
 		}
 
 		while (currentContext != null) {
 			if (currentContext.getStart() > curr)
 				break;
-			if (currentContext.getStart() >= curr && currentContext.getEnd() <= curr)
+			if (currentContext.getStart() >= curr && currentContext.getEnd() <= curr){
+				GenotypesContext gc = currentContext.getGenotypes();
+				if (gc instanceof LazyParsingGenotypesContext)
+					((LazyParsingGenotypesContext)gc).getParser().setHeaderDataCache(vcfHeaderDataCache);
 				variants.add(currentContext);
+			}
 
 			if (iterator.hasNext()){
 				currentContext = iterator.next().get();

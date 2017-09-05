@@ -26,6 +26,8 @@ public class JointCallingMapper extends
 	private HashMap<String,Integer> chrIndexs = null;
 	
 	private WindowsBasedWritable outKey = new WindowsBasedWritable();
+	
+	private VCFHeader header = null;
 
 	@Override
 	protected void setup(Context context) throws IOException, InterruptedException {
@@ -33,7 +35,7 @@ public class JointCallingMapper extends
 		
 		Path path = new Path(conf.get(GaeaVCFOutputFormat.OUT_PATH_PROP));
 		SeekableStream in = WrapSeekable.openPath(path.getFileSystem(conf), path);
-		VCFHeader header = VCFHeaderReader.readHeaderFrom(in);
+		header = VCFHeaderReader.readHeaderFrom(in);
 		in.close();
 		
 		chrIndexs = new HashMap<String,Integer>();

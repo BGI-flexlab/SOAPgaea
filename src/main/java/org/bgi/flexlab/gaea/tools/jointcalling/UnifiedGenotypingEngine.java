@@ -48,8 +48,9 @@ public class UnifiedGenotypingEngine {
     
     protected final AFCalculatorProvider afCalculatorProvider;
 	
-	public UnifiedGenotypingEngine(int sampleCount , JointCallingOptions options){
+	public UnifiedGenotypingEngine(int sampleCount , JointCallingOptions options,GenomeLocationParser parser){
 		this.options = options;
+		this.genomeLocParser = parser;
 		numberOfGenomes = sampleCount * options.getSamplePloidy();
 		GvcfMathUtils.Log10Cache.ensureCacheContains(numberOfGenomes * 2);
 		log10AlleleFrequencyPriorsSNPs = composeAlleleFrequencyPriorProvider(numberOfGenomes,

@@ -238,6 +238,8 @@ public class VariantAnnotatorEngine {
 						.get(currentASannotation.getRawKeyName());
 				final Map<String, Object> annotationsFromCurrentType = currentASannotation.combineRawData(allelesList,
 						annotationValue);
+				if(annotationsFromCurrentType == null)
+					continue;
 				combinedAnnotations.putAll(annotationsFromCurrentType);
 				// remove the combined annotations so that the next method only
 				// processes the non-reducible ones
