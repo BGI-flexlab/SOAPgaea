@@ -94,11 +94,6 @@ public abstract class RMSAnnotation extends InfoFieldAnnotation implements Reduc
 	}
 
 	@Override
-	public List<String> getKeyNames() {
-		return null;
-	}
-
-	@Override
 	public List<VCFInfoHeaderLine> getDescriptions() {
 		final List<VCFInfoHeaderLine> headerLines = new ArrayList<>();
 
