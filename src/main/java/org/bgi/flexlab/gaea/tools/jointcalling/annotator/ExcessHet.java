@@ -38,8 +38,7 @@ public class ExcessHet extends InfoFieldAnnotation implements StandardAnnotation
     
 	@Override
 	public Map<String, Object> annotate(RefMetaDataTracker tracker, ChromosomeInformationShare ref, VariantContext vc) {
-		// TODO Auto-generated method stub
-		return null;
+		return makeEHAnnotation(vc);
 	}
 	
 	protected double calculateEH(final VariantContext vc, final GenotypesContext genotypes) {

@@ -61,6 +61,7 @@ import java.io.IOException;
 public class GaeaVCFOutputFormat<K> extends FileOutputFormat<K, VariantContextWritable> {
 
     public static final String OUT_PATH_PROP = "gaea.vcf.outpath";
+    public static final String HEADER_MODIFY = "gaea.vcf.header.modify";
 
     private KeyIgnoringVCFOutputFormat<K> baseOF;
 
@@ -77,6 +78,12 @@ public class GaeaVCFOutputFormat<K> extends FileOutputFormat<K, VariantContextWr
         if (baseOF.getHeader() == null) {
             final Path p = new Path(conf.get(OUT_PATH_PROP));
             baseOF.readHeaderFrom(p, p.getFileSystem(conf));
+        }
+        
+        if(conf.getBoolean(GaeaVCFOutputFormat.HEADER_MODIFY, false)){
+        	final boolean wh = ContextUtil.getConfiguration(context).getBoolean(
+        			KeyIgnoringVCFOutputFormat.WRITE_HEADER_PROPERTY, true);
+        	return new GaeaKeyIgnoringVCFRecordWriter<K>(getDefaultWorkFile(context, ""),baseOF.getHeader(),wh,context);
         }
 
         return baseOF.getRecordWriter(context, getDefaultWorkFile(context, ""));

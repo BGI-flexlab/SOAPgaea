@@ -79,6 +79,7 @@ public class JointCalling extends ToolsRunner{
         options.setHadoopConf(remainArgs, conf);
         conf.set(GaeaVCFOutputFormat.OUT_PATH_PROP, options.getVCFHeaderOutput() + "/vcfFileHeader.vcf");
         conf.set(KeyIgnoringVCFOutputFormat.OUTPUT_VCF_FORMAT_PROPERTY, options.getOuptputFormat().toString());
+        conf.setBoolean(GaeaVCFOutputFormat.HEADER_MODIFY, true);
         
         VCFHeader vcfHeader = getVCFHeaderFromInput(options.getInput());
         VCFHdfsWriter vcfHdfsWriter = new VCFHdfsWriter(conf.get(GaeaVCFOutputFormat.OUT_PATH_PROP), false, false, conf);
