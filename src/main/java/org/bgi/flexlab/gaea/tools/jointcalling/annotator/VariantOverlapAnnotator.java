@@ -55,7 +55,7 @@ public final class VariantOverlapAnnotator {
     }
     
     private GenomeLocation getLocation(final VariantContext vc) {
-        return genomeLocParser.createGenomeLocation(vc);
+        return genomeLocParser.createGenomeLocation(vc.getContig(),vc.getStart());
     }
     
     /**

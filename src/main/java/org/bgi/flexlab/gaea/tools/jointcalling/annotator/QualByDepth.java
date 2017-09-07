@@ -85,7 +85,8 @@ public class QualByDepth extends InfoFieldAnnotation implements StandardAnnotati
                 continue;
             }
             
-            standardDepth += genotype.getDP();
+            if ( genotype.hasDP() )
+            	standardDepth += genotype.getDP();
         }
 
         // if the AD-restricted depth is a usable value (i.e. not zero), then we should use that one going forward

@@ -86,6 +86,8 @@ public class JointCallingReducer
 			throws IOException, InterruptedException {
 		int winNum = key.getWindowsNumber();
 		int start = winNum * windowSize;
+		if(start == 0)
+			start = 1;
 		int end = start + windowSize - 1;
 		String chr = contigs.get(key.getChromosomeIndex());
 		

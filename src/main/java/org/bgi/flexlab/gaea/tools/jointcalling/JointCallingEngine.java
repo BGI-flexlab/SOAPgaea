@@ -151,11 +151,12 @@ public class JointCallingEngine {
 		while (currentContext != null) {
 			if (currentContext.getStart() > curr)
 				break;
-			if (currentContext.getStart() >= curr && currentContext.getEnd() <= curr){
+			if (currentContext.getStart() <= curr && currentContext.getEnd() >= curr){
 				GenotypesContext gc = currentContext.getGenotypes();
 				if (gc instanceof LazyParsingGenotypesContext)
 					((LazyParsingGenotypesContext)gc).getParser().setHeaderDataCache(vcfHeaderDataCache);
 				variants.add(currentContext);
+				max_position = currentContext.getEnd();
 			}
 
 			if (iterator.hasNext()){
@@ -177,6 +178,7 @@ public class JointCallingEngine {
 
 		final Byte refBase = INCLUDE_NON_VARIANTS ? (byte) ref.getBase(location.getStart() - 1) : null;
 		final boolean removeNonRefSymbolicAllele = !INCLUDE_NON_VARIANTS;
+			
 		final VariantContext combinedVC = ReferenceConfidenceVariantContextMerger.merge(vcsAtThisLocus, location,
 				refBase, removeNonRefSymbolicAllele, uniquifySamples, annotationEngine);
 
