@@ -8,7 +8,10 @@ import java.util.List;
 
 import org.apache.commons.cli.ParseException;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.util.LineReader;
 import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.data.mapreduce.options.HadoopOptions;
 import org.bgi.flexlab.gaea.data.options.GaeaOptions;
@@ -170,16 +173,21 @@ public class JointCallingOptions extends GaeaOptions implements HadoopOptions{
 			input.add(path);
 		}
 		else{
-			BufferedReader br = new BufferedReader(new FileReader(inputpath));
-			String line ;
-			
-			while((line = br.readLine()) != null){
-				if(line.length() != 0){
-					input.add(new Path(line));
+			FSDataInputStream currInput;
+			try {
+				currInput = path.getFileSystem(conf).open(path);
+				LineReader lineReader = new LineReader(currInput,conf);
+				Text line = new Text();
+				
+				while(lineReader.readLine(line) > 0){
+					input.add(new Path(line.toString()));
 				}
+			} catch (IOException e) {
+				throw new RuntimeException(e.toString());
 			}
 			
-			br.close();
+			if(currInput != null)
+				currInput.close();
 		}
 	}
 

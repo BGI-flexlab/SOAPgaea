@@ -41,9 +41,10 @@ public class QualByDepth extends InfoFieldAnnotation implements StandardAnnotati
             return null;
 
         final double altAlleleLength = GaeaGvcfVariantContextUtils.getMeanAltAlleleLength(vc);
+        	
         // Hack: UnifiedGenotyper (but not HaplotypeCaller or GenotypeGVCFs) over-estimates the quality of long indels
         //       Penalize the QD calculation for UG indels to compensate for this
-        double QD = -10.0 * vc.getLog10PError() / ((double)standardDepth * indelNormalizationFactor(altAlleleLength, true));
+        double QD = -10.0 * vc.getLog10PError() / ((double)standardDepth * indelNormalizationFactor(altAlleleLength, false));
 
         // Hack: see note in the fixTooHighQD method below
         QD = fixTooHighQD(QD);
@@ -61,7 +62,8 @@ public class QualByDepth extends InfoFieldAnnotation implements StandardAnnotati
         if ( QD < MAX_QD_BEFORE_FIXING ) {
             return QD;
         } else {
-            return IDEAL_HIGH_QD + GvcfMathUtils.getRandomGenerator().nextGaussian() * JITTER_SIGMA;
+        	double temp = GvcfMathUtils.getRandomGenerator().nextGaussian();
+            return IDEAL_HIGH_QD + temp * JITTER_SIGMA;
         }
     }
 	

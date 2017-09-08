@@ -18,6 +18,7 @@ import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
 import org.bgi.flexlab.gaea.tools.jointcalling.genotypegvcfs.annotation.StandardAnnotation;
 import org.bgi.flexlab.gaea.tools.jointcalling.util.GaeaGvcfVariantContextUtils;
 import org.bgi.flexlab.gaea.tools.jointcalling.util.GaeaVcfHeaderLines;
+import org.bgi.flexlab.gaea.tools.jointcalling.util.GvcfMathUtils;
 import org.bgi.flexlab.gaea.tools.jointcalling.util.RefMetaDataTracker;
 import org.bgi.flexlab.gaea.tools.jointcalling.util.ReferenceConfidenceVariantContextMerger;
 import org.bgi.flexlab.gaea.tools.mapreduce.jointcalling.JointCallingOptions;
@@ -102,6 +103,8 @@ public class JointCallingEngine {
         
         //now that we have all the VCF headers, initialize the annotations (this is particularly important to turn off RankSumTest dithering in integration tests)
         annotationEngine.invokeAnnotationInitializationMethods(headerLines,sampleNames);
+        
+        GvcfMathUtils.resetRandomGenerator();
 	}
 	
 	public Set<String> getSampleList(VCFHeader header){
