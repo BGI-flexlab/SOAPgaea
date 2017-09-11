@@ -150,6 +150,7 @@ public class MultipleVCFHeader extends  GaeaVCFHeader implements Serializable{
 	
 	public void mergeHeader(Path inputPath, String output, Job job, boolean distributeCacheHeader) {
 		Configuration conf = job.getConfiguration();
+		conf.set(GaeaVCFHeader.VCF_HEADER_PROPERTY, setOutputURI(output, "vcfHeader.obj"));
 		try {
 			FileSystem fs = inputPath.getFileSystem(conf);
 			fs = inputPath.getFileSystem(conf);
@@ -178,6 +179,14 @@ public class MultipleVCFHeader extends  GaeaVCFHeader implements Serializable{
 		} else {
 			writeHeaderToHDFS(output,conf);
 		}
+	}
+	
+	private String setOutputURI(String output, String object){
+		StringBuilder uri = new StringBuilder();
+		uri.append(output);
+		uri.append(System.getProperty("file.separator"));
+		uri.append(object);
+		return uri.toString();
 	}
 	
 	private boolean validPath(Path inputPath, FileSystem fs) throws IOException{
