@@ -31,10 +31,12 @@ public class DBAdapterFactory {
 		if(dbType == DbType.HBASE){
 			HbaseAdapter hbase = new HbaseAdapter(connInfo);
 			return hbase;
-		}else if (dbType == DbType.MYSQL) {
-			return new MysqlAdapter(connInfo);
+		}else if (dbType == DbType.TSV) {
+			return new TSVAdapter(connInfo);
+		}else if (dbType == DbType.VCF) {
+			return new VCFAdapter(connInfo);
 		}
-		return new HbaseAdapter(connInfo);
+		return new MysqlAdapter(connInfo);
 	}
 
 }

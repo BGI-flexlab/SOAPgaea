@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  *******************************************************************************/
-package org.bgi.flexlab.gaea.tools.annotator;
+package org.bgi.flexlab.gaea.tools.mapreduce.annotator;
 
 import org.bgi.flexlab.gaea.tools.annotator.config.Config;
 import org.bgi.flexlab.gaea.tools.annotator.effect.SnpEffectPredictor;

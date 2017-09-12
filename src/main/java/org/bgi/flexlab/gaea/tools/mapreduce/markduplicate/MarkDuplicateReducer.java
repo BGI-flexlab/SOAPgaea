@@ -29,12 +29,8 @@ public class MarkDuplicateReducer extends Reducer<DuplicationKeyWritable, SamRec
         if(key.getChrIndex() == -1) {
             for(SamRecordWritable s : values) {
             	GaeaSamRecord sam = new GaeaSamRecord(samHeader,s.get());
-                //SAMRecord sam = s.get();
-                int referenceIndex = sam.getReferenceIndex();
-                sam.setHeader(samHeader);
                 SamRecordWritable w = new SamRecordWritable();
                 w.set(sam);
-                sam.setReferenceIndex(referenceIndex);
                 context.write(NullWritable.get(), w);
             }
             return;
@@ -45,10 +41,6 @@ public class MarkDuplicateReducer extends Reducer<DuplicationKeyWritable, SamRec
         int n = 0;
         for(SamRecordWritable s : values) {
         	GaeaSamRecord sam = new GaeaSamRecord(samHeader,s.get());
-            //SAMRecord sam=s.get();
-            int referenceIndex = sam.getReferenceIndex();
-            sam.setHeader(samHeader);
-            sam.setReferenceIndex(referenceIndex);
             if (n>100000) {
                 sam.setDuplicateReadFlag(true);
                 SamRecordWritable w = new SamRecordWritable();

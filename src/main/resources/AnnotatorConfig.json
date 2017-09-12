@@ -1,7 +1,9 @@
 {
   "connectionInfo":{
     "HBASE":"/etc/hbase/conf",
-    "MYSQL":""
+    "MYSQL":"",
+    "TSV":"/hwfssz1/BIGDATA_COMPUTING/hadoop/huangkaiwen/test/exac",
+    "VCF":"/hwfssz1/BIGDATA_COMPUTING/hadoop/huangkaiwen/test/clinvar"
   },
   "databaseInfo":{
     "HGNC":{
@@ -126,14 +128,14 @@
       }
     },
     "EXAC":{
-      "database":"HBASE",
-      "queryClassName":"DBQuery",
+      "database":"TSV",
+      "queryClassName":"TSVQuery",
       "queryCondition":"CHR_POS_END",
       "dbVersion":{
         "GRCh37":{
-          "table":"EXAC_GRCh37",
+          "table":"EXAC.vcf.gz",
           "key":"id",
-          "indexTable":"EXAC_GRCh37_index"
+          "indexTable":"EXAC.vcf.gz"
         },
         "GRCh38":{
           "table":"",
@@ -175,19 +177,19 @@
       }
     },
     "CLINVAR":{
-      "database":"HBASE",
-      "queryClassName":"DBQuery",
+      "database":"VCF",
+      "queryClassName":"VCFQuery",
       "queryCondition":"CHR_POS_END",
       "dbVersion":{
         "GRCh37":{
-          "table":"Clinvar_GRCh37",
+          "table":"CLINVAR.vcf.gz",
           "key":"id",
-          "indexTable":"Clinvar_GRCh37_index"
+          "indexTable":"CLINVAR.vcf.gz"
         },
         "GRCh38":{
-          "table":"",
-          "key":"",
-          "indexTable":""
+          "table":"CLINVAR.vcf.gz",
+          "key":"id",
+          "indexTable":"CLINVAR.vcf.gz"
         }
       }
     },
