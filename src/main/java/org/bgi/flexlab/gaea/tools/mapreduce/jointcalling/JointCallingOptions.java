@@ -1,7 +1,5 @@
 package org.bgi.flexlab.gaea.tools.mapreduce.jointcalling;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -176,6 +174,7 @@ public class JointCallingOptions extends GaeaOptions implements HadoopOptions{
 			FSDataInputStream currInput;
 			try {
 				currInput = path.getFileSystem(conf).open(path);
+				@SuppressWarnings("resource")
 				LineReader lineReader = new LineReader(currInput,conf);
 				Text line = new Text();
 				

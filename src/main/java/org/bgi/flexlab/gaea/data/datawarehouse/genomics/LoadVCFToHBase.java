@@ -28,6 +28,7 @@ public class LoadVCFToHBase extends ToolsRunner{
 	private void createTable(Configuration conf, String tableName) throws IOException {
 		HBaseAdmin admin = new HBaseAdmin(conf);
 		if (admin.tableExists(tableName)) {
+			admin.close();
 			return;
 		}
 		HTableDescriptor table = new HTableDescriptor(tableName);

@@ -1,8 +1,6 @@
 package org.bgi.flexlab.gaea.tools.mapreduce.jointcalling;
 
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -11,15 +9,14 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import org.bgi.flexlab.gaea.data.mapreduce.input.vcf.VCFHdfsLoader;
 import org.bgi.flexlab.gaea.data.mapreduce.output.vcf.GaeaVCFOutputFormat;
 import org.bgi.flexlab.gaea.data.mapreduce.output.vcf.VCFHdfsWriter;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.WindowsBasedWritable;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.BioJob;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.ToolsRunner;
 import org.bgi.flexlab.gaea.tools.jointcalling.util.GaeaGvcfVariantContextUtils;
+import org.bgi.flexlab.gaea.tools.jointcalling.util.MultipleVCFHeaderForJointCalling;
 import org.seqdoop.hadoop_bam.KeyIgnoringVCFOutputFormat;
-import org.seqdoop.hadoop_bam.VCFInputFormat;
 import org.seqdoop.hadoop_bam.VariantContextWritable;
 
 import htsjdk.variant.vcf.VCFHeader;
@@ -30,18 +27,6 @@ public class JointCalling extends ToolsRunner{
 	
 	public JointCalling(){
 		this.toolsDescription = "joing calling for gvcfs";
-	}
-	
-	private Set<VCFHeader> getVCFHeaders(List<Path> inputs) throws IOException{
-		Set<VCFHeader> headerSet = new HashSet<VCFHeader>();
-		
-		for(Path p : inputs){
-			VCFHdfsLoader loader = new VCFHdfsLoader(p.toString());
-			headerSet.add(loader.getHeader());
-			loader.close();
-		}
-		
-		return headerSet;
 	}
 	
 	private Set<String> getSampleList(Set<VCFHeader> headers){
@@ -55,8 +40,7 @@ public class JointCalling extends ToolsRunner{
 		return samples;
 	}
 	
-	private VCFHeader getVCFHeaderFromInput(List<Path> inputs) throws IOException{
-		Set<VCFHeader> headers = getVCFHeaders(inputs);
+	private VCFHeader getVCFHeaderFromInput(Set<VCFHeader> headers) throws IOException{
         Set<String> samples = getSampleList(headers);
         Set<VCFHeaderLine> headerLines = VCFUtils.smartMergeHeaders(headers, true);
         VCFHeader vcfHeader = new VCFHeader(headerLines, samples);
@@ -81,7 +65,10 @@ public class JointCalling extends ToolsRunner{
         conf.set(KeyIgnoringVCFOutputFormat.OUTPUT_VCF_FORMAT_PROPERTY, options.getOuptputFormat().toString());
         conf.setBoolean(GaeaVCFOutputFormat.HEADER_MODIFY, true);
         
-        VCFHeader vcfHeader = getVCFHeaderFromInput(options.getInput());
+        MultipleVCFHeaderForJointCalling multiVcfHeader = new MultipleVCFHeaderForJointCalling();
+        multiVcfHeader.headersConfig(options.getInput(), options.getVCFHeaderOutput()+"/vcfHeaders", conf);
+        
+        VCFHeader vcfHeader = getVCFHeaderFromInput(multiVcfHeader.getHeaders());
         VCFHdfsWriter vcfHdfsWriter = new VCFHdfsWriter(conf.get(GaeaVCFOutputFormat.OUT_PATH_PROP), false, false, conf);
         vcfHdfsWriter.writeHeader(vcfHeader);
         vcfHdfsWriter.close();
@@ -94,7 +81,7 @@ public class JointCalling extends ToolsRunner{
         job.setNumReduceTasks(options.getReducerNumber());
         job.setOutputKeyValue(WindowsBasedWritable.class,VariantContextWritable.class, NullWritable.class, VariantContextWritable.class);
         
-        job.setInputFormatClass(VCFInputFormat.class);
+        job.setInputFormatClass(JointCallingVCFInputFormat.class);
 		job.setOutputFormatClass(GaeaVCFOutputFormat.class);
         
         FileInputFormat.setInputPaths(job, options.getInput().toArray(new Path[options.getInput().size()]));

@@ -19,6 +19,7 @@ import org.bgi.flexlab.gaea.tools.jointcalling.genotypegvcfs.annotation.Standard
 import org.bgi.flexlab.gaea.tools.jointcalling.util.GaeaGvcfVariantContextUtils;
 import org.bgi.flexlab.gaea.tools.jointcalling.util.GaeaVcfHeaderLines;
 import org.bgi.flexlab.gaea.tools.jointcalling.util.GvcfMathUtils;
+import org.bgi.flexlab.gaea.tools.jointcalling.util.MultipleVCFHeaderForJointCalling;
 import org.bgi.flexlab.gaea.tools.jointcalling.util.RefMetaDataTracker;
 import org.bgi.flexlab.gaea.tools.jointcalling.util.ReferenceConfidenceVariantContextMerger;
 import org.bgi.flexlab.gaea.tools.mapreduce.jointcalling.JointCallingOptions;
@@ -62,10 +63,12 @@ public class JointCallingEngine {
     
     private final VCFHeader vcfHeader;
     
+    private final MultipleVCFHeaderForJointCalling multiHeaders;
+    
     private LazyVCFGenotypesContext.HeaderDataCache vcfHeaderDataCache =
     		new LazyVCFGenotypesContext.HeaderDataCache();
 
-	public JointCallingEngine(JointCallingOptions options, GenomeLocationParser parser,VCFHeader vcfheader) {
+	public JointCallingEngine(JointCallingOptions options, GenomeLocationParser parser,VCFHeader vcfheader,MultipleVCFHeaderForJointCalling multiHeaders) {
 		variants = new ArrayList<VariantContext>();
 		this.INCLUDE_NON_VARIANTS = options.INCLUDE_NON_VARIANT;
 		this.uniquifySamples = options.isUniquifySamples();
@@ -99,7 +102,9 @@ public class JointCallingEngine {
         
         vcfHeader = new VCFHeader(headerLines, sampleNames);
         
-        vcfHeaderDataCache.setHeader(vcfHeader);
+        this.multiHeaders = multiHeaders;
+        
+        //vcfHeaderDataCache.setHeader(vcfHeader);
         
         //now that we have all the VCF headers, initialize the annotations (this is particularly important to turn off RankSumTest dithering in integration tests)
         annotationEngine.invokeAnnotationInitializationMethods(headerLines,sampleNames);
@@ -156,6 +161,7 @@ public class JointCallingEngine {
 				break;
 			if (currentContext.getStart() <= curr && currentContext.getEnd() >= curr){
 				GenotypesContext gc = currentContext.getGenotypes();
+				vcfHeaderDataCache.setHeader(multiHeaders.getVCFHeader(currentContext.getAttributeAsString("SM", null)));
 				if (gc instanceof LazyParsingGenotypesContext)
 					((LazyParsingGenotypesContext)gc).getParser().setHeaderDataCache(vcfHeaderDataCache);
 				variants.add(currentContext);

@@ -18,11 +18,13 @@ import org.bgi.flexlab.gaea.data.structure.reference.index.VcfIndex;
 import org.bgi.flexlab.gaea.data.structure.vcf.VCFLocalLoader;
 import org.bgi.flexlab.gaea.data.variant.filter.VariantRegionFilter;
 import org.bgi.flexlab.gaea.tools.jointcalling.JointCallingEngine;
+import org.bgi.flexlab.gaea.tools.jointcalling.util.MultipleVCFHeaderForJointCalling;
 import org.seqdoop.hadoop_bam.VariantContextWritable;
 import org.seqdoop.hadoop_bam.util.VCFHeaderReader;
 import org.seqdoop.hadoop_bam.util.WrapSeekable;
 
 import htsjdk.samtools.seekablestream.SeekableStream;
+import htsjdk.variant.variantcontext.CommonInfo;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFContigHeaderLine;
 import htsjdk.variant.vcf.VCFHeader;
@@ -42,6 +44,7 @@ public class JointCallingReducer
 	private VCFLocalLoader loader = null;
 	private VariantRegionFilter filter = null;
 	private VCFHeader header = null;
+	private MultipleVCFHeaderForJointCalling headers = new MultipleVCFHeaderForJointCalling();
 
 	@Override
 	protected void setup(Context context) throws IOException {
@@ -68,7 +71,8 @@ public class JointCallingReducer
 		
 		windowSize = options.getWindowsSize();
 		parser = new GenomeLocationParser(header.getSequenceDictionary());
-		engine = new JointCallingEngine(options, parser,header);
+		headers.readHeaders(conf);
+		engine = new JointCallingEngine(options, parser,header,headers);
 		genomeShare = new ReferenceShare();
 		genomeShare.loadChromosomeList(options.getReference());
 		dbsnpShare = new DbsnpShare(options.getDBSnp(), options.getReference());
@@ -102,6 +106,12 @@ public class JointCallingReducer
 					parser.createGenomeLocation(chr, iter), genomeShare.getChromosomeInfo(chr));
 			if(variantContext == null)
 				continue;
+			CommonInfo info = variantContext.getCommonInfo();
+			HashMap<String,Object> maps = new HashMap<String,Object>();
+			maps.putAll(info.getAttributes());
+			maps.remove("SM");
+			info.setAttributes(maps);
+			
 			outValue.set(variantContext,header);
 			context.write(NullWritable.get(), outValue);
 		}
