@@ -103,7 +103,30 @@ abstract class ExactAFCalculator extends AFCalculator {
         for ( Genotype sample : GLs.iterateInSampleNameOrder() ) {
             if ( sample.hasLikelihoods() ) {
                 final double[] gls = sample.getLikelihoods().getAsVector();
+                
+                if ( MathUtils.sum(gls) < GaeaGvcfVariantContextUtils.SUM_GL_THRESH_NOCALL || keepUninformative )
+                    genotypeLikelihoods.add(gls);
+            }
+        }
 
+        return genotypeLikelihoods;
+    }
+    
+    protected static ArrayList<double[]> getGLs(final GenotypesContext GLs, final boolean includeDummy, final boolean keepUninformative,boolean output) {
+        final ArrayList<double[]> genotypeLikelihoods = new ArrayList<>(GLs.size() + 1);
+
+        if ( includeDummy ) genotypeLikelihoods.add(new double[]{0.0,0.0,0.0}); // dummy
+        for ( Genotype sample : GLs.iterateInSampleNameOrder() ) {
+            if ( sample.hasLikelihoods() ) {
+                final double[] gls = sample.getLikelihoods().getAsVector();
+                
+                if(output){
+                	System.err.print("genotypeLikelihoods gt:"+sample+"\t");
+                	for(int i = 0 ; i < gls.length ; i++)
+                		System.err.print(gls[i]+"\t");
+                	System.err.println();
+                }
+                
                 if ( MathUtils.sum(gls) < GaeaGvcfVariantContextUtils.SUM_GL_THRESH_NOCALL || keepUninformative )
                     genotypeLikelihoods.add(gls);
             }
@@ -123,11 +146,6 @@ abstract class ExactAFCalculator extends AFCalculator {
 
         if (altAlleleReduction == 0)
             return vc;
-
-        final String message = String.format("This tool is currently set to genotype at most %d " +
-                        "alternate alleles in a given context, but the context at %s: %d has %d " +
-                        "alternate alleles so only the top alleles will be used; see the --max_alternate_alleles argument",
-                maximumAlternativeAlleles, vc.getContig(), vc.getStart(), vc.getAlternateAlleles().size());
 
         if ( !printedMaxAltAllelesWarning ) {
             printedMaxAltAllelesWarning = true;

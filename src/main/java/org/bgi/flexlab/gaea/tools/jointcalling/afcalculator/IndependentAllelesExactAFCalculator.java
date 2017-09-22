@@ -121,7 +121,8 @@ public class IndependentAllelesExactAFCalculator extends ExactAFCalculator {
     @Override
     @Requires("vc != null && log10AlleleFrequencyPriors != null && stateTracker != null")
     protected AFCalculationResult computeLog10PNonRef(final VariantContext vc, final int defaultPloidy, final double[] log10AlleleFrequencyPriors, final StateTracker stateTracker) {
-        final List<AFCalculationResult> independentResultTrackers = computeAlleleIndependentExact(vc, defaultPloidy, log10AlleleFrequencyPriors);
+    	    final List<AFCalculationResult> independentResultTrackers = computeAlleleIndependentExact(vc, defaultPloidy, 
+    		log10AlleleFrequencyPriors);
 
         // Paranoia check:
         if ( independentResultTrackers.size() <= 1 )

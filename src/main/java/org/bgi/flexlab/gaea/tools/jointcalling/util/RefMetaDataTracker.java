@@ -27,7 +27,7 @@ public class RefMetaDataTracker {
 		List<VariantContext> results = new ArrayList<VariantContext>();
 		int pos = location.getStart();
 		for(VariantContext context : binding){
-			if(context.getStart() >= pos && context.getEnd() <= pos)
+			if(context.getStart() == pos)
 				results.add(context);
 		}
 		

@@ -127,4 +127,8 @@ public class MultipleVCFHeaderForJointCalling extends GaeaVCFHeader implements S
 	public void clear(){
 		headers.clear();
 	}
+	
+	public Set<String> keySet(){
+		return this.headers.keySet();
+	}
 }

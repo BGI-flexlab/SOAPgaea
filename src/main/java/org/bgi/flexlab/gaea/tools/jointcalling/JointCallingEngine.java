@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 import org.bgi.flexlab.gaea.data.exception.UserException;
@@ -25,10 +26,11 @@ import org.bgi.flexlab.gaea.tools.jointcalling.util.ReferenceConfidenceVariantCo
 import org.bgi.flexlab.gaea.tools.mapreduce.jointcalling.JointCallingOptions;
 import org.bgi.flexlab.gaea.util.GaeaVCFConstants;
 import org.seqdoop.hadoop_bam.LazyParsingGenotypesContext;
-import org.seqdoop.hadoop_bam.LazyVCFGenotypesContext;
+import org.seqdoop.hadoop_bam.LazyVCFGenotypesContext.HeaderDataCache;
 import org.seqdoop.hadoop_bam.VariantContextWritable;
 
 import htsjdk.variant.variantcontext.Allele;
+import htsjdk.variant.variantcontext.CommonInfo;
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.GenotypeBuilder;
 import htsjdk.variant.variantcontext.GenotypesContext;
@@ -44,7 +46,8 @@ public class JointCallingEngine {
 
 	private boolean uniquifySamples = false;
 
-	private ArrayList<VariantContext> variants = null;
+	// private ArrayList<VariantContext> variants = null;
+	private TreeMap<String, ArrayList<VariantContext>> variantsForSample = null;
 
 	private VariantContext currentContext = null;
 
@@ -54,89 +57,85 @@ public class JointCallingEngine {
 	private UnifiedGenotypingEngine genotypingEngine;
 	// the annotation engine
 	private VariantAnnotatorEngine annotationEngine;
-	
+
 	private GenomeLocationParser parser = null;
-	
+
 	protected List<String> annotationsToUse = new ArrayList<>();
 
-    protected List<String> annotationGroupsToUse = new ArrayList<>(Arrays.asList(new String[]{StandardAnnotation.class.getSimpleName()}));
-    
-    private final VCFHeader vcfHeader;
-    
-    private final MultipleVCFHeaderForJointCalling multiHeaders;
-    
-    private LazyVCFGenotypesContext.HeaderDataCache vcfHeaderDataCache =
-    		new LazyVCFGenotypesContext.HeaderDataCache();
+	protected List<String> annotationGroupsToUse = new ArrayList<>(
+			Arrays.asList(new String[] { StandardAnnotation.class.getSimpleName() }));
 
-	public JointCallingEngine(JointCallingOptions options, GenomeLocationParser parser,VCFHeader vcfheader,MultipleVCFHeaderForJointCalling multiHeaders) {
-		variants = new ArrayList<VariantContext>();
+	private final VCFHeader vcfHeader;
+	private HashMap<String,HeaderDataCache> vcfHeaderDateCaches = new HashMap<String,HeaderDataCache>();
+
+	public JointCallingEngine(JointCallingOptions options, GenomeLocationParser parser, VCFHeader vcfheader,
+			MultipleVCFHeaderForJointCalling multiHeaders) {
+		variantsForSample = new TreeMap<String, ArrayList<VariantContext>>();
 		this.INCLUDE_NON_VARIANTS = options.INCLUDE_NON_VARIANT;
 		this.uniquifySamples = options.isUniquifySamples();
 		this.parser = parser;
-		
-		annotationEngine = new VariantAnnotatorEngine(annotationGroupsToUse,annotationsToUse,Collections.<String>emptyList());
+
+		annotationEngine = new VariantAnnotatorEngine(annotationGroupsToUse, annotationsToUse,
+				Collections.<String>emptyList());
 		annotationEngine.initializeDBs(options.getDBSnp() != null);
-		
-		/*final GaeaGvcfVariantContextUtils.GenotypeMergeType mergeType = uniquifySamples ?
-				GaeaGvcfVariantContextUtils.GenotypeMergeType.UNIQUIFY : GaeaGvcfVariantContextUtils.GenotypeMergeType.REQUIRE_UNIQUE;
-		Set<String> sampleNames = getSampleList(vcfRods, mergeType);*/
+
 		Set<String> sampleNames = getSampleList(vcfheader);
-		
-		genotypingEngine = new UnifiedGenotypingEngine(sampleNames.size(), options,this.parser);
-		
+
+		genotypingEngine = new UnifiedGenotypingEngine(sampleNames.size(), options, this.parser);
+
 		// take care of the VCF headers
-        //final Set<VCFHeaderLine> headerLines = VCFUtils.smartMergeHeaders(vcfRods.values(), true);
 		final Set<VCFHeaderLine> headerLines = new HashSet<VCFHeaderLine>();
 		headerLines.addAll(vcfheader.getMetaDataInInputOrder());
-		
-        headerLines.addAll(annotationEngine.getVCFAnnotationDescriptions());
-        headerLines.addAll(genotypingEngine.getAppropriateVCFInfoHeaders());
-        
-        // add headers for annotations added by this tool
-        headerLines.add(GaeaVcfHeaderLines.getInfoLine(GaeaVCFConstants.MLE_ALLELE_COUNT_KEY));
-        headerLines.add(GaeaVcfHeaderLines.getInfoLine(GaeaVCFConstants.MLE_ALLELE_FREQUENCY_KEY));
-        headerLines.add(GaeaVcfHeaderLines.getFormatLine(GaeaVCFConstants.REFERENCE_GENOTYPE_QUALITY));
-        headerLines.add(VCFStandardHeaderLines.getInfoLine(VCFConstants.DEPTH_KEY));   // needed for gVCFs without DP tags
-        if ( options.getDBSnp() != null )
-            VCFStandardHeaderLines.addStandardInfoLines(headerLines, true, VCFConstants.DBSNP_KEY);
-        
-        vcfHeader = new VCFHeader(headerLines, sampleNames);
-        
-        this.multiHeaders = multiHeaders;
-        
-        //vcfHeaderDataCache.setHeader(vcfHeader);
-        
-        //now that we have all the VCF headers, initialize the annotations (this is particularly important to turn off RankSumTest dithering in integration tests)
-        annotationEngine.invokeAnnotationInitializationMethods(headerLines,sampleNames);
-        
-        GvcfMathUtils.resetRandomGenerator();
+
+		headerLines.addAll(annotationEngine.getVCFAnnotationDescriptions());
+		headerLines.addAll(genotypingEngine.getAppropriateVCFInfoHeaders());
+
+		// add headers for annotations added by this tool
+		headerLines.add(GaeaVcfHeaderLines.getInfoLine(GaeaVCFConstants.MLE_ALLELE_COUNT_KEY));
+		headerLines.add(GaeaVcfHeaderLines.getInfoLine(GaeaVCFConstants.MLE_ALLELE_FREQUENCY_KEY));
+		headerLines.add(GaeaVcfHeaderLines.getFormatLine(GaeaVCFConstants.REFERENCE_GENOTYPE_QUALITY));
+		headerLines.add(VCFStandardHeaderLines.getInfoLine(VCFConstants.DEPTH_KEY)); 
+		if (options.getDBSnp() != null)
+			VCFStandardHeaderLines.addStandardInfoLines(headerLines, true, VCFConstants.DBSNP_KEY);
+
+		vcfHeader = new VCFHeader(headerLines, sampleNames);
+
+		for(String sample : multiHeaders.keySet()){
+			HeaderDataCache vcfHeaderDataCache = new HeaderDataCache();
+			vcfHeaderDataCache.setHeader(multiHeaders.getVCFHeader(sample));
+			vcfHeaderDateCaches.put(sample, vcfHeaderDataCache);
+		}
+
+		// now that we have all the VCF headers, initialize the annotations
+		// (this is particularly important to turn off RankSumTest dithering in
+		// integration tests)
+		annotationEngine.invokeAnnotationInitializationMethods(headerLines, sampleNames);
+
+		GvcfMathUtils.resetRandomGenerator();
 	}
-	
-	public Set<String> getSampleList(VCFHeader header){
+
+	public Set<String> getSampleList(VCFHeader header) {
 		Set<String> samples = new TreeSet<String>();
-		for ( String sample : header.getGenotypeSamples() ) {
-            samples.add(GaeaGvcfVariantContextUtils.mergedSampleName(null, sample, false));
-        }
-		
+		for (String sample : header.getGenotypeSamples()) {
+			samples.add(GaeaGvcfVariantContextUtils.mergedSampleName(null, sample, false));
+		}
+
 		return samples;
 	}
-	
-	public void init( ArrayList<VariantContext> dbsnps){
+
+	public void init(ArrayList<VariantContext> dbsnps) {
 		annotationEngine.initializeDBs(dbsnps, parser);
 	}
 
-	public void clear() {
-		variants.clear();
-		currentContext = null;
-		max_position = -1;
-	}
-
 	public void purgeOutOfScopeRecords(GenomeLocation location) {
-		Iterator<VariantContext> iter = variants.iterator();
-		while (iter.hasNext()) {
-			VariantContext context = iter.next();
-			if (context.getEnd() < location.getStart())
-				iter.remove();
+
+		for (String sample : variantsForSample.keySet()) {
+			Iterator<VariantContext> iter = variantsForSample.get(sample).iterator();
+			while (iter.hasNext()) {
+				VariantContext context = iter.next();
+				if (context.getEnd() < location.getStart())
+					iter.remove();
+			}
 		}
 	}
 
@@ -146,12 +145,14 @@ public class JointCallingEngine {
 		if (curr <= max_position)
 			purgeOutOfScopeRecords(location);
 		else {
-			variants.clear();
+			for (String sample : variantsForSample.keySet()) {
+				variantsForSample.get(sample).clear();
+			}
 			max_position = -1;
 		}
 
 		if (currentContext == null) {
-			if (iterator.hasNext()){
+			if (iterator.hasNext()) {
 				currentContext = iterator.next().get();
 			}
 		}
@@ -159,21 +160,50 @@ public class JointCallingEngine {
 		while (currentContext != null) {
 			if (currentContext.getStart() > curr)
 				break;
-			if (currentContext.getStart() <= curr && currentContext.getEnd() >= curr){
+			if (currentContext.getStart() <= curr && currentContext.getEnd() >= curr) {
 				GenotypesContext gc = currentContext.getGenotypes();
-				vcfHeaderDataCache.setHeader(multiHeaders.getVCFHeader(currentContext.getAttributeAsString("SM", null)));
+				String sampleName = currentContext.getAttributeAsString("SM", null);
+				if (sampleName == null)
+					throw new RuntimeException("Not contains SM attribute");
+				
 				if (gc instanceof LazyParsingGenotypesContext)
-					((LazyParsingGenotypesContext)gc).getParser().setHeaderDataCache(vcfHeaderDataCache);
-				variants.add(currentContext);
-				max_position = currentContext.getEnd();
+					((LazyParsingGenotypesContext) gc).getParser().setHeaderDataCache(vcfHeaderDateCaches.get(sampleName));
+				
+				/*CommonInfo info = currentContext.getCommonInfo();
+				HashMap<String,Object> maps = new HashMap<String,Object>();
+				maps.putAll(info.getAttributes());
+				maps.remove("SM");
+				info.setAttributes(maps);*/
+				
+				if (variantsForSample.containsKey(sampleName)) {
+					variantsForSample.get(sampleName).add(currentContext);
+				} else {
+					ArrayList<VariantContext> list = new ArrayList<VariantContext>();
+					list.add(currentContext);
+					variantsForSample.put(sampleName, list);
+				}
+
+				if (max_position < currentContext.getEnd())
+					max_position = currentContext.getEnd();
 			}
 
-			if (iterator.hasNext()){
+			if (iterator.hasNext()) {
 				currentContext = iterator.next().get();
-			}
-			else
+			} else
 				currentContext = null;
 		}
+	}
+
+	private List<VariantContext> getValues(GenomeLocation loc) {
+		List<VariantContext> list = new ArrayList<VariantContext>();
+
+		for (String sample : variantsForSample.keySet()) {
+			if(variantsForSample.get(sample).size() > 0){
+				int size = variantsForSample.get(sample).size();
+				list.add(variantsForSample.get(sample).get(size-1));
+			}
+		}
+		return list;
 	}
 
 	public VariantContext variantCalling(Iterator<VariantContextWritable> iterator, GenomeLocation location,
@@ -183,11 +213,11 @@ public class JointCallingEngine {
 
 		lazyLoad(iterator, location);
 
-		final List<VariantContext> vcsAtThisLocus = variants;
+		final List<VariantContext> vcsAtThisLocus = getValues(location);
 
 		final Byte refBase = INCLUDE_NON_VARIANTS ? (byte) ref.getBase(location.getStart() - 1) : null;
 		final boolean removeNonRefSymbolicAllele = !INCLUDE_NON_VARIANTS;
-			
+
 		final VariantContext combinedVC = ReferenceConfidenceVariantContextMerger.merge(vcsAtThisLocus, location,
 				refBase, removeNonRefSymbolicAllele, uniquifySamples, annotationEngine);
 
@@ -325,8 +355,8 @@ public class JointCallingEngine {
 		}
 		return recoveredGs;
 	}
-	
-	public VCFHeader getVCFHeader(){
+
+	public VCFHeader getVCFHeader() {
 		return this.vcfHeader;
 	}
 }

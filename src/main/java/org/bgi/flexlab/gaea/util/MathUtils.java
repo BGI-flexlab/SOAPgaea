@@ -46,10 +46,7 @@ import org.bgi.flexlab.gaea.data.exception.UserException;
 
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 
 public class MathUtils {
 

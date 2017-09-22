@@ -76,6 +76,7 @@ public class JointCalling extends ToolsRunner{
         job.setJobName("Gaea joint calling");
         
         job.setJarByClass(JointCalling.class);
+        job.setWindowsBasicMapperClass(JointCallingMapper.class, options.getWindowsSize(),0);
         job.setMapperClass(JointCallingMapper.class);
         job.setReducerClass(JointCallingReducer.class);
         job.setNumReduceTasks(options.getReducerNumber());

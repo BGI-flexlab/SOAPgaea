@@ -16,7 +16,8 @@ public class GvcfMathUtils extends MathUtils {
 	private static final long GAEA_RANDOM_SEED = 47382911L;
     private static Random randomGenerator = new Random(GAEA_RANDOM_SEED);
 	public static Random getRandomGenerator() { return randomGenerator; }
-	public static void resetRandomGenerator() { randomGenerator.setSeed(GAEA_RANDOM_SEED); }
+	public static void resetRandomGenerator() { randomGenerator.setSeed(GAEA_RANDOM_SEED);}
+	public static void resetRandomGenerator(long seed) { randomGenerator.setSeed(seed); }
 
 	/**
 	 * Compute Z=X-Y for two numeric vectors X and Y

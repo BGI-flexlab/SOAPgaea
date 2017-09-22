@@ -28,7 +28,8 @@ public abstract class DiploidExactAFCalculator extends ExactAFCalculator {
                                                final double[] log10AlleleFrequencyPriors, final StateTracker stateTracker) {
         final int numAlternateAlleles = vc.getNAlleles() - 1;
 
-        final ArrayList<double[]> genotypeLikelihoods = getGLs(vc.getGenotypes(), true, vc.hasAllele(GaeaVCFConstants.NON_REF_SYMBOLIC_ALLELE));
+        final ArrayList<double[]> genotypeLikelihoods = getGLs(vc.getGenotypes(), true, vc.hasAllele(GaeaVCFConstants.NON_REF_SYMBOLIC_ALLELE),vc.getStart()==104160);
+        
         final int numSamples = genotypeLikelihoods.size()-1;
         final int numChr = 2*numSamples;
 
