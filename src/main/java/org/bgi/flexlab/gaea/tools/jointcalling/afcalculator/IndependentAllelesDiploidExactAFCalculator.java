@@ -104,7 +104,9 @@ public class IndependentAllelesDiploidExactAFCalculator extends DiploidExactAFCa
                     }
                     gb.alleles(newAlleles);
                 }
-                if (combineAltAlleleLikelihoods(oldGenotype, genotypeCount, newLikelihoods, hetLikelihoods, homAltLikelihoods))
+                if (oldGenotype.isNonInformative())
+                    gb.PL(BIALLELIC_NON_INFORMATIVE_PLS);
+                else if (combineAltAlleleLikelihoods(oldGenotype, genotypeCount, newLikelihoods, hetLikelihoods, homAltLikelihoods))
                     gb.PL(newLikelihoods);
                 newGenotypes.add(gb.make());
             }
