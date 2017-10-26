@@ -2,6 +2,7 @@ package org.bgi.flexlab.gaea.tools.jointcalling.util;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -561,7 +562,7 @@ public class GaeaGvcfVariantContextUtils extends  GaeaVariantContextUtils{
 	 *            assignment strategy for the (subsetted) PLs
 	 * @return a new non-null GenotypesContext
 	 */
-	public static GenotypesContext subsetDiploidAlleles(final VariantContext vc, final List<Allele> allelesToUse,
+	public static GenotypesContext subsetAlleles(final VariantContext vc, final List<Allele> allelesToUse,
 			final GenotypeAssignmentMethod assignGenotypes) {
 		if (vc == null)
 			throw new IllegalArgumentException("the VariantContext cannot be null");
@@ -579,7 +580,8 @@ public class GaeaGvcfVariantContextUtils extends  GaeaVariantContextUtils{
 			return GenotypesContext.create();
 
 		// find the likelihoods indexes to use from the used alternate alleles
-		final List<Integer> likelihoodIndexesToUse = determineDiploidLikelihoodIndexesToUse(vc, allelesToUse);
+		//final List<Integer> likelihoodIndexesToUse = determineDiploidLikelihoodIndexesToUse(vc, allelesToUse);
+		final List<List<Integer>> likelihoodIndexesToUse = determineLikelihoodIndexesToUse(vc, allelesToUse);
 
 		// find the strand allele count indexes to use from the used alternate
 		// alleles
@@ -599,8 +601,7 @@ public class GaeaGvcfVariantContextUtils extends  GaeaVariantContextUtils{
 	 *            the subset of alleles to use
 	 * @return a list of PL indexes to use or null if none
 	 */
-	private static List<Integer> determineDiploidLikelihoodIndexesToUse(final VariantContext originalVC,
-			final List<Allele> allelesToUse) {
+	private static List<List<Integer>> determineLikelihoodIndexesToUse(final VariantContext originalVC, final List<Allele> allelesToUse) {
 
 		if (originalVC == null)
 			throw new IllegalArgumentException("the original VariantContext cannot be null");
@@ -608,16 +609,16 @@ public class GaeaGvcfVariantContextUtils extends  GaeaVariantContextUtils{
 			throw new IllegalArgumentException("the alleles to use cannot be null");
 
 		// the bitset representing the allele indexes we want to keep
-		final boolean[] alleleIndexesToUse = getAlleleIndexBitset(originalVC, allelesToUse);
+		final BitSet alleleIndexesToUse = getAlleleIndexBitset(originalVC, allelesToUse);
 
 		// an optimization: if we are supposed to use all (or none in the case
 		// of a ref call) of the alleles,
 		// then we can keep the PLs as is; otherwise, we determine which ones to
 		// keep
-		if (MathUtils.countOccurrences(true, alleleIndexesToUse) == alleleIndexesToUse.length)
+		if ( alleleIndexesToUse.cardinality() == alleleIndexesToUse.size() )
 			return null;
 
-		return getDiploidLikelihoodIndexes(originalVC, alleleIndexesToUse);
+		return getLikelihoodIndexes(originalVC, alleleIndexesToUse);
 	}
 
 	/**
@@ -638,13 +639,13 @@ public class GaeaGvcfVariantContextUtils extends  GaeaVariantContextUtils{
 			throw new IllegalArgumentException("the alleles to use cannot be null");
 
 		// the bitset representing the allele indexes we want to keep
-		final boolean[] alleleIndexesToUse = getAlleleIndexBitset(originalVC, allelesToUse);
+		final BitSet alleleIndexesToUse = getAlleleIndexBitset(originalVC, allelesToUse);
 
 		// an optimization: if we are supposed to use all (or none in the case
 		// of a ref call) of the alleles,
 		// then we can keep the SACs as is; otherwise, we determine which ones
 		// to keep
-		if (MathUtils.countOccurrences(true, alleleIndexesToUse) == alleleIndexesToUse.length)
+		if (alleleIndexesToUse.cardinality() == alleleIndexesToUse.size())
 			return null;
 
 		return getSACIndexes(alleleIndexesToUse);
@@ -661,34 +662,21 @@ public class GaeaGvcfVariantContextUtils extends  GaeaVariantContextUtils{
 	 *            #getAlleleIndexBitset)
 	 * @return a non-null List
 	 */
-	private static List<Integer> getDiploidLikelihoodIndexes(final VariantContext originalVC,
-			final boolean[] alleleIndexesToUse) {
-
-		if (originalVC == null)
-			throw new IllegalArgumentException("the original VC cannot be null");
-		if (alleleIndexesToUse == null)
-			throw new IllegalArgumentException("the alleles to use cannot be null");
-
-		// All samples must be diploid
+	private static List<List<Integer>> getLikelihoodIndexes(final VariantContext originalVC, BitSet alleleIndexesToUse) {
+		final List<List<Integer>> likelihoodIndexesPerGenotype = new ArrayList<List<Integer>>(10);
+		
 		for (final Genotype g : originalVC.getGenotypes()) {
-			if (g.getPloidy() != DEFAULT_PLOIDY)
-				throw new UserException("All samples must be diploid");
-		}
+            final int numLikelihoods = GenotypeLikelihoods.numLikelihoods(originalVC.getNAlleles(), g.getPloidy());
+            final List<Integer> likelihoodIndexes = new ArrayList<>(30);
+            for ( int PLindex = 0; PLindex < numLikelihoods; PLindex++ ) {
+                // consider this entry only if all the alleles are good
+                if ( GenotypeLikelihoods.getAlleles(PLindex, g.getPloidy()).stream().allMatch(i -> alleleIndexesToUse.get(i)) )
+                    likelihoodIndexes.add(PLindex);
+            }
+            likelihoodIndexesPerGenotype.add(likelihoodIndexes);
+        }
 
-		final List<Integer> result = new ArrayList<>(30);
-
-		// numLikelihoods takes total # of alleles.
-		final int numLikelihoods = GenotypeLikelihoods.numLikelihoods(originalVC.getNAlleles(), DEFAULT_PLOIDY);
-
-		for (int PLindex = 0; PLindex < numLikelihoods; PLindex++) {
-			final GenotypeLikelihoods.GenotypeLikelihoodsAllelePair alleles = GenotypeLikelihoods
-					.getAllelePair(PLindex);
-			// consider this entry only if both of the alleles are good
-			if (alleleIndexesToUse[alleles.alleleIndex1] && alleleIndexesToUse[alleles.alleleIndex2])
-				result.add(PLindex);
-		}
-
-		return result;
+		return likelihoodIndexesPerGenotype;
 	}
 
 	/**
@@ -700,17 +688,17 @@ public class GaeaGvcfVariantContextUtils extends  GaeaVariantContextUtils{
 	 *            #getAlleleIndexBitset)
 	 * @return a non-null List
 	 */
-	private static List<Integer> getSACIndexes(final boolean[] alleleIndexesToUse) {
+	private static List<Integer> getSACIndexes(final BitSet alleleIndexesToUse) {
 
 		if (alleleIndexesToUse == null)
 			throw new IllegalArgumentException("the alleles to use cannot be null");
-		if (alleleIndexesToUse.length == 0)
+		if (alleleIndexesToUse.isEmpty())
 			throw new IllegalArgumentException("cannot have no alleles to use");
 
-		final List<Integer> result = new ArrayList<>(2 * alleleIndexesToUse.length);
+		final List<Integer> result = new ArrayList<>(2 * alleleIndexesToUse.size());
 
-		for (int SACindex = 0; SACindex < alleleIndexesToUse.length; SACindex++) {
-			if (alleleIndexesToUse[SACindex]) {
+		for (int SACindex = 0; SACindex < alleleIndexesToUse.size(); SACindex++) {
+			if (alleleIndexesToUse.get(SACindex)) {
 				result.add(2 * SACindex);
 				result.add(2 * SACindex + 1);
 			}
@@ -729,7 +717,7 @@ public class GaeaGvcfVariantContextUtils extends  GaeaVariantContextUtils{
 	 *            the list of alleles to keep
 	 * @return non-null bitset
 	 */
-	private static boolean[] getAlleleIndexBitset(final VariantContext originalVC, final List<Allele> allelesToUse) {
+	private static BitSet getAlleleIndexBitset(final VariantContext originalVC, final List<Allele> allelesToUse) {
 
 		if (originalVC == null)
 			throw new IllegalArgumentException("the original VC cannot be null");
@@ -737,13 +725,13 @@ public class GaeaGvcfVariantContextUtils extends  GaeaVariantContextUtils{
 			throw new IllegalArgumentException("the alleles to use cannot be null");
 
 		final int numOriginalAltAlleles = originalVC.getNAlleles() - 1;
-		final boolean[] alleleIndexesToKeep = new boolean[numOriginalAltAlleles + 1];
+		final BitSet alleleIndexesToKeep = new BitSet(numOriginalAltAlleles + 1);
 
 		// the reference Allele is definitely still used
-		alleleIndexesToKeep[0] = true;
+		alleleIndexesToKeep.set(0);
 		for (int i = 0; i < numOriginalAltAlleles; i++) {
 			if (allelesToUse.contains(originalVC.getAlternateAllele(i)))
-				alleleIndexesToKeep[i + 1] = true;
+				alleleIndexesToKeep.set(i + 1);
 		}
 
 		return alleleIndexesToKeep;
@@ -834,7 +822,7 @@ public class GaeaGvcfVariantContextUtils extends  GaeaVariantContextUtils{
 	 */
 	private static GenotypesContext createGenotypesWithSubsettedLikelihoods(final GenotypesContext originalGs,
 			final VariantContext originalVC, final List<Allele> allelesToUse,
-			final List<Integer> likelihoodIndexesToUse, final List<Integer> sacIndexesToUse,
+			final List<List<Integer>> likelihoodIndexesToUse, final List<Integer> sacIndexesToUse,
 			final GenotypeAssignmentMethod assignGenotypes) {
 
 		if (originalGs == null)
@@ -846,9 +834,6 @@ public class GaeaGvcfVariantContextUtils extends  GaeaVariantContextUtils{
 
 		// the new genotypes to create
 		final GenotypesContext newGTs = GenotypesContext.create(originalGs.size());
-
-		// make sure we are seeing the expected number of likelihoods per sample
-		final int expectedNumLikelihoods = GenotypeLikelihoods.numLikelihoods(originalVC.getNAlleles(), 2);
 
 		// the samples
 		final List<String> sampleIndices = originalGs.getSampleNamesOrderedByName();
@@ -866,6 +851,7 @@ public class GaeaGvcfVariantContextUtils extends  GaeaVariantContextUtils{
 				newLikelihoods = null;
 				gb.noPL();
 			} else {
+				final int expectedNumLikelihoods = GenotypeLikelihoods.numLikelihoods(originalVC.getNAlleles(), g.getPloidy());
 				final double[] originalLikelihoods = g.getLikelihoods().getAsVector();
 				if (likelihoodIndexesToUse == null) {
 					newLikelihoods = originalLikelihoods;
@@ -874,9 +860,9 @@ public class GaeaGvcfVariantContextUtils extends  GaeaVariantContextUtils{
 							+ " got " + g.getLikelihoodsString() + " but expected " + expectedNumLikelihoods);
 					newLikelihoods = null;
 				} else {
-					newLikelihoods = new double[likelihoodIndexesToUse.size()];
+					newLikelihoods = new double[likelihoodIndexesToUse.get(k).size()];
 					int newIndex = 0;
-					for (final int oldIndex : likelihoodIndexesToUse)
+					for (final int oldIndex : likelihoodIndexesToUse.get(k))
 						newLikelihoods[newIndex++] = originalLikelihoods[oldIndex];
 
 					// might need to re-normalize
@@ -884,10 +870,11 @@ public class GaeaGvcfVariantContextUtils extends  GaeaVariantContextUtils{
 				}
 
 				if (newLikelihoods == null || (originalVC.getAttributeAsInt(VCFConstants.DEPTH_KEY, 0) == 0
-						&& likelihoodsAreUninformative(newLikelihoods)))
+						&& likelihoodsAreUninformative(newLikelihoods))){
 					gb.noPL();
-				else
+				}else{
 					gb.PL(newLikelihoods);
+				}
 			}
 
 			// create the new strand allele counts array from the used alleles
@@ -896,7 +883,7 @@ public class GaeaGvcfVariantContextUtils extends  GaeaVariantContextUtils{
 				gb.attribute(GaeaVCFConstants.STRAND_COUNT_BY_SAMPLE_KEY, newSACs);
 			}
 
-			updateGenotypeAfterSubsetting(g.getAlleles(), gb, assignGenotypes, newLikelihoods, allelesToUse);
+			updateGenotypeAfterSubsetting(g.getAlleles(), g.getPloidy(), gb, assignGenotypes, newLikelihoods, allelesToUse);
 			newGTs.add(gb.make());
 		}
 
@@ -924,7 +911,7 @@ public class GaeaGvcfVariantContextUtils extends  GaeaVariantContextUtils{
 	 * @param allelesToUse
 	 *            the alleles we are using for our subsetting
 	 */
-	public static void updateGenotypeAfterSubsetting(final List<Allele> originalGT, final GenotypeBuilder gb,
+	public static void updateGenotypeAfterSubsetting(final List<Allele> originalGT, final int ploidy,final GenotypeBuilder gb,
 			final GenotypeAssignmentMethod assignmentMethod, final double[] newLikelihoods,
 			final List<Allele> allelesToUse) {
 		if (originalGT == null)
@@ -938,11 +925,11 @@ public class GaeaGvcfVariantContextUtils extends  GaeaVariantContextUtils{
 		case DO_NOT_ASSIGN_GENOTYPES:
 			break;
 		case SET_TO_NO_CALL:
-			gb.alleles(NO_CALL_ALLELES);
+			gb.alleles(noCallAlleles(ploidy));
 			gb.noGQ();
 			break;
 		case SET_TO_NO_CALL_NO_ANNOTATIONS:
-			gb.alleles(NO_CALL_ALLELES);
+			gb.alleles(noCallAlleles(ploidy));
 			gb.noGQ();
 			gb.noAD();
 			gb.noPL();
@@ -952,14 +939,16 @@ public class GaeaGvcfVariantContextUtils extends  GaeaVariantContextUtils{
 			if (newLikelihoods == null || likelihoodsAreUninformative(newLikelihoods)) {
 				// if there is no mass on the (new) likelihoods, then just
 				// no-call the sample
-				gb.alleles(NO_CALL_ALLELES);
+				gb.alleles(noCallAlleles(ploidy));
 				gb.noGQ();
 			} else {
 				// find the genotype with maximum likelihoods
 				final int PLindex = MathUtils.maxElementIndex(newLikelihoods);
-				GenotypeLikelihoods.GenotypeLikelihoodsAllelePair alleles = GenotypeLikelihoods.getAllelePair(PLindex);
-				gb.alleles(
-						Arrays.asList(allelesToUse.get(alleles.alleleIndex1), allelesToUse.get(alleles.alleleIndex2)));
+				final List<Allele> alleles = new ArrayList<>();
+                for ( final Integer alleleIndex : GenotypeLikelihoods.getAlleles(PLindex, ploidy)) {
+                    alleles.add(allelesToUse.get(alleleIndex) );
+                }
+                gb.alleles(alleles);
 				gb.log10PError(GenotypeLikelihoods.getGQLog10FromLikelihoods(PLindex, newLikelihoods));
 			}
 			break;
@@ -1008,7 +997,7 @@ public class GaeaGvcfVariantContextUtils extends  GaeaVariantContextUtils{
 		// create the new genotypes
 		for (final Genotype g : vc.getGenotypes()) {
 			final int gPloidy = g.getPloidy() == 0 ? ploidy : g.getPloidy();
-			final List<Allele> refAlleles = gPloidy == 2 ? diploidRefAlleles : Collections.nCopies(gPloidy, ref);
+			final List<Allele> refAlleles = Collections.nCopies(gPloidy, vc.getReference());
 			final GenotypeBuilder gb = new GenotypeBuilder(g.getSampleName(), refAlleles);
 			if (g.hasDP())
 				gb.DP(g.getDP());
@@ -1029,7 +1018,7 @@ public class GaeaGvcfVariantContextUtils extends  GaeaVariantContextUtils{
 	 * @return genotypes context
 	 */
 	public static GenotypesContext assignDiploidGenotypes(final VariantContext vc) {
-		return subsetDiploidAlleles(vc, vc.getAlleles(), GenotypeAssignmentMethod.USE_PLS_TO_ASSIGN);
+		return subsetAlleles(vc, vc.getAlleles(), GenotypeAssignmentMethod.USE_PLS_TO_ASSIGN);
 	}
 
 	/**
@@ -1138,7 +1127,7 @@ public class GaeaGvcfVariantContextUtils extends  GaeaVariantContextUtils{
 						&& genotypeAssignmentMethodUsed != GenotypeAssignmentMethod.SET_TO_NO_CALL)
 					addInfoFiledAnnotations(vc, builder, alt, keepOriginalChrCounts);
 
-				builder.genotypes(subsetDiploidAlleles(vc, alleles, genotypeAssignmentMethodUsed));
+				builder.genotypes(subsetAlleles(vc, alleles, genotypeAssignmentMethodUsed));
 				final VariantContext trimmed = trimAlleles(builder.make(), trimLeft, true);
 				biallelics.add(trimmed);
 			}
@@ -1516,7 +1505,7 @@ public class GaeaGvcfVariantContextUtils extends  GaeaVariantContextUtils{
 		if (numNewAlleles == numOriginalAlleles)
 			return oldGs;
 
-		return fixDiploidGenotypesFromSubsettedAlleles(oldGs, originalVC, selectedVC.getAlleles());
+		return fixGenotypesFromSubsettedAlleles(oldGs, originalVC, selectedVC.getAlleles());
 	}
 
 	/**
@@ -1531,7 +1520,7 @@ public class GaeaGvcfVariantContextUtils extends  GaeaVariantContextUtils{
 	 *            the new subset of alleles to use
 	 * @return a new non-null GenotypesContext
 	 */
-	static private GenotypesContext fixDiploidGenotypesFromSubsettedAlleles(final GenotypesContext originalGs,
+	static private GenotypesContext fixGenotypesFromSubsettedAlleles(final GenotypesContext originalGs,
 			final VariantContext originalVC, final List<Allele> allelesToUse) {
 
 		if (originalGs == null)
@@ -1542,7 +1531,7 @@ public class GaeaGvcfVariantContextUtils extends  GaeaVariantContextUtils{
 			throw new IllegalArgumentException("the alleles to use cannot be null");
 
 		// find the likelihoods indexes to use from the used alternate alleles
-		final List<Integer> likelihoodIndexesToUse = determineDiploidLikelihoodIndexesToUse(originalVC, allelesToUse);
+		final List<List<Integer>> likelihoodIndexesToUse = determineLikelihoodIndexesToUse(originalVC, allelesToUse);
 
 		// find the strand allele count indexes to use from the used alternate
 		// alleles
@@ -1575,7 +1564,7 @@ public class GaeaGvcfVariantContextUtils extends  GaeaVariantContextUtils{
 			throw new IllegalArgumentException("the alleles to use list cannot be null");
 
 		// the bitset representing the allele indexes we want to keep
-		final boolean[] alleleIndexesToUse = getAlleleIndexBitset(originalVC, allelesToUse);
+		final BitSet alleleIndexesToUse = getAlleleIndexBitset(originalVC, allelesToUse);
 
 		// the new genotypes to create
 		final GenotypesContext newGTs = GenotypesContext.create(originalGs.size());
@@ -1586,7 +1575,7 @@ public class GaeaGvcfVariantContextUtils extends  GaeaVariantContextUtils{
 		// create the new genotypes
 		for (int k = 0; k < originalGs.size(); k++) {
 			final Genotype g = originalGs.get(sampleIndices.get(k));
-			newGTs.add(fixAD(g, alleleIndexesToUse, allelesToUse.size()));
+			newGTs.add(fixAD(g, alleleIndexesToUse));
 		}
 
 		return newGTs;
@@ -1603,8 +1592,7 @@ public class GaeaGvcfVariantContextUtils extends  GaeaVariantContextUtils{
 	 *            how many alleles we are keeping
 	 * @return a non-null Genotype
 	 */
-	private static Genotype fixAD(final Genotype genotype, final boolean[] alleleIndexesToUse,
-			final int nAllelesToUse) {
+	private static Genotype fixAD(final Genotype genotype, final BitSet alleleIndexesToUse) {
 		// if it ain't broke don't fix it
 		if (!genotype.hasAD())
 			return genotype;
@@ -1612,18 +1600,14 @@ public class GaeaGvcfVariantContextUtils extends  GaeaVariantContextUtils{
 		final GenotypeBuilder builder = new GenotypeBuilder(genotype);
 
 		final int[] oldAD = genotype.getAD();
-		if (oldAD.length != alleleIndexesToUse.length) {
-			builder.noAD();
-		} else {
-			final int[] newAD = new int[nAllelesToUse];
-			int currentIndex = 0;
-			for (int i = 0; i < oldAD.length; i++) {
-				if (alleleIndexesToUse[i])
-					newAD[currentIndex++] = oldAD[i];
-			}
-			builder.AD(newAD);
-		}
-		return builder.make();
+		final int[] newAD = new int[alleleIndexesToUse.cardinality()];
+
+        int currentIndex = 0;
+        for ( int i = alleleIndexesToUse.nextSetBit(0); i >= 0; i = alleleIndexesToUse.nextSetBit(i+1) ) {
+            newAD[currentIndex++] = oldAD[i];
+        }
+		
+        return builder.AD(newAD).make();
 	}
 
 	// TODO as part of a larger refactoring effort {@link #createAlleleMapping}
@@ -2391,11 +2375,11 @@ public class GaeaGvcfVariantContextUtils extends  GaeaVariantContextUtils{
 		final Object[] splitOriginalField = getVAttributeValues(vc.getAttribute(infoFieldName));
 
 		// subset the field
-		final boolean[] alleleIndexesToUse = getAlleleIndexBitset(vc, Arrays.asList(altAllele));
+		final BitSet alleleIndexesToUse = getAlleleIndexBitset(vc, Arrays.asList(altAllele));
 
 		// skip the first allele, which is the reference
-		for (int i = 1; i < alleleIndexesToUse.length; i++) {
-			if (alleleIndexesToUse[i] == true)
+		for (int i = 1; i < alleleIndexesToUse.size(); i++) {
+			if (alleleIndexesToUse.get(i))
 				return splitOriginalField[i - 1];
 		}
 
@@ -2491,4 +2475,30 @@ public class GaeaGvcfVariantContextUtils extends  GaeaVariantContextUtils{
 			builder.attribute(VCFConstants.ALLELE_FREQUENCY_KEY, alleleFrequency.toArray());
 		}
 	}
+	
+	/**
+     * @param plValues  array of PL values
+     * @return          the genotype quality corresponding to the PL values
+     */
+    public static int calculateGQFromPLs(final int[] plValues) {
+        if ( plValues == null ) throw new IllegalArgumentException("Array of PL values cannot be null.");
+        if ( plValues.length < 2 ) throw new IllegalArgumentException("Array of PL values must contain at least two elements.");
+
+        int first = plValues[0];
+        int second = plValues[1];
+        if (first > second) {
+            second = first;
+            first = plValues[1];
+        }
+        for (int i = 2; i < plValues.length; i++) {
+            final int candidate = plValues[i];
+            if (candidate >= second) continue;
+            if (candidate <= first) {
+                second = first;
+                first = candidate;
+            } else
+                second = candidate;
+        }
+        return second - first;
+    }
 }

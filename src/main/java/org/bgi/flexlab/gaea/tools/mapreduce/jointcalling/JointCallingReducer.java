@@ -72,7 +72,12 @@ public class JointCallingReducer
 		windowSize = options.getWindowsSize();
 		parser = new GenomeLocationParser(header.getSequenceDictionary());
 		headers.readHeaders(conf);
-		engine = new JointCallingEngine(options, parser,header,headers);
+		
+		String sampleStr = conf.get(JointCalling.INPUT_ORDER,null);
+		if(sampleStr != null)
+			engine = new JointCallingEngine(options, parser,header,headers,sampleStr.split(","));
+		else
+			engine = new JointCallingEngine(options, parser,header,headers,null);
 		genomeShare = new ReferenceShare();
 		genomeShare.loadChromosomeList(options.getReference());
 		dbsnpShare = new DbsnpShare(options.getDBSnp(), options.getReference());

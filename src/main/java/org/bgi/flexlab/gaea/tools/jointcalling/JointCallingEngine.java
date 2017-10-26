@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -16,6 +17,9 @@ import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocationParser;
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
+import org.bgi.flexlab.gaea.tools.jointcalling.annotator.RMSAnnotation;
+import org.bgi.flexlab.gaea.tools.jointcalling.annotator.RankSumTest;
+import org.bgi.flexlab.gaea.tools.jointcalling.genotypegvcfs.annotation.InfoFieldAnnotation;
 import org.bgi.flexlab.gaea.tools.jointcalling.genotypegvcfs.annotation.StandardAnnotation;
 import org.bgi.flexlab.gaea.tools.jointcalling.util.GaeaGvcfVariantContextUtils;
 import org.bgi.flexlab.gaea.tools.jointcalling.util.GaeaVcfHeaderLines;
@@ -30,7 +34,6 @@ import org.seqdoop.hadoop_bam.LazyVCFGenotypesContext.HeaderDataCache;
 import org.seqdoop.hadoop_bam.VariantContextWritable;
 
 import htsjdk.variant.variantcontext.Allele;
-import htsjdk.variant.variantcontext.CommonInfo;
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.GenotypeBuilder;
 import htsjdk.variant.variantcontext.GenotypesContext;
@@ -39,15 +42,22 @@ import htsjdk.variant.variantcontext.VariantContextBuilder;
 import htsjdk.variant.vcf.VCFConstants;
 import htsjdk.variant.vcf.VCFHeader;
 import htsjdk.variant.vcf.VCFHeaderLine;
+import htsjdk.variant.vcf.VCFHeaderLineCount;
+import htsjdk.variant.vcf.VCFInfoHeaderLine;
 import htsjdk.variant.vcf.VCFStandardHeaderLines;
 
 public class JointCallingEngine {
+	
+	private static String GVCF_BLOCK = "GVCFBlock";
+	private final List<String> infoFieldAnnotationKeyNamesToRemove = new ArrayList<>();
+	
 	private boolean INCLUDE_NON_VARIANTS = false;
 
 	private boolean uniquifySamples = false;
 
 	// private ArrayList<VariantContext> variants = null;
 	private TreeMap<String, ArrayList<VariantContext>> variantsForSample = null;
+	private String[] samples = null;
 
 	private VariantContext currentContext = null;
 
@@ -67,9 +77,11 @@ public class JointCallingEngine {
 
 	private final VCFHeader vcfHeader;
 	private HashMap<String,HeaderDataCache> vcfHeaderDateCaches = new HashMap<String,HeaderDataCache>();
+	
+	final Set<String> infoHeaderAltAllelesLineNames = new LinkedHashSet<>();
 
 	public JointCallingEngine(JointCallingOptions options, GenomeLocationParser parser, VCFHeader vcfheader,
-			MultipleVCFHeaderForJointCalling multiHeaders) {
+			MultipleVCFHeaderForJointCalling multiHeaders,String[] sampleArray) {
 		variantsForSample = new TreeMap<String, ArrayList<VariantContext>>();
 		this.INCLUDE_NON_VARIANTS = options.INCLUDE_NON_VARIANT;
 		this.uniquifySamples = options.isUniquifySamples();
@@ -78,13 +90,28 @@ public class JointCallingEngine {
 		annotationEngine = new VariantAnnotatorEngine(annotationGroupsToUse, annotationsToUse,
 				Collections.<String>emptyList());
 		annotationEngine.initializeDBs(options.getDBSnp() != null);
-
+		
+		for ( final InfoFieldAnnotation annotation :  annotationEngine.getRequestedInfoAnnotations() ) {
+            if ( annotation instanceof RankSumTest || annotation instanceof RMSAnnotation ) {
+                final List<String> keyNames = annotation.getKeyNames();
+                if ( !keyNames.isEmpty() ) {
+                    infoFieldAnnotationKeyNamesToRemove.add(keyNames.get(0));
+                }
+            }
+        }
 		Set<String> sampleNames = getSampleList(vcfheader);
 
 		genotypingEngine = new UnifiedGenotypingEngine(sampleNames.size(), options, this.parser);
 
 		// take care of the VCF headers
 		final Set<VCFHeaderLine> headerLines = new HashSet<VCFHeaderLine>();
+		
+		for ( final Iterator<VCFHeaderLine> iter = headerLines.iterator(); iter.hasNext(); ) {
+            if ( iter.next().getKey().contains(GVCF_BLOCK) ) {
+                iter.remove();
+            }
+        }
+		
 		headerLines.addAll(vcfheader.getMetaDataInInputOrder());
 
 		headerLines.addAll(annotationEngine.getVCFAnnotationDescriptions());
@@ -94,7 +121,19 @@ public class JointCallingEngine {
 		headerLines.add(GaeaVcfHeaderLines.getInfoLine(GaeaVCFConstants.MLE_ALLELE_COUNT_KEY));
 		headerLines.add(GaeaVcfHeaderLines.getInfoLine(GaeaVCFConstants.MLE_ALLELE_FREQUENCY_KEY));
 		headerLines.add(GaeaVcfHeaderLines.getFormatLine(GaeaVCFConstants.REFERENCE_GENOTYPE_QUALITY));
-		headerLines.add(VCFStandardHeaderLines.getInfoLine(VCFConstants.DEPTH_KEY)); 
+		headerLines.add(VCFStandardHeaderLines.getInfoLine(VCFConstants.DEPTH_KEY));
+		
+		if ( INCLUDE_NON_VARIANTS ) {
+            // Save INFO header names that require alt alleles
+            for ( final VCFHeaderLine headerLine : headerLines ) {
+                if (headerLine instanceof VCFInfoHeaderLine ) {
+                    if (((VCFInfoHeaderLine) headerLine).getCountType() == VCFHeaderLineCount.A) {
+                        infoHeaderAltAllelesLineNames.add(((VCFInfoHeaderLine) headerLine).getID());
+                    }
+                }
+            }
+        }
+		
 		if (options.getDBSnp() != null)
 			VCFStandardHeaderLines.addStandardInfoLines(headerLines, true, VCFConstants.DBSNP_KEY);
 
@@ -109,9 +148,14 @@ public class JointCallingEngine {
 		// now that we have all the VCF headers, initialize the annotations
 		// (this is particularly important to turn off RankSumTest dithering in
 		// integration tests)
-		annotationEngine.invokeAnnotationInitializationMethods(headerLines, sampleNames);
+		Set<String> sampleNamesHashSet = new HashSet<String>();
+		for(String sample : sampleArray)
+			sampleNamesHashSet.add(sample);
+		annotationEngine.invokeAnnotationInitializationMethods(headerLines, sampleNamesHashSet);
 
 		GvcfMathUtils.resetRandomGenerator();
+		
+		this.samples = sampleArray;
 	}
 
 	public Set<String> getSampleList(VCFHeader header) {
@@ -169,12 +213,6 @@ public class JointCallingEngine {
 				if (gc instanceof LazyParsingGenotypesContext)
 					((LazyParsingGenotypesContext) gc).getParser().setHeaderDataCache(vcfHeaderDateCaches.get(sampleName));
 				
-				/*CommonInfo info = currentContext.getCommonInfo();
-				HashMap<String,Object> maps = new HashMap<String,Object>();
-				maps.putAll(info.getAttributes());
-				maps.remove("SM");
-				info.setAttributes(maps);*/
-				
 				if (variantsForSample.containsKey(sampleName)) {
 					variantsForSample.get(sampleName).add(currentContext);
 				} else {
@@ -193,14 +231,42 @@ public class JointCallingEngine {
 				currentContext = null;
 		}
 	}
+	
+	private VariantContext getValues(String sample,GenomeLocation loc,boolean requireStartHere){
+		if(variantsForSample.containsKey(sample) && variantsForSample.get(sample).size() > 0){
+			for(VariantContext vc : variantsForSample.get(sample)){
+				if ( ! requireStartHere || vc.getStart() == loc.getStart()){
+					return vc;
+				}
+			}
+		}
+		
+		return null;
+	}
+	
+	private VariantContext getValues(String sample,GenomeLocation loc){
+		VariantContext vc = getValues(sample,loc,true);
+		
+		if(vc == null)
+			vc = getValues(sample,loc,false);
+		
+		return vc;
+	}
 
 	private List<VariantContext> getValues(GenomeLocation loc) {
 		List<VariantContext> list = new ArrayList<VariantContext>();
 
-		for (String sample : variantsForSample.keySet()) {
-			if(variantsForSample.get(sample).size() > 0){
-				int size = variantsForSample.get(sample).size();
-				list.add(variantsForSample.get(sample).get(size-1));
+		if(this.samples != null){
+			for (String sample : samples) {
+				VariantContext vc = getValues(sample,loc);
+				if(vc != null)
+					list.add(vc);
+			}
+		}else{
+			for (String sample : variantsForSample.keySet()) {
+				VariantContext vc = getValues(sample,loc);
+				if(vc != null)
+					list.add(vc);
 			}
 		}
 		return list;
@@ -210,17 +276,12 @@ public class JointCallingEngine {
 			ChromosomeInformationShare ref) {
 		if (location.getStart() != location.getStop())
 			throw new UserException("location must length is 1!");
-
 		lazyLoad(iterator, location);
-
 		final List<VariantContext> vcsAtThisLocus = getValues(location);
-
 		final Byte refBase = INCLUDE_NON_VARIANTS ? (byte) ref.getBase(location.getStart() - 1) : null;
 		final boolean removeNonRefSymbolicAllele = !INCLUDE_NON_VARIANTS;
-
 		final VariantContext combinedVC = ReferenceConfidenceVariantContextMerger.merge(vcsAtThisLocus, location,
-				refBase, removeNonRefSymbolicAllele, uniquifySamples, annotationEngine);
-
+				refBase, removeNonRefSymbolicAllele, uniquifySamples, annotationEngine);	
 		return combinedVC == null ? null : regenotypeVC(new RefMetaDataTracker(location), ref, combinedVC);
 	}
 
@@ -233,7 +294,7 @@ public class JointCallingEngine {
 		}
 
 		VariantContext result = originalVC;
-
+		
 		// don't need to calculate quals for sites with no data whatsoever
 		if (result.getAttributeAsInt(VCFConstants.DEPTH_KEY, 0) > 0) {
 			result = genotypingEngine.calculateGenotypes(originalVC);
@@ -265,11 +326,64 @@ public class JointCallingEngine {
 		} else if (INCLUDE_NON_VARIANTS) {
 			result = new VariantContextBuilder(result).genotypes(cleanupGenotypeAnnotations(result, true)).make();
 			result = annotationEngine.annotateContext(tracker, ref, result);
+			result = removeNonRefAlleles(result);
 		} else {
 			return null;
 		}
+		
+		result = removeInfoAnnotationsIfNoAltAllele(result);
 		return result;
 	}
+	
+	 /**
+     * Remove INFO field annotations if no alternate alleles
+     *
+     * @param vc    the variant context
+     * @return variant context with the INFO field annotations removed if no alternate alleles
+    */
+    private VariantContext removeInfoAnnotationsIfNoAltAllele(final VariantContext vc)  {
+
+        // If no alt alleles, remove any RankSumTest or RMSAnnotation attribute
+        if ( vc.getAlternateAlleles().isEmpty() ) {
+            final VariantContextBuilder builder = new VariantContextBuilder(vc);
+
+            for ( final String annotation : infoFieldAnnotationKeyNamesToRemove ) {
+                builder.rmAttribute(annotation);
+            }
+            return builder.make();
+        } else {
+            return vc;
+        }
+    }
+	
+	/**
+     * Remove NON-REF alleles from the variant context
+     *
+     * @param vc   the variant context
+     * @return variant context with the NON-REF alleles removed if multiallelic or replaced with NO-CALL alleles if biallelic
+     */
+    private VariantContext removeNonRefAlleles(final VariantContext vc) {
+
+        // If NON_REF is the only alt allele, ignore this site
+        final List<Allele> newAlleles = new ArrayList<>();
+        // Only keep alleles that are not NON-REF
+        for ( final Allele allele : vc.getAlleles() ) {
+            if ( !allele.equals(GaeaVCFConstants.NON_REF_SYMBOLIC_ALLELE) ) {
+                newAlleles.add(allele);
+            }
+        }
+
+        // If no alt allele, then remove INFO fields that require alt alleles
+        if ( newAlleles.size() == 1 ) {
+            final VariantContextBuilder builder = new VariantContextBuilder(vc).alleles(newAlleles);
+            for ( final String name : infoHeaderAltAllelesLineNames ) {
+                builder.rmAttributes(Arrays.asList(name));
+            }
+            return builder.make();
+        } else {
+            return vc;
+        }
+    }
 
 	private boolean isProperlyPolymorphic(final VariantContext vc) {
 		// obvious cases

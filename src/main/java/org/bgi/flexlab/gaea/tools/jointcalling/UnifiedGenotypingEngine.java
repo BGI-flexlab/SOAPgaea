@@ -3,6 +3,8 @@ package org.bgi.flexlab.gaea.tools.jointcalling;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -14,6 +16,7 @@ import org.bgi.flexlab.gaea.data.structure.variant.VariantCallContext;
 import org.bgi.flexlab.gaea.tools.jointcalling.afcalculator.AFCalculationResult;
 import org.bgi.flexlab.gaea.tools.jointcalling.afcalculator.AFCalculator;
 import org.bgi.flexlab.gaea.tools.jointcalling.afcalculator.AFCalculatorProvider;
+import org.bgi.flexlab.gaea.tools.jointcalling.afcalculator.AlleleFrequencyCalculator;
 import org.bgi.flexlab.gaea.tools.jointcalling.afcalculator.GeneralPloidyFailOverAFCalculatorProvider;
 import org.bgi.flexlab.gaea.tools.jointcalling.afpriorprovider.AFPriorProvider;
 import org.bgi.flexlab.gaea.tools.jointcalling.afpriorprovider.CustomAFPriorProvider;
@@ -23,6 +26,7 @@ import org.bgi.flexlab.gaea.tools.jointcalling.util.GaeaVcfHeaderLines;
 import org.bgi.flexlab.gaea.tools.jointcalling.util.GvcfMathUtils;
 import org.bgi.flexlab.gaea.tools.mapreduce.jointcalling.JointCallingOptions;
 import org.bgi.flexlab.gaea.util.GaeaVCFConstants;
+import org.bgi.flexlab.gaea.util.Utils;
 
 import com.google.java.contract.Requires;
 
@@ -35,62 +39,72 @@ import htsjdk.variant.variantcontext.VariantContextBuilder;
 import htsjdk.variant.vcf.VCFInfoHeaderLine;
 
 public class UnifiedGenotypingEngine {
-	
+
 	protected final int numberOfGenomes;
 	private boolean doAlleleSpecificCalcs = false;
 	private GenomeLocationParser genomeLocParser;
-	
+
 	private final AFPriorProvider log10AlleleFrequencyPriorsSNPs;
 
-    private final AFPriorProvider log10AlleleFrequencyPriorsIndels;
-    
-    private JointCallingOptions options = null;
-    
-    protected final AFCalculatorProvider afCalculatorProvider;
-	
-	public UnifiedGenotypingEngine(int sampleCount , JointCallingOptions options,GenomeLocationParser parser){
+	private final AFPriorProvider log10AlleleFrequencyPriorsIndels;
+
+	private JointCallingOptions options = null;
+
+	protected final AFCalculatorProvider afCalculatorProvider;
+
+	private final List<GenomeLocation> upstreamDeletionsLoc = new LinkedList<>();
+
+	protected final AFCalculator newAFCalculator;
+
+	public UnifiedGenotypingEngine(int sampleCount, JointCallingOptions options, GenomeLocationParser parser) {
 		this.options = options;
 		this.genomeLocParser = parser;
 		numberOfGenomes = sampleCount * options.getSamplePloidy();
 		GvcfMathUtils.Log10Cache.ensureCacheContains(numberOfGenomes * 2);
 		log10AlleleFrequencyPriorsSNPs = composeAlleleFrequencyPriorProvider(numberOfGenomes,
-                options.getSNPHeterozygosity(), options.getInputPrior());
-        log10AlleleFrequencyPriorsIndels = composeAlleleFrequencyPriorProvider(numberOfGenomes,
-                options.getINDELHeterozygosity(), options.getInputPrior());
-        
-        afCalculatorProvider = new GeneralPloidyFailOverAFCalculatorProvider(options.getSamplePloidy(),options.getMaxAlternateAllele());
+				options.getSNPHeterozygosity(), options.getInputPrior());
+		log10AlleleFrequencyPriorsIndels = composeAlleleFrequencyPriorProvider(numberOfGenomes,
+				options.getINDELHeterozygosity(), options.getInputPrior());
+
+		afCalculatorProvider = new GeneralPloidyFailOverAFCalculatorProvider(options.getSamplePloidy(),
+				options.getMaxAlternateAllele());
+		
+		final double refPseudocount = options.getSNPHeterozygosity() / Math.pow(options.heterozygosityStandardDeviation,2);
+	    final double snpPseudocount = options.getSNPHeterozygosity() * refPseudocount;
+	    final double indelPseudocount = options.getINDELHeterozygosity() * refPseudocount;
+	    newAFCalculator = new AlleleFrequencyCalculator(refPseudocount, snpPseudocount, indelPseudocount, options.getSamplePloidy());
 	}
-	
+
 	public enum Model {
-        SNP,
-        INDEL,
-        GENERALPLOIDYSNP,
-        GENERALPLOIDYINDEL,
-        BOTH;
-    }
-	
+		SNP, INDEL, GENERALPLOIDYSNP, GENERALPLOIDYINDEL, BOTH;
+	}
+
 	public enum GenotypingOutputMode {
 
-	    /**
-	     * The genotyper will choose the most likely alternate allele
-	     */
-	    DISCOVERY,
+		/**
+		 * The genotyper will choose the most likely alternate allele
+		 */
+		DISCOVERY,
 
-	    /**
-	     * Only the alleles passed by the user should be considered.
-	     */
-	    GENOTYPE_GIVEN_ALLELES
+		/**
+		 * Only the alleles passed by the user should be considered.
+		 */
+		GENOTYPE_GIVEN_ALLELES
 	}
-	
+
 	public enum OutputMode {
-	    /** produces calls only at variant sites */
-	    EMIT_VARIANTS_ONLY,
-	    /** produces calls at variant sites and confident reference sites */
-	    EMIT_ALL_CONFIDENT_SITES,
-	    /** produces calls at any callable site regardless of confidence; this argument is intended only for point
-	     * mutations (SNPs) in DISCOVERY mode or generally when running in GENOTYPE_GIVEN_ALLELES mode; it will by
-	     * no means produce a comprehensive set of indels in DISCOVERY mode */
-	    EMIT_ALL_SITES
+		/** produces calls only at variant sites */
+		EMIT_VARIANTS_ONLY,
+		/** produces calls at variant sites and confident reference sites */
+		EMIT_ALL_CONFIDENT_SITES,
+		/**
+		 * produces calls at any callable site regardless of confidence; this
+		 * argument is intended only for point mutations (SNPs) in DISCOVERY
+		 * mode or generally when running in GENOTYPE_GIVEN_ALLELES mode; it
+		 * will by no means produce a comprehensive set of indels in DISCOVERY
+		 * mode
+		 */
+		EMIT_ALL_SITES
 	}
 
 	private static class OutputAlleleSubset {
@@ -124,21 +138,23 @@ public class UnifiedGenotypingEngine {
 			return result;
 		}
 	}
-	
-	public static AFPriorProvider composeAlleleFrequencyPriorProvider(final int N, final double heterozygosity, final List<Double> inputPriors) {
 
-        if (!inputPriors.isEmpty()) {
-            // user-specified priors
-            if (inputPriors.size() != N)
-                throw new UserException("Invalid length of inputPrior vector: vector length must be equal to # samples +1 ");
-            for (final Double prior : inputPriors) {
-                if (prior <= 0 || prior >= 1) throw new UserException("inputPrior vector values must be greater than 0 and less than 1");
-            }
-            return new CustomAFPriorProvider(inputPriors);
-        }
-        else
-            return new HeterozygosityAFPriorProvider(heterozygosity);
-    }
+	public static AFPriorProvider composeAlleleFrequencyPriorProvider(final int N, final double heterozygosity,
+			final List<Double> inputPriors) {
+
+		if (!inputPriors.isEmpty()) {
+			// user-specified priors
+			if (inputPriors.size() != N)
+				throw new UserException(
+						"Invalid length of inputPrior vector: vector length must be equal to # samples +1 ");
+			for (final Double prior : inputPriors) {
+				if (prior <= 0 || prior >= 1)
+					throw new UserException("inputPrior vector values must be greater than 0 and less than 1");
+			}
+			return new CustomAFPriorProvider(inputPriors);
+		} else
+			return new HeterozygosityAFPriorProvider(heterozygosity);
+	}
 
 	public VariantCallContext calculateGenotypes(VariantContext vc) {
 		final VariantContext.Type type = vc.getType();
@@ -188,8 +204,8 @@ public class UnifiedGenotypingEngine {
 
 	protected final boolean confidentlyCalled(final double conf, final double PofF) {
 		return conf >= options.STANDARD_CONFIDENCE_FOR_CALLING
-				|| (options.getGenotypingOutputMode() == GenotypingOutputMode.GENOTYPE_GIVEN_ALLELES && GvcfMathUtils
-						.phredScaleErrorRate(PofF) >= options.STANDARD_CONFIDENCE_FOR_CALLING);
+				|| (options.getGenotypingOutputMode() == GenotypingOutputMode.GENOTYPE_GIVEN_ALLELES
+						&& GvcfMathUtils.phredScaleErrorRate(PofF) >= options.STANDARD_CONFIDENCE_FOR_CALLING);
 	}
 
 	protected final boolean passesCallThreshold(double conf) {
@@ -203,11 +219,10 @@ public class UnifiedGenotypingEngine {
 
 	protected final boolean passesEmitThreshold(double conf, boolean bestGuessIsRef) {
 		return (options.getOutputMode() == OutputMode.EMIT_ALL_CONFIDENT_SITES || !bestGuessIsRef)
-				&& conf >= Math.min(options.STANDARD_CONFIDENCE_FOR_CALLING,
-						options.STANDARD_CONFIDENCE_FOR_EMITTING);
+				&& conf >= options.STANDARD_CONFIDENCE_FOR_EMITTING;
 	}
 
-	private OutputAlleleSubset calculateOutputAlleleSubset(final AFCalculationResult afcr) {
+	private OutputAlleleSubset calculateOutputAlleleSubset(final AFCalculationResult afcr, final VariantContext vc) {
 		final List<Allele> alleles = afcr.getAllelesUsedInGenotyping();
 
 		final int alternativeAlleleCount = alleles.size() - 1;
@@ -215,26 +230,66 @@ public class UnifiedGenotypingEngine {
 		final int[] mleCounts = new int[alternativeAlleleCount];
 		int outputAlleleCount = 0;
 		boolean siteIsMonomorphic = true;
-		for (final Allele alternativeAllele : alleles) {
-			if (alternativeAllele.isReference())
-				continue;
-			// we want to keep the NON_REF symbolic allele but only in the
-			// absence of a non-symbolic allele, e.g.
-			// if we combined a ref / NON_REF gVCF with a ref / alt gVCF
-			final boolean isNonRefWhichIsLoneAltAllele = alternativeAlleleCount == 1
-					&& alternativeAllele == GaeaVCFConstants.NON_REF_SYMBOLIC_ALLELE;
-			final boolean isPlausible = afcr.isPolymorphicPhredScaledQual(alternativeAllele,
-					options.STANDARD_CONFIDENCE_FOR_EMITTING);
-			final boolean toOutput = isPlausible || forceKeepAllele(alternativeAllele) || isNonRefWhichIsLoneAltAllele;
+		int referenceAlleleSize = 0;
+		for (final Allele allele : alleles) {
+			if (allele.isReference()) {
+				referenceAlleleSize = allele.length();
+			} else {
+				// we want to keep the NON_REF symbolic allele but only in the
+				// absence of a non-symbolic allele, e.g.
+				// if we combined a ref / NON_REF gVCF with a ref / alt gVCF
+				final boolean isNonRefWhichIsLoneAltAllele = alternativeAlleleCount == 1
+						&& allele.equals(GaeaVCFConstants.NON_REF_SYMBOLIC_ALLELE);
+				final boolean isPlausible = afcr.isPolymorphicPhredScaledQual(allele,
+						options.STANDARD_CONFIDENCE_FOR_CALLING);
 
-			siteIsMonomorphic &= !isPlausible;
-			if (!toOutput)
-				continue;
-			outputAlleles[outputAlleleCount] = alternativeAllele;
-			mleCounts[outputAlleleCount++] = afcr.getAlleleCountAtMLE(alternativeAllele);
+				siteIsMonomorphic &= !isPlausible;
+				boolean toOutput = (isPlausible || forceKeepAllele(allele) || isNonRefWhichIsLoneAltAllele);
+				if (allele.equals(GaeaVCFConstants.SPANNING_DELETION_SYMBOLIC_ALLELE_DEPRECATED)
+						|| allele.equals(Allele.SPAN_DEL)) {
+					toOutput &= coveredByDeletion(vc);
+				}
+				if (toOutput) {
+					outputAlleles[outputAlleleCount] = allele;
+					mleCounts[outputAlleleCount++] = afcr.getAlleleCountAtMLE(allele);
+					recordDeletion(referenceAlleleSize, allele, vc);
+				}
+			}
 		}
 
 		return new OutputAlleleSubset(outputAlleleCount, outputAlleles, mleCounts, siteIsMonomorphic);
+	}
+
+	private void recordDeletion(final int referenceAlleleSize, final Allele allele, final VariantContext vc) {
+		final int deletionSize = referenceAlleleSize - allele.length();
+
+		// Allele ia a deletion
+		if (deletionSize > 0) {
+			final GenomeLocation genomeLoc = genomeLocParser.createGenomeLocation(vc.getContig(), vc.getStart(),
+					vc.getStart() + deletionSize);
+			upstreamDeletionsLoc.add(genomeLoc);
+		}
+	}
+
+	private boolean coveredByDeletion(final VariantContext vc) {
+		for (Iterator<GenomeLocation> it = upstreamDeletionsLoc.iterator(); it.hasNext();) {
+			final GenomeLocation loc = it.next();
+			if (!loc.getContig().equals(vc.getContig())) { // past contig
+															// deletion.
+				it.remove();
+			} else if (loc.getStop() < vc.getStart()) { // past position in
+														// current contig
+														// deletion.
+				it.remove();
+			} else if (loc.getStart() == vc.getStart()) {
+				// ignore this deletion, the symbolic one does not make
+				// reference to it.
+			} else { // deletion covers.
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	protected VariantCallContext calculateGenotypes(final VariantContext vc, final Model model,
@@ -248,12 +303,12 @@ public class UnifiedGenotypingEngine {
 		final int defaultPloidy = options.getSamplePloidy();
 		final int maxAltAlleles = options.getMaxAlternateAllele();
 		final int maxNumPLValues = options.getMaxNumberPLValues();
-		final AFCalculator afCalculator = afCalculatorProvider.getInstance(vc, defaultPloidy, maxAltAlleles)
-				.setMaxNumPLValues(maxNumPLValues);
-		final AFCalculationResult AFresult = afCalculator.getLog10PNonRef(vc, defaultPloidy, maxAltAlleles,
-				getAlleleFrequencyPriors(vc, defaultPloidy, model));
+		final AFCalculator afCalculatorForAlleleSubsetting = afCalculatorProvider.getInstance(vc,defaultPloidy,maxAltAlleles).setMaxNumPLValues(maxNumPLValues);
+        final AFCalculator afCalculatorForQualScore = options.USE_NEW_AF_CALCULATOR ? newAFCalculator : afCalculatorForAlleleSubsetting;
 
-		final OutputAlleleSubset outputAlternativeAlleles = calculateOutputAlleleSubset(AFresult);
+        final AFCalculationResult AFresult = afCalculatorForQualScore.getLog10PNonRef(vc, defaultPloidy,maxAltAlleles, getAlleleFrequencyPriors(vc,defaultPloidy,model));
+
+        final OutputAlleleSubset outputAlternativeAlleles = calculateOutputAlleleSubset(AFresult, vc);
 
 		final double PoFGT0 = Math.pow(10, AFresult.getLog10PosteriorOfAFGT0());
 
@@ -293,7 +348,8 @@ public class UnifiedGenotypingEngine {
 
 		// create the genotypes
 
-		final GenotypesContext genotypes = afCalculator.subsetAlleles(vc, defaultPloidy, outputAlleles, true);
+		//final GenotypesContext genotypes = afCalculator.subsetAlleles(vc, defaultPloidy, outputAlleles, true);
+		final GenotypesContext genotypes = afCalculatorForAlleleSubsetting.subsetAlleles(vc, defaultPloidy, outputAlleles, true);
 		builder.genotypes(genotypes);
 
 		// *** note that calculating strand bias involves overwriting data
@@ -366,11 +422,11 @@ public class UnifiedGenotypingEngine {
 			MLEfrequencies.add(Math.min(1.0, (double) AC / (double) AN));
 		return MLEfrequencies;
 	}
-	
+
 	public Set<VCFInfoHeaderLine> getAppropriateVCFInfoHeaders() {
-	    final Set<VCFInfoHeaderLine> headerInfo = new HashSet<>();
-	    if ( options.ANNOTATE_NUMBER_OF_ALLELES_DISCOVERED )
-	        headerInfo.add(GaeaVcfHeaderLines.getInfoLine(GaeaVCFConstants.NUMBER_OF_DISCOVERED_ALLELES_KEY));
-	    return headerInfo;
+		final Set<VCFInfoHeaderLine> headerInfo = new HashSet<>();
+		if (options.ANNOTATE_NUMBER_OF_ALLELES_DISCOVERED)
+			headerInfo.add(GaeaVcfHeaderLines.getInfoLine(GaeaVCFConstants.NUMBER_OF_DISCOVERED_ALLELES_KEY));
+		return headerInfo;
 	}
 }

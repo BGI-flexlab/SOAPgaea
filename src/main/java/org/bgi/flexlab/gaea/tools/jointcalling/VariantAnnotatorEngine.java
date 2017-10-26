@@ -406,4 +406,8 @@ public class VariantAnnotatorEngine {
 
         return minRepresentationBiallelicVCs;
     }
+	
+	public List<InfoFieldAnnotation> getRequestedInfoAnnotations() {
+        return requestedInfoAnnotations;
+    }
 }

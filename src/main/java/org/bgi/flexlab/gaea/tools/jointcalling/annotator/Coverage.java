@@ -19,7 +19,6 @@ public class Coverage extends InfoFieldAnnotation implements StandardAnnotation,
 
 	@Override
 	public Map<String, Object> annotate(RefMetaDataTracker tracker, ChromosomeInformationShare ref, VariantContext vc) {
-		
         return null;
 	}
 

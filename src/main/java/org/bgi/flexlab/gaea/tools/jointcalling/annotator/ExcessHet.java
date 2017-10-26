@@ -54,7 +54,7 @@ public class ExcessHet extends InfoFieldAnnotation implements StandardAnnotation
 
         //If the actual phredPval would be infinity we will probably still filter out just a very large number
         if (pval == 0) {
-            return Integer.MAX_VALUE;
+        	return -10.0 * Math.log10(minNeededValue);
         }
         double phredPval = -10.0 * Math.log10(pval);
 

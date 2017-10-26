@@ -1,6 +1,9 @@
 package org.bgi.flexlab.gaea.tools.jointcalling.util;
 
 import java.util.Random;
+import java.util.function.DoublePredicate;
+import java.util.function.DoubleUnaryOperator;
+import java.util.function.IntPredicate;
 
 import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.util.MathUtils;
@@ -18,6 +21,8 @@ public class GvcfMathUtils extends MathUtils {
 	public static Random getRandomGenerator() { return randomGenerator; }
 	public static void resetRandomGenerator() { randomGenerator.setSeed(GAEA_RANDOM_SEED);}
 	public static void resetRandomGenerator(long seed) { randomGenerator.setSeed(seed); }
+	
+	public static final double LOG10_OF_E = Math.log10(Math.E);
 
 	/**
 	 * Compute Z=X-Y for two numeric vectors X and Y
@@ -38,6 +43,10 @@ public class GvcfMathUtils extends MathUtils {
 
 		return result;
 	}
+	
+	public static double log10SumLog10(final double a, final double b) {
+        return a > b ? a + Math.log10(1 + Math.pow(10.0, b - a)) : b + Math.log10(1 + Math.pow(10.0, a - b));
+    }
 
 	public static double log10OneMinusPow10(final double a) {
 		if (a > 0)
@@ -223,4 +232,48 @@ public class GvcfMathUtils extends MathUtils {
 	public static double binomialCoefficient(final int n, final int k) {
 	    return Math.pow(10, log10BinomialCoefficient(n, k));
 	}
+	
+	public static double[] applyToArray(final double[] array, final DoubleUnaryOperator func) {
+		JointCallingUtils.nonNull(func, "function may not be null");
+        JointCallingUtils.nonNull(array, "array may not be null");
+        final double[] result = new double[array.length];
+        for (int m = 0; m < result.length; m++) {
+            result[m] = func.applyAsDouble(array[m]);
+        }
+        return result;
+    }
+	
+	public static double[] applyToArrayInPlace(final double[] array, final DoubleUnaryOperator func) {
+		JointCallingUtils.nonNull(array, "array may not be null");
+        JointCallingUtils.nonNull(func, "function may not be null");
+        for (int m = 0; m < array.length; m++) {
+            array[m] = func.applyAsDouble(array[m]);
+        }
+        return array;
+    }
+
+    /**
+     * Test whether all elements of a double[] array satisfy a double -> boolean predicate
+     */
+    public static boolean allMatch(final double[] array, final DoublePredicate pred) {
+    	JointCallingUtils.nonNull(array, "array may not be null");
+        JointCallingUtils.nonNull(pred, "predicate may not be null");
+        for (final double x : array) {
+            if (!pred.test(x)) {
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    public static boolean allMatch(final int[] array, final IntPredicate pred) {
+        JointCallingUtils.nonNull(array, "array may not be null");
+        JointCallingUtils.nonNull(pred, "predicate may not be null");
+        for (final int x : array) {
+            if (!pred.test(x)) {
+                return false;
+            }
+        }
+        return true;
+    }
 }

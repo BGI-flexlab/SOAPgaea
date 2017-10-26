@@ -21,19 +21,31 @@ import htsjdk.samtools.seekablestream.SeekableStream;
 import htsjdk.variant.vcf.VCFHeader;
 
 public class MultipleVCFHeaderForJointCalling extends GaeaVCFHeader implements Serializable {
+	
+	class VCFHeaderWithIndex{
+		public int index;
+		public VCFHeader header;
+		
+		public VCFHeaderWithIndex(VCFHeader header,int index){
+			this.header = header;
+			this.index = index;
+		}
+	}
 
 	private static final long serialVersionUID = -3352974548797591555L;
 
-	private HashMap<String, VCFHeader> headers = new HashMap<String, VCFHeader>();
+	private HashMap<String, VCFHeaderWithIndex> headers = new HashMap<String, VCFHeaderWithIndex>();
 	
 	private String HEADER_DEFAULT_PATH = "vcfHeaders";
+	
+	private int currentIndex = 0;
 
 	public MultipleVCFHeaderForJointCalling() {
 	}
 
 	public VCFHeader getVCFHeader(String sampleName) {
 		if (headers.containsKey(sampleName))
-			return headers.get(sampleName);
+			return headers.get(sampleName).header;
 		return null;
 	}
 	
@@ -43,6 +55,7 @@ public class MultipleVCFHeaderForJointCalling extends GaeaVCFHeader implements S
 	}
 
 	public void getHeaders(List<Path> paths) {
+		currentIndex = 0;
 		for (Path p : paths) {
 			VCFHdfsLoader loader = null;
 			try {
@@ -56,7 +69,10 @@ public class MultipleVCFHeaderForJointCalling extends GaeaVCFHeader implements S
 
 			if (headers.containsKey(name))
 				throw new RuntimeException("more than one VCF header contains same sample name!");
-			headers.put(name, loader.getHeader());
+			
+			VCFHeaderWithIndex headerWithIndex = new VCFHeaderWithIndex(loader.getHeader(),currentIndex);
+			currentIndex++;
+			headers.put(name, headerWithIndex);
 			loader.close();
 		}
 	}
@@ -72,7 +88,7 @@ public class MultipleVCFHeaderForJointCalling extends GaeaVCFHeader implements S
 			} catch (IOException e) {
 				throw new RuntimeException(e.toString());
 			}
-	        vcfHdfsWriter.writeHeader(headers.get(name));
+	        vcfHdfsWriter.writeHeader(headers.get(name).header);
 	        vcfHdfsWriter.close();
 		}
 	}
@@ -88,12 +104,14 @@ public class MultipleVCFHeaderForJointCalling extends GaeaVCFHeader implements S
 	public void readHeaders(String outputDir,Configuration conf){
 		Path path = new Path(outputDir);
 		
+		currentIndex = 0;
 		FileSystem fs = null;
 		try {
 			fs = path.getFileSystem(conf);
 		
 			if(fs.isFile(path)){
-				headers.put(path.getName(), readHeader(path,conf));
+				VCFHeaderWithIndex headerWithIndex = new VCFHeaderWithIndex(readHeader(path,conf),0);
+				headers.put(path.getName(), headerWithIndex);
 			} else{
 				FileStatus stats[] = fs.listStatus(path);
 				
@@ -101,7 +119,9 @@ public class MultipleVCFHeaderForJointCalling extends GaeaVCFHeader implements S
 					Path filePath = file.getPath();
 					if(!fs.isFile(filePath))
 						throw new RuntimeException("cann't not support sub dir");
-					headers.put(filePath.getName(), readHeader(filePath,conf));
+					VCFHeaderWithIndex headerWithIndex = new VCFHeaderWithIndex(readHeader(filePath,conf),currentIndex);
+					headers.put(filePath.getName(), headerWithIndex);
+					currentIndex++;
 				}
 			}
 		} catch (IOException e) {
@@ -118,10 +138,20 @@ public class MultipleVCFHeaderForJointCalling extends GaeaVCFHeader implements S
 	
 	public Set<VCFHeader> getHeaders(){
 		Set<VCFHeader> headerSet = new HashSet<VCFHeader>();
-		for(VCFHeader header : headers.values()){
-			headerSet.add(header);
+		for(VCFHeaderWithIndex headerWithIndex : headers.values()){
+			headerSet.add(headerWithIndex.header);
 		}
 		return headerSet;
+	}
+	
+	public String[] getSamplesAsInputOrder(){
+		String[] samples = new String[headers.size()];
+		
+		for(VCFHeaderWithIndex headerWithIndex : headers.values()){
+			samples[headerWithIndex.index] = headerWithIndex.header.getSampleNamesInOrder().get(0);
+		}
+		
+		return samples;
 	}
 	
 	public void clear(){

@@ -72,7 +72,7 @@ public class AFCalculationResult {
 							+ log10pRefByAllele + " but allelesUsedInGenotyping " + allelesUsedInGenotyping);
 		if (!MathUtils.goodLog10ProbVector(log10LikelihoodsOfAC, LOG_10_ARRAY_SIZES, false))
 			throw new IllegalArgumentException("log10LikelihoodsOfAC are bad " + Utils.join(",", log10LikelihoodsOfAC));
-		if (!MathUtils.goodLog10ProbVector(log10PriorsOfAC, LOG_10_ARRAY_SIZES, true))
+		if (!MathUtils.goodLog10ProbVector(log10PriorsOfAC, LOG_10_ARRAY_SIZES, false))
 			throw new IllegalArgumentException("log10priors are bad " + Utils.join(",", log10PriorsOfAC));
 
 		this.alleleCountsOfMLE = alleleCountsOfMLE;

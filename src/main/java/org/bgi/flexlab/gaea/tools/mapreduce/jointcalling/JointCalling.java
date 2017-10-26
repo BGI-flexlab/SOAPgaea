@@ -16,6 +16,7 @@ import org.bgi.flexlab.gaea.framework.tools.mapreduce.BioJob;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.ToolsRunner;
 import org.bgi.flexlab.gaea.tools.jointcalling.util.GaeaGvcfVariantContextUtils;
 import org.bgi.flexlab.gaea.tools.jointcalling.util.MultipleVCFHeaderForJointCalling;
+import org.bgi.flexlab.gaea.util.Utils;
 import org.seqdoop.hadoop_bam.KeyIgnoringVCFOutputFormat;
 import org.seqdoop.hadoop_bam.VariantContextWritable;
 
@@ -24,6 +25,8 @@ import htsjdk.variant.vcf.VCFHeaderLine;
 import htsjdk.variant.vcf.VCFUtils;
 
 public class JointCalling extends ToolsRunner{
+	
+	public final static String INPUT_ORDER = "input.name.order";
 	
 	public JointCalling(){
 		this.toolsDescription = "joing calling for gvcfs";
@@ -67,6 +70,7 @@ public class JointCalling extends ToolsRunner{
         
         MultipleVCFHeaderForJointCalling multiVcfHeader = new MultipleVCFHeaderForJointCalling();
         multiVcfHeader.headersConfig(options.getInput(), options.getVCFHeaderOutput()+"/vcfHeaders", conf);
+        conf.set(INPUT_ORDER, Utils.join(",", multiVcfHeader.getSamplesAsInputOrder()));
         
         VCFHeader vcfHeader = getVCFHeaderFromInput(multiVcfHeader.getHeaders());
         VCFHdfsWriter vcfHdfsWriter = new VCFHdfsWriter(conf.get(GaeaVCFOutputFormat.OUT_PATH_PROP), false, false, conf);
@@ -77,8 +81,8 @@ public class JointCalling extends ToolsRunner{
         
         job.setJarByClass(JointCalling.class);
         job.setWindowsBasicMapperClass(JointCallingMapper.class, options.getWindowsSize(),0);
-        job.setMapperClass(JointCallingMapper.class);
         job.setReducerClass(JointCallingReducer.class);
+        
         job.setNumReduceTasks(options.getReducerNumber());
         job.setOutputKeyValue(WindowsBasedWritable.class,VariantContextWritable.class, NullWritable.class, VariantContextWritable.class);
         

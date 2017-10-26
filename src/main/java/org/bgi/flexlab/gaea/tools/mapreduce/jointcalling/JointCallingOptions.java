@@ -38,19 +38,22 @@ public class JointCallingOptions extends GaeaOptions implements HadoopOptions{
 	
 	private double snpHeterozygosity = 1e-3;//b	
 	private double indelHeterozygosity = 1.0/8000;//B
-	public double STANDARD_CONFIDENCE_FOR_CALLING = 30.0;//S
-	public double STANDARD_CONFIDENCE_FOR_EMITTING = 30.0;//s
 	
 	private List<Path> input = new ArrayList<Path>();//i
 	private List<Double> inputPrior = new ArrayList<Double>();//p
 	private OutputMode outputMode = OutputMode.EMIT_VARIANTS_ONLY;//O
 	private GenotypingOutputMode genotypeMode = GenotypingOutputMode.DISCOVERY;//G
 	
+	private boolean unquifySamples = false;//u
+	private boolean bcfFormat = false;//f
+	
 	public boolean ANNOTATE_NUMBER_OF_ALLELES_DISCOVERED = false;//A
 	public boolean ANNOTATE_ALL_SITES_WITH_PL = false;//a
 	public boolean INCLUDE_NON_VARIANT = false;//I
-	private boolean unquifySamples = false;//u
-	private boolean bcfFormat = false;//f
+	public boolean USE_NEW_AF_CALCULATOR = false; //U
+	public double STANDARD_CONFIDENCE_FOR_CALLING = 30.0;//S
+	public double STANDARD_CONFIDENCE_FOR_EMITTING = 30.0;//s
+	public double heterozygosityStandardDeviation = 0.01;//j
 	
 	public JointCallingOptions(){
 		addOption("a","allSitePLs",false,"Annotate all sites with PLs");
@@ -63,6 +66,7 @@ public class JointCallingOptions extends GaeaOptions implements HadoopOptions{
 		addOption("G", "gt_mode",true,"Specifies how to determine the alternate alleles to use for genotyping(DISCOVERY or GENOTYPE_GIVEN_ALLELES)");
 		addOption("i", "input", true, "a gvcf or a gvcf list for input", true);
 		addOption("I","include_non_variant",false,"Include loci found to be non-variant after genotyping");
+		addOption("j","heterozygosity_stdev",true,"Standard deviation of eterozygosity for SNP and indel calling");
 		addOption("k", "knowSite", true, "known snp/indel file,the format is VCF4");
 		addOption("n", "reducer", true, "reducer numbers[100]");
 		addOption("m","max_num_PL_values",true,"Maximum number of PL values to output");
@@ -74,6 +78,7 @@ public class JointCallingOptions extends GaeaOptions implements HadoopOptions{
 		addOption("s","stand_emit_conf",true,"The minimum phred-scaled confidence threshold at which variants should be emitted (and filtered with LowQual if less than the calling threshold");
 		addOption("S","stand_call_conf",true,"The minimum phred-scaled confidence threshold at which variants should be called");
 		addOption("u","uniquifySamples",false,"Assume duplicate samples are present and uniquify all names with '.variant' and file number index");
+		addOption("U","useNewAFCalculator",false,"Use new AF model instead of the so-called exact model");
 		addOption("w", "keyWindow", true, "window size for key[10000]");
 		FormatHelpInfo(SOFTWARE_NAME,SOFTWARE_VERSION);
 	}
@@ -122,12 +127,14 @@ public class JointCallingOptions extends GaeaOptions implements HadoopOptions{
 		this.ANNOTATE_NUMBER_OF_ALLELES_DISCOVERED = getOptionBooleanValue("A",false);
 		this.INCLUDE_NON_VARIANT = getOptionBooleanValue("I",false);
 		this.unquifySamples = getOptionBooleanValue("u",false);
+		this.USE_NEW_AF_CALCULATOR=getOptionBooleanValue("U",false);
 		this.bcfFormat = getOptionBooleanValue("f",false);
 		
 		this.snpHeterozygosity = getOptionDoubleValue("b",1e-3);
 		this.indelHeterozygosity = getOptionDoubleValue("B",1.0/8000);
 		this.STANDARD_CONFIDENCE_FOR_EMITTING = getOptionDoubleValue("s",30.0);
 		this.STANDARD_CONFIDENCE_FOR_CALLING = getOptionDoubleValue("S",30.0);
+		this.heterozygosityStandardDeviation = getOptionDoubleValue("j",0.01);
 	}
 	
 	private void parseOutputMode(String mode){

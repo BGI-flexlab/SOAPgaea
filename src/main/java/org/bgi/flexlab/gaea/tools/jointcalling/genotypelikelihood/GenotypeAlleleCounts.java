@@ -4,12 +4,13 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import org.bgi.flexlab.gaea.tools.jointcalling.util.IndexRange;
 import org.bgi.flexlab.gaea.util.MathUtils;
 
 import htsjdk.variant.variantcontext.Allele;
 
 public class GenotypeAlleleCounts implements Comparable<GenotypeAlleleCounts>, Cloneable{
-	private double log10CombinationCount;
+	//private double log10CombinationCount;
 
     /**
      * The ploidy of the genotype.
@@ -30,6 +31,10 @@ public class GenotypeAlleleCounts implements Comparable<GenotypeAlleleCounts>, C
      * Index of this genotype within genotypes of the same ploidy.
      */
     private int index;
+    
+    private static final double UNCOMPUTED_LOG_10_COMBINATION_COUNT = -1;
+    
+    private double log10CombinationCount = UNCOMPUTED_LOG_10_COMBINATION_COUNT;
 
     /**
      * Creates a new unphased genotype.
@@ -57,11 +62,14 @@ public class GenotypeAlleleCounts implements Comparable<GenotypeAlleleCounts>, C
      * @param index the genotype index.
      */
     private GenotypeAlleleCounts(final int ploidy, final int index, final int... sortedAlleleCounts) {
+    	this(ploidy, index, sortedAlleleCounts, sortedAlleleCounts.length >> 1);
+    }
+    
+    private GenotypeAlleleCounts(final int ploidy, final int index, final int[] sortedAlleleCounts, final int distinctAlleleCount){
         this.ploidy = ploidy;
-        this.sortedAlleleCounts = sortedAlleleCounts;
-        distinctAlleleCount = sortedAlleleCounts.length >> 1;
-        log10CombinationCount = -1;
         this.index = index;
+        this.sortedAlleleCounts = sortedAlleleCounts;
+        this.distinctAlleleCount = distinctAlleleCount;
     }
 
     /**
@@ -69,10 +77,11 @@ public class GenotypeAlleleCounts implements Comparable<GenotypeAlleleCounts>, C
      * @return 0 or less.
      */
     public double log10CombinationCount() {
-        if (log10CombinationCount == -1)
-            return log10CombinationCount = calculateLog10CombinationCount();
-        else
-            return log10CombinationCount;
+        if (log10CombinationCount == UNCOMPUTED_LOG_10_COMBINATION_COUNT) {
+            log10CombinationCount = MathUtils.log10Factorial(ploidy)
+                    - new IndexRange(0, distinctAlleleCount).sum(n -> MathUtils.log10Factorial(sortedAlleleCounts[2*n+1]));
+        }
+        return log10CombinationCount;
     }
    
     
@@ -704,5 +713,22 @@ public class GenotypeAlleleCounts implements Comparable<GenotypeAlleleCounts>, C
                 result[k++] = index;
         }
         return result;
+    }
+    
+    public interface IntBiConsumer {
+        void accept(final int alleleIndex, final int alleleCount);
+    }
+
+    @FunctionalInterface
+    public interface IntToDoubleBiFunction {
+        double apply(final int alleleIndex, final int alleleCount);
+    }
+
+    public void forEachAlleleIndexAndCount(final IntBiConsumer action) {
+        new IndexRange(0, distinctAlleleCount).forEach(n -> action.accept(sortedAlleleCounts[2*n], sortedAlleleCounts[2*n+1]));
+    }
+
+    public double sumOverAlleleIndicesAndCounts(final IntToDoubleBiFunction func) {
+        return new IndexRange(0, distinctAlleleCount).sum(n -> func.apply(sortedAlleleCounts[2*n], sortedAlleleCounts[2*n+1]));
     }
 }

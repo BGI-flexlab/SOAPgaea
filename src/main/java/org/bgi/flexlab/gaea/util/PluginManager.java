@@ -1,4 +1,4 @@
-package org.bgi.flexlab.gaea.tools.jointcalling.genotypegvcfs.annotation;
+package org.bgi.flexlab.gaea.util;
 
 import java.io.File;
 import java.lang.reflect.Constructor;

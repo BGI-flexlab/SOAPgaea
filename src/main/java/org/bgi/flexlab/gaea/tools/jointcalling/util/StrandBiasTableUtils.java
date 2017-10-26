@@ -3,6 +3,7 @@ package org.bgi.flexlab.gaea.tools.jointcalling.util;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.math3.distribution.HypergeometricDistribution;
 import org.bgi.flexlab.gaea.util.QualityUtils;
 
 import cern.jet.math.Arithmetic;
@@ -23,26 +24,55 @@ public class StrandBiasTableUtils {
      * @return
      */
     public static Double FisherExactPValueForContingencyTable(int[][] originalTable) {
-        final int[][] normalizedTable = normalizeContingencyTable(originalTable);
+    	final int[][] normalizedTable = normalizeContingencyTable(originalTable);
 
         int[][] table = copyContingencyTable(normalizedTable);
 
-        double pCutoff = computePValue(table);
+        int[] rowSums = { sumRow(table, 0), sumRow(table, 1) };
+        int[] colSums = { sumColumn(table, 0), sumColumn(table, 1) };
+        int N = rowSums[0] + rowSums[1];
+        int sampleSize = colSums[0];
+        int numberOfNonSuccesses = rowSums[1];
+        int numberOfSuccesses = rowSums[0];
+        /*
+         * The lowest possible number of successes you can sample is what's left of your sample size after
+         * drawing every non success in the urn. If the number of non successes in the urn is greater than the sample
+         * size then the minimum number of drawn successes is 0.
+         */
+        int lo = Math.max(0, sampleSize - numberOfNonSuccesses);
+        /*
+         * The highest possible number of successes you can draw is either the total sample size or the number of
+         * successes in the urn. (Whichever is smaller)
+         */
+        int hi = Math.min(sampleSize, numberOfSuccesses);
 
-        double pValue = pCutoff;
-        while (rotateTable(table)) {
-            double pValuePiece = computePValue(table);
-
-            if (pValuePiece <= pCutoff) {
-                pValue += pValuePiece;
-            }
+        /**
+         * If the support of the distribution is only one value, creating the HypergeometricDistribution
+         * doesn't make sense. There would be only one possible observation so the p-value has to be 1.
+         */
+        if (lo == hi) {
+            return 1.0;
         }
 
-        table = copyContingencyTable(normalizedTable);
-        while (unrotateTable(table)) {
-            double pValuePiece = computePValue(table);
+        /**
+         * For the hypergeometric distribution from which to calculate the probabilities:
+         * The population (N = a+b+c+d) is the sum of all four numbers in the contingency table. Then the number of
+         * "successes" (K = a+b) is the sum of the top row, and the sample size (n = a+c) is the sum of the first column.
+         */
+        final HypergeometricDistribution dist = new HypergeometricDistribution(N, numberOfSuccesses, sampleSize);
 
-            if (pValuePiece <= pCutoff) {
+        //Then we determine a given probability with the sampled successes (k = a) from the first entry in the table.
+        double pCutoff = dist.probability(table[0][0]);
+
+        double pValue = 0.0;
+        /**
+         * Now cycle through all possible k's and add those whose probabilities are smaller than our observed k
+         * to the p-value, since this is a two-sided test
+         */
+        for(int i = lo; i <= hi; i++){
+            double pValuePiece = dist.probability(i);
+
+            if(pValuePiece <= pCutoff) {
                 pValue += pValuePiece;
             }
         }

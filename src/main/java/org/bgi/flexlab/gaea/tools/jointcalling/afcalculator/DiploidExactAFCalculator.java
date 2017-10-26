@@ -66,7 +66,7 @@ public abstract class DiploidExactAFCalculator extends ExactAFCalculator {
 
     @Override
     protected GenotypesContext reduceScopeGenotypes(final VariantContext vc, final int defaultPloidy, final List<Allele> allelesToUse) {
-        return GaeaGvcfVariantContextUtils.subsetDiploidAlleles(vc, allelesToUse, GaeaGvcfVariantContextUtils.GenotypeAssignmentMethod.SET_TO_NO_CALL);
+        return GaeaGvcfVariantContextUtils.subsetAlleles(vc, allelesToUse, GaeaGvcfVariantContextUtils.GenotypeAssignmentMethod.SET_TO_NO_CALL);
     }
 
     @Override
@@ -303,7 +303,7 @@ public abstract class DiploidExactAFCalculator extends ExactAFCalculator {
             throw new IllegalArgumentException("cannot support ploidy different than 2 and the default ploidy is " + defaultPloidy);
         return allelesToUse.size() == 1
                 ? GaeaGvcfVariantContextUtils.subsetToRefOnly(vc, 2)
-                : GaeaGvcfVariantContextUtils.subsetDiploidAlleles(vc, allelesToUse,
+                : GaeaGvcfVariantContextUtils.subsetAlleles(vc, allelesToUse,
                      assignGenotypes ? GaeaGvcfVariantContextUtils.GenotypeAssignmentMethod.USE_PLS_TO_ASSIGN : GaeaGvcfVariantContextUtils.GenotypeAssignmentMethod.SET_TO_NO_CALL);
     }
 }

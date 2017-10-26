@@ -15,15 +15,16 @@ import htsjdk.variant.variantcontext.GenotypesContext;
 import htsjdk.variant.variantcontext.VariantContext;
 
 public class RankSumTest extends InfoFieldAnnotation implements ActiveRegionBasedAnnotation{
+	protected static double INVALID_ELEMENT_FROM_READ = Double.NEGATIVE_INFINITY;
 
 	@Override
 	public Map<String, Object> annotate(RefMetaDataTracker tracker, ChromosomeInformationShare ref, VariantContext vc) {
 		final GenotypesContext genotypes = vc.getGenotypes();
-        if (genotypes == null || genotypes.size() == 0)
+        if (genotypes == null || genotypes.isEmpty())
             return null;
 
-        final ArrayList<Double> refQuals = new ArrayList<>();
-        final ArrayList<Double> altQuals = new ArrayList<>();
+        final List<Double> refQuals = new ArrayList<>();
+        final List<Double> altQuals = new ArrayList<>();
 
         if ( refQuals.isEmpty() && altQuals.isEmpty() )
             return null;
