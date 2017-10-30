@@ -179,6 +179,14 @@ public class Region {
 		int length = regEnd - regStart + 1;
 		return length;
 	}
+	
+	public float getRegCoverage() {
+		int length = getRegLength();
+		if(length == 0)
+			return 0;
+		else
+			return baseNum/length;
+	}
 
 	@Override
 	public int hashCode() {

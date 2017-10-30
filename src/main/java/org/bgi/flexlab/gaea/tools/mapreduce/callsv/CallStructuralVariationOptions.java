@@ -54,7 +54,7 @@ public class CallStructuralVariationOptions extends GaeaOptions implements Hadoo
 	
 	public CallStructuralVariationOptions() {
 		addOption("i", "input", true, "input path of bam/sam files, should be hdfs path [default: NULL]");
-		addOption("h", "hdfsdir", true, "hdfs dir for tmp result [default: NULL]");
+		addOption("hdfs", "hdfsdir", true, "hdfs dir for tmp result [default: NULL]");
 		addOption("o", "outfile", true, "local results file [default: ./callSV.ctx]");
 		addOption("reducenum", "reducenum", true, "reduce number [default: 1]");
 		addOption("s", "stdtimes", true, "set std times for range of insert size (mean-stdtimes*std) < normal insertsize < (mean+stdtimes*std) [default: 3] ");
@@ -95,7 +95,7 @@ public class CallStructuralVariationOptions extends GaeaOptions implements Hadoo
         }
 		
 		input = getOptionValue("i", null);
-		hdfsdir = getOptionValue("h", null);
+		hdfsdir = getOptionValue("hdfs", null);
 		outfile = getOptionValue("o", "./callSV.ctx");
 		reducenum = getOptionIntValue("reducenum", 1);
 		stdtimes = getOptionIntValue("s", 3);
@@ -114,10 +114,8 @@ public class CallStructuralVariationOptions extends GaeaOptions implements Hadoo
 			throw new UserException.BadArgumentValueException("i", "The input file not found! Please check it");
 		
 		if(this.hdfsdir == null)
-			throw new UserException.BadArgumentValueException("h", "No HDFS dir, please check it");
+			throw new UserException.BadArgumentValueException("hdfs", "No HDFS dir, please check it");
 	
-		if(this.outfile == null)
-			throw new UserException.BadArgumentValueException("o", "No output file, please check it");
 	}
 
 

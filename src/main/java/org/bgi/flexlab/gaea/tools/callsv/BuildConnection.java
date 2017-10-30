@@ -80,9 +80,9 @@ public class BuildConnection {
 			 * 但是还要判断是真的break还是要去掉的break
 			 */
 			if(!r.getChr().equals(reg.getChr()) || (r.getStart() - reg.getRegEnd()) > dist.get(r.getChr()).get(0)) { //break
-				float coverage = reg.getBaseNum()/(reg.getRegEnd() - reg.getRegStart() + 1);
+				float coverage = reg.getRegCoverage();
 				
-				if(coverage > 0 && coverage < options.getMaxcoverage() && (reg.getRegEnd() - reg.getRegStart() > options.getMinlen())) { //real break
+				if(coverage > 0 && coverage < options.getMaxcoverage() && reg.getRegLength() > options.getMinlen()) { //real break
 					regInfoMap.put(regId, reg);
 					regId ++;
 				}else { //false break
