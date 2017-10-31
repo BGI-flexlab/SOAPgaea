@@ -13,7 +13,6 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.bgi.flexlab.gaea.data.mapreduce.input.bam.GaeaAnySAMInputFormat;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.BioJob;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.ToolsRunner;
-import org.bgi.flexlab.gaea.tools.callsv.ChrPartitionar;
 import org.bgi.flexlab.gaea.tools.callsv.Format;
 import org.bgi.flexlab.gaea.tools.callsv.NewMapKey;
 import org.bgi.flexlab.gaea.tools.callsv.ReduceGroupingComparator;
@@ -50,7 +49,7 @@ public class CallStructuralVariation extends ToolsRunner{
 		job1.setMapOutputValueClass(Format.class);
 		job1.setOutputKeyClass(NullWritable.class);
 		job1.setOutputValueClass(Text.class);
-		job1.setPartitionerClass(ChrPartitionar.class);
+		//job1.setPartitionerClass(ChrPartitionar.class);
 		job1.setGroupingComparatorClass(ReduceGroupingComparator.class);
 
 		FileInputFormat.addInputPaths(job1, options.getInput());
@@ -72,7 +71,7 @@ public class CallStructuralVariation extends ToolsRunner{
 		job2.setOutputKeyClass(NullWritable.class);
 		job2.setOutputValueClass(Text.class);
 		//job2.setSortComparatorClass(NewMapKeyComparator.class);
-		job2.setPartitionerClass(ChrPartitionar.class);
+		//job2.setPartitionerClass(ChrPartitionar.class);
 		job2.setGroupingComparatorClass(ReduceGroupingComparator.class);
 
 		FileInputFormat.addInputPaths(job2, options.getHdfsdir() + "/MP1/Result");

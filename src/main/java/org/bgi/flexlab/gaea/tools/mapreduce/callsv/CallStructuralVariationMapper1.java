@@ -71,36 +71,47 @@ public class CallStructuralVariationMapper1 extends Mapper<LongWritable, SamReco
 	 * @throws InterruptedException 抛出中断异常
 	 */
 	private void readClassify(Context context, SAMRecord record) throws IOException, InterruptedException {
-		int flag1 = record.getFlags();
-		int pos1 = record.getAlignmentStart();
-		int pos2 = record.getMateAlignmentStart();
-		String chr1 = record.getReferenceName();
-		String chr2 = record.getMateReferenceName();
 		String type = null;
 		
-		if(record.getMappingQuality() > options.getMinqual()){
-			if((flag1&12) == 0 && pos1 != pos2){ // two reads both map
-				if((chr2.equals("=") || chr2.equals(chr1)) ){ // same chr 
-					if( (pos1 > pos2 && (flag1&16) != 0 && (flag1&32) == 0) || ( pos2 > pos1 && (flag1&16) == 0 && (flag1&32) != 0)){ // FR 
-						type = "FR";
-					}else if((pos1 > pos2 && (flag1&16) == 0 && (flag1&32) != 0) || ( pos2 > pos1 && (flag1&16) != 0 && (flag1&32) == 0)){ // RF
+		if(record.getMappingQuality() < options.getMinqual())
+			return;
+		else if(record.getDuplicateReadFlag() || record.getNotPrimaryAlignmentFlag()) //重复
+			return;
+		else if(record.getReadPairedFlag()) { //pair read
+			if(record.getReadUnmappedFlag()) //unmap
+				return;
+			else if(record.getMateUnmappedFlag()) 
+				return;
+			else if(!(record.getMateReferenceName().equals("=") || record.getMateReferenceName().equals(record.getReferenceName())))
+				type = "Diff";
+			else if(record.getReadNegativeStrandFlag() && record.getMateNegativeStrandFlag()) //--
+				type = "FF_RR";
+			else if(!record.getReadNegativeStrandFlag() && !record.getMateNegativeStrandFlag()) //++
+				type = "FF_RR";
+			else {
+				int pos1 = record.getAlignmentStart();
+				int pos2 = record.getMateAlignmentStart();
+				if(pos1 < pos2) {
+					if(record.getReadNegativeStrandFlag())
 						type = "RF";
-					}else if((flag1&48) == 0 || ((flag1&32) != 0 && (flag1&16) != 0)){ // FF or FF
-						type = "FF_RR";
-					}
-				}else if(!chr2.equals("=") || !chr2.equals(chr1)){ // map to difference chr
-					type = "Diff";
-					//key2.set("Diff");
-				}
-				
-				if(!type.equals("Diff") && !type.equals(null)){
-					//Format f = new Format(lib, readName, flag1, chr1, pos1, end, Math.abs(insert), strand, type, len);
-					f.set(record, type);
-					newkey.setChr(chr1);
-					newkey.setPos(pos1);
-					context.write(newkey, f);
-				}
+					else
+						type = "FR";
+				}else if(pos1 > pos2) {
+					if(record.getReadNegativeStrandFlag())
+						type = "FR";
+					else
+						type = "RF";
+				}else
+					return;
 			}
+		}
+		
+		if(!type.equals("Diff") && !type.equals(null)){
+			//Format f = new Format(lib, readName, flag1, chr1, pos1, end, Math.abs(insert), strand, type, len);
+			f.set(record, type);
+			newkey.setChr(record.getReferenceName());
+			newkey.setPos(record.getAlignmentStart());
+			context.write(newkey, f);
 		}
 	}
 

@@ -32,11 +32,20 @@ public class ListComputer {
 	 */
 	
 	public static float getStd(List<Integer> l) {
+		float mean = getMean(l);
+		return getUpLowStd(l, mean);
+	}
+	
+	/**
+	 * 获得Up或者Low列表的标准差
+	 * @param l
+	 * @param mean
+	 * @return
+	 */
+	public static float getUpLowStd(List<Integer> l, float mean) {
 		if(l.size() == 0) {
 			return 0;
 		}
-		
-		float mean = getMean(l);
 		
 		int sum_x2 = 0;
 		for(Iterator<Integer> insertlist = l.iterator(); insertlist.hasNext();) {

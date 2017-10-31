@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.UUID;
 import java.util.Map.Entry;
 
@@ -37,6 +38,9 @@ public class CallStructuralVariationReducer1 extends Reducer<NewMapKey, Format, 
 	private CallStructuralVariationOptions options = new CallStructuralVariationOptions();
 	private Configuration conf;
 	private FSDataOutputStream out;
+	private Map<String, Float> lower = new TreeMap<String, Float>();
+	private Map<String, Float> upper = new TreeMap<String, Float>();
+
 
 	@Override
 	protected void setup(Context context) throws IOException, InterruptedException {
@@ -85,8 +89,11 @@ public class CallStructuralVariationReducer1 extends Reducer<NewMapKey, Format, 
 			min_pos = Math.min(value.getStart(), min_pos);
 			max_pos = Math.max(value.getEnd(), max_pos);
 			
-			float upper = conf.getFloat(value.getLib() + "_upper", 0);
-			float lower = conf.getFloat(value.getLib() + "_lower", 0);
+			//float upper = conf.getFloat(value.getLib() + "_upper", 0);
+			//float lower = conf.getFloat(value.getLib() + "_lower", 0);
+			
+			float up = upper.get(value.getLib());
+			float low = lower.get(value.getLib());
 			
 			if(value.getInsert() > max_sd) {continue;}
 			
@@ -94,10 +101,10 @@ public class CallStructuralVariationReducer1 extends Reducer<NewMapKey, Format, 
 			 * 判断FR类型的reads是DEL或者INS
 			 */
 			if(value.getType().equals("FR")) {
-				if(Math.abs(value.getInsert()) > upper) {
+				if(Math.abs(value.getInsert()) > up) {
 					value.setType("FR_long");
 					indel_num++;
-				}else if(Math.abs(value.getInsert()) < lower) {
+				}else if(Math.abs(value.getInsert()) < low) {
 					value.setType("FR_short");
 					indel_num++;
 				}else {
@@ -159,23 +166,23 @@ public class CallStructuralVariationReducer1 extends Reducer<NewMapKey, Format, 
 			/**
 			 * 计算每一个lib的upper和lower并保存到conf中
 			 */
-			List<Integer> up = new ArrayList<Integer>();
-			List<Integer> low = new ArrayList<Integer>();
+			List<Integer> uplist = new ArrayList<Integer>();
+			List<Integer> lowlist = new ArrayList<Integer>();
 			for(int i : finalList) {
 
 				if(i >= mean) {
-					up.add(i);
+					uplist.add(i);
 				}else {
-					low.add(i);
+					lowlist.add(i);
 				}
 			}
 			
-			float upper = mean + options.getStdtimes() * ListComputer.getStd(up);
-			float lower = mean - options.getStdtimes() * ListComputer.getStd(low);
+			float up = mean + options.getStdtimes() * ListComputer.getUpLowStd(uplist, mean);
+			float low = mean - options.getStdtimes() * ListComputer.getUpLowStd(lowlist, mean);
 			
-			//System.out.println("Mean : " + mean + "\tLower : " + lower + "\tUpper : " + upper);
-			conf.setFloat(entry.getKey() + "_upper", upper);
-			conf.setFloat(entry.getKey() + "_lower", lower);
+			System.out.println("getKey: " + entry.getKey() + "  lower: " + low + "  upper: " + up);
+			lower.put(entry.getKey(), low);
+			upper.put(entry.getKey(), up);
 		}
 	}
 	
