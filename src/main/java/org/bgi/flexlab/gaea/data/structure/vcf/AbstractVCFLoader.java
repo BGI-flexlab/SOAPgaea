@@ -212,4 +212,19 @@ public abstract class AbstractVCFLoader {
 			}
 	}
 	
+	public static boolean isVCFStream(final InputStream stream, final String MAGIC_HEADER_LINE) {
+        try {
+            byte[] buff = new byte[MAGIC_HEADER_LINE.length()];
+            int nread = stream.read(buff, 0, MAGIC_HEADER_LINE.length());
+            boolean eq = Arrays.equals(buff, MAGIC_HEADER_LINE.getBytes());
+            return eq;
+        } catch ( IOException e ) {
+            return false;
+        } catch ( RuntimeException e ) {
+            return false;
+        } finally {
+            try { stream.close(); } catch ( IOException e ) {}
+        }
+    }
+	
 }

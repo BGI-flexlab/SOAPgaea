@@ -252,12 +252,12 @@ public class AlignmentUtil {
 		int length = end - start + 1;
 		int[] positions = new int[length];
 		Arrays.fill(positions, 0);
-		
+
 		CigarState state = new CigarState();
 		state.parseCigar(cigar.toString());
-		
-		for(int i = start ; i <= end ; i++){
-			positions[i-start] = state.resolveCigar(i, start);
+
+		for (int i = start; i <= end; i++) {
+			positions[i - start] = state.resolveCigar(i, start);
 		}
 
 		return positions;
