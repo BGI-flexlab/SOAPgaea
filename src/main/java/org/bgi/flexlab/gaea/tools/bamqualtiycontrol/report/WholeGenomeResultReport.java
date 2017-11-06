@@ -145,6 +145,16 @@ public class WholeGenomeResultReport extends ResultReport{
 		FSDataOutputStream reportwriter = fs.create(reportPath);
 		StringBuffer info = new StringBuffer();
 		info.append(basicReport.toString());
+		info.append("Average depth:\t");
+		info.append("[NonN] Average depth:\t");
+		info.append("[Target] Len of region:\t");
+		info.append((long) cnvSingleRegionReport.getRegionSizeTotal());
+		info.append("[Target] Average depth:\t");
+		info.append(cnvSingleRegionReport.getAllRegionAverageDepth());
+		info.append("[Target] Average depth(rmdup):\t");
+		info.append(cnvSingleRegionReport.getAllRegionAverageRmdupDepth());
+		info.append("[Target] Coverage (>0x):\t");
+		info.append(cnvSingleRegionReport);
 		info.append("coverage information:\n");
 		TreeSet<String> keys = new TreeSet<String>(coverReports.keySet());
 		for(String key : keys) {

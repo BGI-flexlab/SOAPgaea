@@ -21,7 +21,8 @@ import java.util.ArrayList;
 public class SingleRegionStatistic {
 	protected int coverBaseNum = 0;
 	protected int depthNum = 0;
-	
+	protected int rmdupDepthNum = 0;
+
 	public double calMiddleVaule(ArrayList<Integer> deepth) {
 		double middleValue;
 		if(deepth.size() == 0) {
@@ -41,6 +42,8 @@ public class SingleRegionStatistic {
 		sb.append(coverBaseNum);
 		sb.append("\t");
 		sb.append(depthNum);
+		sb.append("\t");
+		sb.append(rmdupDepthNum);
 		
 		return sb.toString();
 	}
@@ -52,4 +55,24 @@ public class SingleRegionStatistic {
 	public void addDepth(int depth) {
 		depthNum += depth;
 	}
+
+	public void addRmdupDepth(int rmdupDepth) {
+		rmdupDepthNum += rmdupDepth;
+	}
+
+	/**
+	 * @return the depthNum
+	 */
+	public long getDepthNum() {
+		return depthNum;
+	}
+
+	public long getRmdupDepthNum() {
+		return rmdupDepthNum;
+	}
+
+	public int getCoverBaseNum() {
+		return coverBaseNum;
+	}
+
 }

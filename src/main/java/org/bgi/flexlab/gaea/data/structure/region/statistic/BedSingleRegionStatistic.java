@@ -68,10 +68,6 @@ public class BedSingleRegionStatistic extends SingleRegionStatistic{
 		refGCrate = CGbaseNum / (double) ATCGbaseNum;
 	}
 
-	public int getDepthNum() {
-		return depthNum;
-	}
-	
 	public int getCoverageNum() {
 		return coverBaseNum; 
 	}

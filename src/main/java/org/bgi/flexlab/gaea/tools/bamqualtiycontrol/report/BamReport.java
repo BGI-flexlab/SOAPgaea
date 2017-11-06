@@ -23,6 +23,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.util.LineReader;
+import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
 import org.bgi.flexlab.gaea.data.structure.reference.ReferenceShare;
 import org.bgi.flexlab.gaea.tools.mapreduce.bamqualitycontrol.BamQualityControlOptions;
 
@@ -37,7 +38,11 @@ public class BamReport {
 		ResultReport reportType;
 		ReferenceShare genome = new ReferenceShare();
 		genome.loadChromosomeList(options.getReferenceSequencePath());
-		
+
+		for(ChromosomeInformationShare chrInfo: genome.getChromosomeInfoMap().values()){
+			chrInfo.setNonNbaseLength();
+		}
+
 		if ((options.getRegion() != null) || (options.getBedfile() != null))
 			reportType = new RegionResultReport(options, conf);
 		else
@@ -53,10 +58,9 @@ public class BamReport {
 				Text line = new Text();
 				while(lineReader.readLine(line) > 0) {
 					String lineString = line.toString();
-					if(line.getLength() == 0) {
+					if(line.getLength() == 0)
 						continue;
-					}
-					
+
 					if(lineString.contains("sample:")) {
 						String sample = line.toString().split(":")[1];
 						if(!reports.containsKey(sample)) {

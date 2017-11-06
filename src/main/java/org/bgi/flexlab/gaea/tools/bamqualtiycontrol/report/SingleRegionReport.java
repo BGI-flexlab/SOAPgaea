@@ -17,6 +17,7 @@
 package org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report;
 
 import org.bgi.flexlab.gaea.data.structure.positioninformation.IntPositionInformation;
+import org.bgi.flexlab.gaea.data.structure.positioninformation.depth.PositionDepth;
 import org.bgi.flexlab.gaea.data.structure.region.SingleRegion;
 import org.bgi.flexlab.gaea.data.structure.region.SingleRegion.Regiondata;
 import org.bgi.flexlab.gaea.data.structure.region.statistic.SingleRegionStatistic;
@@ -37,10 +38,9 @@ public abstract class SingleRegionReport<T extends SingleRegionStatistic> {
 	public String toReducerString() {
 		return outputString.toString();
 	}
-	
+
 	public String getStatisticString(String chrName, int winStart, int windowSize, IntPositionInformation deep, String title) {
-		int start, end, index = -1;
-		start = 0;
+		int start = 0, end, index = -1;
 		end = windowSize - 1;
 		int i = start;
 
@@ -59,8 +59,8 @@ public abstract class SingleRegionReport<T extends SingleRegionStatistic> {
 				//System.err.println("index:" + index + "\tstart-end:" +regionStart+"-"+regionEnd + "\tposition:"+i +"\t" + winStart);
 				if(regionStart >= winStart && regionEnd <= winStart + windowSize -1) {
 					outputString.append(title + " single Region Statistic:\n" + index + ":");
-					getWholeRegionInfo(deep, regionStart - winStart, regionEnd - winStart);
-				} else if(regionStart >= winStart && regionEnd > winStart + windowSize - 1) { 
+					getWholeRegionInfo(deep,regionStart - winStart, regionEnd - winStart);
+				} else if(regionStart >= winStart && regionEnd > winStart + windowSize - 1) {
 					outputString.append(title + " part single Region Statistic:\n" + index + ":");
 					getPartRegionInfo(deep, regionStart - winStart, windowSize - 1);
 				} else {
@@ -68,7 +68,45 @@ public abstract class SingleRegionReport<T extends SingleRegionStatistic> {
 					if(regionEnd- winStart >= windowSize) {
 						getPartRegionInfo(deep, 0, windowSize - 1);
 					} else {
-						getPartRegionInfo(deep, 0, regionEnd- winStart);
+						getPartRegionInfo(deep,0, regionEnd- winStart);
+					}
+				}
+				index++;
+			}
+		}
+		return outputString.toString();
+	}
+
+	public String getStatisticString(String chrName, int winStart, int windowSize, PositionDepth dp, String title) {
+		int start = 0, end, index = -1;
+		end = windowSize - 1;
+		int i = start;
+
+		while(i <= end) {
+			if((index = singleReigon.posInRegion(chrName, i + winStart)) >= 0) {
+				break;
+			}
+			else {
+				i++;
+			}
+		}
+		if(index >= 0) {
+			while(withinChrAndBin(index, winStart, windowSize, chrName)) {
+				int regionStart = singleReigon.getRegion(index).getStart();
+				int regionEnd = singleReigon.getRegion(index).getEnd();
+				//System.err.println("index:" + index + "\tstart-end:" +regionStart+"-"+regionEnd + "\tposition:"+i +"\t" + winStart);
+				if(regionStart >= winStart && regionEnd <= winStart + windowSize -1) {
+					outputString.append(title + " single Region Statistic:\n" + index + ":");
+					getWholeRegionInfo(dp.getRMDupPosDepth(), dp.getNormalPosDepth(),regionStart - winStart, regionEnd - winStart);
+				} else if(regionStart >= winStart && regionEnd > winStart + windowSize - 1) { 
+					outputString.append(title + " part single Region Statistic:\n" + index + ":");
+					getPartRegionInfo(dp.getRMDupPosDepth(), dp.getNormalPosDepth(), regionStart - winStart, windowSize - 1);
+				} else {
+					outputString.append(title + " part single Region Statistic:\n" + index + ":");
+					if(regionEnd- winStart >= windowSize) {
+						getPartRegionInfo(dp.getRMDupPosDepth(), dp.getNormalPosDepth(), 0, windowSize - 1);
+					} else {
+						getPartRegionInfo(dp.getRMDupPosDepth(), dp.getNormalPosDepth(),0, regionEnd- winStart);
 					}
 				}
 				index++;
@@ -90,9 +128,13 @@ public abstract class SingleRegionReport<T extends SingleRegionStatistic> {
 		return singleReigon;
 	}
 	
+	public abstract String getWholeRegionInfo(IntPositionInformation rmdupDeep, IntPositionInformation deep, int start, int end);
+
 	public abstract String getWholeRegionInfo(IntPositionInformation deep, int start, int end);
-	
+
+	public abstract String getPartRegionInfo(IntPositionInformation rmdupDeep, IntPositionInformation deep, int start, int end);
+
 	public abstract String getPartRegionInfo(IntPositionInformation deep, int start, int end);
-		
+
 	public abstract void parseReducerOutput(String line, boolean isPart);
 }

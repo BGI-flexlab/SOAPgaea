@@ -26,16 +26,23 @@ import java.util.Collections;
 
 public class CNVSingleRegionStatistic extends SingleRegionStatistic{
 	private double middleDepth = 0;
-	
+
+	private double middleRmdupDepth = 0;
+
 	private ArrayList<Integer> depth = null;
-	
+
+	private ArrayList<Integer> rmdupDepth = null;
+
 	public CNVSingleRegionStatistic(boolean isPart) {
-		if(isPart && depth == null)
+		if(isPart && depth == null) {
 			depth = new ArrayList<Integer>();
+			rmdupDepth = new ArrayList<Integer>();
+		}
 	}
 	
-	public String toString(Regiondata regiondata, boolean normalBedFormat, double allRegionAverageDepth) {
-		double averageDepth = getDepthNum() /(double) regiondata.size();
+	public String toString(Regiondata regiondata, double allRegionAverageDepth) {
+		double averageDepth = getDepth(regiondata);
+		double averageRmdupDepth = getRmdupDepth(regiondata);
 		double coverage = coverBaseNum /(double) regiondata.size();
 		double normalizedDepth = averageDepth / (double)allRegionAverageDepth;
 		if(depth != null) {
@@ -45,15 +52,30 @@ public class CNVSingleRegionStatistic extends SingleRegionStatistic{
 			Collections.sort(depth);
 			middleDepth = calMiddleVaule(depth);
 		}
-		
+		if(rmdupDepth != null) {
+			while(rmdupDepth.size() < regiondata.size()) {
+				rmdupDepth.add(0);
+			}
+			Collections.sort(rmdupDepth);
+			middleRmdupDepth = calMiddleVaule(rmdupDepth);
+		}
+
 		DecimalFormat df = new DecimalFormat("0.0000");
 		df.setRoundingMode(RoundingMode.HALF_UP);
 		StringBuilder outString = new StringBuilder();
-		outString.append(regiondata.getNameString());
+		outString.append(regiondata.getChrName());
+		outString.append("\t");
+		outString.append(regiondata.getStart());
+		outString.append("\t");
+		outString.append(regiondata.getEnd());
 		outString.append("\t");
 		outString.append(df.format(averageDepth));
 		outString.append("\t");
 		outString.append(df.format(middleDepth));
+		outString.append("\t");
+		outString.append(df.format(averageRmdupDepth));
+		outString.append("\t");
+		outString.append(df.format(middleRmdupDepth));
 		outString.append("\t");
 		outString.append(df.format(coverage*100));
 		outString.append("\t");
@@ -63,18 +85,24 @@ public class CNVSingleRegionStatistic extends SingleRegionStatistic{
 		return outString.toString();
 	}
 	
-	public void add(int coverNum, int depthNum, double middleDepth) {
+	public void add(int coverNum, int depthNum, int rmdupDepthNum, double middleDepth, double middleRmdupDepth) {
 		this.coverBaseNum = coverNum;
 		this.depthNum = depthNum;
+		this.rmdupDepthNum = rmdupDepthNum;
 		this.middleDepth = middleDepth;
+		this.middleRmdupDepth = middleRmdupDepth;
 	}
 	
-	public void addPart(int coverNum, int depthNum, ArrayList<Integer> deepthPart) {
+	public void addPart(int coverNum, int depthNum, int rmdupDepthNum, ArrayList<String> depthPartList) {
 		this.coverBaseNum += coverNum;
 		this.depthNum += depthNum;
+		this.rmdupDepthNum += rmdupDepthNum;
 
-		for(int deep : deepthPart) {
-			depth.add(deep);
+		// depthStr : depth,rmdupDepth
+		for(String depthStr : depthPartList) {
+			String[] depths = depthStr.split(",");
+			depth.add(Integer.valueOf(depths[0]));
+			rmdupDepth.add(Integer.valueOf(depths[1]));
 		}
 	}
 	
@@ -82,10 +110,8 @@ public class CNVSingleRegionStatistic extends SingleRegionStatistic{
 		return getDepthNum() /(double) regiondata.size();
 	}
 
-	/**
-	 * @return the deepthNum
-	 */
-	public long getDepthNum() {
-		return depthNum;
+	private double getRmdupDepth(Regiondata regiondata) {
+		return getRmdupDepthNum() /(double) regiondata.size();
 	}
+
 }

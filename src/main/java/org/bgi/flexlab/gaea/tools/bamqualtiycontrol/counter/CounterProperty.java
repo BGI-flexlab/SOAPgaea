@@ -58,7 +58,7 @@ public interface CounterProperty {
 	}
 	
 	public enum BaseType implements CounterProperty{
-		TOTALBASE(1), MISMATCH(1), COVERED(1), INDELREF(1), MISMATCHREF(1);
+		TOTALBASE(1), MISMATCH(1), NONNCOVERED(1), COVERED(1), INDELREF(1), MISMATCHREF(1);
 		
 		private int count;
 		

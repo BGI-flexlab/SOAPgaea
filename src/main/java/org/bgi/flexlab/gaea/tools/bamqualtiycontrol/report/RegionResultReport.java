@@ -86,7 +86,7 @@ public class RegionResultReport extends ResultReport{
 			cnvRegion.parseRegionsFileFromHDFS(options.getCnvRegion(), true, 0);
 		}
 		this.conf = conf;
-		if(options.isCnvDepth())
+//		if(options.isCnvDepth())
 			initSampleLaneSize(conf);
 	}
 	

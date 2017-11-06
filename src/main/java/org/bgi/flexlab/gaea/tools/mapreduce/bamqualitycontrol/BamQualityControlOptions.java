@@ -96,7 +96,12 @@ public class BamQualityControlOptions extends GaeaOptions implements HadoopOptio
 	 * single region
 	 */
 	private String singleRegion;
-	
+
+	/**
+	 *  需要统计详细信息的区域
+	 */
+	private String subRegion;
+
 	/**
 	 * minimum depth for singleRegion
 	 */
@@ -156,6 +161,7 @@ public class BamQualityControlOptions extends GaeaOptions implements HadoopOptio
 		outputUnmapped = getOptionBooleanValue("m", true);
 		genderPredict = getOptionBooleanValue("x", true);
 		singleRegion = getOptionValue("a", null);
+		subRegion = getOptionValue("s", null);
 		minSingleRegionDepth = getOptionIntValue("n", 0);
 		distributeCache = getOptionBooleanValue("D", false);
 		isBasic = getOptionBooleanValue("b", false);
@@ -399,5 +405,9 @@ public class BamQualityControlOptions extends GaeaOptions implements HadoopOptio
 	public boolean isGenderDepth() {
 		return getSingleRegion() != null || 
 				(getBedfile() != null || getRegion() != null);
+	}
+
+	public String getSubRegion() {
+		return subRegion;
 	}
 }

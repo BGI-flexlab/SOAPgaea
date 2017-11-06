@@ -57,7 +57,9 @@ public class WholeGenomeCoverReport{
 		if(depth != 0) {
 			bTracker.setTrackerAttribute(Interval.WHOLEGENOME, DepthType.NORMAL.setDepth(depth), DepthType.WITHOUT_PCR);
 			bTracker.setTrackerAttribute(BaseType.COVERED);
-			if(deep.hasIndelReads(i)) 
+			if(chrInfo.getBase(i) != 'N')
+				bTracker.setTrackerAttribute(BaseType.NONNCOVERED);
+			if(deep.hasIndelReads(i))
 				bTracker.setTrackerAttribute(BaseType.INDELREF);
 			
 			if(deep.hasMismatchReads(i)) 
@@ -95,6 +97,10 @@ public class WholeGenomeCoverReport{
 		coverString.append(df.format(getCoverage()));
 		coverString.append("%\nMean Depth:\t");
 		coverString.append(df.format(getMeanDepth()));
+		coverString.append("\n[NonN] Coverage:\t");
+		coverString.append(df.format(getNonNbaseCoverage()));
+		coverString.append("%\n[NonN] Mean depth:\t");
+		coverString.append(df.format(getNonMeanDepth()));
 		coverString.append("\nrate of position according to reference that have at least one indel reads support:\t");
 		coverString.append(df.format(getRateOf(BaseType.INDELREF)));
 		coverString.append("%\nrate of position according to reference that have at least one mismatch reads support:\t");
@@ -126,6 +132,14 @@ public class WholeGenomeCoverReport{
 	public double getCoverage() {
 		return (100 * (bTracker.getProperty(BaseType.COVERED)/(double)chrInfo.getLength()));
 	}
+
+	public double getNonNbaseCoverage() {
+		return (100 * (bTracker.getProperty(BaseType.NONNCOVERED)/(double)chrInfo.getNonNbaselength()));
+	}
+
+	public double getNonMeanDepth() {
+		return (bTracker.getProperty(Interval.WHOLEGENOME, Depth.TOTALDEPTH, DepthType.NORMAL)/(double)bTracker.getProperty(BaseType.NONNCOVERED));
+	}
 	
 	public double getMeanDepth() {
 		return (bTracker.getProperty(Interval.WHOLEGENOME, Depth.TOTALDEPTH, DepthType.NORMAL)/(double)bTracker.getProperty(BaseType.COVERED));
@@ -142,6 +156,7 @@ public class WholeGenomeCoverReport{
 	public List<BaseCounter> createBaseCounters() {
 		List<BaseCounter> counters = new ArrayList<>();
 		Collections.addAll(counters, new BaseCounter(Interval.WHOLEGENOME, Depth.TOTALDEPTH, DepthType.NORMAL),
+									 new BaseCounter(BaseType.NONNCOVERED),
 									 new BaseCounter(BaseType.COVERED),
 									 new BaseCounter(BaseType.INDELREF),
 									 new BaseCounter(BaseType.MISMATCHREF));

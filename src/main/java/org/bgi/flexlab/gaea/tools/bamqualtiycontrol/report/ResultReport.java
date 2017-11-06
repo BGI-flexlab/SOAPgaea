@@ -111,7 +111,7 @@ public abstract class ResultReport {
 	
 	public void singleRegionReports(String chrName, long winStart, int winSize , PositionDepth pd) {
 		if(options.getSingleRegion() != null)
-			cnvSingleRegionReport.getStatisticString(chrName, (int) winStart, winSize, pd.getRMDupPosDepth(), "cnv");
+			cnvSingleRegionReport.getStatisticString(chrName, (int) winStart, winSize, pd, "cnv");
 	}
 	
 	public void insertReport(SamRecordDatum datum) {
@@ -221,10 +221,10 @@ public abstract class ResultReport {
 			cnvSingleRegionReport.updateAllRegionAverageDeepth();
 			for(Regiondata regionData : result.keySet()) {
 				if(result.get(regionData).getDepth(regionData) > options.getMinSingleRegionDepth())
-					singleRegionwriter.write(result.get(regionData).toString(regionData, false, cnvSingleRegionReport.getAllRegionAverageDeepth()).getBytes());
+					singleRegionwriter.write(result.get(regionData).toString(regionData, cnvSingleRegionReport.getAllRegionAverageDepth()).getBytes());
 				else {
-					singleRegionwriter.write(result.get(regionData).toString(regionData, false, cnvSingleRegionReport.getAllRegionAverageDeepth()).getBytes());
-					unsingleRegionwriter.write(result.get(regionData).toString(regionData, false, cnvSingleRegionReport.getAllRegionAverageDeepth()).getBytes());
+					singleRegionwriter.write(result.get(regionData).toString(regionData, cnvSingleRegionReport.getAllRegionAverageDepth()).getBytes());
+					unsingleRegionwriter.write(result.get(regionData).toString(regionData, cnvSingleRegionReport.getAllRegionAverageDepth()).getBytes());
 				}
 			}
 			singleRegionwriter.close();

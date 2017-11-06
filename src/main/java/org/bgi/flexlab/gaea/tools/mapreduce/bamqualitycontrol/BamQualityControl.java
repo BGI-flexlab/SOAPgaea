@@ -50,7 +50,7 @@ public class BamQualityControl extends ToolsRunner{
 		options = new BamQualityControlOptions();
 		options.parse(remainArgs);
 		options.setHadoopConf(remainArgs, conf);
-		
+
 		if(options.isDistributeCache()) {
 			ReferenceShare.distributeCache(options.getReferenceSequencePath(), job);
 		}
