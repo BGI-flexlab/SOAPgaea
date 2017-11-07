@@ -128,7 +128,7 @@ public class WholeGenomeCoverReport{
 			} else if(key.contains(DepthType.NORMAL.toString())) {
 				bCounter.setTotalDepth(Long.parseLong(value));
 			}else {
-				bCounter.setBaseWithoutPCRDupCount(Long.parseLong(value));
+				bCounter.setTotalDepthWithoutPCRDup(Long.parseLong(value));
 			}
 		} else {
 			throw new RuntimeException("Can not idenity counter with name " + key);
