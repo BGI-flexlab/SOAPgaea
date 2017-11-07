@@ -27,6 +27,8 @@ import org.bgi.flexlab.gaea.data.structure.reference.ReferenceShare;
 import org.bgi.flexlab.gaea.tools.mapreduce.bamqualitycontrol.BamQualityControlOptions;
 
 import java.io.IOException;
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.util.Map;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
@@ -62,7 +64,7 @@ public class WholeGenomeResultReport extends ResultReport{
 		super.regionCoverReport(depth, noPCRdepth);
 		if(options.isOutputUnmapped() && depth != 0 )
 			unmappedReport.updateUnmappedSites(pos, unmappedReport.getUnmappedSites(chrName));
-		coverReports.get(chrName).constructDepthReport(pd, i);
+		coverReports.get(chrName).constructDepthReport(pd, i, (int)pos);
 	}
 	
 	@Override
@@ -135,6 +137,9 @@ public class WholeGenomeResultReport extends ResultReport{
 	
 	@Override
 	public void write(FileSystem fs, String sampleName) throws IOException {
+		DecimalFormat df = new DecimalFormat("0.000");
+		df.setRoundingMode(RoundingMode.HALF_UP);
+
 		super.write(fs, sampleName);
 		StringBuffer reportFilePath = new StringBuffer();
 		reportFilePath.append(options.getOutputPath());
@@ -145,21 +150,51 @@ public class WholeGenomeResultReport extends ResultReport{
 		FSDataOutputStream reportwriter = fs.create(reportPath);
 		StringBuffer info = new StringBuffer();
 		info.append(basicReport.toString());
-		info.append("Average depth:\t");
-		info.append("[NonN] Average depth:\t");
-		info.append("[Target] Len of region:\t");
-		info.append((long) cnvSingleRegionReport.getRegionSizeTotal());
-		info.append("[Target] Average depth:\t");
-		info.append(cnvSingleRegionReport.getAllRegionAverageDepth());
-		info.append("[Target] Average depth(rmdup):\t");
-		info.append(cnvSingleRegionReport.getAllRegionAverageRmdupDepth());
-		info.append("[Target] Coverage (>0x):\t");
-		info.append(cnvSingleRegionReport);
-		info.append("coverage information:\n");
+
+		long depth = 0;
+		long rmdupDepth = 0;
+		long coverBaseNum = 0;
+		long nonnCoverBaseNum = 0;
+		long genomeLength = 0;
+		long nonnGenomeLength = 0;
 		TreeSet<String> keys = new TreeSet<String>(coverReports.keySet());
 		for(String key : keys) {
 			WholeGenomeCoverReport cover = coverReports.get(key);
-			info.append(cover.toString(key));
+			coverBaseNum += cover.getCoverBaseNum();
+			nonnCoverBaseNum += cover.getNonNCoverBaseNum();
+			genomeLength += cover.getChrInfo().getLength();
+			nonnGenomeLength += cover.getChrInfo().getNonNbaselength();
+			depth += cover.getDepth();
+			rmdupDepth += cover.getRmdupDepth();
+		}
+
+		info.append("Average depth:\t");
+		info.append(df.format(depth/(double)coverBaseNum));
+		info.append("\nAverage depth(rmdup):\t");
+		info.append(df.format(rmdupDepth/(double)coverBaseNum));
+		info.append("\nCoverage (>0x):\t");
+		info.append(df.format(coverBaseNum/(double)genomeLength));
+		info.append("\nNonN Average depth:\t");
+		info.append(df.format(depth/(double)nonnCoverBaseNum));
+		info.append("\nNonN Average depth(rmdup):\t");
+		info.append(df.format(rmdupDepth/(double)nonnCoverBaseNum));
+		info.append("\nNonN Coverage (>0x):\t");
+		info.append(df.format(100*nonnCoverBaseNum/(double)nonnGenomeLength));
+		if(cnvSingleRegionReport != null) {
+			info.append("%\n[Target] Len of region(without XY):\t");
+			info.append((long) cnvSingleRegionReport.getRegionSizeTotal());
+			info.append("\n[Target] Average depth:\t");
+			info.append(df.format(cnvSingleRegionReport.getAllRegionAverageDepth()));
+			info.append("\n[Target] Average depth(rmdup):\t");
+			info.append(df.format(cnvSingleRegionReport.getAllRegionAverageRmdupDepth()));
+			info.append("\n[Target] Coverage (>0x):\t");
+			info.append(df.format(100*cnvSingleRegionReport.getAllRegionCoverage()));
+		}
+		info.append("%\ncoverage information:\n");
+		TreeSet<String> keys2 = new TreeSet<String>(coverReports.keySet());
+		for(String key : keys2) {
+			WholeGenomeCoverReport cover = coverReports.get(key);
+			info.append(cover.toString());
 		}
 		reportwriter.write(info.toString().getBytes());
 		reportwriter.close();

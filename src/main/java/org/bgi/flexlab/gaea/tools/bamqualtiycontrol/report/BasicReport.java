@@ -100,7 +100,7 @@ public class BasicReport{
 		basicString.append(df.format(getRateOf(ReadType.MAPPED)));
 		basicString.append("%\nUniq Mapping Rate:\t");
 		if(getRateOf(ReadType.MAPPED) == getRateOf(ReadType.UNIQUE))
-			basicString.append("-");
+			basicString.append("NA");
 		else
 			basicString.append(df.format(getRateOf(ReadType.UNIQUE)));
 		basicString.append("%\nPE Mapping Rate:\t");

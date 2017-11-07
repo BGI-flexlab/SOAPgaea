@@ -41,7 +41,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class WholeGenomeCoverReport{
 
 	private BaseTracker bTracker;
-	
+
 	private ChromosomeInformationShare chrInfo;
 		
 	private static Map<String, WholeGenomeCoverReport> coverReports = new ConcurrentHashMap<>();
@@ -52,12 +52,13 @@ public class WholeGenomeCoverReport{
 		this.chrInfo = chrInfo;
 	}
 	
-	public void constructDepthReport(PositionDepth deep, int i) {
+	public void constructDepthReport(PositionDepth deep, int i, int pos) {
 		int depth = deep.getPosDepth(i);
+		int rmdupDepth = deep.getRMDupPosDepth(i);
 		if(depth != 0) {
-			bTracker.setTrackerAttribute(Interval.WHOLEGENOME, DepthType.NORMAL.setDepth(depth), DepthType.WITHOUT_PCR);
+			bTracker.setTrackerAttribute(Interval.WHOLEGENOME, DepthType.NORMAL.setDepth(depth), DepthType.WITHOUT_PCR.setDepth(rmdupDepth));
 			bTracker.setTrackerAttribute(BaseType.COVERED);
-			if(chrInfo.getBase(i) != 'N')
+			if(chrInfo.getBase(pos) != 'N')
 				bTracker.setTrackerAttribute(BaseType.NONNCOVERED);
 			if(deep.hasIndelReads(i))
 				bTracker.setTrackerAttribute(BaseType.INDELREF);
@@ -65,8 +66,11 @@ public class WholeGenomeCoverReport{
 			if(deep.hasMismatchReads(i)) 
 				bTracker.setTrackerAttribute(BaseType.MISMATCHREF);				
 		} else {
-			if(deep.isDeletionBaseWithNoConver(i)) 
+			if(deep.isDeletionBaseWithNoConver(i)) {
 				bTracker.setTrackerAttribute(BaseType.COVERED);
+				if(chrInfo.getBase(pos) != 'N')
+					bTracker.setTrackerAttribute(BaseType.NONNCOVERED);
+			}
 		}
 	}
 	
@@ -86,7 +90,7 @@ public class WholeGenomeCoverReport{
 		return coverString.toString();
 	}
 	
-	public String toString(String chrName) {
+	public String toString() {
 		DecimalFormat df = new DecimalFormat("0.000");
 		df.setRoundingMode(RoundingMode.HALF_UP);
 		
@@ -97,10 +101,14 @@ public class WholeGenomeCoverReport{
 		coverString.append(df.format(getCoverage()));
 		coverString.append("%\nMean Depth:\t");
 		coverString.append(df.format(getMeanDepth()));
-		coverString.append("\n[NonN] Coverage:\t");
+		coverString.append("\nMean Rmdup Depth:\t");
+		coverString.append(df.format(getMeanRmdupDepth()));
+		coverString.append("\nNonN Coverage:\t");
 		coverString.append(df.format(getNonNbaseCoverage()));
-		coverString.append("%\n[NonN] Mean depth:\t");
-		coverString.append(df.format(getNonMeanDepth()));
+		coverString.append("%\nNonN Mean Depth:\t");
+		coverString.append(df.format(getNonNMeanDepth()));
+		coverString.append("\nNonN Mean Rmdup Depth:\t");
+		coverString.append(df.format(getNonNMeanRmdupDepth()));
 		coverString.append("\nrate of position according to reference that have at least one indel reads support:\t");
 		coverString.append(df.format(getRateOf(BaseType.INDELREF)));
 		coverString.append("%\nrate of position according to reference that have at least one mismatch reads support:\t");
@@ -117,8 +125,10 @@ public class WholeGenomeCoverReport{
 		if((bCounter = getBasetTracker().getCounterMap().get(key)) != null) {
 			if(!key.contains(Depth.TOTALDEPTH.toString())) {
 				bCounter.setBaseCount(Long.parseLong(value));
-			} else {
+			} else if(key.contains(DepthType.NORMAL.toString())) {
 				bCounter.setTotalDepth(Long.parseLong(value));
+			}else {
+				bCounter.setBaseWithoutPCRDupCount(Long.parseLong(value));
 			}
 		} else {
 			throw new RuntimeException("Can not idenity counter with name " + key);
@@ -128,23 +138,47 @@ public class WholeGenomeCoverReport{
 	public BaseTracker getBasetTracker() {
 		return bTracker;
 	}
-	
+
+	public double getDepth() {
+		return bTracker.getProperty(Interval.WHOLEGENOME, Depth.TOTALDEPTH, DepthType.NORMAL);
+	}
+
+	public double getRmdupDepth() {
+		return bTracker.getProperty(Interval.WHOLEGENOME, Depth.TOTALDEPTH, DepthType.WITHOUT_PCR);
+	}
+
+	public long getCoverBaseNum() {
+		return bTracker.getProperty(BaseType.COVERED);
+	}
+
+	public long getNonNCoverBaseNum() {
+		return bTracker.getProperty(BaseType.NONNCOVERED);
+	}
+
 	public double getCoverage() {
-		return (100 * (bTracker.getProperty(BaseType.COVERED)/(double)chrInfo.getLength()));
+		return (100 * (getCoverBaseNum()/(double)chrInfo.getLength()));
 	}
 
 	public double getNonNbaseCoverage() {
-		return (100 * (bTracker.getProperty(BaseType.NONNCOVERED)/(double)chrInfo.getNonNbaselength()));
+		return (100 * (getNonNCoverBaseNum()/(double)chrInfo.getNonNbaselength()));
 	}
 
-	public double getNonMeanDepth() {
-		return (bTracker.getProperty(Interval.WHOLEGENOME, Depth.TOTALDEPTH, DepthType.NORMAL)/(double)bTracker.getProperty(BaseType.NONNCOVERED));
+	public double getNonNMeanDepth() {
+		return (getDepth()/(double)bTracker.getProperty(BaseType.NONNCOVERED));
+	}
+
+	public double getNonNMeanRmdupDepth() {
+		return (getRmdupDepth()/(double)bTracker.getProperty(BaseType.NONNCOVERED));
 	}
 	
 	public double getMeanDepth() {
-		return (bTracker.getProperty(Interval.WHOLEGENOME, Depth.TOTALDEPTH, DepthType.NORMAL)/(double)bTracker.getProperty(BaseType.COVERED));
+		return (getDepth()/(double)bTracker.getProperty(BaseType.COVERED));
 	}
-	
+
+	public double getMeanRmdupDepth() {
+		return (getRmdupDepth()/(double)bTracker.getProperty(BaseType.COVERED));
+	}
+
 	public double getRateOf(BaseType type) {
 		return (100 * (bTracker.getProperty(type)/(double)chrInfo.getLength()));
 	}
@@ -156,6 +190,7 @@ public class WholeGenomeCoverReport{
 	public List<BaseCounter> createBaseCounters() {
 		List<BaseCounter> counters = new ArrayList<>();
 		Collections.addAll(counters, new BaseCounter(Interval.WHOLEGENOME, Depth.TOTALDEPTH, DepthType.NORMAL),
+				                     new BaseCounter(Interval.WHOLEGENOME, Depth.TOTALDEPTH, DepthType.WITHOUT_PCR),
 									 new BaseCounter(BaseType.NONNCOVERED),
 									 new BaseCounter(BaseType.COVERED),
 									 new BaseCounter(BaseType.INDELREF),
@@ -182,6 +217,10 @@ public class WholeGenomeCoverReport{
 	public static void addCoverReport(ChromosomeInformationShare chrInfo) {
 		WholeGenomeCoverReport coverInfo = new WholeGenomeCoverReport(chrInfo);
 		coverReports.put(chrInfo.getChromosomeName(), coverInfo);
+	}
+
+	public ChromosomeInformationShare getChrInfo() {
+		return chrInfo;
 	}
 
 }
