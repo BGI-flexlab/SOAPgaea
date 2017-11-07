@@ -173,8 +173,8 @@ public class WholeGenomeResultReport extends ResultReport{
 		info.append("\nAverage depth(rmdup):\t");
 		info.append(df.format(rmdupDepth/(double)coverBaseNum));
 		info.append("\nCoverage (>0x):\t");
-		info.append(df.format(coverBaseNum/(double)genomeLength));
-		info.append("\nNonN Average depth:\t");
+		info.append(df.format(100*coverBaseNum/(double)genomeLength));
+		info.append("%\nNonN Average depth:\t");
 		info.append(df.format(depth/(double)nonnCoverBaseNum));
 		info.append("\nNonN Average depth(rmdup):\t");
 		info.append(df.format(rmdupDepth/(double)nonnCoverBaseNum));
