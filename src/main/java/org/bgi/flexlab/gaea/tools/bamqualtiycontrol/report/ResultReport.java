@@ -223,19 +223,21 @@ public abstract class ResultReport {
 			CompressionCodec covCodec = covCodecFactory.getCodec(singleRegionPath);
 			CompressionOutputStream covCompressedOutput = covCodec.createOutputStream(singleRegionStream);
 			covCompressedOutput.write(SingleRegionStatistic.toReportTitleString().getBytes());
+			covCompressedOutput.write('\n');
 
 			String unsingleRegionFilePath = options.getOutputPath() +
 					"/" +
 					sampleName +
-					".region.lowdepth.tsv";
+					".region.lowdepth.cov.tsv";
 			Path unsingleRegionPath = new Path(unsingleRegionFilePath);
 			FSDataOutputStream unsingleRegionwriter = fs.create(unsingleRegionPath);
 			unsingleRegionwriter.write(SingleRegionStatistic.toReportTitleString().getBytes());
+			unsingleRegionwriter.write('\n');
 
 			Map<Regiondata, SingleRegionStatistic> result = cnvSingleRegionReport.getResult();
 			cnvSingleRegionReport.updateAllRegionAverageDeepth();
 			sb.append("#Chr\tPos\tRaw Depth\tRmdup depth\n");
-			for(Regiondata regionData : result.keySet()) {
+			for(Regiondata regionData : cnvSingleRegionReport.getRegion().getRegions()) {
 				SingleRegionStatistic singleRegionStat = result.get(regionData);
 				for (int i = 0; i < regionData.size(); i++) {
 					sb.append(regionData.getChrName());

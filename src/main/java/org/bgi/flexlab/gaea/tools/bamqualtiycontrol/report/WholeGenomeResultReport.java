@@ -71,7 +71,7 @@ public class WholeGenomeResultReport extends ResultReport{
 	public String toReducerString(String sample, String chrName, boolean unmappedRegion) {
 		StringBuffer info = new StringBuffer();
 		
-		if(chrName == "-1") {
+		if(chrName.equals("-1")) {
 			info.append("sample:");
 			info.append(sample);
 			info.append("\n");
@@ -128,6 +128,7 @@ public class WholeGenomeResultReport extends ResultReport{
 							coverReport = coverReports.get(chrName);
 						}
 					} else {
+						assert coverReport != null;
 						coverReport.parse(keyValue, genome);
 					}
 				}
