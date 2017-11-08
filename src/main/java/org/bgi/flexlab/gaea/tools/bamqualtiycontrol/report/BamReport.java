@@ -38,21 +38,12 @@ public class BamReport {
 		ResultReport reportType;
 		ReferenceShare genome = new ReferenceShare();
 		genome.loadChromosomeList(options.getReferenceSequencePath());
+		Map <String, ResultReport> reports = new ConcurrentHashMap<>();
 
-		for(ChromosomeInformationShare chrInfo: genome.getChromosomeInfoMap().values()){
-			chrInfo.setNonNbaseLength();
-		}
-
-		if ((options.getRegion() != null) || (options.getBedfile() != null))
-			reportType = new RegionResultReport(options, conf);
-		else
-			reportType = new WholeGenomeResultReport(options);
-		
-		Map <String, ResultReport> reports = new ConcurrentHashMap<String, ResultReport>(); 
 		FileSystem fs = oPath.getFileSystem(conf);
 		FileStatus filelist[] = fs.listStatus(oPath);
 		for(int i = 0; i < filelist.length; i++) {
-			if(!filelist[i].isDir() && !filelist[i].getPath().toString().startsWith("_")) {
+			if(!filelist[i].isDirectory() && !filelist[i].getPath().toString().startsWith("_")) {
 				FSDataInputStream reader = fs.open(filelist[i].getPath());
 				LineReader lineReader = new LineReader(reader, conf);
 				Text line = new Text();
@@ -64,6 +55,10 @@ public class BamReport {
 					if(lineString.contains("sample:")) {
 						String sample = line.toString().split(":")[1];
 						if(!reports.containsKey(sample)) {
+							if ((options.getRegion() != null) || (options.getBedfile() != null))
+								reportType = new RegionResultReport(options, conf);
+							else
+								reportType = new WholeGenomeResultReport(options);
 							reports.put(sample, reportType);
 							reportBuilder.setReportChoice(reportType);
 							reportBuilder.initReports(sample);

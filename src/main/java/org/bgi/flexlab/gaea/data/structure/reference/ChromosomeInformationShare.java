@@ -160,7 +160,7 @@ public class ChromosomeInformationShare extends BioMemoryShare {
 		return Double.longBitsToDouble(l);
 	}
 
-	public void setNonNbaseLength(){
+	public int getNonNbaselength() {
 		if( NonNbaselength == 0) {
 			for (int i = 0; i < length; i++) {
 				if (getBase(i) != 'N') {
@@ -168,9 +168,6 @@ public class ChromosomeInformationShare extends BioMemoryShare {
 				}
 			}
 		}
-	}
-
-	public int getNonNbaselength() {
 		return NonNbaselength;
 	}
 }
