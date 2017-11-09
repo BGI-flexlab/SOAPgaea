@@ -32,10 +32,7 @@ import org.bgi.flexlab.gaea.tools.annotator.util.CountByType;
 import org.bgi.flexlab.gaea.tools.annotator.util.Gpr;
 import org.bgi.flexlab.gaea.tools.annotator.util.Timer;
 
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.Serializable;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -108,7 +105,6 @@ public class Config implements Serializable {
 		loadProperties(configFilePath); // Read config file and get a genome
 //		TODO 支持在配置文件中自定义密码子体系 - CodonTable
 //		createCodonTables(genomeVersion, properties);  
-		loadJson();
 		parseProperties();
 		genome = new Genome(ref,genomeShare);
 	}
@@ -131,7 +127,7 @@ public class Config implements Serializable {
 			properties.load(fs.open(confFilePath));
 			
 			if (!properties.isEmpty()) {
-				return true;
+				return loadJson();
 			}
 		} catch (Exception e) {
 			properties = null;
@@ -145,11 +141,17 @@ public class Config implements Serializable {
 	 * load database info json
 	 * @return
 	 */
-	boolean loadJson() {
+	private boolean loadJson() {
 
 		Gson gson = new Gson();
 		try {
-			Reader reader =  new InputStreamReader(Config.class.getClassLoader().getResourceAsStream(DB_CONFIG_JSON), "UTF-8");
+			Reader reader;
+			if(properties.containsKey("DB_CONFIG")){
+				String databaseConfig = properties.getProperty("DB_CONFIG");
+				reader = new FileReader(new File(databaseConfig));
+			}else {
+				reader = new InputStreamReader(Config.class.getClassLoader().getResourceAsStream(DB_CONFIG_JSON), "UTF-8");
+			}
 			databaseJson = gson.fromJson(reader, new TypeToken<DatabaseJson>(){}.getType());
 		} catch ( JsonSyntaxException | IOException e) {
 			databaseJson = null;

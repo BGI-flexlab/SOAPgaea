@@ -28,7 +28,6 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.bgi.flexlab.gaea.data.structure.header.SingleVCFHeader;
-import org.bgi.flexlab.gaea.data.structure.reference.ReferenceShare;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.BioJob;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.ToolsRunner;
 
@@ -46,8 +45,6 @@ public class Annotator extends ToolsRunner {
 
     public Annotator(){}
 
-
-
     public int runAnnotator(String[] arg0) throws Exception {
 
         Configuration conf = new Configuration();
@@ -56,13 +53,7 @@ public class Annotator extends ToolsRunner {
         AnnotatorOptions options = new AnnotatorOptions();
         options.parse(remainArgs);
         options.setHadoopConf(remainArgs, conf);
-        System.out.println("inputFilePath: "+conf.get("inputFilePath"));
         BioJob job = BioJob.getInstance(conf);
-
-        if(options.isCachedRef())
-            System.err.println("--------- isCachedRef --------");
-        ReferenceShare.distributeCache(options.getReferenceSequencePath(), job);
-
 
         job.setHeader(new Path(options.getInput()), new Path(options.getOutput()));
         job.setJobName("GaeaAnnotator");

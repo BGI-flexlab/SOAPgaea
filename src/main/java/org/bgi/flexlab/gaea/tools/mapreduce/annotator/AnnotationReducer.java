@@ -45,30 +45,32 @@ import java.util.List;
 public class AnnotationReducer extends Reducer<Text, VcfLineWritable, NullWritable, Text> {
 
 	private Text resultValue = new Text();
+	private AnnotatorOptions options;
 	private HashMap<String, VCFCodec> vcfCodecs;
 	private List<String> sampleNames;
 	private VcfAnnotator vcfAnnotator;
 	private DBAnnotator dbAnnotator;
-	private Configuration conf;
 	private MultipleOutputs<NullWritable, Text> multipleOutputs;
-	long mapTime = 0; 
+	long mapTime = 0;
 	long mapCount = 0;
 	
 	@Override
 	protected void setup(Context context) throws IOException, InterruptedException {
+		options = new AnnotatorOptions();
+		Configuration conf = context.getConfiguration();
+		options.getOptionsFromHadoopConf(conf);
+
 		long setupStart = System.currentTimeMillis();
-		conf = context.getConfiguration();
-		
 		long start = System.currentTimeMillis();
 		ReferenceShare genomeShare = new ReferenceShare();
-		genomeShare.loadChromosomeList();
-
+		genomeShare.loadChromosomeList(options.getReferenceSequencePath());
 		System.err.println("genomeShare耗时：" + (System.currentTimeMillis()-start)+"毫秒");
-		
+
 		Config userConfig = new Config(conf, genomeShare);
-		userConfig.setVerbose(conf.getBoolean("verbose", false));
-		userConfig.setDebug(conf.getBoolean("debug", false));
-		
+		userConfig.setVerbose(options.isVerbose());
+		userConfig.setDebug(options.isDebug());
+
+
 		start = System.currentTimeMillis();
 		AnnotatorBuild annoBuild = new AnnotatorBuild(userConfig);
 		userConfig.setSnpEffectPredictor(annoBuild.createSnpEffPredictor());
@@ -76,7 +78,7 @@ public class AnnotationReducer extends Reducer<Text, VcfLineWritable, NullWritab
 		System.err.println("build SnpEffectPredictor耗时：" + (System.currentTimeMillis()-start)+"毫秒");
 		sampleNames = new ArrayList<>();
 		vcfCodecs = new HashMap<>();
-		Path inputPath = new Path(conf.get("inputFilePath"));
+		Path inputPath = new Path(options.getInputFilePath());
 		FileSystem fs = inputPath.getFileSystem(conf);
 		FileStatus[] files = fs.listStatus(inputPath);
 
@@ -97,7 +99,6 @@ public class AnnotationReducer extends Reducer<Text, VcfLineWritable, NullWritab
 			}
 
 		}
-
 
 		multipleOutputs = new MultipleOutputs(context);
 		System.err.println("getVCFHeader耗时：" + (System.currentTimeMillis()-start)+"毫秒");
@@ -162,9 +163,6 @@ public class AnnotationReducer extends Reducer<Text, VcfLineWritable, NullWritab
 		}
 	}
 
-		
-
-	
 	@Override
 	protected void cleanup(Context context)
 			throws IOException, InterruptedException {

@@ -47,7 +47,6 @@ public class AnnotatorOptions extends GaeaOptions implements HadoopOptions{
     private String referenceSequencePath = null; //参考序列gaeaindex
 
     private boolean mutiSample = false;
-    private boolean isCachedRef = false;
 
     private boolean verbose = false;
     private boolean debug = false;
@@ -62,7 +61,6 @@ public class AnnotatorOptions extends GaeaOptions implements HadoopOptions{
         addOption("r", "reference",  true,  "indexed reference sequence file list [request]", true);
         //addOption("T", "outputType", true,  "output file foramt[txt, vcf].");
         addOption("m", "mapperNum", true,  "mapper number. [50]");
-        addOption(null,"cacheref",   false,  "DistributedCache reference sequence file list");
         addOption(null,"verbose",    false, "display verbose information.");
         addOption(null,"debug",      false, "for debug.");
         addOption("h", "help",       false, "help information.");
@@ -96,7 +94,6 @@ public class AnnotatorOptions extends GaeaOptions implements HadoopOptions{
         setReferenceSequencePath(cmdLine.getOptionValue("reference",""));
         setMapperNum(getOptionIntValue("mapperNum", 50));
         setOutputPath(cmdLine.getOptionValue("output"));
-        setCachedRef(getOptionBooleanValue("cacheref", false));
         setVerbose(getOptionBooleanValue("verbose", false));
         setDebug(getOptionBooleanValue("debug", false));
     }
@@ -108,7 +105,6 @@ public class AnnotatorOptions extends GaeaOptions implements HadoopOptions{
         conf.set("reference", getReferenceSequencePath());
         conf.set("configFile", getConfigFile());
         conf.set("outputType", getOutputType());
-        conf.setBoolean("cacheref", isCachedRef());
         conf.setBoolean("verbose", isVerbose());
         conf.setBoolean("debug", isDebug());
     }
@@ -159,14 +155,6 @@ public class AnnotatorOptions extends GaeaOptions implements HadoopOptions{
 
     public void setMutiSample(boolean mutiSample) {
         this.mutiSample = mutiSample;
-    }
-
-    public boolean isCachedRef() {
-        return isCachedRef;
-    }
-
-    public void setCachedRef(boolean isCachedRef) {
-        this.isCachedRef = isCachedRef;
     }
 
     public String getInputFilePath() {
