@@ -43,6 +43,7 @@
 
 package org.bgi.flexlab.gaea.util;
 
+import htsjdk.tribble.TribbleException;
 import htsjdk.variant.variantcontext.*;
 import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.data.structure.header.VCFConstants;
@@ -142,19 +143,41 @@ public class GaeaVariantContextUtils {
             return Integer.valueOf(getIndex(vc1)).compareTo(getIndex(vc2));
         }
     }
+    
+    /**
+	 * Determines the common reference allele
+	 *
+	 * @param VCs
+	 *            the list of VariantContexts
+	 * @param loc
+	 *            if not null, ignore records that do not begin at this start
+	 *            location
+	 * @return possibly null Allele
+	 */
+	public static Allele determineReferenceAllele(final List<VariantContext> VCs, final GenomeLocation loc) {
+		Allele ref = null;
 
-    static public Allele determineReferenceAllele(List<VariantContext> VCs) {
-        Allele ref = null;
+		for (final VariantContext vc : VCs) {
+			if (contextMatchesLocation(vc, loc)) {
+				final Allele myRef = vc.getReference();
+				if (ref == null || ref.length() < myRef.length())
+					ref = myRef;
+				else if (ref.length() == myRef.length() && !ref.equals(myRef))
+					throw new TribbleException(String.format(
+							"The provided variant file(s) have inconsistent references for the same position(s) at %s:%d, %s vs. %s",
+							vc.getContig(), vc.getStart(), ref, myRef));
+			}
+		}
 
-        for (VariantContext vc : VCs) {
-            Allele myRef = vc.getReference();
-            if (ref == null || ref.length() < myRef.length())
-                ref = myRef;
-            else if (ref.length() == myRef.length() && !ref.equals(myRef))
-                throw new UserException.BadInput(String.format("The provided variant file(s) have inconsistent references for the same position(s) at %s:%d, %s vs. %s", vc.getChr(), vc.getStart(), ref, myRef));
-        }
+		return ref;
+	}
+	
+	public static boolean contextMatchesLocation(final VariantContext vc, final GenomeLocation loc) {
+		return loc == null || loc.getStart() == vc.getStart();
+	}
 
-        return ref;
+    public static Allele determineReferenceAllele(List<VariantContext> VCs) {
+        return determineReferenceAllele(VCs,null);
     }
 
     public static class AlleleMapper {
@@ -189,6 +212,12 @@ public class GaeaVariantContextUtils {
             }
             return newAs;
         }
+        
+        public List<Allele> getUniqueMappedAlleles() {
+			if (map == null)
+				return Collections.emptyList();
+			return new ArrayList<>(new HashSet<>(map.values()));
+		}
     }
 
     /**
@@ -249,7 +278,7 @@ public class GaeaVariantContextUtils {
         }
     }
 
-    private static final boolean hasPLIncompatibleAlleles(final Collection<Allele> alleleSet1, final Collection<Allele> alleleSet2) {
+    protected static final boolean hasPLIncompatibleAlleles(final Collection<Allele> alleleSet1, final Collection<Allele> alleleSet2) {
         final Iterator<Allele> it1 = alleleSet1.iterator();
         final Iterator<Allele> it2 = alleleSet2.iterator();
 
@@ -296,6 +325,18 @@ public class GaeaVariantContextUtils {
      */
     public static Map<String, Object> calculateChromosomeCounts(VariantContext vc, Map<String, Object> attributes, boolean removeStaleValues) {
         return calculateChromosomeCounts(vc, attributes, removeStaleValues, new HashSet<String>(0));
+    }
+    
+    /**
+     * Update the attributes of the attributes map in the VariantContextBuilder to reflect the proper
+     * chromosome-based VCF tags based on the current VC produced by builder.make()
+     *
+     * @param builder     the VariantContextBuilder we are updating
+     * @param removeStaleValues should we remove stale values from the mapping?
+     */
+    public static void calculateChromosomeCounts(VariantContextBuilder builder, boolean removeStaleValues) {
+        VariantContext vc = builder.make();
+        builder.attributes(calculateChromosomeCounts(vc, new HashMap<>(vc.getAttributes()), removeStaleValues, new HashSet<>(0)));
     }
 
     /**
@@ -357,7 +398,7 @@ public class GaeaVariantContextUtils {
         return attributes;
     }
 
-    private static void mergeGenotypes(GenotypesContext mergedGenotypes, VariantContext oneVC, AlleleMapper alleleMapping, boolean uniqifySamples) {
+    protected static void mergeGenotypes(GenotypesContext mergedGenotypes, VariantContext oneVC, AlleleMapper alleleMapping, boolean uniqifySamples) {
         for (Genotype g : oneVC.getGenotypes()) {
             String name = mergedSampleName(oneVC.getSource(), g.getSampleName(), uniqifySamples);
             if (!mergedGenotypes.containsSample(name)) {
@@ -596,7 +637,7 @@ public class GaeaVariantContextUtils {
     }
 
 
-    private static final List<Allele> NO_CALL_ALLELES = Arrays.asList(Allele.NO_CALL, Allele.NO_CALL);
+    protected static final List<Allele> NO_CALL_ALLELES = Arrays.asList(Allele.NO_CALL, Allele.NO_CALL);
     public static final int DEFAULT_PLOIDY = 2;
 
     /**

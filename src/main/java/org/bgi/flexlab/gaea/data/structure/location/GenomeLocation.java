@@ -64,7 +64,7 @@ public class GenomeLocation implements Comparable<GenomeLocation>,
 		return location == UNMAPPED;
 	}
 
-	protected GenomeLocation(final String contig, final int contigIndex,
+	public GenomeLocation(final String contig, final int contigIndex,
 			final int start, final int stop) {
 		this.contigName = contig;
 		this.contigIndex = contigIndex;

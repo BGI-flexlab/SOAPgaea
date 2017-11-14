@@ -111,6 +111,11 @@
 			</exclusions>
 		</dependency>
 		<dependency>
+			<groupId>org.apache.hbase</groupId>
+			<artifactId>hbase-server</artifactId>
+			<version>1.0.0-cdh5.6.0</version>
+		</dependency>
+		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-math3</artifactId>
 			<version>3.2</version>
@@ -149,6 +154,11 @@
 			<groupId>org.reflections</groupId>
 			<artifactId>reflections</artifactId>
 			<version>0.9.10</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.java.contract</groupId>
+			<artifactId>cofoja</artifactId>
+			<version>1.1-r150</version>
 		</dependency>
 	</dependencies>
 
