@@ -8,7 +8,7 @@ import org.bgi.flexlab.gaea.data.options.GaeaOptions;
 import org.bgi.flexlab.gaea.tools.mapreduce.realigner.RealignerExtendOptions;
 
 public class DBNSFPToHbaseOptions extends GaeaOptions implements HadoopOptions {
-    private final static String SOFTWARE_NAME = "VCF2HBase";
+    private final static String SOFTWARE_NAME = "DBNSFP2Hbase";
     private final static String SOFTWARE_VERSION = "1.0";
 
     // the path of hbase configuration core-site.xml hbase-site.xml

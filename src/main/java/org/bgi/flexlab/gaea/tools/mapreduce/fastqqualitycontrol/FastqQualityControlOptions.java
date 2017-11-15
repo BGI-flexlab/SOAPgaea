@@ -23,7 +23,7 @@ import org.bgi.flexlab.gaea.data.options.GaeaOptions;
 
 public class FastqQualityControlOptions extends GaeaOptions implements
 		HadoopOptions {
-	private final static String SOFTWARE_NAME = "FilterQualityControl";
+	private final static String SOFTWARE_NAME = "FastqQualityControl";
 	private final static String SOFTWARE_VERSION = "1.0";
 	private final static int LENGTH_QUALITY = 64;
 
