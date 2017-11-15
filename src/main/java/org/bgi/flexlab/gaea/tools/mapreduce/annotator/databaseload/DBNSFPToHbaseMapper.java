@@ -7,12 +7,10 @@ import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
-import org.seqdoop.hadoop_bam.VariantContextWritable;
 
 import java.io.IOException;
 
-public class DBNSFPToHbaseMapper extends Mapper<LongWritable, VariantContextWritable, ImmutableBytesWritable, Put> {
-    public static final String DEFAULT_COLUMN_FAMILY = "data";
+public class DBNSFPToHbaseMapper extends Mapper<LongWritable, Text, ImmutableBytesWritable, Put> {
     private String[] headerFields;
 
     @Override
@@ -24,6 +22,7 @@ public class DBNSFPToHbaseMapper extends Mapper<LongWritable, VariantContextWrit
     public void map(LongWritable key, Text value, Context context)
             throws IOException, InterruptedException {
         String vText = value.toString();
+        Configuration conf = context.getConfiguration();
 
         String[] fields = vText.split("\t");
         if(fields[0].startsWith("#"))
@@ -33,7 +32,7 @@ public class DBNSFPToHbaseMapper extends Mapper<LongWritable, VariantContextWrit
         ImmutableBytesWritable rKey = new ImmutableBytesWritable(rowKeys);
         Put put = new Put(rowKeys);
         for (int i = 0; i < headerFields.length; i++) {
-            put.addColumn(Bytes.toBytes(DEFAULT_COLUMN_FAMILY), Bytes.toBytes(headerFields[i]), Bytes.toBytes(fields[i]));
+            put.addColumn(Bytes.toBytes(conf.get("DEFAULT_COLUMN_FAMILY")), Bytes.toBytes(headerFields[i]), Bytes.toBytes(fields[i]));
         }
         context.write(rKey, put);
     }

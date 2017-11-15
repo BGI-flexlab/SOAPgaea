@@ -19,16 +19,14 @@ import org.apache.hadoop.hbase.mapreduce.PutSortReducer;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import org.bgi.flexlab.gaea.data.datawarehouse.genomics.LoadVCFToHBaseOptions;
-import org.bgi.flexlab.gaea.data.mapreduce.input.vcf.VCFMultipleInputFormat;
-import org.bgi.flexlab.gaea.data.structure.header.MultipleVCFHeader;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.ToolsRunner;
 
+import javax.xml.soap.Text;
 import java.io.IOException;
 
 public class DBNSFPToHbase extends ToolsRunner {
-
-    private LoadVCFToHBaseOptions options = null;
+    public static final String DEFAULT_COLUMN_FAMILY = "data";
+    private DBNSFPToHbaseOptions options = null;
     private Connection conn = null;
     private TableName tableName = null;
 
@@ -39,7 +37,7 @@ public class DBNSFPToHbase extends ToolsRunner {
             return;
         }
         HTableDescriptor table = new HTableDescriptor(tableName);
-        table.addFamily(new HColumnDescriptor("info"));
+        table.addFamily(new HColumnDescriptor(DEFAULT_COLUMN_FAMILY));
         admin.createTable(table);
     }
 
@@ -55,25 +53,24 @@ public class DBNSFPToHbase extends ToolsRunner {
     @Override
     public int run(String[] args) throws Exception {
         Configuration conf = HBaseConfiguration.create();
-        conf.addResource(new Path(options.getConfig() + "hbase-site.xml"));
-        conf.addResource(new Path(options.getConfig() + "core-site.xml"));
 
         String[] remainArgs = remainArgs(args, conf);
-        options = new LoadVCFToHBaseOptions();
+        options = new DBNSFPToHbaseOptions();
         options.parse(remainArgs);
         options.setHadoopConf(remainArgs, conf);
         tableName = TableName.valueOf(options.getTableName());
+        conf.set("DEFAULT_COLUMN_FAMILY", "data");
+        conf.addResource(new Path(options.getConfig() + "hbase-site.xml"));
+        conf.addResource(new Path(options.getConfig() + "core-site.xml"));
         conn = ConnectionFactory.createConnection(conf);
 
         setHeader(new Path(options.getInput()), conf);
 
         Job job = Job.getInstance(conf, "dbNSFPtoHbase");
         createTable(tableName);
-        MultipleVCFHeader vcfHeaders = new MultipleVCFHeader();
-        vcfHeaders.mergeHeader(new Path(options.getInput()), options.getHeaderOutput(), job, false);
 
         job.setNumReduceTasks(options.getReducerNumber());
-        job.setInputFormatClass(VCFMultipleInputFormat.class);
+//        job.setInputFormatClass(T.class);
 
         job.setJarByClass(org.bgi.flexlab.gaea.tools.mapreduce.annotator.databaseload.DBNSFPToHbase.class);
         job.setMapperClass(DBNSFPToHbaseMapper.class);
