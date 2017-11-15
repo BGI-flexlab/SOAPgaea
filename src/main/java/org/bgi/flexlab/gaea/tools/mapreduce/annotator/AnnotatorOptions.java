@@ -115,10 +115,10 @@ public class AnnotatorOptions extends GaeaOptions implements HadoopOptions{
         this.parse(args);
     }
 
-
     public int getReducerNum() {
         return reducerNum;
     }
+
     private String formatPath(String p) {
         if (p.startsWith("/")) {
             p = "file://" + p;
@@ -204,9 +204,11 @@ public class AnnotatorOptions extends GaeaOptions implements HadoopOptions{
     public void setMapperNum(int mapperNum) {
         this.mapperNum = mapperNum;
     }
+
     public String getOutput() {
-        return outputPath;
+        return formatPath(outputPath);
     }
+
     public String getInput() {
         return inputFilePath;
     }
