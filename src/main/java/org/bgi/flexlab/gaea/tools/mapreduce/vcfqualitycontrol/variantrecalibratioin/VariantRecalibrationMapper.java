@@ -23,6 +23,7 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.bgi.flexlab.gaea.data.exception.UserException;
+import org.bgi.flexlab.gaea.data.mapreduce.input.bed.RegionHdfsParser;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocationParser;
 import org.bgi.flexlab.gaea.tools.mapreduce.vcfqualitycontrol.VCFQualityControlOptions;
 import org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin.traindata.*;
@@ -38,6 +39,8 @@ public class VariantRecalibrationMapper extends Mapper<LongWritable, VariantCont
 	private ResourceManager manager;
 	
 	private GenomeLocationParser genomeLocParser;
+	
+	private RegionHdfsParser region = null;
 	
 	/**
 	 * 任务初始化设置
@@ -68,12 +71,28 @@ public class VariantRecalibrationMapper extends Mapper<LongWritable, VariantCont
 		if( !manager.checkHasTruthSet() ) {
 			throw new UserException.CommandLineException( "No truth set found! Please provide sets of known polymorphic loci marked with the truth=true ROD binding tag. For example, -resource:hg19-hapmap" );
 		}
+		
+		if(options.getRegion() != null){
+			region = new RegionHdfsParser();
+            region.parseBedFileFromHDFS(options.getRegion(), false);
+		}
 	}
 	
 	@Override
 	public void map(LongWritable key, VariantContextWritable value, Context context) throws IOException, InterruptedException {
 		VariantContext vc = value.get();
 		if(!validContext(vc))
+			return;
+		
+		boolean inRegion = false;
+		for(int i = vc.getStart() ; i <= vc.getEnd() ; i++){
+			if(region != null && !region.isPositionInRegion(vc.getContig(), i - 1)) {
+                inRegion = true;
+                break;
+            }
+		}
+		
+		if(!inRegion)
 			return;
 		
 		VariantDatumMessenger datum = new VariantDatumMessenger.Builder(manager, vc, options)
