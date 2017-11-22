@@ -196,17 +196,15 @@
     "dbNSFP":{
       "database":"HBASE",
       "queryClassName":"DBNSFPQuery",
-      "queryCondition":"CHROM_POS_ALT",
+      "queryCondition":"CHR_POS_ALT",
       "dbVersion":{
         "GRCh37":{
-          "table":"dbNSFP",
+          "table":"DBNSFP",
           "key":"id",
-          "indexTable":"dbNSFP_index_hg19_chr_pos_alt"
+          "indexTable":"DBNSFP_index_hg19"
         },
         "GRCh38":{
-          "table":"dbNSFP",
-          "key":"id",
-          "indexTable":"dbNSFP_index_hg38_chr_pos_alt"
+          "table":"DBNSFP"
         }
       }
     }

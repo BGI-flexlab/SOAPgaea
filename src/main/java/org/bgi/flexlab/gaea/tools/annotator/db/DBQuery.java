@@ -129,7 +129,6 @@ public class DBQuery implements Serializable {
 	
 	/**
 	 * 从results获取符合annotationContext的结果
-	 * @param annotationContext
 	 * @return
 	 */
 	LinkedList<HashMap<String, String>> getAcResultList(AnnotationContext ac) {
@@ -139,7 +138,6 @@ public class DBQuery implements Serializable {
 	
 	/**
 	 * 对查询结果results进行矫正
-	 * @param results
 	 */
 	//abstract void adjustResult(HashMap<String,String> result);
 	
