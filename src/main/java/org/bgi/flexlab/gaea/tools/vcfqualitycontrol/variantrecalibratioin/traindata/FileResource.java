@@ -73,8 +73,12 @@ public class FileResource implements ResourceType{
 	public ArrayList<VariantContext> get(GenomeLocation loc) {
 		// TODO Auto-generated method stub
 		ChromosomeDbsnpShare share = snpShare.getChromosomeDbsnp(loc.getContig());
+		if(share == null)
+			return new ArrayList<VariantContext>();
 		int winNum = loc.getStart() / VcfIndex.WINDOW_SIZE;
 		long start = share.getStartPosition(winNum);
+		if(start < 0)
+			return new ArrayList<VariantContext>();
 		try {
 			ArrayList<VariantContext> vcl = loader.query(loc.getContig(), start, loc.getStop());
 			return vcl;

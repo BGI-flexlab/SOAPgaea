@@ -30,11 +30,13 @@ import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
+import org.bgi.flexlab.gaea.data.mapreduce.input.bed.RegionHdfsParser;
 import org.bgi.flexlab.gaea.data.mapreduce.util.HdfsFileManager;
 import org.bgi.flexlab.gaea.data.structure.header.GaeaVCFHeader;
 import org.bgi.flexlab.gaea.data.structure.header.MultipleVCFHeader;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocationParser;
-import org.bgi.flexlab.gaea.data.structure.vcf.report.ReportDatum;
+import org.bgi.flexlab.gaea.data.structure.variant.statistic.VariantBasicStatistic;
+//import org.bgi.flexlab.gaea.data.structure.vcf.report.ReportDatum;
 import org.bgi.flexlab.gaea.tools.mapreduce.vcfqualitycontrol.VCFQualityControlOptions;
 import org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin.VCFRecalibrator;
 import org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin.traindata.VariantDatumMessenger;
@@ -51,7 +53,13 @@ public class VariantRecalibrationReducer extends Reducer<IntWritable, Text, Null
 	private int fileId;
 	private GenomeLocationParser genomeLocParser;
     private MultipleVCFHeader headers;
-    private ReportDatum report;
+    
+    private VariantBasicStatistic basicStatics = null;
+    
+    private VariantBasicStatistic filteredStatics = null;
+    
+    private RegionHdfsParser region = null;
+    
 	@Override
 	protected void setup(Context context) throws IOException {
 		Configuration conf = context.getConfiguration();
@@ -62,6 +70,15 @@ public class VariantRecalibrationReducer extends Reducer<IntWritable, Text, Null
 		genomeLocParser = new GenomeLocationParser(ref.getSequenceDictionary());
 		ref.close();
 		headers = (MultipleVCFHeader) GaeaVCFHeader.loadVcfHeader(false, conf);
+		
+		basicStatics = new VariantBasicStatistic(options.isIndividuals());
+		
+		filteredStatics = new VariantBasicStatistic(options.isIndividuals());
+		
+		if(options.getRegion() != null){
+			region = new RegionHdfsParser();
+            region.parseBedFileFromHDFS(options.getRegion(), false);
+		}
     }
 	
     @Override
@@ -82,12 +99,29 @@ public class VariantRecalibrationReducer extends Reducer<IntWritable, Text, Null
 		AsciiLineReaderIterator iterator = new AsciiLineReaderIterator(new AsciiLineReader(is));
 		while(iterator.hasNext()) {
 			VariantContext vc = codec.decode(iterator.next());
+			
 			if(vc == null)
 				continue;
+			
+			boolean inRegion = false;
+			for(int i = vc.getStart() ; i <= vc.getEnd() ; i++){
+				if(region != null && !region.isPositionInRegion(vc.getContig(), i - 1)) {
+	                inRegion = true;
+	                break;
+	            }
+			}
+			
+			if(!inRegion)
+				continue;
+			
+			basicStatics.variantStatic(vc);
 			vc = recal.applyRecalibration(vc);
-			statistic(vc);
+			//statistic(vc);
+			if(vc.isNotFiltered()){
+				filteredStatics.variantStatic(vc);
+			}
 			VariantContextWritable vcWritable = new VariantContextWritable();
-			vcWritable.set(vc);
+			vcWritable.set(vc,header);
 			context.write(NullWritable.get(), vcWritable);
 		}
 		iterator.close();
@@ -95,16 +129,13 @@ public class VariantRecalibrationReducer extends Reducer<IntWritable, Text, Null
     
     @Override
     public void cleanup(Context context) throws IOException {
-    	FSDataOutputStream os = HdfsFileManager.getOutputStream(new Path(options.getOutputPath()), context.getConfiguration());
-		os.write(report.formatReport().getBytes());
+    	String sampleName = basicStatics.getSampleName();
+    	FSDataOutputStream os = HdfsFileManager.getOutputStream(new Path(options.getOutputPath()+"/"+sampleName), context.getConfiguration());
+		os.write("before filter\n".getBytes());
+		os.write(basicStatics.toString().getBytes());
+		os.write("\n".getBytes());
+		os.write("after filter\n".getBytes());
+		os.write(filteredStatics.toString().getBytes());
 		os.close();
-    }
-    
-    public void statistic(VariantContext vc) {
-    	ReportDatum datum = new ReportDatum.Builder(vc).isSnp().isIndel().isTransition().build();
-		if(report == null)
-			report = datum;
-		else
-			report.combine(datum);
     }
 }

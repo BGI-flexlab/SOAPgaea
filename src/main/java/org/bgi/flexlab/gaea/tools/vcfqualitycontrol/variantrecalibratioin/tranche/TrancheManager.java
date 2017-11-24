@@ -224,7 +224,7 @@ public class TrancheManager {
 	                    }
 	                }
 	            }
-	            data.remove(datum);
+	            //data.remove(datum);
 	        }
 
 	        double knownTiTv = knownTi / Math.max(1.0 * knownTv, 1.0);

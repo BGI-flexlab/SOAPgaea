@@ -90,7 +90,8 @@ public abstract class GaeaVCFRecordWriter<K> extends RecordWriter<K,VariantConte
 
 		stopOut.stopped = false;
 
-		setInputHeader(this.header = header);
+		if(header != null)
+			setInputHeader(this.header = header);
 	}
 	
 	private void initWriter(VCFHeader vcfHeader){
