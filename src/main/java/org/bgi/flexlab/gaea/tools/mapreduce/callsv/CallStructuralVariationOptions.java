@@ -50,6 +50,10 @@ public class CallStructuralVariationOptions extends GaeaOptions implements Hadoo
 	 * minimum scores for output SVs
 	 */
 	private int minscore;
+	/**
+	 * maximum SV size 
+	 */
+	private int maxsvsize;
 
 	
 	public CallStructuralVariationOptions() {
@@ -63,6 +67,7 @@ public class CallStructuralVariationOptions extends GaeaOptions implements Hadoo
 		addOption("p", "minpair", true, "minimum number of read pairs required for a SV [default: 2]");
 		addOption("c", "maxcoverage", true, "maximum threshold of haploid sequence coverage for regions to be ignored [default: 1000]");
 		addOption("score", "minscore", true, "minimum scores for output SVs [default: 30]");
+		addOption("svsize", "maxsvsize", true, "maximum SV size [defailt: 1000000]");
 		addOption("h", "help", false, "print help information.");
 		
 		FormatHelpInfo(SOFTWARE_NAME, SOFTWARE_VERSION);
@@ -98,12 +103,13 @@ public class CallStructuralVariationOptions extends GaeaOptions implements Hadoo
 		hdfsdir = getOptionValue("hdfs", null);
 		outfile = getOptionValue("o", "./callSV.ctx");
 		reducenum = getOptionIntValue("reducenum", 1);
-		stdtimes = getOptionIntValue("s", 3);
+		stdtimes = getOptionIntValue("s", 4);
 		minqual = getOptionIntValue("q", 25);
 		minlen = getOptionIntValue("l", 7);
 		minpair = getOptionIntValue("p", 2);
 		maxcoverage = getOptionIntValue("c", 1000);
 		minscore = getOptionIntValue("score", 30);
+		maxsvsize = getOptionIntValue("svsize", 1000000);
 		
 		checkPara();
 		
@@ -216,6 +222,16 @@ public class CallStructuralVariationOptions extends GaeaOptions implements Hadoo
 
 	public void setMinscore(int minscore) {
 		this.minscore = minscore;
+	}
+
+
+	public int getMaxsvsize() {
+		return maxsvsize;
+	}
+
+
+	public void setMaxsvsize(int maxsvsize) {
+		this.maxsvsize = maxsvsize;
 	}
 
 }

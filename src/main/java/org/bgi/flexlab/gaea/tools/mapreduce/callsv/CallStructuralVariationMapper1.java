@@ -1,6 +1,8 @@
 package org.bgi.flexlab.gaea.tools.mapreduce.callsv;
 
 import java.io.IOException;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.UUID;
 
 import org.apache.hadoop.conf.Configuration;
@@ -31,7 +33,7 @@ public class CallStructuralVariationMapper1 extends Mapper<LongWritable, SamReco
 	private CallStructuralVariationOptions options = new CallStructuralVariationOptions();
 	private NewMapKey newkey = new NewMapKey();
 	private Format f = new Format();
-	private int num = 0;
+	private Map<String, Integer> chrreadnum = new TreeMap<String, Integer>();
 	
 
 	@Override
@@ -72,15 +74,20 @@ public class CallStructuralVariationMapper1 extends Mapper<LongWritable, SamReco
 	 */
 	private void readClassify(Context context, SAMRecord record) throws IOException, InterruptedException {
 		String type = null;
+		int start1 = record.getAlignmentStart();
+		int start2 = record.getMateAlignmentStart();
 		
-		if(record.getMappingQuality() < options.getMinqual())
+		if(record.getMappingQuality() <= options.getMinqual()) //low quality
 			return;
-		else if(record.getDuplicateReadFlag() || record.getNotPrimaryAlignmentFlag()) //重复
+		else if(record.getDuplicateReadFlag())
+		//else if(record.getDuplicateReadFlag() || record.getNotPrimaryAlignmentFlag()) //重复
 			return;
 		else if(record.getReadPairedFlag()) { //pair read
 			if(record.getReadUnmappedFlag()) //unmap
 				return;
-			else if(record.getMateUnmappedFlag()) 
+			else if(record.getMateUnmappedFlag())  //mate unmap
+				return;
+			else if(Math.abs(record.getInferredInsertSize()) >= options.getMaxsvsize()) //too long sv size
 				return;
 			else if(!(record.getMateReferenceName().equals("=") || record.getMateReferenceName().equals(record.getReferenceName())))
 				type = "Diff";
@@ -89,14 +96,13 @@ public class CallStructuralVariationMapper1 extends Mapper<LongWritable, SamReco
 			else if(!record.getReadNegativeStrandFlag() && !record.getMateNegativeStrandFlag()) //++
 				type = "FF_RR";
 			else {
-				int pos1 = record.getAlignmentStart();
-				int pos2 = record.getMateAlignmentStart();
-				if(pos1 < pos2) {
+				
+				if(start1 < start2) {
 					if(record.getReadNegativeStrandFlag())
 						type = "RF";
 					else
 						type = "FR";
-				}else if(pos1 > pos2) {
+				}else if(start1 >= start2){
 					if(record.getReadNegativeStrandFlag())
 						type = "FR";
 					else
@@ -106,8 +112,7 @@ public class CallStructuralVariationMapper1 extends Mapper<LongWritable, SamReco
 			}
 		}
 		
-		if(!type.equals("Diff") && !type.equals(null)){
-			//Format f = new Format(lib, readName, flag1, chr1, pos1, end, Math.abs(insert), strand, type, len);
+		if(!type.equals(null)) {
 			f.set(record, type);
 			newkey.setChr(record.getReferenceName());
 			newkey.setPos(record.getAlignmentStart());
@@ -124,13 +129,27 @@ public class CallStructuralVariationMapper1 extends Mapper<LongWritable, SamReco
 	 * @throws IOException 抛出IO异常
 	 */
 	private void saveInsert(SAMRecord record) throws IOException {
-		if(num < 100 & record.getProperPairFlag() && 
+		
+		String chr = record.getReferenceName();
+		
+		if(chrreadnum.containsKey(chr) && chrreadnum.get(chr) >= 200)
+			return;
+
+		else if(record.getAlignmentStart() <= record.getMateAlignmentStart() && record.getMateAlignmentStart() <= record.getAlignmentEnd())
+			return;
+		
+		if(record.getProperPairFlag() && record.getReadPairedFlag() &&
 				record.getInferredInsertSize() > 0 && record.getMappingQuality() > options.getMinqual()) {
-			String writer = record.getReadGroup().getLibrary() + "\t" + record.getInferredInsertSize() + "\n";
+			String writer = record.getReadGroup().getLibrary() + "\t" + chr + "\t" + record.getInferredInsertSize() + "\n";
 			out.write(writer.getBytes());
-			num ++;
+			out.flush();
 			
+			int num = 1;
+			if(chrreadnum.containsKey(chr)) 
+				num = chrreadnum.get(chr) + 1;	
+			chrreadnum.put(chr, num);
 		}
+		
 		
 	}
 

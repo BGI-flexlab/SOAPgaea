@@ -32,6 +32,7 @@ public class CallStructuralVariationReducer2 extends Reducer<NewMapKey, Format, 
 	
 	private Configuration conf;
 	private CallStructuralVariationOptions options;
+	private TxtReader reader;
 	
 	/**
 	 * Map类型成员变量dist，保存每一个chr及其对应的dist
@@ -48,15 +49,15 @@ public class CallStructuralVariationReducer2 extends Reducer<NewMapKey, Format, 
 		conf = context.getConfiguration();
 		options = new CallStructuralVariationOptions();
 		options.getOptionsFromHadoopConf(conf);
-		TxtReader reader = new TxtReader(conf);
+		reader = new TxtReader(conf);
 		dist = reader.readFile(options.getHdfsdir() + "/MP1/Dist/");
-		mean = reader.readFile(options.getHdfsdir() + "/MP1/Mean/");
 	}
 	
 	
 	@Override
 	protected void reduce(NewMapKey key, Iterable<Format> values, Context context) throws IOException, InterruptedException {
-
+		mean = reader.readConfFile(options.getHdfsdir() + "/MP1/Mean/", key.getChr());
+		
 		Iterator<Format> vIterator = values.iterator();
 		
 		BuildConnection bc = new BuildConnection(options, dist);
@@ -80,6 +81,11 @@ public class CallStructuralVariationReducer2 extends Reducer<NewMapKey, Format, 
 		
 		for(Map.Entry<LinkRegion, List<Reads>> linkRegEntry : linkRegMap.entrySet()) {
 			LinkRegion linkReg = linkRegEntry.getKey();
+			/**
+			 * 如果相互连通的两个区域的reads支持数小于参数，则不往后处理
+			 */
+			if(linkRegEntry.getValue().size() < options.getMinpair())
+				continue;
 			
 			/**
 			 *得到相互连通的两个区域，firstReg和secondReg

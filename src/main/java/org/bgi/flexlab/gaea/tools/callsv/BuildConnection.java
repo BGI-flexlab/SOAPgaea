@@ -79,10 +79,10 @@ public class BuildConnection {
 			 * chr不相同，并且间隔大于dist，满足划分为两个区域的条件，做break
 			 * 但是还要判断是真的break还是要去掉的break
 			 */
-			if(!r.getChr().equals(reg.getChr()) || (r.getStart() - reg.getRegEnd()) > dist.get(r.getChr()).get(0)) { //break
+			if(!r.getChr().equals(reg.getChr()) || (r.getStart() - reg.getpStart()) > dist.get(r.getChr()).get(0)) { //break
 				float coverage = reg.getRegCoverage();
 				
-				if(coverage > 0 && coverage < options.getMaxcoverage() && reg.getRegLength() > options.getMinlen()) { //real break
+				if(coverage > 0 && coverage < options.getMaxcoverage() &&  reg.getRegLength() > options.getMinlen()) { //real break
 					regInfoMap.put(regId, reg);
 					regId ++;
 				}else { //false break
@@ -133,7 +133,8 @@ public class BuildConnection {
 			/**
 			 * 同一对reads不是比对到两个区域或者两个区域相等，去掉这对reads
 			 */
-			if( r.getReg().size() !=2 || r.getReg().get(0).equals(r.getReg().get(1))) 
+			if(r.getReg().size() !=2)
+			//if( r.getReg().size() !=2 || r.getReg().get(0).equals(r.getReg().get(1))) 
 				continue;
 				
 			/**

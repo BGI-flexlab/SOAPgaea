@@ -47,13 +47,11 @@ public class CallStructuralVariationReducer1 extends Reducer<NewMapKey, Format, 
 		conf = context.getConfiguration();
 		conf.setStrings("mapreduce.reduce.shuffle.memory.limit.percent", "0.05");
 		options.getOptionsFromHadoopConf(conf);
-		setUpperLower();
-		
 	}
 	
 	@Override
 	protected void reduce(NewMapKey key, Iterable<Format> values, Context context) throws IOException, InterruptedException {
-		
+		setUpperLower(key.getChr());
 		reducerComputer(key, values, context);
 		
 	}
@@ -125,6 +123,7 @@ public class CallStructuralVariationReducer1 extends Reducer<NewMapKey, Format, 
 		}else {
 			dist = Math.min(d, ref_length/indel_num);
 		}
+		dist = dist < 50 ? 50 : dist;
 		
 		/**
 		 * 将dist存到中间文件中
@@ -137,12 +136,12 @@ public class CallStructuralVariationReducer1 extends Reducer<NewMapKey, Format, 
 	
 	/**
 	 * 遍历／LibConf目录下的中间文件，读取insert size值来计算每一个lib的upper和lower值，并保存到conf中
-	 * @param 没有输出参数
+	 * @param 
 	 * @return 没有返回值
 	 */
-	private void setUpperLower() {
+	private void setUpperLower(String chr) {
 		TxtReader mc = new TxtReader(conf);
-		Map<String, List<Integer>> insert = mc.readFile(options.getHdfsdir() + "/MP1/LibConf/");
+		Map<String, List<Integer>> insert = mc.readConfFile(options.getHdfsdir() + "/MP1/LibConf/", chr);
 		
 		for(Entry<String, List<Integer>> entry : insert.entrySet()) {
 			float mean = ListComputer.getMean(entry.getValue());
@@ -159,7 +158,7 @@ public class CallStructuralVariationReducer1 extends Reducer<NewMapKey, Format, 
 			/**
 			 * 将平均值mean保存到/MP1/Mean/目录下的中间文件中
 			 */
-			Path meanPath = new Path(options.getHdfsdir() + "/MP1/Mean/" + entry.getKey());
+			Path meanPath = new Path(options.getHdfsdir() + "/MP1/Mean/" + chr);
 			String writer = entry.getKey() + "\t" + mean + "\n";
 			writeFile(meanPath, writer);
 			

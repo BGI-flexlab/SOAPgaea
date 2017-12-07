@@ -29,6 +29,10 @@ public class Region {
 	 */
 	private int regEnd;
 	/**
+	 * 区域中上一条reads的起始位置；
+	 */
+	private int pStart;
+	/**
 	 * 比对到区域的reads数目
 	 */
 	private int regReadNum;
@@ -57,6 +61,7 @@ public class Region {
 		this.regEnd = 0;
 		this.chr = null;
 		this.regStart = 1000000000;
+		this.pStart = 0;
 		this.regReadNum = 0;
 		this.baseNum = 0;
 		this.positiveOriNum = 0;
@@ -75,11 +80,12 @@ public class Region {
 	 * @param negativeOriNum 反向比对的reads数
 	 * @param regReads 区域readsID的列表
 	 */
-	public Region(int regId, String chr, int regStart, int regEnd, int regReadNum, int positiveOriNum, int negativeOriNum, List<String> regReads){
+	public Region(int regId, String chr, int regStart, int regEnd, int pStart, int regReadNum, int positiveOriNum, int negativeOriNum, List<String> regReads){
 		this.regId = regId;
 		this.chr = chr;
 		this.regStart = regStart;
 		this.regEnd = regEnd;
+		this.pStart = pStart;
 		this.regReadNum = regReadNum;
 		this.positiveOriNum = positiveOriNum;
 		this.negativeOriNum = negativeOriNum;
@@ -95,6 +101,7 @@ public class Region {
 		this.chr = f.getChr();
 		this.regEnd = f.getEnd();
 		this.regStart = f.getStart();
+		this.pStart = f.getStart();
 		this.regReadNum = 0;
 		this.baseNum = 0;
 		this.positiveOriNum = 0;
@@ -134,6 +141,14 @@ public class Region {
 		this.regEnd = regEnd;
 	}
 	
+
+	public int getpStart() {
+		return pStart;
+	}
+
+	public void setpStart(int pStart) {
+		this.pStart = pStart;
+	}
 
 	public int getRegReadNum() {
 		return regReadNum;
@@ -203,7 +218,7 @@ public class Region {
 
 	@Override
 	public String toString() {
-		return regId + "\t" + chr + "\t" + regStart + "\t" + regEnd + "\t" + regReadNum + "\t" + positiveOriNum + "+" + negativeOriNum + "-";
+		return regId + "\t" + chr + "\t" + regStart + "\t" + regEnd + "\t" + pStart + "\t" + regReadNum + "\t" + positiveOriNum + "+" + negativeOriNum + "-";
 	}
 
 	/**
@@ -219,6 +234,7 @@ public class Region {
 		
 		this.regReadNum ++;
 		this.baseNum = this.baseNum + r.getReadLen();
+		this.pStart = r.getStart();
 		
 		if(r.getStrand().equals("+"))
 			this.positiveOriNum ++;
