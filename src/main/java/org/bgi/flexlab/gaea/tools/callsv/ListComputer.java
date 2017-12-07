@@ -17,7 +17,7 @@ public class ListComputer {
 		if(l.size() == 0) {
 			return 0;
 		}
-		int sum = 0;
+		long sum = 0;
 		for(Iterator<Integer> insertlist = l.iterator(); insertlist.hasNext();) {
 			sum += insertlist.next();
 		}
@@ -47,7 +47,7 @@ public class ListComputer {
 			return 0;
 		}
 		
-		int sum_x2 = 0;
+		long sum_x2 = 0;
 		for(Iterator<Integer> insertlist = l.iterator(); insertlist.hasNext();) {
 			sum_x2 += Math.pow((insertlist.next() - mean), 2);
 		}

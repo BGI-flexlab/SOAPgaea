@@ -179,6 +179,13 @@ public class CallStructuralVariationReducer1 extends Reducer<NewMapKey, Format, 
 			float up = mean + options.getStdtimes() * ListComputer.getUpLowStd(uplist, mean);
 			float low = mean - options.getStdtimes() * ListComputer.getUpLowStd(lowlist, mean);
 			
+			/**
+			 * 将平均值uplow保存到/MP1/UpLower/目录下的中间文件中
+			 */
+			Path ulPath = new Path(options.getHdfsdir() + "/MP1/UpLower/" + chr);
+			String ulwriter = "getKey: " + entry.getKey() + "  lower: " + low + "  upper: " + up;
+			writeFile(ulPath, ulwriter);
+			
 			System.out.println("getKey: " + entry.getKey() + "  lower: " + low + "  upper: " + up);
 			lower.put(entry.getKey(), low);
 			upper.put(entry.getKey(), up);

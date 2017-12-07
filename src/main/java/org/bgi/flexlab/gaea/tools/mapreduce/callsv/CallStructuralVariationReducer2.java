@@ -81,6 +81,7 @@ public class CallStructuralVariationReducer2 extends Reducer<NewMapKey, Format, 
 		
 		for(Map.Entry<LinkRegion, List<Reads>> linkRegEntry : linkRegMap.entrySet()) {
 			LinkRegion linkReg = linkRegEntry.getKey();
+			
 			/**
 			 * 如果相互连通的两个区域的reads支持数小于参数，则不往后处理
 			 */

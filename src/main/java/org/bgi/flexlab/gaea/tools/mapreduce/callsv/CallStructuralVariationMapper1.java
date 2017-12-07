@@ -135,11 +135,11 @@ public class CallStructuralVariationMapper1 extends Mapper<LongWritable, SamReco
 		if(chrreadnum.containsKey(chr) && chrreadnum.get(chr) >= 200)
 			return;
 
-		else if(record.getAlignmentStart() <= record.getMateAlignmentStart() && record.getMateAlignmentStart() <= record.getAlignmentEnd())
-			return;
+		//else if(record.getAlignmentStart() <= record.getMateAlignmentStart() && record.getMateAlignmentStart() <= record.getAlignmentEnd())
+		//	return;
 		
 		if(record.getProperPairFlag() && record.getReadPairedFlag() &&
-				record.getInferredInsertSize() > 0 && record.getMappingQuality() > options.getMinqual()) {
+				record.getInferredInsertSize() > 0 ) {
 			String writer = record.getReadGroup().getLibrary() + "\t" + chr + "\t" + record.getInferredInsertSize() + "\n";
 			out.write(writer.getBytes());
 			out.flush();
