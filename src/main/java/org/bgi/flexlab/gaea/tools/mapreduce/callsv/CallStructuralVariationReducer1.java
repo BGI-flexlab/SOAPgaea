@@ -38,6 +38,8 @@ public class CallStructuralVariationReducer1 extends Reducer<NewMapKey, Format, 
 	private CallStructuralVariationOptions options = new CallStructuralVariationOptions();
 	private Configuration conf;
 	private FSDataOutputStream out;
+	private float mean ;
+	private float sd ;
 	private Map<String, Float> lower = new TreeMap<String, Float>();
 	private Map<String, Float> upper = new TreeMap<String, Float>();
 
@@ -47,11 +49,22 @@ public class CallStructuralVariationReducer1 extends Reducer<NewMapKey, Format, 
 		conf = context.getConfiguration();
 		conf.setStrings("mapreduce.reduce.shuffle.memory.limit.percent", "0.05");
 		options.getOptionsFromHadoopConf(conf);
+		
 	}
 	
 	@Override
 	protected void reduce(NewMapKey key, Iterable<Format> values, Context context) throws IOException, InterruptedException {
-		setUpperLower(key.getChr());
+		if(options.isSetMean() && options.isSetStd()) {
+			mean = options.getMean();
+			sd = options.getStd();
+			float up = mean + options.getStdtimes() * sd;
+			float low = mean - options.getStdtimes() * sd;
+			
+			lower.put(key.getChr(), low);
+			upper.put(key.getChr(), up);
+		}else {
+			setUpperLower(key.getChr());
+		}
 		reducerComputer(key, values, context);
 		
 	}
@@ -79,7 +92,9 @@ public class CallStructuralVariationReducer1 extends Reducer<NewMapKey, Format, 
 		
 		for(Format value : values) {
 			
-			float mean = conf.getFloat(value.getLib() + "_mean", 0);
+			if(!(options.isSetMean() && options.isSetStd())) 
+				mean = conf.getFloat(value.getLib() + "_mean", 0);
+			
 			float tmp1 = mean - value.getReadLen()*2;
 			d = Math.min(d, tmp1);
 			d = Math.max(d, 50);
@@ -89,9 +104,15 @@ public class CallStructuralVariationReducer1 extends Reducer<NewMapKey, Format, 
 			
 			//float upper = conf.getFloat(value.getLib() + "_upper", 0);
 			//float lower = conf.getFloat(value.getLib() + "_lower", 0);
-			
-			float up = upper.get(value.getLib());
-			float low = lower.get(value.getLib());
+			float up ;
+			float low ;
+			if(options.isSetMean() && options.isSetStd()) {
+				up = upper.get(value.getChr());
+				low = lower.get(value.getChr());
+			}else {
+				up = upper.get(value.getLib());
+				low = lower.get(value.getLib());
+			}
 			
 			if(value.getInsert() > max_sd) {continue;}
 			
@@ -144,8 +165,8 @@ public class CallStructuralVariationReducer1 extends Reducer<NewMapKey, Format, 
 		Map<String, List<Integer>> insert = mc.readConfFile(options.getHdfsdir() + "/MP1/LibConf/", chr);
 		
 		for(Entry<String, List<Integer>> entry : insert.entrySet()) {
-			float mean = ListComputer.getMean(entry.getValue());
-			float sd = ListComputer.getStd(entry.getValue());
+			mean = ListComputer.getMean(entry.getValue());
+			sd = ListComputer.getStd(entry.getValue());
 			
 			/**
 			 * 删除异常值，再次计算平均值和标准差
@@ -159,9 +180,10 @@ public class CallStructuralVariationReducer1 extends Reducer<NewMapKey, Format, 
 			 * 将平均值mean保存到/MP1/Mean/目录下的中间文件中
 			 */
 			Path meanPath = new Path(options.getHdfsdir() + "/MP1/Mean/" + chr);
-			String writer = entry.getKey() + "\t" + mean + "\n";
+			String writer = entry.getKey() + "\t" + chr + "\t"+ mean + "\n";
 			writeFile(meanPath, writer);
 			
+
 			/**
 			 * 计算每一个lib的upper和lower并保存到conf中
 			 */
@@ -178,18 +200,20 @@ public class CallStructuralVariationReducer1 extends Reducer<NewMapKey, Format, 
 			
 			float up = mean + options.getStdtimes() * ListComputer.getUpLowStd(uplist, mean);
 			float low = mean - options.getStdtimes() * ListComputer.getUpLowStd(lowlist, mean);
+			low = low < 0 ? 0 : low;
 			
 			/**
 			 * 将平均值uplow保存到/MP1/UpLower/目录下的中间文件中
 			 */
 			Path ulPath = new Path(options.getHdfsdir() + "/MP1/UpLower/" + chr);
-			String ulwriter = "getKey: " + entry.getKey() + "  lower: " + low + "  upper: " + up;
+			String ulwriter = "getKey: " + entry.getKey() + "  lower: " + low + "  upper: " + up + "\n";
 			writeFile(ulPath, ulwriter);
 			
-			System.out.println("getKey: " + entry.getKey() + "  lower: " + low + "  upper: " + up);
 			lower.put(entry.getKey(), low);
 			upper.put(entry.getKey(), up);
 		}
+	
+		
 	}
 	
 	/**

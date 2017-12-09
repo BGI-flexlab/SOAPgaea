@@ -26,19 +26,18 @@ public class CallStructuralVariation extends ToolsRunner{
 	private CallStructuralVariationOptions options = null;
 	
 	private int runCallStructuralVariation(String[] args) throws IOException {
-		
-		Configuration conf = new Configuration();
-		
-		String[] remainArgs = remainArgs(args, conf);
-		
-		options = new CallStructuralVariationOptions();
-		options.parse(remainArgs);
-		options.setHadoopConf(remainArgs, conf);
-		
 		/**
 		 * set job1 info
 		 */
 		BioJob job1 = BioJob.getInstance();
+		
+		Configuration conf1 = job1.getConfiguration();
+		
+		String[] remainArgs1 = remainArgs(args, conf1);
+		options = new CallStructuralVariationOptions();
+		options.parse(remainArgs1);
+		options.setHadoopConf(remainArgs1, conf1);
+		
 		job1.setJobName("CallSV Sort");
 		job1.setJarByClass(CallStructuralVariation.class);
 		job1.setMapperClass(CallStructuralVariationMapper1.class);
@@ -61,6 +60,13 @@ public class CallStructuralVariation extends ToolsRunner{
 		 */
 		BioJob job2 = BioJob.getInstance();
 		
+		Configuration conf2 = job2.getConfiguration();
+		
+		String[] remainArgs2 = remainArgs(args, conf2);
+		options = new CallStructuralVariationOptions();
+		options.parse(remainArgs2);
+		options.setHadoopConf(remainArgs2, conf2);	
+		
 		job1.setJobName("CallSV calling");
 		job2.setJarByClass(CallStructuralVariation.class);
 		job2.setMapperClass(CallStructuralVariationMapper2.class);
@@ -80,9 +86,9 @@ public class CallStructuralVariation extends ToolsRunner{
 		/*
 		 * set Control job
 		 */
-		ControlledJob ctrolJob1 = new ControlledJob(conf);
+		ControlledJob ctrolJob1 = new ControlledJob(conf1);
 		ctrolJob1.setJob(job1);
-		ControlledJob ctrolJob2 = new ControlledJob(conf);
+		ControlledJob ctrolJob2 = new ControlledJob(conf2);
 		ctrolJob2.setJob(job2);
 		
 		ctrolJob2.addDependingJob(ctrolJob1);//job2的启动，依赖于job1作业的完成
@@ -103,9 +109,9 @@ public class CallStructuralVariation extends ToolsRunner{
 			if(jobCtrl.allFinished()){//如果作业成功完成，就打印成功作业的信息   
 				System.out.println(jobCtrl.getSuccessfulJobList());   
 				jobCtrl.stop();  
-				return 1;
-			}  else {
 				return 0;
+			}  else {
+				return 1;
 			}
 		}
 

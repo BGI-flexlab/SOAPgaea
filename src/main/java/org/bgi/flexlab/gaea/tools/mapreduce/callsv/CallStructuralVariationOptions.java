@@ -54,6 +54,14 @@ public class CallStructuralVariationOptions extends GaeaOptions implements Hadoo
 	 * maximum SV size 
 	 */
 	private int maxsvsize;
+	/**
+	 * mean of insert
+	 */
+	private int mean;
+	/**
+	 * std of insert;
+	 */
+	private int std;
 
 	
 	public CallStructuralVariationOptions() {
@@ -61,13 +69,16 @@ public class CallStructuralVariationOptions extends GaeaOptions implements Hadoo
 		addOption("hdfs", "hdfsdir", true, "hdfs dir for tmp result [default: NULL]");
 		addOption("o", "outfile", true, "local results file [default: ./callSV.ctx]");
 		addOption("reducenum", "reducenum", true, "reduce number [default: 1]");
-		addOption("s", "stdtimes", true, "set std times for range of insert size (mean-stdtimes*std) < normal insertsize < (mean+stdtimes*std) [default: 3] ");
+		addOption("mean", "mean", true, "mean of fragments (Recommend) [default: -1]");
+		addOption("sd", "std", true, "the standard deviation of ragments (Recommend) [default: -1]");
+		addOption("s", "stdtimes", true, "set std times for range of insert size (mean-stdtimes*std) < normal insertsize < (mean+stdtimes*std) [default: 4] ");
 		addOption("q", "minqual", true, "minimum mapping quality [default: 25]");
 		addOption("l", "minlen", true, "minimum length of a region [default: 7]");
 		addOption("p", "minpair", true, "minimum number of read pairs required for a SV [default: 2]");
 		addOption("c", "maxcoverage", true, "maximum threshold of haploid sequence coverage for regions to be ignored [default: 1000]");
 		addOption("score", "minscore", true, "minimum scores for output SVs [default: 30]");
 		addOption("svsize", "maxsvsize", true, "maximum SV size [defailt: 1000000]");
+		
 		addOption("h", "help", false, "print help information.");
 		
 		FormatHelpInfo(SOFTWARE_NAME, SOFTWARE_VERSION);
@@ -103,8 +114,10 @@ public class CallStructuralVariationOptions extends GaeaOptions implements Hadoo
 		hdfsdir = getOptionValue("hdfs", null);
 		outfile = getOptionValue("o", "./callSV.ctx");
 		reducenum = getOptionIntValue("reducenum", 1);
+		mean = getOptionIntValue("mean", -1);
+		std = getOptionIntValue("sd", -1);
 		stdtimes = getOptionIntValue("s", 4);
-		minqual = getOptionIntValue("q", 25);
+		minqual = getOptionIntValue("q", 35);
 		minlen = getOptionIntValue("l", 7);
 		minpair = getOptionIntValue("p", 2);
 		maxcoverage = getOptionIntValue("c", 1000);
@@ -164,6 +177,38 @@ public class CallStructuralVariationOptions extends GaeaOptions implements Hadoo
 		this.reducenum = reducenum;
 	}
 
+
+	public int getMean() {
+		return mean;
+	}
+
+
+	public void setMean(int mean) {
+		this.mean = mean;
+	}
+
+	public boolean isSetMean() {
+		if (this.mean == -1)
+			return false;
+		else
+			return true;
+	}
+
+	public int getStd() {
+		return std;
+	}
+
+
+	public void setStd(int std) {
+		this.std = std;
+	}
+
+	public boolean isSetStd() {
+		if (this.std == -1)
+			return false;
+		else
+			return true;
+	}
 
 	public int getStdtimes() {
 		return stdtimes;
@@ -233,5 +278,5 @@ public class CallStructuralVariationOptions extends GaeaOptions implements Hadoo
 	public void setMaxsvsize(int maxsvsize) {
 		this.maxsvsize = maxsvsize;
 	}
-
+	
 }

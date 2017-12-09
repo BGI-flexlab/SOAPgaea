@@ -48,7 +48,8 @@ public class CallStructuralVariationMapper1 extends Mapper<LongWritable, SamReco
 	@Override
 	protected void map(LongWritable key, SamRecordWritable value, Context context) throws IOException, InterruptedException {
 		SAMRecord record = value.get();
-		saveInsert(record); //save insert
+		if(!(options.isSetMean() && options.isSetStd()))
+			saveInsert(record); //save insert
 		readClassify(context, record);	//classify all reads
 		
 	}
@@ -132,11 +133,11 @@ public class CallStructuralVariationMapper1 extends Mapper<LongWritable, SamReco
 		
 		String chr = record.getReferenceName();
 		
-		if(chrreadnum.containsKey(chr) && chrreadnum.get(chr) >= 200)
+		if(chrreadnum.containsKey(chr) && chrreadnum.get(chr) >= 500)
 			return;
-
-		//else if(record.getAlignmentStart() <= record.getMateAlignmentStart() && record.getMateAlignmentStart() <= record.getAlignmentEnd())
-		//	return;
+		
+		if(record.getAlignmentStart() > 5000000)
+			return;
 		
 		if(record.getProperPairFlag() && record.getReadPairedFlag() &&
 				record.getInferredInsertSize() > 0 ) {

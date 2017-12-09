@@ -55,8 +55,9 @@ public class CallStructuralVariationReducer2 extends Reducer<NewMapKey, Format, 
 	
 	
 	@Override
-	protected void reduce(NewMapKey key, Iterable<Format> values, Context context) throws IOException, InterruptedException {
-		mean = reader.readConfFile(options.getHdfsdir() + "/MP1/Mean/", key.getChr());
+	protected void reduce(NewMapKey key, Iterable<Format> values, Context context) throws IOException, InterruptedException {		
+		if(!(options.isSetMean() && options.isSetStd()))
+			mean = reader.readConfFile(options.getHdfsdir() + "/MP1/Mean/", key.getChr());
 		
 		Iterator<Format> vIterator = values.iterator();
 		
@@ -168,7 +169,11 @@ public class CallStructuralVariationReducer2 extends Reducer<NewMapKey, Format, 
 			if(typeInfo==null)
 				typeInfo = new LinkRegType(r);
 			
-			int size = Math.abs(r.getInsert()-mean.get(r.getLib()).get(0));
+			int size;
+			if(!(options.isSetMean() && options.isSetStd()))
+				size = Math.abs(r.getInsert()-mean.get(r.getLib()).get(0));
+			else
+				size = Math.abs(r.getInsert()-options.getMean());
 			
 			typeInfo.updateType(r, size);
 			linkRegType.put(r.getType(), typeInfo);
