@@ -1,8 +1,6 @@
 package org.bgi.flexlab.gaea.tools.mapreduce.callsv;
 
 import java.io.IOException;
-import java.util.Map;
-import java.util.TreeMap;
 import java.util.UUID;
 
 import org.apache.hadoop.conf.Configuration;
@@ -33,14 +31,13 @@ public class CallStructuralVariationMapper1 extends Mapper<LongWritable, SamReco
 	private CallStructuralVariationOptions options = new CallStructuralVariationOptions();
 	private NewMapKey newkey = new NewMapKey();
 	private Format f = new Format();
-	private Map<String, Integer> chrreadnum = new TreeMap<String, Integer>();
 	
 
 	@Override
 	protected void setup(Context context) throws IOException, InterruptedException {
 		conf = context.getConfiguration();
 		options.getOptionsFromHadoopConf(conf);
-		String libpath = options.getHdfsdir() + "/MP1/LibConf/" + UUID.randomUUID().toString();
+		String libpath = options.getHdfsdir() + "/Sort/LibConf/" + UUID.randomUUID().toString();
 		out = FileSystem.get(conf).create(new Path(libpath));
 		
 	}
@@ -123,7 +120,7 @@ public class CallStructuralVariationMapper1 extends Mapper<LongWritable, SamReco
 
 	/**
 	 * saveInsert方法<br>
-	 * 将正常的reads的insert size保存到中间文件中，中间文件名:/HDFSdir/MP1/LibConf/UUID <br>
+	 * 将正常的reads的insert size保存到中间文件中，中间文件名:/HDFSdir/Sort/LibConf/UUID <br>
 	 * 一般一个map分片会选取100个正常的insert size<br>
 	 * <br>
 	 * @param record bam文件中每一个记录，也就是每一条read的比对情况
@@ -133,22 +130,13 @@ public class CallStructuralVariationMapper1 extends Mapper<LongWritable, SamReco
 		
 		String chr = record.getReferenceName();
 		
-		if(chrreadnum.containsKey(chr) && chrreadnum.get(chr) >= 500)
+		if(record.getMappingQuality() < options.getMinqual())
 			return;
-		
-		if(record.getAlignmentStart() > 5000000)
-			return;
-		
 		if(record.getProperPairFlag() && record.getReadPairedFlag() &&
 				record.getInferredInsertSize() > 0 ) {
 			String writer = record.getReadGroup().getLibrary() + "\t" + chr + "\t" + record.getInferredInsertSize() + "\n";
 			out.write(writer.getBytes());
 			out.flush();
-			
-			int num = 1;
-			if(chrreadnum.containsKey(chr)) 
-				num = chrreadnum.get(chr) + 1;	
-			chrreadnum.put(chr, num);
 		}
 		
 		

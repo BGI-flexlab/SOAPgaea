@@ -50,14 +50,14 @@ public class CallStructuralVariationReducer2 extends Reducer<NewMapKey, Format, 
 		options = new CallStructuralVariationOptions();
 		options.getOptionsFromHadoopConf(conf);
 		reader = new TxtReader(conf);
-		dist = reader.readFile(options.getHdfsdir() + "/MP1/Dist/");
+		dist = reader.readFile(options.getHdfsdir() + "/Sort/Dist/");
 	}
 	
 	
 	@Override
 	protected void reduce(NewMapKey key, Iterable<Format> values, Context context) throws IOException, InterruptedException {		
 		if(!(options.isSetMean() && options.isSetStd()))
-			mean = reader.readConfFile(options.getHdfsdir() + "/MP1/Mean/", key.getChr());
+			mean = reader.readConfFile(options.getHdfsdir() + "/Sort/Mean/", key.getChr());
 		
 		Iterator<Format> vIterator = values.iterator();
 		

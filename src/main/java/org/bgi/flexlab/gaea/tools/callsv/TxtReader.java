@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.TreeMap;
 
 import org.apache.hadoop.conf.Configuration;
@@ -124,4 +125,31 @@ public class TxtReader {
 		return map;
 	}
 
+	
+	public Map<String, List<Integer>> readInsertFile(String libconftxt, String chr){
+		
+		Map<String, List<Integer>> allinsert = readConfFile(libconftxt, chr);
+		
+		Map<String, List<Integer>> map = new TreeMap<String, List<Integer>>();
+		
+		Random r = new Random();
+		
+		for(Map.Entry<String, List<Integer>> entry : allinsert.entrySet()) {
+			
+			List<Integer> list = entry.getValue();
+			List<Integer> tmplist = new ArrayList<Integer>();
+			
+			for(int i =0 ; i<10000; i++) {
+				if(list.size() < 1)
+					break;
+				int index = r.nextInt(list.size());
+				tmplist.add(list.get(index));
+				list.remove(index);
+			}
+			
+			map.put(entry.getKey(), tmplist);
+		}
+		
+		return map;
+	}
 }

@@ -52,7 +52,7 @@ public class CallStructuralVariation extends ToolsRunner{
 		job1.setGroupingComparatorClass(ReduceGroupingComparator.class);
 
 		FileInputFormat.addInputPaths(job1, options.getInput());
-		FileOutputFormat.setOutputPath(job1, new Path(options.getHdfsdir() + "/MP1/Result"));
+		FileOutputFormat.setOutputPath(job1, new Path(options.getHdfsdir() + "/Sort/Result"));
 		
 		
 		/**
@@ -80,8 +80,8 @@ public class CallStructuralVariation extends ToolsRunner{
 		//job2.setPartitionerClass(ChrPartitionar.class);
 		job2.setGroupingComparatorClass(ReduceGroupingComparator.class);
 
-		FileInputFormat.addInputPaths(job2, options.getHdfsdir() + "/MP1/Result");
-		FileOutputFormat.setOutputPath(job2, new Path(options.getHdfsdir() + "/MP2/Result"));
+		FileInputFormat.addInputPaths(job2, options.getHdfsdir() + "/Sort/Result");
+		FileOutputFormat.setOutputPath(job2, new Path(options.getHdfsdir() + "/Calling/Result"));
 		
 		/*
 		 * set Control job

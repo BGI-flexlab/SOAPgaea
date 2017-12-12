@@ -149,7 +149,7 @@ public class CallStructuralVariationReducer1 extends Reducer<NewMapKey, Format, 
 		/**
 		 * 将dist存到中间文件中
 		 */
-		Path distPath = new Path(options.getHdfsdir() + "/MP1/Dist/" + UUID.randomUUID().toString());
+		Path distPath = new Path(options.getHdfsdir() + "/Sort/Dist/" + UUID.randomUUID().toString());
 		String writer = key.getChr() + "\t" + dist + "\t" + ref_length + "\n";
 		writeFile(distPath , writer);
 	}
@@ -162,7 +162,7 @@ public class CallStructuralVariationReducer1 extends Reducer<NewMapKey, Format, 
 	 */
 	private void setUpperLower(String chr) {
 		TxtReader mc = new TxtReader(conf);
-		Map<String, List<Integer>> insert = mc.readConfFile(options.getHdfsdir() + "/MP1/LibConf/", chr);
+		Map<String, List<Integer>> insert = mc.readInsertFile(options.getHdfsdir() + "/Sort/LibConf/", chr);
 		
 		for(Entry<String, List<Integer>> entry : insert.entrySet()) {
 			mean = ListComputer.getMean(entry.getValue());
@@ -177,9 +177,9 @@ public class CallStructuralVariationReducer1 extends Reducer<NewMapKey, Format, 
 			conf.setFloat(entry.getKey() + "_mean", mean);
 			
 			/**
-			 * 将平均值mean保存到/MP1/Mean/目录下的中间文件中
+			 * 将平均值mean保存到/Sort/Mean/目录下的中间文件中
 			 */
-			Path meanPath = new Path(options.getHdfsdir() + "/MP1/Mean/" + chr);
+			Path meanPath = new Path(options.getHdfsdir() + "/Sort/Mean/" + chr);
 			String writer = entry.getKey() + "\t" + chr + "\t"+ mean + "\n";
 			writeFile(meanPath, writer);
 			
@@ -203,9 +203,9 @@ public class CallStructuralVariationReducer1 extends Reducer<NewMapKey, Format, 
 			low = low < 0 ? 0 : low;
 			
 			/**
-			 * 将平均值uplow保存到/MP1/UpLower/目录下的中间文件中
+			 * 将平均值uplow保存到/Sort/UpLower/目录下的中间文件中
 			 */
-			Path ulPath = new Path(options.getHdfsdir() + "/MP1/UpLower/" + chr);
+			Path ulPath = new Path(options.getHdfsdir() + "/Sort/UpLower/" + chr);
 			String ulwriter = "getKey: " + entry.getKey() + "  lower: " + low + "  upper: " + up + "\n";
 			writeFile(ulPath, ulwriter);
 			
