@@ -33,6 +33,10 @@ public class CallStructuralVariation extends ToolsRunner{
 		
 		Configuration conf1 = job1.getConfiguration();
 		
+		conf1.set("mapreduce.reduce.shuffle.input.buffer.percent", "0.5");
+		conf1.set("mapreduce.reduce.shuffle.memory.limit.percent", "0.1f");
+		conf1.set("mapreduce.reduce.shuffle.parallelcopies", "10");
+		
 		String[] remainArgs1 = remainArgs(args, conf1);
 		options = new CallStructuralVariationOptions();
 		options.parse(remainArgs1);

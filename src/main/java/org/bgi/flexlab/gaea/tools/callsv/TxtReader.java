@@ -132,7 +132,7 @@ public class TxtReader {
 		
 		Map<String, List<Integer>> map = new TreeMap<String, List<Integer>>();
 		
-		Random r = new Random();
+		Random r = new Random(32);
 		
 		for(Map.Entry<String, List<Integer>> entry : allinsert.entrySet()) {
 			
