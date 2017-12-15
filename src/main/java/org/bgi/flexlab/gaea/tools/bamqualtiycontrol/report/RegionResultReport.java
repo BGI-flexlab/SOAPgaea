@@ -70,7 +70,7 @@ public class RegionResultReport extends ResultReport{
 	public RegionResultReport(BamQualityControlOptions options, Configuration conf) throws IOException {
 		super(options);
 		region = new TargetRegion();
-		cnvRegion = new SingleRegion();
+//		cnvRegion = new SingleRegion();
 		if (options.getRegion() != null) {
 			region.parseRegion(options.getRegion(), true);
 		}
@@ -87,7 +87,7 @@ public class RegionResultReport extends ResultReport{
 			cnvRegion.parseRegionsFileFromHDFS(options.getCnvRegion(), true, 0);
 		}
 		this.conf = conf;
-//		if(options.isCnvDepth())
+		if(options.isCnvDepth())
 			initSampleLaneSize(conf);
 	}
 	
@@ -96,7 +96,9 @@ public class RegionResultReport extends ResultReport{
 		regionReport = new RegionReport(region);
 		if(options.getBedfile() != null){
 			SingleRegionReport = new SingleRegionReport(bedRegion);
+			SingleRegionReport.setStatPosDepth(false);
 			genderSingleRegionReport = new SingleRegionReport(genderRegion);
+			genderSingleRegionReport.setStatPosDepth(false);
 		}
 			
 		if(options.isCnvDepth() && options.getCnvRegion() != null) {
@@ -307,6 +309,8 @@ public class RegionResultReport extends ResultReport{
 	}
 	
 	public int getSampleLaneSize(String sample) {
+		if (!sampleLaneSize.containsKey(sample))
+			return -1;
 		return sampleLaneSize.get(sample);
 	}
 	

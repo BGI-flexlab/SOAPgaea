@@ -16,6 +16,7 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.annotator.db;
 
+import com.sun.xml.bind.v2.TODO;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.Cell;
@@ -23,6 +24,10 @@ import org.apache.hadoop.hbase.CellUtil;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.*;
+import org.apache.hadoop.hbase.filter.BinaryPrefixComparator;
+import org.apache.hadoop.hbase.filter.CompareFilter;
+import org.apache.hadoop.hbase.filter.Filter;
+import org.apache.hadoop.hbase.filter.RowFilter;
 import org.apache.hadoop.hbase.util.Bytes;
 
 import java.io.IOException;
@@ -34,9 +39,9 @@ import java.util.Map.Entry;
  *
  */
 public class HbaseAdapter implements DBAdapterInterface{
-	
-	public static final String DEFAULT_COLUMN_FAMILY = "data";
-	
+
+	private String columnFamily = "data";
+
 	static Configuration conf = null;
     static Connection conn; 
     
@@ -47,7 +52,8 @@ public class HbaseAdapter implements DBAdapterInterface{
     }
     
     @Override
-	public void connection(String dbName) throws IOException {
+	public void connection(String cf) throws IOException {
+		setColumnFamily(cf);
 		conn = ConnectionFactory.createConnection(conf);
 	}
 	
@@ -59,7 +65,7 @@ public class HbaseAdapter implements DBAdapterInterface{
     @Override
 	public HashMap<String, String> getResult(String tableName, String rowKey) throws IOException {
 		Get get = new Get(Bytes.toBytes(rowKey));
-		get.addFamily(Bytes.toBytes(DEFAULT_COLUMN_FAMILY));
+		get.addFamily(Bytes.toBytes(getColumnFamily()));
 		Table table = conn.getTable(TableName.valueOf(tableName));
 		if (!table.exists(get))
 			return null;
@@ -73,16 +79,16 @@ public class HbaseAdapter implements DBAdapterInterface{
 		}
 		return resultMap;
 	}
-    
+
 	public HashMap<String, String> getResult(String tableName,
 			String rowKey, String[] fields) throws IOException{
 		HashMap<String,String> resultMap = getResult(tableName,rowKey);
 		Table table = conn.getTable(TableName.valueOf(tableName));
 		Get get = new Get(Bytes.toBytes(rowKey));
-		get.addFamily(Bytes.toBytes(DEFAULT_COLUMN_FAMILY));
+		get.addFamily(Bytes.toBytes(getColumnFamily()));
 		Result result = table.get(get);
 		for (String field : fields) {
-			byte[] value = result.getValue(Bytes.toBytes(DEFAULT_COLUMN_FAMILY), Bytes.toBytes(field));
+			byte[] value = result.getValue(Bytes.toBytes(getColumnFamily()), Bytes.toBytes(field));
 			resultMap.put(field, Bytes.toString(value));
 		}
 		return resultMap;
@@ -95,14 +101,21 @@ public class HbaseAdapter implements DBAdapterInterface{
 		HashMap<String,String> resultMap = new HashMap<String,String>();
 		Table table = conn.getTable(TableName.valueOf(tableName));
 		Get get = new Get(Bytes.toBytes(rowKey));
-		get.addFamily(Bytes.toBytes(DEFAULT_COLUMN_FAMILY));
+		get.addFamily(Bytes.toBytes(getColumnFamily()));
 		Result result = table.get(get);
 		for (Entry<String, String> entry : fieldMap.entrySet()) {
-			byte[] value = result.getValue(Bytes.toBytes(DEFAULT_COLUMN_FAMILY), Bytes.toBytes(entry.getValue()));
+			byte[] value = result.getValue(Bytes.toBytes(getColumnFamily()), Bytes.toBytes(entry.getValue()));
 			resultMap.put(entry.getKey(), Bytes.toString(value));
 		}
 		return resultMap;
 	}
 
 
+	public String getColumnFamily() {
+		return columnFamily;
+	}
+
+	public void setColumnFamily(String columnFamily) {
+		this.columnFamily = columnFamily;
+	}
 }

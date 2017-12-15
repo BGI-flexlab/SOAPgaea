@@ -90,7 +90,7 @@ public class DBQuery implements Serializable {
 				return null;
 			}
 			
-			if (altStr.indexOf(",") == -1) {
+			if (!altStr.contains(",")) {
 				altStr = altStr.toUpperCase();
 				if(alts.contains(altStr)){
 					results.add(altStr, annoResult);
@@ -151,7 +151,7 @@ public class DBQuery implements Serializable {
 
 	public void connection(String dbName, DbType dbType, String connInfo) throws IOException{
 		dbAdapter = DBAdapterFactory.createDbAdapter(dbType, connInfo);
-		dbAdapter.connection(dbName);
+		dbAdapter.connection("data");
 	}
 	
 }

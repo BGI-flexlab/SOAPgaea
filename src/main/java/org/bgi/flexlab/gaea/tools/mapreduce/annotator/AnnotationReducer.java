@@ -92,19 +92,18 @@ public class AnnotationReducer extends Reducer<Text, VcfLineWritable, NullWritab
 				VCFCodec vcfcodec = new VCFCodec();
 				vcfcodec.setVCFHeader(vcfHeader, vcfVersion);
 				vcfCodecs.put(file.getPath().getName(), vcfcodec);
-				System.out.println("getname: "+file.getPath().getName());
-
-				sampleNames.addAll(vcfHeader.getSampleNamesInOrder());
-				System.out.println(sampleNames.toString());
+//				System.out.println("getname: "+file.getPath().getName());
+				for(String sample: vcfHeader.getSampleNamesInOrder()) {
+					if(!sampleNames.contains(sample))
+						sampleNames.add(sample);
+				}
 			}
 
 		}
-
-		multipleOutputs = new MultipleOutputs(context);
 		System.err.println("getVCFHeader耗时：" + (System.currentTimeMillis()-start)+"毫秒");
-		
+
 		vcfAnnotator = new VcfAnnotator(userConfig);
-		
+
 		start = System.currentTimeMillis();
 		//用于从数据库中查找信息
 		dbAnnotator = new DBAnnotator(userConfig);
@@ -115,11 +114,22 @@ public class AnnotationReducer extends Reducer<Text, VcfLineWritable, NullWritab
 			e.printStackTrace();
 		}
 		System.err.println("dbAnnotator.connection耗时：" + (System.currentTimeMillis()-start)+"毫秒");
-		
+
 		// 注释结果header信息
-		resultValue.set(userConfig.getHeader());
-		for(int i = 0; i < sampleNames.size(); i ++) {
-			multipleOutputs.write(SampleNameModifier.modify(sampleNames.get(i)), NullWritable.get(), resultValue, sampleNames.get(i) + "/part");
+		if(options.isMultiOutput()) {
+			multipleOutputs = new MultipleOutputs(context);
+			for (int i = 0; i < sampleNames.size(); i++) {
+					resultValue.set(userConfig.getHeader());
+					multipleOutputs.write(SampleNameModifier.modify(sampleNames.get(i)), NullWritable.get(), resultValue, sampleNames.get(i) + "/part");
+			}
+		}else {
+			StringBuilder sb = new StringBuilder();
+			for(String sample: sampleNames){
+				sb.append("\t");
+				sb.append(sample);
+			}
+			resultValue.set(userConfig.getHeader()+sb.toString());
+			context.write(NullWritable.get(), resultValue);
 		}
 		System.err.println("mapper.setup耗时：" + (System.currentTimeMillis()-setupStart)+"毫秒");
 	}
@@ -127,14 +137,14 @@ public class AnnotationReducer extends Reducer<Text, VcfLineWritable, NullWritab
 	@Override
 	protected void reduce(Text key, Iterable<VcfLineWritable> values, Context context)
 			throws IOException, InterruptedException {
-
+		long start = System.currentTimeMillis();
 		Iterator<VcfLineWritable> iter =  values.iterator();
 		List<VcfAnnotationContext> vcfList = new ArrayList<>();
 		while(iter.hasNext()) {
 			VcfLineWritable vcfInput =  iter.next();
 			String fileName = vcfInput.getFileName();
 			String vcfLine = vcfInput.getVCFLine();
-			System.out.println("reducer: " + key.toString() + " " + vcfLine);
+//			System.out.println("reducer: " + key.toString() + " " + vcfLine);
 
 			VariantContext variantContext =  vcfCodecs.get(fileName).decode(vcfLine);
 			VcfAnnotationContext vcfAnnoContext = new VcfAnnotationContext(variantContext);
@@ -144,30 +154,47 @@ public class AnnotationReducer extends Reducer<Text, VcfLineWritable, NullWritab
 			vcfList.add(vcfAnnoContext);
 		}
 
+		System.err.println("step1:" + (System.currentTimeMillis()-start)+"ms");
 		/*相同key只查询一次*/
 		dbAnnotator.annotate(vcfList);
 		mapCount++;
 
+		System.err.println("step2:" + (System.currentTimeMillis()-start)+"ms");
 		for( int i = 0 ; i < vcfList.size(); i ++) {
 			VcfAnnotationContext vcfAnnoContext = vcfList.get(i);
 			List<String> annoLines = vcfAnnotator.convertAnnotationStrings(vcfAnnoContext);
-			for (int j = 0; j < vcfAnnoContext.getNSamples(); j ++) {
-				Genotype genotype = vcfAnnoContext.getGenotype(j);
-				if(genotype.isCalled())
+			if(options.isMultiOutput()) {
+				for (int j = 0; j < vcfAnnoContext.getNSamples(); j ++) {
+					Genotype genotype = vcfAnnoContext.getGenotype(j);
+					if(genotype.isCalled())
+					for (String annoLine : annoLines) {
+							resultValue.set(annoLine);
+							multipleOutputs.write(SampleNameModifier.modify(genotype.getSampleName()), NullWritable.get(),
+									resultValue, genotype.getSampleName() + "/part");
+					}
+				}
+			}else {
+//				StringBuilder sb = new StringBuilder();
+//				for(String sample: sampleNames){
+//					sb.append("\t");
+//					sb.append(vcfAnnoContext.getGenotype(sample).);
+//				}
 				for (String annoLine : annoLines) {
 					resultValue.set(annoLine);
-					multipleOutputs.write(SampleNameModifier.modify(genotype.getSampleName()), NullWritable.get(),
-							resultValue, genotype.getSampleName() + "/part");
+//					resultValue.set(annoLine+sb.toString());
+					context.write(NullWritable.get(), resultValue);
 				}
 			}
 		}
+		System.err.println("step2:" + (System.currentTimeMillis()-start)+"ms");
 	}
 
 	@Override
 	protected void cleanup(Context context)
 			throws IOException, InterruptedException {
 		dbAnnotator.disconnection();
-		multipleOutputs.close();
+		if (options.isMultiOutput())
+			multipleOutputs.close();
 		System.err.println("dbAnnotator平均耗时(mapTime/mapCount)：" +mapTime+"/"+mapCount+" = ? 毫秒");
 	}
 }

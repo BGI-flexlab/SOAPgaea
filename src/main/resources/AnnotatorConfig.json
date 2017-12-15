@@ -59,6 +59,14 @@
           "key":"",
           "indexTable":""
         }
+      },
+      "fields":{
+        "HGMD ID":"HGMD_acc_num",
+        "HGMD MutName":"HGMD_hgvs",
+        "HGMD Disease":"HGMD_disease",
+        "HGMD pmID":"HGMD_pmid",
+        "HGMD Pred":"HGMD_tag",
+        "MapLoc":"HGMD_chrom"
       }
     },
     "ESP6500":{
@@ -193,19 +201,64 @@
         }
       }
     },
-    "dbNSFP":{
+    "dbNSFP": {
+      "database": "HBASE",
+      "queryClassName": "DBNSFPQuery",
+      "queryCondition": "CHR_POS_ALT",
+      "dbVersion": {
+        "GRCh37": {
+          "table": "DBNSFP",
+          "key": "id",
+          "indexTable": "DBNSFP_index_hg19"
+        },
+        "GRCh38": {
+          "table": "DBNSFP"
+        }
+      },
+      "fields": {
+        "GnomAD Exome AC": "gnomAD_exomes_AC",
+        "GnomAD Exome AF": "gnomAD_exomes_AF",
+        "GnomAD Genome AC": "gnomAD_genomes_AC",
+        "GnomAD Genome AF": "gnomAD_genomes_AF",
+        "ESP6500 AC": "ESP6500_EA_AC",
+        "ESP6500 AF": "ESP6500_EA_AF",
+        "1000G AF": "1000Gp3_AF",
+        "1000G EAS AF": "1000Gp3_EAS_AF",
+        "ExAC EAS AC": "ExAC_EAS_AC",
+        "ExAC EAS AF": "ExAC_EAS_AF",
+        "ExAC AC": "ExAC_AC",
+        "ExAC AF": "ExAC_AF",
+        "rsID": "phyloP100way_vertebrate",
+        "PhyloP Vertebrates": "phyloP100way_vertebrate",
+        "PhyloP Mammals": "phyloP20way_mammalian",
+        "SIFT Score": "SIFT_score",
+        "SIFT Pred": "SIFT_pred",
+        "Polyphen2HumVar Score": "Polyphen2_HVAR_score",
+        "Polyphen2HumDiv Score": "Polyphen2_HDIV_score",
+        "MIM Gene ID": "MIM_id",
+        "MIM Pheno IDs": "MIM_phenotype_id",
+        "GWAS Trait": "Trait_association(GWAS)"
+      }
+    },
+    "BGIGaP":{
       "database":"HBASE",
-      "queryClassName":"DBNSFPQuery",
-      "queryCondition":"CHR_POS_ALT",
+      "queryClassName":"BGIGaPQuery",
+      "queryCondition":"CHROM_POS_END_REF_ALT",
       "dbVersion":{
         "GRCh37":{
-          "table":"DBNSFP",
-          "key":"id",
-          "indexTable":"DBNSFP_index_hg19"
+          "table":"annotation:t_gap_gap_view"
         },
         "GRCh38":{
-          "table":"DBNSFP"
+          "table":"NULL"
         }
+      },
+      "fields":{
+        "BGIGaP Gene":"approved_symbol",
+        "BGIGaP MutName":"nt_change",
+        "BGIGaP Data Source":"alt_name",
+        "BGIGaP Case Reported":"reported_case_count",
+        "BGIGaP Pathogenicity":"pathogenicity",
+        "BGIGaP Validation":"validation"
       }
     }
   }

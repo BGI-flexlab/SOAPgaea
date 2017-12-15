@@ -34,13 +34,16 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.annotator.effect;
 
+import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.VariantContext;
 import org.bgi.flexlab.gaea.tools.annotator.config.Config;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Variant;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Annotate a VCF entry
@@ -65,7 +68,7 @@ public class VcfAnnotator implements Serializable{
 	 * @return true if the entry was annotated
 	 */
 	public boolean annotate(VcfAnnotationContext vac) {
-		List<AnnotationContext> annotationContexts = new ArrayList<AnnotationContext>();
+		List<AnnotationContext> annotationContexts = new ArrayList<>();
 //		HashMap<String, AnnotationContext> annotationContexts = new HashMap<String, AnnotationContext>();
 		
 //		boolean filteredOut = false;
@@ -95,8 +98,8 @@ public class VcfAnnotator implements Serializable{
 	public List<String> convertAnnotationStrings(VcfAnnotationContext vac) {
 		
 		List<String> annoStrings = new ArrayList<String>();
+		List<String> sampleNames = vac.getSampleNamesOrderedByName();
 		for(AnnotationContext ac : vac.getAnnotationContexts()){
-			
 			StringBuilder sb = new StringBuilder();
 			sb.append(vac.getContig());
 			sb.append("\t");
@@ -106,7 +109,7 @@ public class VcfAnnotator implements Serializable{
 			sb.append("\t");
 //			sb.append(ac.getFieldByName("ALLELE"));
 			sb.append(ac.getAllele());
-			String[] fields = config.getFieldsByDB(Config.KEY_GENE_INFO);
+			ArrayList<String> fields = config.getFieldsByDB(Config.KEY_GENE_INFO);
 			for (String field : fields) {
 				sb.append("\t");
 				if(!ac.getFieldByName(field).isEmpty()){
@@ -125,7 +128,52 @@ public class VcfAnnotator implements Serializable{
 					sb.append(ac.getAnnoItemAsString(field, ".")); 
 				}
 			}
+			for(String sample:sampleNames){
+				sb.append("\t");
+				if(vac.getGenotype(sample).isCalled() && vac.getGenotype(sample).countAllele(vac.getAllele(ac.getAllele())) > 0)
+					sb.append(1);
+				else
+					sb.append(0);
+			}
 			annoStrings.add(sb.toString());
+		}
+		return annoStrings;
+	}
+
+	public Map<String, String> convertAnnotationHashStrings(VcfAnnotationContext vac) {
+
+		Map<String, String> annoStrings = new HashMap<>();
+		for(AnnotationContext ac : vac.getAnnotationContexts()){
+
+			StringBuilder sb = new StringBuilder();
+			sb.append(vac.getContig());
+			sb.append("\t");
+			sb.append(vac.getStart());
+			sb.append("\t");
+			sb.append(vac.getReference().getBaseString());
+			sb.append("\t");
+//			sb.append(ac.getFieldByName("ALLELE"));
+			sb.append(ac.getAllele());
+			ArrayList<String> fields = config.getFieldsByDB(Config.KEY_GENE_INFO);
+			for (String field : fields) {
+				sb.append("\t");
+				if(!ac.getFieldByName(field).isEmpty()){
+					sb.append(ac.getFieldByName(field));
+				}else {
+					sb.append(".");
+				}
+			}
+
+			List<String> dbNameList = config.getDbNameList();
+			for (String dbName : dbNameList) {
+				fields = config.getFieldsByDB(dbName);
+				for (String field : fields) {
+					sb.append("\t");
+//						System.err.println("getNumAnnoItems:"+annoContext.getNumAnnoItems());
+					sb.append(ac.getAnnoItemAsString(field, "."));
+				}
+			}
+			annoStrings.put(ac.getAllele(), sb.toString());
 		}
 		return annoStrings;
 	}

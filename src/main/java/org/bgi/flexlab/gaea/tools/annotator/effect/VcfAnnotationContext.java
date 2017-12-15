@@ -225,7 +225,7 @@ public class VcfAnnotationContext extends VariantContext{
 			List<String> dbNameList = config.getDbNameList();
 			for (String dbName : dbNameList) {
 				
-				String[] fields = config.getFieldsByDB(dbName);
+				ArrayList<String> fields = config.getFieldsByDB(dbName);
 				
 				if (dbName.equalsIgnoreCase("GeneInfo")) {
 					for (String field : fields) {

@@ -55,7 +55,7 @@ public class Annotator extends ToolsRunner {
         options.setHadoopConf(remainArgs, conf);
         BioJob job = BioJob.getInstance(conf);
 
-        job.setHeader(new Path(options.getInput()), new Path(options.getOutput()));
+//        job.setHeader(new Path(options.getInput()), new Path(options.getOutput()));
         job.setJobName("GaeaAnnotator");
         job.setJarByClass(this.getClass());
         job.setMapperClass(AnnotationMapper.class);
@@ -83,26 +83,57 @@ public class Annotator extends ToolsRunner {
                 SingleVCFHeader singleVcfHeader = new SingleVCFHeader();
                 singleVcfHeader.readHeaderFrom(file.getPath(), fs);
                 VCFHeader vcfHeader = singleVcfHeader.getHeader();
-                sampleNames.addAll(vcfHeader.getSampleNamesInOrder());
+                for(String sample: vcfHeader.getSampleNamesInOrder()) {
+                    if(!sampleNames.contains(sample))
+                        sampleNames.add(sample);
+                }
             }
 
         }
 
         MNLineInputFormat.addInputPath(job, new Path(options.getInputFilePath()));
         MNLineInputFormat.setMinNumLinesToSplit(job,1000); //按行处理的最小单位
-        MNLineInputFormat.setMapperNum(job, options.getMapperNum());
+        MNLineInputFormat.setMapperNum(job, options.getReducerNum());
         Path partTmp = new Path(options.getTmpPath());
 
         FileOutputFormat.setOutputPath(job, partTmp);
-        for(int i = 0; i < sampleNames.size(); i++)//相同sample name输出到同一个文件夹
-        {
-            System.out.println("sampleName "+i+":"+SampleNameModifier.modify(sampleNames.get(i)));
-            MultipleOutputs.addNamedOutput(job, SampleNameModifier.modify(sampleNames.get(i)), TextOutputFormat.class, NullWritable.class, Text.class);
+        if(options.isMultiOutput()){
+            for(int i = 0; i < sampleNames.size(); i++)//相同sample name输出到同一个文件夹
+            {
+                System.out.println("sampleName "+i+":"+SampleNameModifier.modify(sampleNames.get(i)));
+                MultipleOutputs.addNamedOutput(job, SampleNameModifier.modify(sampleNames.get(i)), TextOutputFormat.class, NullWritable.class, Text.class);
+            }
         }
         if (job.waitForCompletion(true)) {
-            for(int i = 0; i < sampleNames.size(); i++) {//同一个文件夹下的结果整合到一个文件
-                GZIPOutputStream os = new GZIPOutputStream(new FileOutputStream(options.getOutputPath()+ "/" + sampleNames.get(i) + ".tsv.gz"));
-                final FileStatus[] parts = partTmp.getFileSystem(conf).globStatus(new Path(options.getTmpPath() + "/" +sampleNames.get(i) +
+            if(options.isMultiOutput()) {
+                for (int i = 0; i < sampleNames.size(); i++) {//同一个文件夹下的结果整合到一个文件
+                    GZIPOutputStream os = new GZIPOutputStream(new FileOutputStream(options.getOutputPath() + "/" + sampleNames.get(i) + ".tsv.gz"));
+                    final FileStatus[] parts = partTmp.getFileSystem(conf).globStatus(new Path(options.getTmpPath() + "/" + sampleNames.get(i) +
+                            "/part" + "-*-[0-9][0-9][0-9][0-9][0-9]*"));
+                    boolean writeHeader = true;
+                    for (FileStatus p : parts) {
+                        FSDataInputStream dis = p.getPath().getFileSystem(conf).open(p.getPath());
+                        BufferedReader reader = new BufferedReader(new InputStreamReader(dis));
+                        String line;
+                        while ((line = reader.readLine()) != null) {
+                            if (line.startsWith("#")) {
+                                if (writeHeader) {
+                                    os.write(line.getBytes());
+                                    os.write('\n');
+                                    writeHeader = false;
+                                }
+                                continue;
+                            }
+                            os.write(line.getBytes());
+                            os.write('\n');
+                        }
+                    }
+                    os.close();
+                }
+                partTmp.getFileSystem(conf).delete(partTmp, true);
+            }else {
+                GZIPOutputStream os = new GZIPOutputStream(new FileOutputStream(options.getOutputPath() + "/multiSample.tsv.gz"));
+                final FileStatus[] parts = partTmp.getFileSystem(conf).globStatus(new Path(options.getTmpPath() +
                         "/part" + "-*-[0-9][0-9][0-9][0-9][0-9]*"));
                 boolean writeHeader = true;
                 for (FileStatus p : parts) {
@@ -124,8 +155,6 @@ public class Annotator extends ToolsRunner {
                 }
                 os.close();
             }
-            partTmp.getFileSystem(conf).delete(partTmp, true);
-
             return 0;
         }else {
             return 1;

@@ -35,6 +35,7 @@ public class SingleRegionReport {
 	private double allRegionAverageDepth = 0;
 	private double allRegionAverageRmdupDepth = 0;
 	private double regionSizeTotal = 0;
+	private boolean statPosDepth = true;
 	protected Map<SingleRegion.Regiondata, SingleRegionStatistic> result = null;
 	
 	public SingleRegionReport(SingleRegion singleReigon) {
@@ -74,10 +75,13 @@ public class SingleRegionReport {
 				int regionEnd = singleReigon.getRegion(index).getEnd();
 				//System.err.println("index:" + index + "\tstart-end:" +regionStart+"-"+regionEnd + "\tposition:"+i +"\t" + winStart);
 				if(regionStart >= winStart && regionEnd <= winStart + windowSize -1) {
-					outputString.append(title + " part single Region Statistic:\n" + index + ":");
-					getPartRegionInfo(rmdupDeep, deep,regionStart - winStart, regionEnd - winStart);
-//					outputString.append(title + " single Region Statistic:\n" + index + ":");
-//					getWholeRegionInfo(rmdupDeep, deep,regionStart - winStart, regionEnd - winStart);
+					if(isStatPosDepth()) {
+						outputString.append(title + " part single Region Statistic:\n" + index + ":");
+						getPartRegionInfo(rmdupDeep, deep, regionStart - winStart, regionEnd - winStart);
+					}else {
+						outputString.append(title + " single Region Statistic:\n" + index + ":");
+						getWholeRegionInfo(rmdupDeep, deep,regionStart - winStart, regionEnd - winStart);
+					}
 				} else if(regionStart >= winStart && regionEnd > winStart + windowSize - 1) {
 					outputString.append(title + " part single Region Statistic:\n" + index + ":");
 					getPartRegionInfo(rmdupDeep, deep, regionStart - winStart, windowSize - 1);
@@ -256,5 +260,13 @@ public class SingleRegionReport {
 
 	public double getAllRegionCoverage() {
 		return allRegionCoverage;
+	}
+
+	public boolean isStatPosDepth() {
+		return statPosDepth;
+	}
+
+	public void setStatPosDepth(boolean statPosDepth) {
+		this.statPosDepth = statPosDepth;
 	}
 }

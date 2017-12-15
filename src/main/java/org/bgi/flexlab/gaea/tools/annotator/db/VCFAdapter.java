@@ -36,6 +36,7 @@ public class VCFAdapter implements DBAdapterInterface{
     public HashMap<String, String> getResult(String tableName, String rowKey, HashMap<String, String> fieldMap) throws IOException{
         return null;
     }
+
     @Override
     public HashMap<String, String> getResult(String tableName,
                                              String rowKey) throws IOException{

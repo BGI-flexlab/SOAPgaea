@@ -21,7 +21,6 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.ToolsRunner;
 
-import javax.xml.soap.Text;
 import java.io.IOException;
 
 public class DBNSFPToHbase extends ToolsRunner {
@@ -65,12 +64,11 @@ public class DBNSFPToHbase extends ToolsRunner {
         conn = ConnectionFactory.createConnection(conf);
 
         setHeader(new Path(options.getInput()), conf);
+        long reduceThreshMem = (long) (1 << 28);
+        conf.setLong("putsortreducer.row.threshold", reduceThreshMem);
 
         Job job = Job.getInstance(conf, "dbNSFPtoHbase");
         createTable(tableName);
-
-        job.setNumReduceTasks(options.getReducerNumber());
-//        job.setInputFormatClass(T.class);
 
         job.setJarByClass(org.bgi.flexlab.gaea.tools.mapreduce.annotator.databaseload.DBNSFPToHbase.class);
         job.setMapperClass(DBNSFPToHbaseMapper.class);

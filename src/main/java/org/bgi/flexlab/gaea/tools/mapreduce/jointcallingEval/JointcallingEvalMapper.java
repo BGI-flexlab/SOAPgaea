@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  *******************************************************************************/
-package org.bgi.flexlab.gaea.tools.mapreduce.annotator;
+package org.bgi.flexlab.gaea.tools.mapreduce.jointcallingEval;
 
 
 import htsjdk.variant.variantcontext.VariantContext;
@@ -31,11 +31,12 @@ import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.bgi.flexlab.gaea.data.structure.header.SingleVCFHeader;
+import org.bgi.flexlab.gaea.tools.mapreduce.annotator.VcfLineWritable;
 
 import java.io.IOException;
 import java.util.HashMap;
 
-public class AnnotationMapper extends Mapper<LongWritable, Text, Text, VcfLineWritable> {
+public class JointcallingEvalMapper extends Mapper<LongWritable, Text, Text, VcfLineWritable> {
 
 	private Text resultKey;
 	private VcfLineWritable resultValue;
@@ -49,25 +50,29 @@ public class AnnotationMapper extends Mapper<LongWritable, Text, Text, VcfLineWr
 		conf = context.getConfiguration();
 		vcfCodecs = new HashMap<>();
 
-		Path inputPath = new Path(conf.get("inputFilePath"));
+		JointcallingEcalOptions options = new JointcallingEcalOptions();
+		Configuration conf = context.getConfiguration();
+		options.getOptionsFromHadoopConf(conf);
+
+		Path inputPath = new Path(options.getInputFilePath());
 		FileSystem fs = inputPath.getFileSystem(conf);
-		FileStatus[] files = fs.listStatus(inputPath);
-		for(FileStatus file : files) {
-			//System.out.println(file.getPath());
+		SingleVCFHeader singleVcfHeader = new SingleVCFHeader();
+		singleVcfHeader.readHeaderFrom(inputPath, fs);
+		VCFHeader vcfHeader = singleVcfHeader.getHeader();
+		VCFHeaderVersion vcfVersion = singleVcfHeader.getVCFVersion(vcfHeader);
+		VCFCodec vcfcodec = new VCFCodec();
+		vcfcodec.setVCFHeader(vcfHeader, vcfVersion);
+		vcfCodecs.put(inputPath.getName(), vcfcodec);
 
-			if (file.isFile()) {
-				SingleVCFHeader singleVcfHeader = new SingleVCFHeader();
-				singleVcfHeader.readHeaderFrom(file.getPath(), fs);
-				VCFHeader vcfHeader = singleVcfHeader.getHeader();
-				VCFHeaderVersion vcfVersion = singleVcfHeader.getVCFVersion(vcfHeader);
-				VCFCodec vcfcodec = new VCFCodec();
-				vcfcodec.setVCFHeader(vcfHeader, vcfVersion);
-				vcfCodecs.put(file.getPath().getName(), vcfcodec);
-			}
-		}
-
-
-
+		Path baselinePath = new Path(options.getBaselineFile());
+		fs = baselinePath.getFileSystem(conf);
+		singleVcfHeader = new SingleVCFHeader();
+		singleVcfHeader.readHeaderFrom(baselinePath, fs);
+		vcfHeader = singleVcfHeader.getHeader();
+		vcfVersion = singleVcfHeader.getVCFVersion(vcfHeader);
+		vcfcodec = new VCFCodec();
+		vcfcodec.setVCFHeader(vcfHeader, vcfVersion);
+		vcfCodecs.put(baselinePath.getName(), vcfcodec);
 
 	}
 
@@ -79,6 +84,7 @@ public class AnnotationMapper extends Mapper<LongWritable, Text, Text, VcfLineWr
 
 		InputSplit inputSplit = context.getInputSplit();
 		String fileName = ((FileSplit) inputSplit).getPath().getName();
+		System.out.println(fileName);
 		VCFCodec vcfcodec = vcfCodecs.get(fileName);
 		String vcfLine = value.toString();
 		if (vcfLine.startsWith("#")) return;
@@ -94,7 +100,8 @@ public class AnnotationMapper extends Mapper<LongWritable, Text, Text, VcfLineWr
 
 
 		resultValue.set(fileName, vcfLine);
-		resultKey.set(chr+"-"+variantContext.getStart() + "-" + variantContext.getEnd());
+		System.out.println("mapper: "+chr+"-"+variantContext.getStart() + "-" + variantContext.getReference().toString());
+		resultKey.set(chr+"-"+variantContext.getStart() + "-" + variantContext.getReference().toString());
 //		System.out.println("mapper: " + resultKey.toString() + " " + vcfLine);
 		/*根据chr-start-end*/
 		context.write(resultKey, resultValue);

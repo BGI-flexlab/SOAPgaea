@@ -33,10 +33,7 @@ import org.bgi.flexlab.gaea.tools.annotator.util.Gpr;
 import org.bgi.flexlab.gaea.tools.annotator.util.Timer;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
 public class Config implements Serializable {
 	
@@ -67,7 +64,7 @@ public class Config implements Serializable {
 	private boolean hgvsOneLetterAa = false; // Use HGVS 1 letter amino acid in HGVS notation?
 	private boolean hgvsTrId = false; // Use HGVS transcript ID in HGVS notation?
 	private CountByType warningsCounter = new CountByType();
-	private HashMap<String, String[]> annoFieldsByDB = null;  // fields in user config
+	private HashMap<String, ArrayList<String>> annoFieldsByDB = null;  // fields in user config
 	private DatabaseJson databaseJson;
 	private List<String> dbNameList;
 	private Properties properties;
@@ -224,43 +221,49 @@ public class Config implements Serializable {
 		for (String key : keys) {
 			if (key.endsWith(ANNO_FIELDS_SUFIX)) {
 				String dbName = key.substring(0, key.length() - ANNO_FIELDS_SUFIX.length());
-				HashMap<String, String> newFieldMap = new HashMap<>();
 				String[] annoFields = properties.getProperty(key).split(",");
+				ArrayList<String> annoFieldList = new ArrayList<>();
 				
 				if (!key.startsWith(KEY_GENE_INFO)) {
 					DatabaseInfo dbInfo = databaseJson.getDatabaseInfo(dbName);
 					HashMap<String, String> fieldMap = dbInfo.getFields();
 					for (int i = 0; i < annoFields.length; i++) {
 						String annoField = annoFields[i];
-						if (fieldMap.containsKey(annoField)) {
-							newFieldMap.put(annoField, fieldMap.get(annoField));
-						}else {
+						if (!fieldMap.containsValue(annoField)) {
 							if(annoField.startsWith(dbName)){
-								newFieldMap.put(annoField, annoField);
+								fieldMap.put(annoField, annoField);
+								annoFieldList.add(annoField);
 							}else {
 								annoFields[i] = dbName+"_"+annoField;
-								newFieldMap.put(annoFields[i], annoField);
+								fieldMap.put(annoFields[i], annoField);
+								annoFieldList.add(annoFields[i]);
+							}
+						}else {
+							for (Map.Entry<String, String> entry : fieldMap.entrySet()) {
+								if(entry.getValue().equalsIgnoreCase(annoField))
+									annoFieldList.add(entry.getKey());
 							}
 						}
 					}
 					dbNameList.add(dbName);
-					dbInfo.setFields(newFieldMap);
+				}else {
+					annoFieldList.addAll(Arrays.asList(annoFields));
 				}
-				annoFieldsByDB.put(dbName, annoFields);
+				annoFieldsByDB.put(dbName, annoFieldList);
 			}
 		}
 		
 		return true;
 	}
 	
-	public String[] getFieldsByDB(String dbName){
+	public ArrayList<String> getFieldsByDB(String dbName){
 		return annoFieldsByDB.get(dbName);
 	}
 
 	public static Config getConfigInstance() {
 		return configInstance;
 	}
-	
+
 	public static Config get(){
 		return configInstance;
 	}
@@ -426,7 +429,7 @@ public class Config implements Serializable {
 		sb.append("REF");
 		sb.append("\t");
 		sb.append("ALT");
-		String[] fields = getFieldsByDB(Config.KEY_GENE_INFO);
+		ArrayList<String> fields = getFieldsByDB(Config.KEY_GENE_INFO);
 		for (String field : fields) {
 			sb.append("\t");
 			sb.append(field);    
