@@ -3,5 +3,5 @@
 /.classpath
 /.idea
 /gaea.iml
-src/main/java/org/bgi/flexlab/gaea/tools/jointcalling
-src/main/java/org/bgi/flexlab/gaea/tools/mapreduce/jointcalling
+src/main/java/org/bgi/flexlab/gaea/tools/jointcalling/
+src/main/java/org/bgi/flexlab/gaea/tools/mapreduce/jointcalling/
