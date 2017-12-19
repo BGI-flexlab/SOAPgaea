@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.UUID;
 import java.util.Map.Entry;
 
 import org.apache.hadoop.conf.Configuration;
@@ -149,7 +148,7 @@ public class CallStructuralVariationReducer1 extends Reducer<NewMapKey, Format, 
 		/**
 		 * 将dist存到中间文件中
 		 */
-		Path distPath = new Path(options.getHdfsdir() + "/Sort/Dist/" + UUID.randomUUID().toString());
+		Path distPath = new Path(options.getHdfsdir() + "/Sort/Dist/" + key.getChr());
 		String writer = key.getChr() + "\t" + dist + "\t" + ref_length + "\n";
 		writeFile(distPath , writer);
 	}

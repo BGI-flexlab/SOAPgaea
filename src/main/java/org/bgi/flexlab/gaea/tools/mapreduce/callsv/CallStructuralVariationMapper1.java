@@ -1,7 +1,6 @@
 package org.bgi.flexlab.gaea.tools.mapreduce.callsv;
 
 import java.io.IOException;
-import java.util.UUID;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -12,6 +11,7 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.SamRecordWritable;
 import org.bgi.flexlab.gaea.tools.callsv.Format;
 import org.bgi.flexlab.gaea.tools.callsv.NewMapKey;
+import org.seqdoop.hadoop_bam.FileVirtualSplit;
 
 import htsjdk.samtools.SAMRecord;
 
@@ -37,7 +37,9 @@ public class CallStructuralVariationMapper1 extends Mapper<LongWritable, SamReco
 	protected void setup(Context context) throws IOException, InterruptedException {
 		conf = context.getConfiguration();
 		options.getOptionsFromHadoopConf(conf);
-		String libpath = options.getHdfsdir() + "/Sort/LibConf/" + UUID.randomUUID().toString();
+		FileVirtualSplit input = (FileVirtualSplit)context.getInputSplit();
+		String filename = input.getPath().getName();
+		String libpath = options.getHdfsdir() + "/Sort/LibConf/" + filename + "-" + input.getStartVirtualOffset();
 		out = FileSystem.get(conf).create(new Path(libpath));
 		
 	}
