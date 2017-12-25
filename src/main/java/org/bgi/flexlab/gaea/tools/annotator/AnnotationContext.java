@@ -32,9 +32,11 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-package org.bgi.flexlab.gaea.tools.annotator.effect;
+package org.bgi.flexlab.gaea.tools.annotator;
 
 import htsjdk.variant.vcf.VCFConstants;
+import org.bgi.flexlab.gaea.tools.annotator.effect.EffectType;
+import org.bgi.flexlab.gaea.tools.annotator.effect.VariantEffect;
 import org.bgi.flexlab.gaea.tools.annotator.effect.VariantEffect.FunctionalClass;
 import org.bgi.flexlab.gaea.tools.annotator.interval.*;
 

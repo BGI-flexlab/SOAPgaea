@@ -33,8 +33,8 @@ import org.bgi.flexlab.gaea.data.structure.header.SingleVCFHeader;
 import org.bgi.flexlab.gaea.data.structure.reference.ReferenceShare;
 import org.bgi.flexlab.gaea.tools.annotator.config.Config;
 import org.bgi.flexlab.gaea.tools.annotator.db.DBAnnotator;
-import org.bgi.flexlab.gaea.tools.annotator.effect.VcfAnnotationContext;
-import org.bgi.flexlab.gaea.tools.annotator.effect.VcfAnnotator;
+import org.bgi.flexlab.gaea.tools.annotator.VcfAnnotationContext;
+import org.bgi.flexlab.gaea.tools.annotator.VcfAnnotator;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -186,7 +186,7 @@ public class AnnotationReducer extends Reducer<Text, VcfLineWritable, NullWritab
 				}
 			}
 		}
-		System.err.println("step2:" + (System.currentTimeMillis()-start)+"ms");
+		System.err.println("step3:" + (System.currentTimeMillis()-start)+"ms");
 	}
 
 	@Override

@@ -164,8 +164,8 @@ public class Annotator extends ToolsRunner {
 
     @Override
     public int run(String[] args) throws Exception {
-        Annotator md = new Annotator();
-        return md.runAnnotator(args);
+        Annotator annotator = new Annotator();
+        return annotator.runAnnotator(args);
     }
 
 }

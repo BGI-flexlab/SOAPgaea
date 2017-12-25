@@ -21,7 +21,7 @@ import org.bgi.flexlab.gaea.tools.annotator.config.DatabaseInfo;
 import org.bgi.flexlab.gaea.tools.annotator.config.DatabaseInfo.ConditionKey;
 import org.bgi.flexlab.gaea.tools.annotator.config.DatabaseInfo.DbType;
 import org.bgi.flexlab.gaea.tools.annotator.config.RefTableInfo;
-import org.bgi.flexlab.gaea.tools.annotator.effect.VcfAnnotationContext;
+import org.bgi.flexlab.gaea.tools.annotator.VcfAnnotationContext;
 
 import java.io.Serializable;
 import java.util.*;

@@ -22,14 +22,12 @@ import htsjdk.variant.vcf.VCFCodec;
 import htsjdk.variant.vcf.VCFHeader;
 import htsjdk.variant.vcf.VCFHeaderVersion;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.bgi.flexlab.gaea.data.structure.header.SingleVCFHeader;
-import org.bgi.flexlab.gaea.tools.annotator.effect.VcfAnnotationContext;
 import org.bgi.flexlab.gaea.tools.mapreduce.annotator.VcfLineWritable;
 
 import java.io.IOException;
@@ -89,7 +87,6 @@ public class JointcallingEvalReducer extends Reducer<Text, VcfLineWritable, Null
 		int count = 0;
 
 		while(iter.hasNext()) {
-			List<VcfAnnotationContext> vcfList = new ArrayList<>();
 			VcfLineWritable vcfInput = iter.next();
 			String tag = vcfInput.getFileName();
 			if (tag.equals(inputPath.getName())) {

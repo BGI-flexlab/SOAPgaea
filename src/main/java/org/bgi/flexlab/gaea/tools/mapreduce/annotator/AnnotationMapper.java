@@ -66,7 +66,7 @@ public class AnnotationMapper extends Mapper<LongWritable, Text, Text, VcfLineWr
 			}
 		}
 
-
+//		TODO split vcfLine
 
 
 	}
@@ -94,7 +94,7 @@ public class AnnotationMapper extends Mapper<LongWritable, Text, Text, VcfLineWr
 
 
 		resultValue.set(fileName, vcfLine);
-		resultKey.set(chr+"-"+variantContext.getStart() + "-" + variantContext.getEnd());
+		resultKey.set(chr+"-"+variantContext.getStart());
 //		System.out.println("mapper: " + resultKey.toString() + " " + vcfLine);
 		/*根据chr-start-end*/
 		context.write(resultKey, resultValue);

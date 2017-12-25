@@ -32,11 +32,13 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-package org.bgi.flexlab.gaea.tools.annotator.effect;
+package org.bgi.flexlab.gaea.tools.annotator;
 
-import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.VariantContext;
 import org.bgi.flexlab.gaea.tools.annotator.config.Config;
+import org.bgi.flexlab.gaea.tools.annotator.effect.SnpEffectPredictor;
+import org.bgi.flexlab.gaea.tools.annotator.effect.VariantEffect;
+import org.bgi.flexlab.gaea.tools.annotator.effect.VariantEffects;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Variant;
 
 import java.io.Serializable;
@@ -128,13 +130,13 @@ public class VcfAnnotator implements Serializable{
 					sb.append(ac.getAnnoItemAsString(field, ".")); 
 				}
 			}
-			for(String sample:sampleNames){
-				sb.append("\t");
-				if(vac.getGenotype(sample).isCalled() && vac.getGenotype(sample).countAllele(vac.getAllele(ac.getAllele())) > 0)
-					sb.append(1);
-				else
-					sb.append(0);
-			}
+//			for(String sample:sampleNames){
+//				sb.append("\t");
+//				if(vac.getGenotype(sample).isCalled() && vac.getGenotype(sample).countAllele(vac.getAllele(ac.getAllele())) > 0)
+//					sb.append(1);
+//				else
+//					sb.append(0);
+//			}
 			annoStrings.add(sb.toString());
 		}
 		return annoStrings;
