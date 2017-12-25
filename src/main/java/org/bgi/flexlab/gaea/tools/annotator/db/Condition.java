@@ -16,6 +16,7 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.annotator.db;
 
+import org.bgi.flexlab.gaea.tools.annotator.VcfAnnoContext;
 import org.bgi.flexlab.gaea.tools.annotator.config.Config;
 import org.bgi.flexlab.gaea.tools.annotator.config.DatabaseInfo;
 import org.bgi.flexlab.gaea.tools.annotator.config.DatabaseInfo.ConditionKey;
@@ -258,7 +259,7 @@ public class Condition implements Serializable{
 		}
 	}
 
-	public void createConditionMap(VcfAnnotationContext vac) {
+	public void createConditionMap(VcfAnnoContext vac) {
 		// TODO Auto-generated method stub
 		conditionMap.put(ConditionKey.CHR, vac.getChromeNoChr());
 		conditionMap.put(ConditionKey.CHROM, vac.getChrome());

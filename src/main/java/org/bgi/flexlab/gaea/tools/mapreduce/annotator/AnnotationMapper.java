@@ -94,7 +94,20 @@ public class AnnotationMapper extends Mapper<LongWritable, Text, Text, VcfLineWr
 
 
 		resultValue.set(fileName, vcfLine);
-		resultKey.set(chr+"-"+variantContext.getStart());
+
+		int startPrefix = variantContext.getStart()/1000;
+		int startRemainder = variantContext.getStart()%1000;
+		if(startRemainder <= 5 && startPrefix > 0){
+			resultKey.set(chr+"-"+(startPrefix-1));
+			context.write(resultKey, resultValue);
+		}
+
+		if(startRemainder >= 995 && startPrefix > 0){
+			resultKey.set(chr+"-"+(startPrefix+1));
+			context.write(resultKey, resultValue);
+		}
+
+		resultKey.set(chr+"-"+startPrefix);
 //		System.out.println("mapper: " + resultKey.toString() + " " + vcfLine);
 		/*根据chr-start-end*/
 		context.write(resultKey, resultValue);

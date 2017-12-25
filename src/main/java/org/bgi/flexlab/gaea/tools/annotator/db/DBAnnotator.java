@@ -16,6 +16,7 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.annotator.db;
 
+import org.bgi.flexlab.gaea.tools.annotator.VcfAnnoContext;
 import org.bgi.flexlab.gaea.tools.annotator.config.Config;
 import org.bgi.flexlab.gaea.tools.annotator.config.DatabaseInfo;
 import org.bgi.flexlab.gaea.tools.annotator.config.DatabaseInfo.DbType;
@@ -43,7 +44,7 @@ public class DBAnnotator implements Serializable{
 		dbConditionHashMap = new HashMap<String, Condition>();
 	}
 	
-	public void annotate(VcfAnnotationContext vac) throws IOException {
+	public void annotate(VcfAnnoContext vac) throws IOException {
 		
 		List<String> dbNameList = config.getDbNameList();
 		for (String dbName : dbNameList) {
@@ -64,32 +65,32 @@ public class DBAnnotator implements Serializable{
 			
 		}
 	}
-	public void annotate(List<VcfAnnotationContext> vacs) throws IOException {
-
-		List<String> dbNameList = config.getDbNameList();
-		if(vacs == null)
-			return;
-		VcfAnnotationContext vac0 = vacs.get(0);
-		for (String dbName : dbNameList) {
-			Condition condition = dbConditionHashMap.get(dbName);
-			condition.createConditionMap(vac0);
-
-			DBQuery dbQuery = DbQueryMap.get(dbName);
-			if (!dbQuery.executeQuery(condition)) continue;
-
-			for(VcfAnnotationContext vac : vacs) {
-				for (AnnotationContext annotationContext : vac.getAnnotationContexts()) {
-					LinkedList<HashMap<String, String>> resultList = dbQuery.getAcResultList(annotationContext);
-					HashMap<String, String> result = mergeResult(resultList);
-					if (result == null) continue;
-					for (Entry<String, String> entry : result.entrySet()) {
-						annotationContext.putAnnoItem(entry.getKey(), entry.getValue(), false);
-					}
-				}
-			}
-
-		}
-	}
+//	public void annotate(List<VcfAnnotationContext> vacs) throws IOException {
+//
+//		List<String> dbNameList = config.getDbNameList();
+//		if(vacs == null)
+//			return;
+//		VcfAnnotationContext vac0 = vacs.get(0);
+//		for (String dbName : dbNameList) {
+//			Condition condition = dbConditionHashMap.get(dbName);
+//			condition.createConditionMap(vac0);
+//
+//			DBQuery dbQuery = DbQueryMap.get(dbName);
+//			if (!dbQuery.executeQuery(condition)) continue;
+//
+//			for(VcfAnnotationContext vac : vacs) {
+//				for (AnnotationContext annotationContext : vac.getAnnotationContexts()) {
+//					LinkedList<HashMap<String, String>> resultList = dbQuery.getAcResultList(annotationContext);
+//					HashMap<String, String> result = mergeResult(resultList);
+//					if (result == null) continue;
+//					for (Entry<String, String> entry : result.entrySet()) {
+//						annotationContext.putAnnoItem(entry.getKey(), entry.getValue(), false);
+//					}
+//				}
+//			}
+//
+//		}
+//	}
 	private HashMap<String, String> mergeResult(
 			LinkedList<HashMap<String, String>> resultList) {
 		if (resultList == null || resultList.isEmpty()) return null;

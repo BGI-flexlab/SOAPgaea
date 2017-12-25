@@ -60,6 +60,8 @@ public class VcfAnnotationContext extends VariantContext{
 	protected LinkedList<Variant> variants;
 	
 	private List<AnnotationContext> annotationContexts;
+
+	private boolean hasNearVar = false;
 	
 	public VcfAnnotationContext(VariantContext variantContext){
 		super(variantContext);
@@ -273,5 +275,15 @@ public class VcfAnnotationContext extends VariantContext{
 		}
 		return getContig();
 	}
+
+
+	public boolean hasNearVar() {
+		return hasNearVar;
+	}
+
+	public void setHasNearVar(boolean hasNearVar) {
+		this.hasNearVar = hasNearVar;
+	}
+
 }
 

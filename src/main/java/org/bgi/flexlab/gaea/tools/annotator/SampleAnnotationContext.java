@@ -17,16 +17,22 @@
 package org.bgi.flexlab.gaea.tools.annotator;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  *  The special annotation context for each sample
  */
 public class SampleAnnotationContext{
 
-	String sampleName;
-	List<String> variants;   // variants at chr:pos
-	int depth;
-	List<Integer> alleleDepths;
+	private String sampleName;
+	private List<String> alts;   // variants at chr:pos
+	private int depth;
+	private Map<String, Integer> alleleDepths;
+	private boolean hasNearVar = false;
+
+	public SampleAnnotationContext(String sampleName) {
+		this.sampleName = sampleName;
+	}
 
 	public String getSampleName() {
 		return sampleName;
@@ -36,11 +42,35 @@ public class SampleAnnotationContext{
 		this.sampleName = sampleName;
 	}
 
-	public List<String> getVariants() {
-		return variants;
+	public boolean isHasNearVar() {
+		return hasNearVar;
 	}
 
-	public void setVariants(List<String> variants) {
-		this.variants = variants;
+	public void setHasNearVar(boolean hasNearVar) {
+		this.hasNearVar = hasNearVar;
+	}
+
+	public int getDepth() {
+		return depth;
+	}
+
+	public void setDepth(int depth) {
+		this.depth = depth;
+	}
+
+	public Map<String, Integer> getAlleleDepths() {
+		return alleleDepths;
+	}
+
+	public void setAlleleDepths(Map<String, Integer> alleleDepths) {
+		this.alleleDepths = alleleDepths;
+	}
+
+	public List<String> getAlts() {
+		return alts;
+	}
+
+	public void setAlts(List<String> alts) {
+		this.alts = alts;
 	}
 }

@@ -43,6 +43,7 @@ public class Config implements Serializable {
 	
 	public static final String KEY_REFERENCE = "ref";
 	public static final String KEY_GENE_INFO = "GeneInfo";
+	public static final String KEY_FIELDS_RENAME = "FieldRenameList";
 	public static final String KEY_CODON_PREFIX = "codon.";
 	public static final String KEY_CODONTABLE_SUFIX = ".codonTable";
 	public static final String DB_CONFIG_JSON = "AnnotatorConfig.json";

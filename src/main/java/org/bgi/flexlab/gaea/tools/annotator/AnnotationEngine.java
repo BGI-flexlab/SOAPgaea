@@ -23,25 +23,17 @@ import org.bgi.flexlab.gaea.tools.annotator.effect.VariantEffect;
 import org.bgi.flexlab.gaea.tools.annotator.effect.VariantEffects;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Variant;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Annotate a VCF entry
- *
- */
-public class VcfAnnotator implements Serializable{
-	
-	private static final long serialVersionUID = -6632995517658045554L;
-	
+public class AnnotationEngine{
+
 	Config config;
 	SnpEffectPredictor snpEffectPredictor;
-	VariantContext variantContext;
-	
-	public VcfAnnotator(Config config){
+
+	public AnnotationEngine(Config config){
 		this.config = config;
 		snpEffectPredictor = config.getSnpEffectPredictor();
 	}
@@ -51,7 +43,7 @@ public class VcfAnnotator implements Serializable{
 	 *
 	 * @return true if the entry was annotated
 	 */
-	public boolean annotate(VcfAnnotationContext vac) {
+	public boolean annotate(VcfAnnoContext vac) {
 		List<AnnotationContext> annotationContexts = new ArrayList<>();
 //		HashMap<String, AnnotationContext> annotationContexts = new HashMap<String, AnnotationContext>();
 		
@@ -79,17 +71,16 @@ public class VcfAnnotator implements Serializable{
 		return true;
 	}
 	
-	public List<String> convertAnnotationStrings(VcfAnnotationContext vac) {
+	public List<String> convertAnnotationStrings(VcfAnnoContext vac) {
 		
 		List<String> annoStrings = new ArrayList<String>();
-		List<String> sampleNames = vac.getSampleNamesOrderedByName();
 		for(AnnotationContext ac : vac.getAnnotationContexts()){
 			StringBuilder sb = new StringBuilder();
 			sb.append(vac.getContig());
 			sb.append("\t");
 			sb.append(vac.getStart());
 			sb.append("\t");
-			sb.append(vac.getReference().getBaseString());
+			sb.append(vac.getRefStr());
 			sb.append("\t");
 //			sb.append(ac.getFieldByName("ALLELE"));
 			sb.append(ac.getAllele());
@@ -124,7 +115,7 @@ public class VcfAnnotator implements Serializable{
 		return annoStrings;
 	}
 
-	public Map<String, String> convertAnnotationHashStrings(VcfAnnotationContext vac) {
+	public Map<String, String> convertAnnotationHashStrings(VcfAnnoContext vac) {
 
 		Map<String, String> annoStrings = new HashMap<>();
 		for(AnnotationContext ac : vac.getAnnotationContexts()){
@@ -134,7 +125,7 @@ public class VcfAnnotator implements Serializable{
 			sb.append("\t");
 			sb.append(vac.getStart());
 			sb.append("\t");
-			sb.append(vac.getReference().getBaseString());
+			sb.append(vac.getRefStr());
 			sb.append("\t");
 //			sb.append(ac.getFieldByName("ALLELE"));
 			sb.append(ac.getAllele());
@@ -160,12 +151,6 @@ public class VcfAnnotator implements Serializable{
 			annoStrings.put(ac.getAllele(), sb.toString());
 		}
 		return annoStrings;
-	}
-	
-	public VariantContext convertAnnotationVcfline(VcfAnnotationContext vac) {
-//		TODO
-		
-		return null;
 	}
 
 }
