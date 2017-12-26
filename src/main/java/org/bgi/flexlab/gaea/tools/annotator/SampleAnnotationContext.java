@@ -46,8 +46,8 @@ public class SampleAnnotationContext{
 		return hasNearVar;
 	}
 
-	public void setHasNearVar(boolean hasNearVar) {
-		this.hasNearVar = hasNearVar;
+	public void setHasNearVar() {
+		this.hasNearVar = true;
 	}
 
 	public int getDepth() {

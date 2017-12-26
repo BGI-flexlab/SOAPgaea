@@ -16,7 +16,6 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.mapreduce.annotator;
 
-import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFCodec;
 import htsjdk.variant.vcf.VCFHeader;
@@ -148,7 +147,8 @@ public class AnnotationReducer extends Reducer<Text, VcfLineWritable, NullWritab
 			VariantContext variantContext =  vcfCodecs.get(fileName).decode(vcfLine);
 			String refStr = variantContext.getReference().getBaseString();
 			int pos = variantContext.getStart();
-			positions.add(pos);
+			if(!positions.contains(pos))
+				positions.add(pos);
 			String posKey = pos + refStr;
 			posToPosKey.put(pos, posKey);
 			if(posVariantInfo.containsKey(posKey)){
@@ -174,8 +174,8 @@ public class AnnotationReducer extends Reducer<Text, VcfLineWritable, NullWritab
 				for(SampleAnnotationContext sac: vcfAnnoContext.getSampleAnnoContexts().values()){
 					String sampleName = sac.getSampleName();
 					if(vcfAnnoContextNear.hasSample(sampleName)){
-						sac.setHasNearVar(true);
-						vcfAnnoContextNear.getSampleAnnoContexts().get(sampleName).setHasNearVar(true);
+						sac.setHasNearVar();
+						vcfAnnoContextNear.getSampleAnnoContexts().get(sampleName).setHasNearVar();
 					}
 				}
 			}

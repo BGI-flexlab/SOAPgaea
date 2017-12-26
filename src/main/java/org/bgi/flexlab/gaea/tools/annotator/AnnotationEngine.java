@@ -82,7 +82,6 @@ public class AnnotationEngine{
 			sb.append("\t");
 			sb.append(vac.getRefStr());
 			sb.append("\t");
-//			sb.append(ac.getFieldByName("ALLELE"));
 			sb.append(ac.getAllele());
 			ArrayList<String> fields = config.getFieldsByDB(Config.KEY_GENE_INFO);
 			for (String field : fields) {
