@@ -309,7 +309,7 @@ public class VcfAnnoContext {
     }
 
     public void parseAnnotationStrings(String annoLine){
-        String[] fields = annoLine.split("SampleInfo::");
+        String[] fields = annoLine.split("\tSI:;");
         annoStr = fields[0];
         if(!fields[1].equals("")){
             for(String sampleInfo: fields[1].split(";")){
@@ -324,7 +324,7 @@ public class VcfAnnoContext {
         List<String> annoStrings = new ArrayList<>();
         for(AnnotationContext ac : annotationContexts){
             StringBuilder sb = new StringBuilder();
-            sb.append(config);
+            sb.append(getContig());
             sb.append("\t");
             sb.append(start);
             sb.append("\t");
@@ -351,14 +351,12 @@ public class VcfAnnoContext {
                 }
             }
 
-            sb.append("SampleInfo::");
+            sb.append("\tSI:");
             for(SampleAnnotationContext sac: sampleAnnoContexts.values()){
                 if(sac.hasAlt(ac.getAllele())){
-//                    sb.append(sac.getSampleName());
-//                    sb.append(":");
+                    sb.append(";");
                     sb.append(sac.toAlleleString(ac.getAllele()));
                 };
-                sb.append(";");
             }
             annoStrings.add(sb.toString());
         }

@@ -27,6 +27,7 @@ import org.apache.hadoop.mapred.lib.MultipleTextOutputFormat;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.bgi.flexlab.gaea.data.structure.header.SingleVCFHeader;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.BioJob;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.ToolsRunner;
@@ -36,7 +37,7 @@ import java.util.List;
 
 public class Annotator extends ToolsRunner {
 
-    static class KeyMultipleTextOutputFormat extends MultipleTextOutputFormat<Text, Text> {
+    class KeyMultipleTextOutputFormat extends MultipleTextOutputFormat<Text, Text> {
         @Override
         protected String generateFileNameForKeyValue(Text key, Text value, String name) {
             return key.toString()+'-'+name;
@@ -73,7 +74,7 @@ public class Annotator extends ToolsRunner {
         job.setOutputValueClass(Text.class);
         job.setInputFormatClass(MNLineInputFormat.class);
 
-        List<String> sampleNames = new ArrayList<>();
+        sampleNames = new ArrayList<>();
 
         Path inputPath = new Path(conf.get("inputFilePath"));
         FileSystem fs = inputPath.getFileSystem(conf);
@@ -90,7 +91,6 @@ public class Annotator extends ToolsRunner {
                         sampleNames.add(sample);
                 }
             }
-
         }
 
         MNLineInputFormat.addInputPath(job, new Path(options.getInputFilePath()));
@@ -117,10 +117,10 @@ public class Annotator extends ToolsRunner {
         job.setMapOutputKeyClass(Text.class);
         job.setMapOutputValueClass(Text.class);
 
-
         job.setOutputKeyClass(NullWritable.class);
-        job.setOutputValueClass(KeyMultipleTextOutputFormat.class);
+        job.setOutputValueClass(Text.class);
         job.setInputFormatClass(TextInputFormat.class);
+        job.setOutputFormatClass(TextOutputFormat.class);
 
         Path inputPath = new Path(options.getTmpPath());
         FileInputFormat.setInputPaths(job, inputPath);

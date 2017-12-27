@@ -16,38 +16,23 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.mapreduce.annotator;
 
-import htsjdk.variant.variantcontext.VariantContext;
-import htsjdk.variant.vcf.VCFCodec;
-import htsjdk.variant.vcf.VCFHeader;
-import htsjdk.variant.vcf.VCFHeaderVersion;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapred.lib.MultipleTextOutputFormat;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
-import org.bgi.flexlab.gaea.data.structure.header.SingleVCFHeader;
-import org.bgi.flexlab.gaea.data.structure.reference.ReferenceShare;
-import org.bgi.flexlab.gaea.tools.annotator.AnnotationEngine;
-import org.bgi.flexlab.gaea.tools.annotator.SampleAnnotationContext;
-import org.bgi.flexlab.gaea.tools.annotator.VcfAnnoContext;
-import org.bgi.flexlab.gaea.tools.annotator.VcfAnnotator;
-import org.bgi.flexlab.gaea.tools.annotator.config.Config;
-import org.bgi.flexlab.gaea.tools.annotator.db.DBAnnotator;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Iterator;
 
 public class AnnotationSortReducer extends Reducer<Text, Text, NullWritable, Text> {
 
+	private MultipleOutputs<NullWritable,Text> multipleOutputs = null;
 	private Text resultValue;
 
 	@Override
 	protected void setup(Context context) throws IOException, InterruptedException {
 		resultValue = new Text();
+		multipleOutputs = new MultipleOutputs<NullWritable,Text>(context);
 	}
 
 	@Override
@@ -58,12 +43,14 @@ public class AnnotationSortReducer extends Reducer<Text, Text, NullWritable, Tex
 		while(iter.hasNext()) {
 			Text inputLine = iter.next();
 			resultValue.set(inputLine);
-			context.write(NullWritable.get(), resultValue);
+			multipleOutputs.write(NullWritable.get(), resultValue, key.toString());
+//			context.write(NullWritable.get(), resultValue);
 		}
 	}
 
 	@Override
 	protected void cleanup(Context context)
 			throws IOException, InterruptedException {
+		multipleOutputs.close();
 	}
 }

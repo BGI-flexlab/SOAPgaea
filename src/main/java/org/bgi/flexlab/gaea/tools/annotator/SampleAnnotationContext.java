@@ -18,7 +18,6 @@ package org.bgi.flexlab.gaea.tools.annotator;
 
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -127,7 +126,9 @@ public class SampleAnnotationContext{
 	}
 
 	public void parseAlleleString(String alleleString){
-		String[] fields = alleleString.split("|");
+		String[] fields = alleleString.split("\\|");
+		System.err.println("SI:"+alleleString);
+		System.err.println("Fields:"+fields[0]);
 		setSampleName(fields[0]);
 		singleAlt = fields[1];
 		alleleRatios = new HashMap<>();
