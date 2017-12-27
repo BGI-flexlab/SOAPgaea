@@ -105,7 +105,7 @@ public class SampleAnnotationContext{
 		return alleleRatios.get(allele);
 	}
 
-	public double getAlleleDepth(String allele){
+	public int getAlleleDepth(String allele){
 		return alleleDepths.get(allele);
 	}
 
