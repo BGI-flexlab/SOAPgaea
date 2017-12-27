@@ -16,7 +16,6 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.mapreduce.annotator;
 
-
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFCodec;
 import htsjdk.variant.vcf.VCFHeader;
@@ -25,55 +24,46 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.InputSplit;
-import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.hadoop.mapreduce.lib.input.FileSplit;
-import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
+import org.apache.hadoop.mapred.lib.MultipleTextOutputFormat;
+import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
 import org.bgi.flexlab.gaea.data.structure.header.SingleVCFHeader;
-import org.bgi.flexlab.gaea.tools.annotator.AnnotationContext;
+import org.bgi.flexlab.gaea.data.structure.reference.ReferenceShare;
+import org.bgi.flexlab.gaea.tools.annotator.AnnotationEngine;
 import org.bgi.flexlab.gaea.tools.annotator.SampleAnnotationContext;
 import org.bgi.flexlab.gaea.tools.annotator.VcfAnnoContext;
+import org.bgi.flexlab.gaea.tools.annotator.VcfAnnotator;
+import org.bgi.flexlab.gaea.tools.annotator.config.Config;
+import org.bgi.flexlab.gaea.tools.annotator.db.DBAnnotator;
 
 import java.io.IOException;
-import java.util.HashMap;
+import java.util.*;
 
-public class AnnotationSortMapper extends Mapper<LongWritable, Text, Text, Text> {
+public class AnnotationSortReducer extends Reducer<Text, Text, NullWritable, Text> {
 
-	private Text resultKey;
 	private Text resultValue;
-	private Configuration conf;
+
 	@Override
-	protected void setup(Context context)
-			throws IOException, InterruptedException {
-		resultKey = new Text();
+	protected void setup(Context context) throws IOException, InterruptedException {
 		resultValue = new Text();
-		conf = context.getConfiguration();
 	}
 
 	@Override
-	protected void map(LongWritable key, Text value, Context context)
+	protected void reduce(Text key, Iterable<Text> values, Context context)
 			throws IOException, InterruptedException {
-		InputSplit inputSplit = context.getInputSplit();
-		String fileName = ((FileSplit) inputSplit).getPath().getName();
-		String annoLine = value.toString();
-		if (annoLine.startsWith("#")) return;
-
-		String chr = null;
-		VcfAnnoContext vac = new VcfAnnoContext();
-		vac.parseAnnotationStrings(annoLine);
-
-		for(SampleAnnotationContext sac: vac.getSampleAnnoContexts().values()){
-			resultKey.set(sac.getSampleName());
-			resultValue.set(vac.getAnnoStr()+"\t"+sac.toAlleleString(sac.getSingleAlt()));
-			context.write(resultKey, resultValue);
+		long start = System.currentTimeMillis();
+		Iterator<Text> iter =  values.iterator();
+		while(iter.hasNext()) {
+			Text inputLine = iter.next();
+			resultValue.set(inputLine);
+			context.write(NullWritable.get(), resultValue);
 		}
 	}
-	
+
 	@Override
 	protected void cleanup(Context context)
 			throws IOException, InterruptedException {
-
 	}
 }

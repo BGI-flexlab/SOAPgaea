@@ -16,6 +16,10 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.annotator;
 
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -27,8 +31,14 @@ public class SampleAnnotationContext{
 	private String sampleName;
 	private List<String> alts;   // variants at chr:pos
 	private int depth;
-	private Map<String, Integer> alleleDepths;
+	private Map<String, Integer> alleleDepths = null;
+	private Map<String, String> alleleRatios = null;
 	private boolean hasNearVar = false;
+	private String singleAlt;
+
+	public SampleAnnotationContext() {
+
+	}
 
 	public SampleAnnotationContext(String sampleName) {
 		this.sampleName = sampleName;
@@ -48,6 +58,16 @@ public class SampleAnnotationContext{
 
 	public void setHasNearVar() {
 		this.hasNearVar = true;
+	}
+
+	private void setAlleleRatios(){
+		DecimalFormat df = new DecimalFormat("0.00");
+		df.setRoundingMode(RoundingMode.HALF_UP);
+		alleleRatios = new HashMap<>();
+		for(String alt: getAlts()){
+			double ratio = getDepth() == 0 ? 0 : getAlleleDepth(alt) / getDepth();
+			alleleRatios.put(alt, df.format(ratio));
+		}
 	}
 
 	public int getDepth() {
@@ -73,4 +93,49 @@ public class SampleAnnotationContext{
 	public void setAlts(List<String> alts) {
 		this.alts = alts;
 	}
+
+	public String getSingleAlt() {
+		return singleAlt;
+	}
+
+	public boolean hasAlt(String alt){
+		return alts.contains(alt);
+	}
+
+	public String getAlleleRatio(String allele){
+		return alleleRatios.get(allele);
+	}
+
+	public double getAlleleDepth(String allele){
+		return alleleDepths.get(allele);
+	}
+
+	public String toAlleleString(String allele){
+		if(null == alleleRatios)
+			setAlleleRatios();
+		StringBuilder sb = new StringBuilder();
+		sb.append(getSampleName());
+		sb.append("|");
+		sb.append(allele);
+		sb.append("|");
+		sb.append(getAlleleRatio(allele));
+		sb.append("|");
+		sb.append(getAlleleDepth(allele));
+		sb.append("|");
+		sb.append(isHasNearVar() ? 1 : 0);
+		return sb.toString();
+	}
+
+	public void parseAlleleString(String alleleString){
+		String[] fields = alleleString.split("|");
+		setSampleName(fields[0]);
+		singleAlt = fields[1];
+		alleleRatios = new HashMap<>();
+		alleleDepths = new HashMap<>();
+		alleleRatios.put(singleAlt, fields[2]);
+		alleleDepths.put(singleAlt, Integer.parseInt(fields[3]));
+		if(fields[4].equals("1"))
+			setHasNearVar();
+	}
+
 }

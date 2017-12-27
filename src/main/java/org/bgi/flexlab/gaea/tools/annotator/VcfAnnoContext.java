@@ -19,6 +19,7 @@ package org.bgi.flexlab.gaea.tools.annotator;
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.VariantContext;
+import org.bgi.flexlab.gaea.tools.annotator.config.Config;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Chromosome;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Genome;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Variant;
@@ -35,13 +36,16 @@ public class VcfAnnoContext {
     protected LinkedList<Variant> variants;
     private List<AnnotationContext> annotationContexts;
     private Map<String, SampleAnnotationContext> sampleAnnoContexts;
+    private String annoStr;
 
     public VcfAnnoContext(){
         variants = new LinkedList<>();
+        sampleAnnoContexts = new HashMap<>();
     }
 
     public VcfAnnoContext(VariantContext variantContext){
         variants = new LinkedList<>();
+        sampleAnnoContexts = new HashMap<>();
         init(variantContext);
     }
 
@@ -298,5 +302,66 @@ public class VcfAnnoContext {
             return "chr"+getContig();
         }
         return getContig();
+    }
+
+    public String getAnnoStr() {
+        return annoStr;
+    }
+
+    public void parseAnnotationStrings(String annoLine){
+        String[] fields = annoLine.split("SampleInfo::");
+        annoStr = fields[0];
+        if(!fields[1].equals("")){
+            for(String sampleInfo: fields[1].split(";")){
+                SampleAnnotationContext sac = new SampleAnnotationContext();
+                sac.parseAlleleString(sampleInfo);
+                sampleAnnoContexts.put(sac.getSampleName(), sac);
+            }
+        }
+    }
+
+    public List<String> toAnnotationStrings(Config config) {
+        List<String> annoStrings = new ArrayList<>();
+        for(AnnotationContext ac : annotationContexts){
+            StringBuilder sb = new StringBuilder();
+            sb.append(config);
+            sb.append("\t");
+            sb.append(start);
+            sb.append("\t");
+            sb.append(refStr);
+            sb.append("\t");
+            sb.append(ac.getAllele());
+            ArrayList<String> fields = config.getFieldsByDB(Config.KEY_GENE_INFO);
+            for (String field : fields) {
+                sb.append("\t");
+                if(!ac.getFieldByName(field).isEmpty()){
+                    sb.append(ac.getFieldByName(field));
+                }else {
+                    sb.append(".");
+                }
+            }
+
+            List<String> dbNameList = config.getDbNameList();
+            for (String dbName : dbNameList) {
+                fields = config.getFieldsByDB(dbName);
+                for (String field : fields) {
+                    sb.append("\t");
+//						System.err.println("getNumAnnoItems:"+annoContext.getNumAnnoItems());
+                    sb.append(ac.getAnnoItemAsString(field, "."));
+                }
+            }
+
+            sb.append("SampleInfo::");
+            for(SampleAnnotationContext sac: sampleAnnoContexts.values()){
+                if(sac.hasAlt(ac.getAllele())){
+//                    sb.append(sac.getSampleName());
+//                    sb.append(":");
+                    sb.append(sac.toAlleleString(ac.getAllele()));
+                };
+                sb.append(";");
+            }
+            annoStrings.add(sb.toString());
+        }
+        return annoStrings;
     }
 }

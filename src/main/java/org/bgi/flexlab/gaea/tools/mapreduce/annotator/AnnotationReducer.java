@@ -60,18 +60,19 @@ public class AnnotationReducer extends Reducer<Text, VcfLineWritable, NullWritab
 		long start = System.currentTimeMillis();
 		ReferenceShare genomeShare = new ReferenceShare();
 		genomeShare.loadChromosomeList(options.getReferenceSequencePath());
-		System.err.println("genomeShare耗时：" + (System.currentTimeMillis()-start)+"毫秒");
+		if(options.isDebug())
+			System.err.println("genomeShare耗时：" + (System.currentTimeMillis()-start)+"毫秒");
 
 		Config userConfig = new Config(conf, genomeShare);
 		userConfig.setVerbose(options.isVerbose());
 		userConfig.setDebug(options.isDebug());
 
-
 		start = System.currentTimeMillis();
 		AnnotatorBuild annoBuild = new AnnotatorBuild(userConfig);
 		userConfig.setSnpEffectPredictor(annoBuild.createSnpEffPredictor());
 		annoBuild.buildForest();
-		System.err.println("build SnpEffectPredictor耗时：" + (System.currentTimeMillis()-start)+"毫秒");
+		if(options.isDebug())
+			System.err.println("build SnpEffectPredictor耗时：" + (System.currentTimeMillis()-start)+"毫秒");
 		sampleNames = new ArrayList<>();
 		vcfCodecs = new HashMap<>();
 		Path inputPath = new Path(options.getInputFilePath());
@@ -96,7 +97,8 @@ public class AnnotationReducer extends Reducer<Text, VcfLineWritable, NullWritab
 			}
 
 		}
-		System.err.println("getVCFHeader耗时：" + (System.currentTimeMillis()-start)+"毫秒");
+		if(options.isDebug())
+			System.err.println("getVCFHeader耗时：" + (System.currentTimeMillis()-start)+"毫秒");
 
 		annoEngine = new AnnotationEngine(userConfig);
 
@@ -135,7 +137,6 @@ public class AnnotationReducer extends Reducer<Text, VcfLineWritable, NullWritab
 			throws IOException, InterruptedException {
 		long start = System.currentTimeMillis();
 		Iterator<VcfLineWritable> iter =  values.iterator();
-//		List<VcfAnnotationContext> vcfList = new ArrayList<>();
 		Map<String, VcfAnnoContext> posVariantInfo = new HashMap<>();
 		Map<Integer, String> posToPosKey = new HashMap<>();
 		List<Integer> positions = new ArrayList<>();
@@ -190,45 +191,18 @@ public class AnnotationReducer extends Reducer<Text, VcfLineWritable, NullWritab
 			}
 		}
 
-//		{
-//			System.err.println("step2:" + (System.currentTimeMillis()-start)+"ms");
-//
-//			for( int i = 0 ; i < vcfList.size(); i ++) {
-//				VcfAnnotationContext vcfAnnoContext = vcfList.get(i);
-//				List<String> annoLines = vcfAnnotator.convertAnnotationStrings(vcfAnnoContext);
-//				if(options.isMultiOutput()) {
-//					for (int j = 0; j < vcfAnnoContext.getNSamples(); j ++) {
-//						Genotype genotype = vcfAnnoContext.getGenotype(j);
-//						if(genotype.isCalled())
-//						for (String annoLine : annoLines) {
-//								resultValue.set(annoLine);
-//								multipleOutputs.write(SampleNameModifier.modify(genotype.getSampleName()), NullWritable.get(),
-//										resultValue, genotype.getSampleName() + "/part");
-//						}
-//					}
-//				}else {
-//	//				StringBuilder sb = new StringBuilder();
-//	//				for(String sample: sampleNames){
-//	//					sb.append("\t");
-//	//					sb.append(vcfAnnoContext.getGenotype(sample).);
-//	//				}
-//					for (String annoLine : annoLines) {
-//						resultValue.set(annoLine);
-//	//					resultValue.set(annoLine+sb.toString());
-//						context.write(NullWritable.get(), resultValue);
-//					}
-//				}
-//			}
-//		}
-		System.err.println("step3:" + (System.currentTimeMillis()-start)+"ms");
+		if(options.isDebug()) {
+			System.err.println("step3:" + (System.currentTimeMillis() - start) + "ms");
+			mapTime += System.currentTimeMillis() - start;
+			mapCount++;
+		}
 	}
 
 	@Override
 	protected void cleanup(Context context)
 			throws IOException, InterruptedException {
 		dbAnnotator.disconnection();
-		if (options.isMultiOutput())
-			multipleOutputs.close();
-		System.err.println("dbAnnotator平均耗时(mapTime/mapCount)：" +mapTime+"/"+mapCount+" = ? 毫秒");
+		if(options.isDebug())
+			System.err.println("dbAnnotator平均耗时(mapTime/mapCount)：" +mapTime+"/"+mapCount+" = ? 毫秒");
 	}
 }

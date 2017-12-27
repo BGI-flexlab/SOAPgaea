@@ -18,44 +18,47 @@ package org.bgi.flexlab.gaea.tools.mapreduce.annotator;
 
 import htsjdk.variant.vcf.VCFHeader;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapred.lib.MultipleTextOutputFormat;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
-import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.bgi.flexlab.gaea.data.structure.header.SingleVCFHeader;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.BioJob;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.ToolsRunner;
 
-import java.io.BufferedReader;
-import java.io.FileOutputStream;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.zip.GZIPOutputStream;
 
-/**
- * Created by huangzhibo on 2017/7/7.
- */
 public class Annotator extends ToolsRunner {
+
+    static class KeyMultipleTextOutputFormat extends MultipleTextOutputFormat<Text, Text> {
+        @Override
+        protected String generateFileNameForKeyValue(Text key, Text value, String name) {
+            return key.toString()+'-'+name;
+        }
+    }
+
+    private Configuration conf;
+    private AnnotatorOptions options;
+    private List<String> sampleNames;
 
     public Annotator(){}
 
-    public int runAnnotator(String[] arg0) throws Exception {
+    private int runAnnotator(String[] arg0) throws Exception {
 
-        Configuration conf = new Configuration();
+        conf = new Configuration();
         String[] remainArgs = remainArgs(arg0, conf);
 
-        AnnotatorOptions options = new AnnotatorOptions();
+        options = new AnnotatorOptions();
         options.parse(remainArgs);
         options.setHadoopConf(remainArgs, conf);
         BioJob job = BioJob.getInstance(conf);
 
-//        job.setHeader(new Path(options.getInput()), new Path(options.getOutput()));
         job.setJobName("GaeaAnnotator");
         job.setJarByClass(this.getClass());
         job.setMapperClass(AnnotationMapper.class);
@@ -78,7 +81,6 @@ public class Annotator extends ToolsRunner {
 
         for(FileStatus file : files) {//统计sample names
             System.out.println(file.getPath());
-
             if (file.isFile()) {
                 SingleVCFHeader singleVcfHeader = new SingleVCFHeader();
                 singleVcfHeader.readHeaderFrom(file.getPath(), fs);
@@ -97,75 +99,43 @@ public class Annotator extends ToolsRunner {
         Path partTmp = new Path(options.getTmpPath());
 
         FileOutputFormat.setOutputPath(job, partTmp);
-        if(options.isMultiOutput()){
-            for(int i = 0; i < sampleNames.size(); i++)//相同sample name输出到同一个文件夹
-            {
-                System.out.println("sampleName "+i+":"+SampleNameModifier.modify(sampleNames.get(i)));
-                MultipleOutputs.addNamedOutput(job, SampleNameModifier.modify(sampleNames.get(i)), TextOutputFormat.class, NullWritable.class, Text.class);
-            }
-        }
-        if (job.waitForCompletion(true)) {
-            if(options.isMultiOutput()) {
-                for (int i = 0; i < sampleNames.size(); i++) {//同一个文件夹下的结果整合到一个文件
-                    GZIPOutputStream os = new GZIPOutputStream(new FileOutputStream(options.getOutputPath() + "/" + sampleNames.get(i) + ".tsv.gz"));
-                    final FileStatus[] parts = partTmp.getFileSystem(conf).globStatus(new Path(options.getTmpPath() + "/" + sampleNames.get(i) +
-                            "/part" + "-*-[0-9][0-9][0-9][0-9][0-9]*"));
-                    boolean writeHeader = true;
-                    for (FileStatus p : parts) {
-                        FSDataInputStream dis = p.getPath().getFileSystem(conf).open(p.getPath());
-                        BufferedReader reader = new BufferedReader(new InputStreamReader(dis));
-                        String line;
-                        while ((line = reader.readLine()) != null) {
-                            if (line.startsWith("#")) {
-                                if (writeHeader) {
-                                    os.write(line.getBytes());
-                                    os.write('\n');
-                                    writeHeader = false;
-                                }
-                                continue;
-                            }
-                            os.write(line.getBytes());
-                            os.write('\n');
-                        }
-                    }
-                    os.close();
-                }
-                partTmp.getFileSystem(conf).delete(partTmp, true);
-            }else {
-                GZIPOutputStream os = new GZIPOutputStream(new FileOutputStream(options.getOutputPath() + "/multiSample.tsv.gz"));
-                final FileStatus[] parts = partTmp.getFileSystem(conf).globStatus(new Path(options.getTmpPath() +
-                        "/part" + "-*-[0-9][0-9][0-9][0-9][0-9]*"));
-                boolean writeHeader = true;
-                for (FileStatus p : parts) {
-                    FSDataInputStream dis = p.getPath().getFileSystem(conf).open(p.getPath());
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(dis));
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        if (line.startsWith("#")) {
-                            if (writeHeader) {
-                                os.write(line.getBytes());
-                                os.write('\n');
-                                writeHeader = false;
-                            }
-                            continue;
-                        }
-                        os.write(line.getBytes());
-                        os.write('\n');
-                    }
-                }
-                os.close();
-            }
-            return 0;
-        }else {
-            return 1;
-        }
+
+        return job.waitForCompletion(true) ? 0 : 1;
+    }
+
+
+    private int runAnnotatorSort() throws Exception {
+
+        BioJob job = BioJob.getInstance(conf);
+
+        job.setJobName("GaeaAnnotatorSortResult");
+        job.setJarByClass(this.getClass());
+        job.setMapperClass(AnnotationSortMapper.class);
+        job.setReducerClass(AnnotationSortReducer.class);
+        job.setNumReduceTasks(sampleNames.size());
+
+        job.setMapOutputKeyClass(Text.class);
+        job.setMapOutputValueClass(Text.class);
+
+
+        job.setOutputKeyClass(NullWritable.class);
+        job.setOutputValueClass(KeyMultipleTextOutputFormat.class);
+        job.setInputFormatClass(TextInputFormat.class);
+
+        Path inputPath = new Path(options.getTmpPath());
+        FileInputFormat.setInputPaths(job, inputPath);
+        FileOutputFormat.setOutputPath(job, new Path(options.getOutputPath()));
+
+        return job.waitForCompletion(true) ? 0 : 1;
     }
 
 
     @Override
     public int run(String[] args) throws Exception {
         Annotator annotator = new Annotator();
-        return annotator.runAnnotator(args);
+        if(annotator.runAnnotator(args) != 0)
+            return 1;
+        return annotator.runAnnotatorSort();
     }
 
 }

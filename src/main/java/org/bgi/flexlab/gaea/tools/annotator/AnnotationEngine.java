@@ -45,8 +45,6 @@ public class AnnotationEngine{
 	 */
 	public boolean annotate(VcfAnnoContext vac) {
 		List<AnnotationContext> annotationContexts = new ArrayList<>();
-//		HashMap<String, AnnotationContext> annotationContexts = new HashMap<String, AnnotationContext>();
-		
 //		boolean filteredOut = false;
 		//---
 		// Analyze all changes in this VCF entry

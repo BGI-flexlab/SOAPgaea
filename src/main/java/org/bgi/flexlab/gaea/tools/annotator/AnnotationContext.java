@@ -107,6 +107,8 @@ public class AnnotationContext implements Serializable{
 	private static Map<String, Object> NO_VALUE = Collections.unmodifiableMap(new HashMap<String, Object>());
 	private Map<String, Object> annoItems = NO_VALUE;
 
+	public AnnotationContext() {}
+
 	public AnnotationContext(VariantEffect variantEffect) {
 		this(variantEffect, true, false);
 	}
