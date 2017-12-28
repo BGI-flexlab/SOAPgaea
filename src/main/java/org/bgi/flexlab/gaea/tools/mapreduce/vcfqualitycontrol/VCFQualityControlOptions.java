@@ -26,6 +26,7 @@ import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.data.mapreduce.options.HadoopOptions;
 import org.bgi.flexlab.gaea.data.options.GaeaOptions;
 import org.bgi.flexlab.gaea.data.structure.header.GaeaVCFHeader;
+import org.bgi.flexlab.gaea.tools.vcfqualitycontrol2.VCFQualityControlArgumentCollection;
 import org.seqdoop.hadoop_bam.KeyIgnoringVCFOutputFormat;
 import org.seqdoop.hadoop_bam.VCFOutputFormat;
 
@@ -40,61 +41,74 @@ public class VCFQualityControlOptions extends GaeaOptions implements HadoopOptio
 	private final static String SOFTWARE_VERSION = "1.0";
 
 	private final static String ARGS_SEPARTE = ":";
+	
+	private VCFQualityControlArgumentCollection  arguments = new VCFQualityControlArgumentCollection();
 
 	public VCFQualityControlOptions() {
-		// TODO Auto-generated constructor stub
-		addOption("m", "mode", true, "VQSR:The mode employed to perform vcf quality control(\"1\" is vcf recalibration."
-				+ "\"2\" is hard filter. Default:1");
-		addOption("i", "input", true, "The raw input variants to be recalibrated.", true);
-		addOption("r", "reference", true, "VQSR:reference in fasta format.", true);
-		addOption("R", "resource", true, "VQSR:A list of sites for which to apply a prior probability of"
-				+ " being correct but which aren't used by the algorithm, separated by ':'.", true);
-		addOption("o", "output", true, "The output local path.", true);
-		addOption("t", "titv", true,
-				"VQSR:the expected novel Ti/Tv ratio to use when calculating FDR tranches"
-						+ " and for display on the optimization curve output figures. (approx 2.15 for whole genome"
-						+ " experiments). ONLY USED FOR PLOTTING PURPOSES!");
+		addOption("A", "individuals", false, "individuals statistics.");
 		addOption("a", "an", true,
 				"VQSR:The names of the annotations which should used for calculations, separated by ':'.");
-		addOption("T", "TStranche", true,
-				"VQSR:The levels of novel false discovery rate (FDR, implied by ti/tv) at which to slice the data. (in percent, that is 1.0 for 1 percent)");
-		addOption("I", "ignoreFilter", true,
-				"VQSR:If specified the variant recalibrator will use variants even if the specified filter name is marked in the input VCF file, separated by '#'.");
-		addOption("f", "tsFilterLevel", true,
-				"VQSR:The truth sensitivity level at which to start filtering, used here to indicate filtered variants in the model reporting plots");
+		addOption("B", "region", true, "region file");
+		addOption("b", "minNumBadVariants", true,
+				"VQSR:The minimum amount of worst scoring variants to use when building the Gaussian mixture model of bad variants. Will override -percentBad argument if necessary.");
+		addOption("C", "maxIterations", true,
+				"VQSR:The maximum number of VBEM iterations to be performed in variational Bayes algorithm. Procedure will normally end when convergence is detected.");
 		addOption("c", "trustAllPolymorphic", false,
 				"VQSR:Trust that all the input training sets' unfiltered records contain only polymorphic sites to drastically speed up the computation.");
+		addOption("D", "indelFilter", true, "Hard Filter:indel filter parameter, eg:\"MQ<10||FS>8.0\"\n");
+		addOption("d", "dirichlet", true, "VQSR:The dirichlet parameter in the variational Bayes algorithm.");
+		addOption("F", "filterName", true, "Hard Filter:filter name");
+		addOption("f", "tsFilterLevel", true,
+				"VQSR:The truth sensitivity level at which to start filtering, used here to indicate filtered variants in the model reporting plots");
+		addOption("g", "maxGaussians", true,
+				"VQSR:The maximum number of Gaussians to try during variational Bayes algorithm");
+		addOption("G", "shrinkage", true, "VQSR:The shrinkage parameter in the variational Bayes algorithm.");
+		addOption("H", "hasRscript", true, "VQSR:do Rscript");
+		addOption("h", "help", false, "Display help information.");
+		addOption("I", "ignoreFilter", true,
+				"VQSR:If specified the variant recalibrator will use variants even if the specified filter name is marked in the input VCF file, separated by '#'.");
+		addOption("i", "input", true, "The raw input variants to be recalibrated.", true);
+		addOption("k", "numKMeans", true,
+				"VQSR:The number of k-means iterations to perform in order to initialize the means of the Gaussians in the Gaussian mixture model.");
+		addOption("l", "tmpPath", true, "VQSR:temp local Path.");
 		addOption("M", "mode", true,
 				"VQSR:Recalibration mode to employ: 1.) SNP for recalibrating only snps (emitting indels untouched in the output VCF); 2.) INDEL for indels; and 3.) BOTH "
 						+ "for recalibrating both snps and indels simultaneously.");
-		addOption("g", "maxGaussians", true,
-				"VQSR:The maximum number of Gaussians to try during variational Bayes algorithm");
-		addOption("C", "maxIterations", true,
-				"VQSR:The maximum number of VBEM iterations to be performed in variational Bayes algorithm. Procedure will normally end when convergence is detected.");
-		addOption("k", "numKMeans", true,
-				"VQSR:The number of k-means iterations to perform in order to initialize the means of the Gaussians in the Gaussian mixture model.");
-		addOption("s", "stdThreshold", true,
-				"VQSR:If a variant has annotations more than -std standard deviations away from mean then don't use it for building the Gaussian mixture model.");
-		addOption("q", "qualThreshold", true,
-				"VQSR:If a known variant has raw QUAL value less than -qual then don't use it for building the Gaussian mixture model.");
-		addOption("G", "shrinkage", true, "VQSR:The shrinkage parameter in the variational Bayes algorithm.");
-		addOption("d", "dirichlet", true, "VQSR:The dirichlet parameter in the variational Bayes algorithm.");
-		addOption("p", "priorCounts", true,
-				"VQSR:The number of prior counts to use in the variational Bayes algorithm.");
+		addOption("m", "mode", true, "VQSR:The mode employed to perform vcf quality control(\"1\" is vcf recalibration."
+				+ "\"2\" is hard filter. Default:1");
+		addOption("O", "hdfsOutputPath", true, "VQSR:hdfs Output Path." + "");
+		addOption("o", "output", true, "The output local path.", true);
 		addOption("P", "percentBadVariants", true,
 				"VQSR:What percentage of the worst scoring variants to use when building the Gaussian mixture model of bad variants. 0.07 means bottom 7 percent.");
-		addOption("b", "minNumBadVariants", true,
-				"VQSR:The minimum amount of worst scoring variants to use when building the Gaussian mixture model of bad variants. Will override -percentBad argument if necessary.");
-		addOption("O", "hdfsOutputPath", true, "VQSR:hdfs Output Path." + "");
-		addOption("l", "tmpPath", true, "VQSR:temp local Path.");
-		addOption("H", "hasRscript", true, "VQSR:do Rscript");
-		addOption("F", "filterName", true, "Hard Filter:filter name");
+		addOption("p", "priorCounts", true,
+				"VQSR:The number of prior counts to use in the variational Bayes algorithm.");
+		addOption("q", "qualThreshold", true,
+				"VQSR:If a known variant has raw QUAL value less than -qual then don't use it for building the Gaussian mixture model.");
+		addOption("R", "resource", true, "VQSR:A list of sites for which to apply a prior probability of"
+				+ " being correct but which aren't used by the algorithm, separated by ':'.", true);
+		addOption("r", "reference", true, "VQSR:reference in fasta format.", true);
 		addOption("S", "snpFilter", true, "Hard Filter:snp filter parameter, eg:MQ>10");
-		addOption("D", "indelFilter", true, "Hard Filter:indel filter parameter, eg:\"MQ<10||FS>8.0\"\n");
-		addOption("h", "help", false, "Display help information.");
-		addOption("A", "individuals", false, "individuals statistics.");
-		addOption("B", "region", true, "region file");
+		addOption("s", "stdThreshold", true,
+				"VQSR:If a variant has annotations more than -std standard deviations away from mean then don't use it for building the Gaussian mixture model.");
+		addOption("T", "TStranche", true,
+				"VQSR:The levels of novel false discovery rate (FDR, implied by ti/tv) at which to slice the data. (in percent, that is 1.0 for 1 percent)");
+		addOption("t", "titv", true,
+				"VQSR:the expected novel Ti/Tv ratio to use when calculating FDR tranches"
+						+ " and for display on the optimization curve output figures. (approx 2.15 for whole genome"
+						+ " experiments). ONLY USED FOR PLOTTING PURPOSES!");		
 	}
+	
+	private String trancheFile = null;
+	
+	private String outputModelFile = null;
+	
+	private String recalFile = null;
+	
+	private String rscript = null;
+	
+	private boolean scatter = false;
+	
+	private int sampleMode = 1;
 
 	/**
 	 * vcf quality control mode
@@ -247,6 +261,8 @@ public class VCFQualityControlOptions extends GaeaOptions implements HadoopOptio
 	private boolean individuals = true;
 
 	private String regionFile = null;
+	
+	private boolean IGNORE_ALL_FILTERS = false;
 
 	/**
 	 * class of Model
@@ -508,10 +524,17 @@ public class VCFQualityControlOptions extends GaeaOptions implements HadoopOptio
 	/**
 	 * @return the tsTranches
 	 */
-	public String getTsTranches() {
-		return TsTranches;
+	public List<Double> getTsTranches() {
+		String[] str = TsTranches.split(",");
+		
+		List<Double> tranches = new ArrayList<Double>();
+		
+		for(int i = 0 ; i < str.length ; i++)
+			tranches.add(Double.parseDouble(str[i]));
+			
+		return tranches;
 	}
-
+	
 	/**
 	 * @param tsTranches
 	 *            the tsTranches to set
@@ -784,5 +807,37 @@ public class VCFQualityControlOptions extends GaeaOptions implements HadoopOptio
 
 	public String getRegion() {
 		return this.regionFile;
+	}
+	
+	public VCFQualityControlArgumentCollection getArgument(){
+		return this.arguments;
+	}
+	
+	public boolean ignorAllFilter(){
+		return this.IGNORE_ALL_FILTERS;
+	}
+	
+	public String getTrancheFile(){
+		return this.trancheFile;
+	}
+	
+	public String getOutputModel(){
+		return this.outputModelFile;
+	}
+	
+	public String getRecalFile(){
+		return this.recalFile;
+	}
+	
+	public String getRScript(){
+		return this.rscript;
+	}
+	
+	public boolean getScatterTranches(){
+		return scatter;
+	}
+	
+	public int getSampleMode(){
+		return sampleMode;
 	}
 }

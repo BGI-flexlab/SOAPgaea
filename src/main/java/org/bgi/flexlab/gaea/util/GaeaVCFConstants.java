@@ -1,5 +1,8 @@
 package org.bgi.flexlab.gaea.util;
 
+import java.util.Arrays;
+import java.util.List;
+
 import htsjdk.variant.variantcontext.Allele;
 
 public final class GaeaVCFConstants {
@@ -148,5 +151,33 @@ public final class GaeaVCFConstants {
     public final static String NON_REF_SYMBOLIC_ALLELE_NAME = "NON_REF";
     public final static Allele NON_REF_SYMBOLIC_ALLELE = Allele.create("<"+NON_REF_SYMBOLIC_ALLELE_NAME+">", false); // represents any possible non-ref allele at this site
     public final static String SPANNING_DELETION_SYMBOLIC_ALLELE_NAME_DEPRECATED = "*:DEL";
-    public final static Allele SPANNING_DELETION_SYMBOLIC_ALLELE_DEPRECATED = Allele.create("<"+SPANNING_DELETION_SYMBOLIC_ALLELE_NAME_DEPRECATED+">", false); 
+    public final static Allele SPANNING_DELETION_SYMBOLIC_ALLELE_DEPRECATED = Allele.create("<"+SPANNING_DELETION_SYMBOLIC_ALLELE_NAME_DEPRECATED+">", false);
+    
+    public static final String CONTIG_ID_KEY =                      "ID";
+    public static final String CONTIG_LENGTH_KEY =                  "length";
+    public static final String ASSEMBLY_NAME_KEY =                  "assembly";
+    
+    public static final String F1R2_KEY =                           "F1R2";
+    public static final String F2R1_KEY =                           "F2R1";
+    
+    public static final String MULTIALLELIC_FILTER_NAME =                     "multiallelic"; //M2
+    public static final String STRAND_ARTIFACT_FILTER_NAME =                  "strand_artifact"; // M2
+    public static final String DUPLICATED_EVIDENCE_FILTER_NAME =              "duplicate_evidence";
+    public final static String ARTIFACT_IN_NORMAL_FILTER_NAME =                "artifact_in_normal";
+    public final static String MEDIAN_BASE_QUALITY_FILTER_NAME =                "base_quality";
+    public final static String MEDIAN_MAPPING_QUALITY_FILTER_NAME =             "mapping_quality";
+    public final static String MEDIAN_FRAGMENT_LENGTH_DIFFERENCE_FILTER_NAME = "fragment_length";
+    public final static String READ_POSITION_FILTER_NAME =                      "read_position";
+    public final static String CONTAMINATION_FILTER_NAME =                      "contamination";
+    
+    public static final String IN_PON_VCF_ATTRIBUTE =               "IN_PON";
+    public static final String NORMAL_ARTIFACT_LOD_ATTRIBUTE =      "N_ART_LOD";
+    public static final String POPULATION_AF_VCF_ATTRIBUTE =        "POP_AF";
+    public static final String GERMLINE_POSTERIORS_VCF_ATTRIBUTE =  "P_GERMLINE";
+    public static final List<String> STANDARD_MUTECT_INFO_FIELDS = Arrays.asList(NORMAL_LOD_KEY, TUMOR_LOD_KEY, NORMAL_ARTIFACT_LOD_ATTRIBUTE,
+            EVENT_COUNT_IN_HAPLOTYPE_KEY, IN_PON_VCF_ATTRIBUTE, POPULATION_AF_VCF_ATTRIBUTE, GERMLINE_POSTERIORS_VCF_ATTRIBUTE);
+    
+    public static boolean isSpanningDeletion(final Allele allele){
+        return allele.equals(Allele.SPAN_DEL) || allele.equals(SPANNING_DELETION_SYMBOLIC_ALLELE_DEPRECATED);
+    }
 }

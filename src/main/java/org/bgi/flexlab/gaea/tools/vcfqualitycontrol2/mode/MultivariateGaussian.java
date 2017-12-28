@@ -1,59 +1,17 @@
-/*******************************************************************************
- * Copyright (c) 2017, BGI-Shenzhen
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>
- *
- * This file incorporates work covered by the following copyright and 
- * Permission notices:
- *
- * Copyright (c) 2009-2012 The Broad Institute
- *  
- *     Permission is hereby granted, free of charge, to any person
- *     obtaining a copy of this software and associated documentation
- *     files (the "Software"), to deal in the Software without
- *     restriction, including without limitation the rights to use,
- *     copy, modify, merge, publish, distribute, sublicense, and/or sell
- *     copies of the Software, and to permit persons to whom the
- *     Software is furnished to do so, subject to the following
- *     conditions:
- *  
- *     The above copyright notice and this permission notice shall be
- *     included in all copies or substantial portions of the Software.
- *  
- *     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- *     EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- *     OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- *     NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
- *     HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- *     WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- *     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- *     OTHER DEALINGS IN THE SOFTWARE.
- *******************************************************************************/
-package org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin.model;
-
-import Jama.Matrix;
-import org.apache.commons.math3.special.Gamma;
-import org.bgi.flexlab.gaea.data.exception.UserException;
-import org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin.traindata.VariantDatum;
-import org.bgi.flexlab.gaea.util.ExpandingArrayList;
-import org.bgi.flexlab.gaea.util.MathUtils;
+package org.bgi.flexlab.gaea.tools.vcfqualitycontrol2.mode;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
-public class MultipleVariateGaussian {
+import org.apache.commons.math3.special.Gamma;
+import org.bgi.flexlab.gaea.data.exception.UserException;
+import org.bgi.flexlab.gaea.tools.vcfqualitycontrol2.VariantDatum;
+import org.bgi.flexlab.gaea.util.MathUtils;
+
+import Jama.Matrix;
+
+public class MultivariateGaussian {
 	public double pMixtureLog10;
     public double sumProb;
     final public double[] mu;
@@ -63,12 +21,14 @@ public class MultipleVariateGaussian {
     public double hyperParameter_lambda;
     private double cachedDenomLog10;
     private Matrix cachedSigmaInverse;
-    final private ExpandingArrayList<Double> pVarInGaussian;
+    final private double[] pVarInGaussian;
+    int pVarInGaussianIndex;
 
-    public MultipleVariateGaussian( final int numAnnotations ) {
+    public MultivariateGaussian( final int numVariants, final int numAnnotations  ) {
         mu = new double[numAnnotations];
         sigma = new Matrix(numAnnotations, numAnnotations);
-        pVarInGaussian = new ExpandingArrayList<Double>();
+        pVarInGaussian = new double[numVariants];
+        pVarInGaussianIndex = 0;
     }
 
     public void zeroOutMu() {
@@ -113,7 +73,7 @@ public class MultipleVariateGaussian {
     public void incrementMu( final VariantDatum datum ) {
         incrementMu( datum, 1.0 );
     }
-    
+
     public void incrementMu( final VariantDatum datum, final double prob ) {
         for( int jjj = 0; jjj < mu.length; jjj++ ) {
             mu[jjj] += prob * datum.annotations[jjj];
@@ -130,7 +90,13 @@ public class MultipleVariateGaussian {
         try {
             cachedSigmaInverse = sigma.inverse();
         } catch( Exception e ) {
-            throw new UserException("Error during clustering. Most likely there are too few variants used during Gaussian mixture modeling. Please consider raising the number of variants used to train the negative model (via --percentBadVariants 0.05, for example) or lowering the maximum number of Gaussians to use in the model (via --maxGaussians 4, for example).");
+            //TODO: there must be something narrower than Exception to catch here
+            throw new UserException(
+                    "Error during clustering. Most likely there are too few variants used during Gaussian mixture " +
+                            "modeling. Please consider raising the number of variants used to train the negative "+
+                            "model (via --percentBadVariants 0.05, for example) or lowering the maximum number of " +
+                            "Gaussians to use in the model (via --maxGaussians 4, for example).",
+                    e);
         }
     }
 
@@ -169,42 +135,29 @@ public class MultipleVariateGaussian {
         for( int iii = 0; iii < mu.length; iii++ ) {
             sumKernel += crossProdTmp[iii] * (datum.annotations[iii] - mu[iii]);
         }
-        
+
         return (( -0.5 * sumKernel ) / Math.log(10.0)) + cachedDenomLog10; // This is the definition of a Gaussian PDF Log10
-    }
-    
-    public void fills(int size){
-    	for(int i = 0 ; i < size ; i++){
-    		pVarInGaussian.add(Double.valueOf(0));
-    	}
     }
 
     public void assignPVarInGaussian( final double pVar ) {
-        pVarInGaussian.add( pVar );
-    }
-    
-    public void assignPVarInGaussian(final int index,final double pVar){
-    	pVarInGaussian.set(index, pVar);
+        pVarInGaussian[pVarInGaussianIndex++] = pVar;
     }
 
     public void resetPVarInGaussian() {
-        pVarInGaussian.clear();
-    }
-    
-    public void printPVar(int i , int j){
-    	System.err.println(i+"\t"+j+"\t"+pVarInGaussian.size());
+        Arrays.fill(pVarInGaussian, 0.0);
+        pVarInGaussianIndex = 0;
     }
 
-    public void maximizeGaussian( final List<VariantDatum> data, final double[] empiricalMu, final Matrix empiricalSigma,
-                                  final double SHRINKAGE, final double DIRICHLET_PARAMETER, final double DEGREES_OF_FREEDOM ) {
+    public void maximizeGaussian(final List<VariantDatum> data, final double[] empiricalMu, final Matrix empiricalSigma,
+                                 final double SHRINKAGE, final double DIRICHLET_PARAMETER, final double DEGREES_OF_FREEDOM ) {
         sumProb = 1E-10;
         final Matrix wishart = new Matrix(mu.length, mu.length);
         zeroOutMu();
         zeroOutSigma();
-        
+
         int datumIndex = 0;
         for( final VariantDatum datum : data ) {
-            final double prob = pVarInGaussian.get(datumIndex++);
+            final double prob = pVarInGaussian[datumIndex++];
             sumProb += prob;
             incrementMu( datum, prob );
         }
@@ -212,20 +165,20 @@ public class MultipleVariateGaussian {
 
         final double shrinkageFactor = (SHRINKAGE * sumProb) / (SHRINKAGE + sumProb);
         for( int iii = 0; iii < mu.length; iii++ ) {
-        	double factor = shrinkageFactor * (mu[iii] - empiricalMu[iii]);
+            double deltaMu = shrinkageFactor * (mu[iii] - empiricalMu[iii]);
             for( int jjj = 0; jjj < mu.length; jjj++ ) {
-                wishart.set(iii, jjj, factor * (mu[jjj] - empiricalMu[jjj]));
+                wishart.set(iii, jjj, deltaMu * (mu[jjj] - empiricalMu[jjj]));
             }
         }
 
         datumIndex = 0;
         final Matrix pVarSigma = new Matrix(mu.length, mu.length);
         for( final VariantDatum datum : data ) {
-            final double prob = pVarInGaussian.get(datumIndex++);
+            final double prob = pVarInGaussian[datumIndex++];
             for( int iii = 0; iii < mu.length; iii++ ) {
-            	double factor = prob * (datum.annotations[iii]-mu[iii]);
+                double deltaMu = prob * (datum.annotations[iii]-mu[iii]);
                 for( int jjj = 0; jjj < mu.length; jjj++ ) {
-                    pVarSigma.set(iii, jjj, factor * (datum.annotations[jjj]-mu[jjj]));
+                    pVarSigma.set(iii, jjj, deltaMu * (datum.annotations[jjj]-mu[jjj]));
                 }
             }
             sigma.plusEquals( pVarSigma );
@@ -252,7 +205,7 @@ public class MultipleVariateGaussian {
 
         int datumIndex = 0;
         for( final VariantDatum datum : data ) {
-            final double prob = pVarInGaussian.get(datumIndex++);
+            final double prob = pVarInGaussian[datumIndex++];
             sumProb += prob;
             incrementMu( datum, prob );
         }
@@ -261,7 +214,7 @@ public class MultipleVariateGaussian {
         datumIndex = 0;
         final Matrix pVarSigma = new Matrix(mu.length, mu.length);
         for( final VariantDatum datum : data ) {
-            final double prob = pVarInGaussian.get(datumIndex++);
+            final double prob = pVarInGaussian[datumIndex++];
             for( int iii = 0; iii < mu.length; iii++ ) {
                 for( int jjj = 0; jjj < mu.length; jjj++ ) {
                     pVarSigma.set(iii, jjj, prob * (datum.annotations[iii]-mu[iii]) * (datum.annotations[jjj]-mu[jjj]));
