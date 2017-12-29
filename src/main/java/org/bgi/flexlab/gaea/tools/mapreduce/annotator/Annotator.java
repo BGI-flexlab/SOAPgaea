@@ -23,10 +23,10 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapred.lib.MultipleTextOutputFormat;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.mapreduce.lib.output.LazyOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.bgi.flexlab.gaea.data.structure.header.SingleVCFHeader;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.BioJob;
@@ -36,14 +36,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Annotator extends ToolsRunner {
-
-    class KeyMultipleTextOutputFormat extends MultipleTextOutputFormat<Text, Text> {
-        @Override
-        protected String generateFileNameForKeyValue(Text key, Text value, String name) {
-            return key.toString()+'-'+name;
-        }
-    }
-
     private Configuration conf;
     private AnnotatorOptions options;
     private List<String> sampleNames;
@@ -51,7 +43,6 @@ public class Annotator extends ToolsRunner {
     public Annotator(){}
 
     private int runAnnotator(String[] arg0) throws Exception {
-
         conf = new Configuration();
         String[] remainArgs = remainArgs(arg0, conf);
 
@@ -68,7 +59,6 @@ public class Annotator extends ToolsRunner {
 
         job.setMapOutputKeyClass(Text.class);
         job.setMapOutputValueClass(VcfLineWritable.class);
-
 
         job.setOutputKeyClass(NullWritable.class);
         job.setOutputValueClass(Text.class);
@@ -97,7 +87,6 @@ public class Annotator extends ToolsRunner {
         MNLineInputFormat.setMinNumLinesToSplit(job,1000); //按行处理的最小单位
         MNLineInputFormat.setMapperNum(job, options.getReducerNum());
         Path partTmp = new Path(options.getTmpPath());
-
         FileOutputFormat.setOutputPath(job, partTmp);
 
         return job.waitForCompletion(true) ? 0 : 1;
@@ -114,13 +103,15 @@ public class Annotator extends ToolsRunner {
         job.setReducerClass(AnnotationSortReducer.class);
         job.setNumReduceTasks(sampleNames.size());
 
-        job.setMapOutputKeyClass(Text.class);
+        job.setMapOutputKeyClass(PairWritable.class);
         job.setMapOutputValueClass(Text.class);
+
+        job.setPartitionerClass(FirstPartitioner.class);
 
         job.setOutputKeyClass(NullWritable.class);
         job.setOutputValueClass(Text.class);
         job.setInputFormatClass(TextInputFormat.class);
-        job.setOutputFormatClass(TextOutputFormat.class);
+        LazyOutputFormat.setOutputFormatClass(job, TextOutputFormat.class);
 
         Path inputPath = new Path(options.getTmpPath());
         FileInputFormat.setInputPaths(job, inputPath);
@@ -128,7 +119,6 @@ public class Annotator extends ToolsRunner {
 
         return job.waitForCompletion(true) ? 0 : 1;
     }
-
 
     @Override
     public int run(String[] args) throws Exception {

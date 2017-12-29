@@ -26,15 +26,15 @@ import org.bgi.flexlab.gaea.tools.annotator.VcfAnnoContext;
 
 import java.io.IOException;
 
-public class AnnotationSortMapper extends Mapper<LongWritable, Text, Text, Text> {
+public class AnnotationSortMapper extends Mapper<LongWritable, Text, PairWritable, Text> {
 
-	private Text resultKey;
+	private PairWritable resultKey;
 	private Text resultValue;
 	private Configuration conf;
 	@Override
 	protected void setup(Context context)
 			throws IOException, InterruptedException {
-		resultKey = new Text();
+		resultKey = new PairWritable();
 		resultValue = new Text();
 		conf = context.getConfiguration();
 	}
@@ -47,9 +47,11 @@ public class AnnotationSortMapper extends Mapper<LongWritable, Text, Text, Text>
 
 		VcfAnnoContext vac = new VcfAnnoContext();
 		vac.parseAnnotationStrings(annoLine);
+		String[] fields = annoLine.split("\t", 3);
+		String secondKey = fields[0] + "-" + String.format("%09d",Integer.parseInt(fields[1]));
 
 		for(SampleAnnotationContext sac: vac.getSampleAnnoContexts().values()){
-			resultKey.set(sac.getSampleName());
+			resultKey.set(sac.getSampleName(), secondKey);
 			resultValue.set(vac.getAnnoStr()+"\t"+sac.toAlleleString(sac.getSingleAlt()));
 			context.write(resultKey, resultValue);
 		}

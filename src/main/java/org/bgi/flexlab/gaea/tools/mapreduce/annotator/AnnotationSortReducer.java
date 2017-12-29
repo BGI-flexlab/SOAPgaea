@@ -24,7 +24,7 @@ import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
 import java.io.IOException;
 import java.util.Iterator;
 
-public class AnnotationSortReducer extends Reducer<Text, Text, NullWritable, Text> {
+public class AnnotationSortReducer extends Reducer<PairWritable, Text, NullWritable, Text> {
 
 	private MultipleOutputs<NullWritable,Text> multipleOutputs = null;
 	private Text resultValue;
@@ -32,18 +32,18 @@ public class AnnotationSortReducer extends Reducer<Text, Text, NullWritable, Tex
 	@Override
 	protected void setup(Context context) throws IOException, InterruptedException {
 		resultValue = new Text();
-		multipleOutputs = new MultipleOutputs<NullWritable,Text>(context);
+		multipleOutputs = new MultipleOutputs<>(context);
 	}
 
 	@Override
-	protected void reduce(Text key, Iterable<Text> values, Context context)
+	protected void reduce(PairWritable key, Iterable<Text> values, Context context)
 			throws IOException, InterruptedException {
 		long start = System.currentTimeMillis();
 		Iterator<Text> iter =  values.iterator();
 		while(iter.hasNext()) {
 			Text inputLine = iter.next();
 			resultValue.set(inputLine);
-			multipleOutputs.write(NullWritable.get(), resultValue, key.toString());
+			multipleOutputs.write(NullWritable.get(), resultValue, key.getFirst());
 //			context.write(NullWritable.get(), resultValue);
 		}
 	}
