@@ -36,6 +36,7 @@ public class VcfAnnoContext {
     protected LinkedList<Variant> variants;
     private List<AnnotationContext> annotationContexts;
     private Map<String, SampleAnnotationContext> sampleAnnoContexts;
+    private Map<String, String> annoItems;
     private String annoStr;
 
     public VcfAnnoContext(){
@@ -308,9 +309,26 @@ public class VcfAnnoContext {
         return annoStr;
     }
 
-    public void parseAnnotationStrings(String annoLine){
+    public Map<String, String> getAnnoItems() {
+        return annoItems;
+    }
+
+    public String getAnnoItem(String key) {
+        if(!annoItems.containsKey(key))
+            return ".";
+        return annoItems.get(key);
+    }
+
+    public void parseAnnotationStrings(String annoLine, List<String> header){
         String[] fields = annoLine.split("\tSI:;");
         annoStr = fields[0];
+        String[] annoFields = annoStr.split("\t");
+        int i = 0;
+        for(String k: header){
+            annoItems.put(k,annoFields[i]);
+            i ++;
+        }
+
         if(!fields[1].equals("")){
             for(String sampleInfo: fields[1].split(";")){
                 SampleAnnotationContext sac = new SampleAnnotationContext();
