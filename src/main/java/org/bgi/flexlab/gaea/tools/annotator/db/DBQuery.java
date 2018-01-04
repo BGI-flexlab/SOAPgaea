@@ -21,6 +21,7 @@ import org.bgi.flexlab.gaea.tools.annotator.AnnotationContext;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -74,7 +75,7 @@ public class DBQuery implements Serializable {
 		for (String key : keys) {
 			result = dbAdapter.getResult(condition.getRefTable().getTable(), key);
 			
-			HashMap<String,String> annoResult = new HashMap<String, String>();
+			HashMap<String,String> annoResult = new HashMap<>();
 			for (Entry<String, String> entry : fieldMap.entrySet()) {
 				annoResult.put(entry.getKey(), result.get(entry.getValue()));
 			}
@@ -84,24 +85,24 @@ public class DBQuery implements Serializable {
 				return null;
 			}
 //			result.put(condition.getRefTable().getKey(), key);
-			String altStr = result.get("ALT");
-			if (altStr == null) {
+			String resultAltStr = result.get("ALT");
+			if (resultAltStr == null) {
 				System.err.println("Alt is null:"+condition.getRefTable().getTable()+". Key:"+key);
 				return null;
 			}
 			
-			if (!altStr.contains(",")) {
-				altStr = altStr.toUpperCase();
-				if(alts.contains(altStr)){
-					results.add(altStr, annoResult);
+			if (!resultAltStr.contains(",")) {
+				resultAltStr = resultAltStr.toUpperCase();
+				if(alts.contains(resultAltStr)){
+					results.add(resultAltStr, annoResult);
 				}
 			}else {
-				String[] alt_list = altStr.split(",");
-//				splitResult();
-				for (String alt : alt_list) {
-					alt = alt.toUpperCase();
+				String[] resultAlts = resultAltStr.split(",");
+				List<HashMap<String, String>> annoResults = splitResult(annoResult, resultAlts.length);
+				for (int i = 0; i < resultAlts.length; i++) {
+					String alt = resultAlts[i].toUpperCase();
 					if(alts.contains(alt)){
-						results.add(alt, annoResult);
+						results.add(alt, annoResults.get(i));
 					}
 				}
 			}
@@ -112,16 +113,29 @@ public class DBQuery implements Serializable {
 	
 	/**
 	 * 对含多个变异的结果进行分割
-	 * @param result
-	 * @return LinkedList<HashMap<String, String>>
 	 */
-	private LinkedList<HashMap<String, String>> splitResult(HashMap<String, String> result, String altStr) {
-		LinkedList<HashMap<String, String>> resultList = new LinkedList<HashMap<String, String>>();
-	    //String[] alt_list = altStr.split(",");
-		//HashMap<String, String> r = (HashMap<String, String>) result.clone();
+	private List<HashMap<String, String>> splitResult(HashMap<String, String> result, int altNum) {
+		List<HashMap<String, String>> resultList = new ArrayList<>();
+		for (int i = 0; i < altNum; i++) {
+			resultList.add(new HashMap<>());
+		}
+
 		for (Entry<String, String> entry : result.entrySet()) {
-			if (entry.getValue().indexOf(",")!=-1) {
-				entry.getValue().split(",");
+			if (entry.getValue().contains(",")) {
+				String[] values = entry.getValue().split(",");
+				if(altNum == values.length){
+					for (int i = 0; i < altNum; i++) {
+						resultList.get(i).put(entry.getKey(), values[i]);
+					}
+				}else {
+					for (int i = 0; i < altNum; i++) {
+						resultList.get(i).put(entry.getKey(), entry.getValue());
+					}
+				}
+			}else {
+				for (int i = 0; i < altNum; i++) {
+					resultList.get(i).put(entry.getKey(), entry.getValue());
+				}
 			}
 		}
 		return resultList;

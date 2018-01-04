@@ -104,11 +104,6 @@
           "key":"",
           "indexTable":""
         }
-      },
-      "fields":{
-        "dbSNPBuildID":"dbSNPBuildID",
-        "DBSNP_CAF":"CAF",
-        "DBSNP_COMMON":"COMMON"
       }
     },
     "G1000":{
@@ -126,13 +121,6 @@
           "key":"id",
           "indexTable":""
         }
-      },
-      "fields":{
-        "G1000_AF":"AF",
-        "G1000_ASN_AF":"ASN_AF",
-        "G1000_EUR_AF":"EUR_AF",
-        "G1000_AFR_AF":"AFR_AF",
-        "G1000_AMR_AF":"AMR_AF"
       }
     },
     "EXAC":{

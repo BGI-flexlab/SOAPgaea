@@ -46,6 +46,7 @@ public class Annotator extends ToolsRunner {
     }
 
     private Configuration conf;
+    private FileSystem fs;
     private AnnotatorOptions options;
     private List<String> sampleNames;
 
@@ -78,7 +79,7 @@ public class Annotator extends ToolsRunner {
         sampleNames = new ArrayList<>();
 
         Path inputPath = new Path(conf.get("inputFilePath"));
-        FileSystem fs = inputPath.getFileSystem(conf);
+        fs = FileSystem.get(conf);
         FileStatus[] files = fs.listStatus(inputPath);
 
         for(FileStatus file : files) {//统计sample names
@@ -127,7 +128,17 @@ public class Annotator extends ToolsRunner {
         FileInputFormat.setInputPaths(job, inputPath);
         FileOutputFormat.setOutputPath(job, new Path(options.getOutputPath()));
 
-        return job.waitForCompletion(true) ? 0 : 1;
+        if(job.waitForCompletion(true)){
+            for (String sampleName : sampleNames){
+                FileStatus[] fileStatuses = fs.globStatus(new Path(options.getOutputPath() + "/" + sampleName + "-r-*"));
+                if(fileStatuses.length>1)
+                    System.err.println(sampleName+": rename result file error!"); ;
+                Path outputName = new Path(options.getOutputPath() + "/" + sampleName + ".tsv");
+                fs.rename(fileStatuses[0].getPath(), outputName);
+            }
+            return 0;
+        }
+        return 1;
     }
 
 
