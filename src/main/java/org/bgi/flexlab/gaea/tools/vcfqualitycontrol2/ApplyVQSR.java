@@ -2,6 +2,7 @@ package org.bgi.flexlab.gaea.tools.vcfqualitycontrol2;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -15,7 +16,7 @@ import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 
 import org.bgi.flexlab.gaea.data.exception.UserException;
-import org.bgi.flexlab.gaea.data.structure.location.GenomeLocationParser;
+import org.bgi.flexlab.gaea.framework.tools.mapreduce.ToolsRunner;
 import org.bgi.flexlab.gaea.tools.mapreduce.vcfqualitycontrol.VCFQualityControlOptions;
 import org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin.traindata.DBResource;
 import org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin.traindata.FileResource;
@@ -37,7 +38,7 @@ import htsjdk.variant.vcf.VCFHeader;
 import htsjdk.variant.vcf.VCFHeaderLine;
 import htsjdk.variant.vcf.VCFStandardHeaderLines;
 
-public class ApplyVQSR {
+public class ApplyVQSR extends ToolsRunner{
 	protected static final String LOW_VQSLOD_FILTER_NAME = "LOW_VQSLOD";
 
 	private VariantRecalibrator recalibrator = null;
@@ -76,10 +77,39 @@ public class ApplyVQSR {
 	private boolean IGNORE_ALL_FILTERS = false;
 	
 	private VariantContextWriter vcfWriter;
+	
+	public ApplyVQSR() {
+		this.toolsDescription = "Gaea vcf quality control!\n";
+	}
 
-	public ApplyVQSR(VCFQualityControlOptions options, GenomeLocationParser parser) {
+	public ApplyVQSR(VCFQualityControlOptions options) {
+		this();
 		this.options = options;
-		recalibrator = new VariantRecalibrator(options, parser);
+		
+		VCFHeader header = null;
+		
+		try {
+			header = getHeader();
+		} catch (FileNotFoundException e) {
+			throw new RuntimeException(e.toString());
+		} catch (IOException e) {
+			throw new RuntimeException(e.toString());
+		}
+		recalibrator = new VariantRecalibrator(options,header);
+	}
+	
+	public VCFHeader getHeader() throws FileNotFoundException, IOException{
+		File f = new File(options.getInputs());
+		AsciiLineReaderIterator iterator = null;
+		if (f.getName().endsWith(".gz"))
+			iterator = new AsciiLineReaderIterator(new AsciiLineReader(new GZIPInputStream(new FileInputStream(f))));
+		else
+			iterator = new AsciiLineReaderIterator(new AsciiLineReader(new FileInputStream(f)));
+		VCFCodec codec = new VCFCodec();
+		VCFHeader header = (VCFHeader)codec.readActualHeader(iterator);
+		
+		iterator.close();
+		return header;
 	}
 
 	private void applyRecal() throws IOException {
@@ -108,9 +138,7 @@ public class ApplyVQSR {
 			VariantContext vc = codec.decode(iterator.next());
 			recalibrator.apply(vc);
 		}
-		
 		recalibrator.traversal();
-		
 		iterator.close();
 	}
 	
@@ -545,5 +573,14 @@ public class ApplyVQSR {
 			lodString.add(emptyFloatValue);
 			AS_filterString.add(emptyStringValue);
 		}
+	}
+
+	@Override
+	public int run(String[] args) throws Exception {
+		VCFQualityControlOptions options = new VCFQualityControlOptions();
+		options.parse(args);
+		ApplyVQSR applyVQSR = new ApplyVQSR(options);
+		applyVQSR.apply();
+		return 0;
 	}
 }

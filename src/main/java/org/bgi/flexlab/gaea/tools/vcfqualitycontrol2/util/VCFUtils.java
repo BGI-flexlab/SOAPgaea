@@ -16,9 +16,11 @@ import org.bgi.flexlab.gaea.util.GaeaVariantContextUtils;
 
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.SAMSequenceRecord;
+import htsjdk.variant.vcf.VCFConstants;
 import htsjdk.variant.vcf.VCFContigHeaderLine;
 import htsjdk.variant.vcf.VCFHeader;
 import htsjdk.variant.vcf.VCFHeaderLine;
+import htsjdk.variant.vcf.VCFStandardHeaderLines;
 
 public final class VCFUtils {
 	
@@ -122,5 +124,13 @@ public final class VCFUtils {
             map.put(GaeaVCFConstants.ASSEMBLY_NAME_KEY, assembly);
         }
         return new VCFContigHeaderLine(map, contig.getSequenceIndex());
+    }
+    
+    public static void addVQSRStandardHeaderLines(final Set<VCFHeaderLine> hInfo) {
+        hInfo.add(VCFStandardHeaderLines.getInfoLine(VCFConstants.END_KEY));
+        hInfo.add(GaeaVCFHeaderLines.getInfoLine(GaeaVCFConstants.VQS_LOD_KEY));
+        hInfo.add(GaeaVCFHeaderLines.getInfoLine(GaeaVCFConstants.CULPRIT_KEY));
+        hInfo.add(GaeaVCFHeaderLines.getInfoLine(GaeaVCFConstants.POSITIVE_LABEL_KEY));
+        hInfo.add(GaeaVCFHeaderLines.getInfoLine(GaeaVCFConstants.NEGATIVE_LABEL_KEY));
     }
 }

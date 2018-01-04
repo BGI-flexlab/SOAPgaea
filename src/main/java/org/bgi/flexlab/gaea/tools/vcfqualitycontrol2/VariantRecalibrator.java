@@ -60,11 +60,14 @@ public class VariantRecalibrator {
 	public static boolean createOutputVariantMD5 = false;
 
 	private List<TruthSensitivityTranche> tranches = null;
-
-	public VariantRecalibrator(VCFQualityControlOptions options, GenomeLocationParser parser) {
+	
+	public VariantRecalibrator(VCFQualityControlOptions options,VCFHeader header){
 		this.options = options;
-		this.parser = parser;
-
+		this.header = header;
+		
+		if(this.parser == null){
+			this.parser = new GenomeLocationParser(header.getSequenceDictionary());
+		}
 		dataManager = new VariantDataManager(options.getUseAnnotations(), options.getArgument());
 
 		engine = new VariantRecalibratorEngine(options.getArgument());
@@ -76,6 +79,7 @@ public class VariantRecalibrator {
 		}
 
 		Set<VCFHeaderLine> hInfo = new HashSet<VCFHeaderLine>();
+		VCFUtils.addVQSRStandardHeaderLines(hInfo);
 		if (null != header) {
 			hInfo = VCFUtils.updateHeaderContigLines(hInfo, null, header.getSequenceDictionary(), true);
 		}
@@ -221,7 +225,7 @@ public class VariantRecalibrator {
 	public Object traversal() {
 		consumeQueuedVariants(); // finish processing any queued variants
 
-		try {
+		//try {
 			dataManager.setData(reduceSum);
 			dataManager.normalizeData(true); // Each data point is now (x -
 												// mean) / standard deviation
@@ -299,9 +303,9 @@ public class VariantRecalibrator {
 			}
 
 			return true;
-		} catch (final Exception e) {
+		/*} catch (final Exception e) {
 			throw new UserException(e.toString());
-		}
+		}*/
 	}
 
 	public Report writeModelReport(final GaussianMixtureModel goodModel, final GaussianMixtureModel badModel,
