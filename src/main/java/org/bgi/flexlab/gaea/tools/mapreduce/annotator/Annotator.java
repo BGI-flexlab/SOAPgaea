@@ -117,13 +117,14 @@ public class Annotator extends ToolsRunner {
         LazyOutputFormat.setOutputFormatClass(job, TextOutputFormat.class);
 
         Path inputPath = new Path(options.getTmpPath());
-        FileSystem fs = inputPath.getFileSystem(conf);
+        Path outputPath = new Path(options.getOutputPath());
         FileInputFormat.setInputPaths(job, inputPath);
-        FileOutputFormat.setOutputPath(job, new Path(options.getOutputPath()));
+        FileOutputFormat.setOutputPath(job, outputPath);
 
+        FileSystem fs = outputPath.getFileSystem(conf);
         if(job.waitForCompletion(true)){
             for (String sampleName : sampleNames){
-                FileStatus[] fileStatuses = fs.globStatus(new Path(options.getOutputPath() + "/" + sampleName + "-r-*"));
+                FileStatus[] fileStatuses = fs.globStatus(new Path(options.getOutputPath() + "/" + sampleName + "-r-[0-9][0-9][0-9][0-9][0-9]*"));
                 if(fileStatuses.length>1)
                     System.err.println(sampleName+": rename result file error!"); ;
                 Path outputName = new Path(options.getOutputPath() + "/" + sampleName + ".tsv");

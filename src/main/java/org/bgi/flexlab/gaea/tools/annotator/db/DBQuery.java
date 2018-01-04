@@ -84,13 +84,13 @@ public class DBQuery implements Serializable {
 				System.err.println("Cann't find value from table:"+condition.getRefTable().getTable()+". Key:"+key);
 				return null;
 			}
-//			result.put(condition.getRefTable().getKey(), key);
+
 			String resultAltStr = result.get("ALT");
 			if (resultAltStr == null) {
 				System.err.println("Alt is null:"+condition.getRefTable().getTable()+". Key:"+key);
 				return null;
 			}
-			
+
 			if (!resultAltStr.contains(",")) {
 				resultAltStr = resultAltStr.toUpperCase();
 				if(alts.contains(resultAltStr)){
@@ -114,13 +114,15 @@ public class DBQuery implements Serializable {
 	/**
 	 * 对含多个变异的结果进行分割
 	 */
-	private List<HashMap<String, String>> splitResult(HashMap<String, String> result, int altNum) {
+	protected List<HashMap<String, String>> splitResult(HashMap<String, String> result, int altNum) {
 		List<HashMap<String, String>> resultList = new ArrayList<>();
 		for (int i = 0; i < altNum; i++) {
 			resultList.add(new HashMap<>());
 		}
 
 		for (Entry<String, String> entry : result.entrySet()) {
+			if(entry.getValue() == null)
+				continue;
 			if (entry.getValue().contains(",")) {
 				String[] values = entry.getValue().split(",");
 				if(altNum == values.length){

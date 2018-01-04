@@ -41,6 +41,7 @@ public class AnnotationSortReducer extends Reducer<PairWritable, Text, NullWrita
 		Configuration conf = context.getConfiguration();
 		Config userConfig = new Config(conf);
 		List<String> renameNewHeader = userConfig.getRenameNewHeader();
+		System.err.println(userConfig.getHeader());
 		newAnnoHeader = "#" + String.join("\t", renameNewHeader);
 		resultValue.set(newAnnoHeader);
 	}

@@ -1,15 +1,12 @@
 package org.bgi.flexlab.gaea.tools.annotator.db;
 
+import org.bgi.flexlab.gaea.tools.annotator.config.DatabaseInfo;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
 
-/**
- * @author huangzhibo
- *
- */
 public class TSVQuery extends DBQuery {
 
 	private static final long serialVersionUID = 805441802476012341L;
@@ -43,31 +40,36 @@ public class TSVQuery extends DBQuery {
 				System.err.println("Cann't find value from table:"+condition.getRefTable().getTable()+". Key:"+key);
 				return null;
 			}
-//			result.put(condition.getRefTable().getKey(), key);
-			String altStr = result.get("ALT");
-			if (altStr == null) {
+
+			String resultAltStr = result.get("ALT");
+			if (resultAltStr == null) {
 				System.err.println("Alt is null:"+condition.getRefTable().getTable()+". Key:"+key);
 				return null;
 			}
 
-			if (!altStr.contains(",")) {
-				altStr = altStr.toUpperCase();
-				if(alts.contains(altStr)){
-					results.add(altStr, annoResult);
+			if (!resultAltStr.contains(",")) {
+				resultAltStr = resultAltStr.toUpperCase();
+				if(alts.contains(resultAltStr)){
+					results.add(resultAltStr, annoResult);
 				}
 			}else {
-				String[] alt_list = altStr.split(",");
-//				splitResult();
-				for (String alt : alt_list) {
-					alt = alt.toUpperCase();
+				String[] resultAlts = resultAltStr.split(",");
+				List<HashMap<String, String>> annoResults = splitResult(annoResult, resultAlts.length);
+				for (int i = 0; i < resultAlts.length; i++) {
+					String alt = resultAlts[i].toUpperCase();
 					if(alts.contains(alt)){
-						results.add(alt, annoResult);
+						results.add(alt, annoResults.get(i));
 					}
 				}
 			}
 		}
 
 		return results;
+	}
+
+	public void connection(String dbName, DatabaseInfo.DbType dbType, String connInfo) throws IOException{
+		dbAdapter = DBAdapterFactory.createDbAdapter(dbType, connInfo);
+		dbAdapter.connection(dbName);
 	}
 	
 }

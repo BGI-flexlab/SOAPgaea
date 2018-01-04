@@ -104,6 +104,7 @@ public class AnnotationContext implements Serializable{
 	boolean useHgvs;
 	boolean useGeneId;
 	boolean useFirstEffect;
+	String strand;
 
 	private static Map<String, Object> NO_VALUE = Collections.unmodifiableMap(new HashMap<String, Object>());
 	private Map<String, Object> annoItems = NO_VALUE;
@@ -131,6 +132,7 @@ public class AnnotationContext implements Serializable{
 		useSequenceOntology = true;
 		useHgvs = true;
 		useGeneId = false;
+		strand = ".";
 	}
 
 
@@ -462,6 +464,9 @@ public class AnnotationContext implements Serializable{
 		case "VarType":
 			return variant.getVariantType().toString();
 
+		case "Strand":
+			return strand;
+
 		case "ERRORS":
 		case "WARNINGS":
 		case "INFOS":
@@ -598,6 +603,7 @@ public class AnnotationContext implements Serializable{
 			} else if (tr != null) {
 				featureType = "transcript";
 				featureId = transcriptId = tr.getId();
+				strand = tr.getStrand();
 				// Append version number (this is recommended by HGVS specification)
 				if (tr.getVersion() != null && !tr.getVersion().isEmpty()) featureId += "." + tr.getVersion();
 			} else {
