@@ -159,6 +159,8 @@ public class SampleAnnotationContext{
 		sb.append(getAlleleDepth(allele));
 		sb.append("|");
 		sb.append(isHasNearVar() ? 1 : 0);
+		sb.append("|");
+		sb.append(getAlleleZygosity(allele));
 		return sb.toString();
 	}
 
@@ -170,10 +172,12 @@ public class SampleAnnotationContext{
 		singleAlt = fields[1];
 		alleleRatios = new HashMap<>();
 		alleleDepths = new HashMap<>();
+		zygosity = new HashMap<>();
 		alleleRatios.put(singleAlt, fields[2]);
 		alleleDepths.put(singleAlt, Integer.parseInt(fields[3]));
 		if(fields[4].equals("1"))
 			setHasNearVar();
+		zygosity.put(singleAlt, fields[5]);
 	}
 
 }

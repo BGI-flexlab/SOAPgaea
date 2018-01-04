@@ -115,13 +115,12 @@ public class Annotator extends ToolsRunner {
         job.setReducerClass(AnnotationSortReducer.class);
         job.setNumReduceTasks(sampleNames.size());
 
-        job.setMapOutputKeyClass(Text.class);
+        job.setMapOutputKeyClass(PairWritable.class);
         job.setMapOutputValueClass(Text.class);
 
         job.setOutputKeyClass(NullWritable.class);
         job.setOutputValueClass(Text.class);
         job.setInputFormatClass(TextInputFormat.class);
-//        job.setOutputFormatClass(TextOutputFormat.class);
         LazyOutputFormat.setOutputFormatClass(job, TextOutputFormat.class);
 
         Path inputPath = new Path(options.getTmpPath());
