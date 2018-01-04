@@ -32,6 +32,8 @@ public class SampleAnnotationContext{
 	private int depth;
 	private Map<String, Integer> alleleDepths = null;
 	private Map<String, String> alleleRatios = null;
+	private Map<String, String> zygosity = null;
+	private Map<String, String> filter = null;
 	private boolean hasNearVar = false;
 	private String singleAlt;
 
@@ -41,6 +43,29 @@ public class SampleAnnotationContext{
 
 	public SampleAnnotationContext(String sampleName) {
 		this.sampleName = sampleName;
+	}
+
+	public String getFieldByName(String fieldName, String allele) {
+		switch (fieldName) {
+			case "NbGID":
+				if(hasNearVar) return "1";
+				else return "0";
+
+			case "A.Depth":
+				return Integer.toString(getAlleleDepth(allele));
+
+			case "A.Ratio":
+				return getAlleleRatio(allele);
+
+			case "Zygosity":
+				return getAlleleZygosity(allele);
+
+			case "Filter":
+				return ".";
+
+			default:
+				return null;
+		}
 	}
 
 	public String getSampleName() {
@@ -64,9 +89,21 @@ public class SampleAnnotationContext{
 		df.setRoundingMode(RoundingMode.HALF_UP);
 		alleleRatios = new HashMap<>();
 		for(String alt: getAlts()){
-			double ratio = getDepth() == 0 ? 0 : getAlleleDepth(alt) / getDepth();
+			double ratio = getDepth() == 0 ? 0 : getAlleleDepth(alt)*1.0 / getDepth();
 			alleleRatios.put(alt, df.format(ratio));
 		}
+	}
+
+	public String getAlleleZygosity(String allele) {
+		return zygosity.get(allele);
+	}
+
+	public Map<String, String> getZygosity() {
+		return zygosity;
+	}
+
+	public void setZygosity(Map<String, String> zygosity) {
+		this.zygosity = zygosity;
 	}
 
 	public int getDepth() {

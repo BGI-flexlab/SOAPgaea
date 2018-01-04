@@ -23,10 +23,10 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.bgi.flexlab.gaea.tools.annotator.SampleAnnotationContext;
 import org.bgi.flexlab.gaea.tools.annotator.VcfAnnoContext;
+import org.bgi.flexlab.gaea.tools.annotator.config.Config;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 public class AnnotationSortMapper extends Mapper<LongWritable, Text, PairWritable, Text> {
 
@@ -34,6 +34,8 @@ public class AnnotationSortMapper extends Mapper<LongWritable, Text, PairWritabl
 	private Text resultValue;
 	private Configuration conf;
 	private List<String> headerList;
+	private Config userConfig;
+	private List<String> renameOldHeader;
 
 	@Override
 	protected void setup(Context context)
@@ -41,7 +43,9 @@ public class AnnotationSortMapper extends Mapper<LongWritable, Text, PairWritabl
 		resultKey = new PairWritable();
 		resultValue = new Text();
 		conf = context.getConfiguration();
-		headerList = Arrays.asList(conf.get("annoHeader").split("\t"));
+		userConfig = new Config(conf);
+		headerList = userConfig.getHeaderList();
+		renameOldHeader = userConfig.getRenameOldHeader();
 	}
 
 	@Override
@@ -57,7 +61,16 @@ public class AnnotationSortMapper extends Mapper<LongWritable, Text, PairWritabl
 
 		for(SampleAnnotationContext sac: vac.getSampleAnnoContexts().values()){
 			resultKey.set(sac.getSampleName(), secondKey);
-			resultValue.set(vac.getAnnoStr()+"\t"+sac.toAlleleString(sac.getSingleAlt()));
+			List<String> anno = new ArrayList<>();
+			for (String oldKey : renameOldHeader) {
+				String annoValue = sac.getFieldByName(oldKey, sac.getSingleAlt());
+				if (annoValue == null) {
+					annoValue = vac.getAnnoItem(oldKey);
+				}
+				anno.add(annoValue);
+			}
+			resultValue.set(String.join("\t",anno));
+//			resultValue.set(vac.getAnnoStr()+"\t"+sac.toAlleleString(sac.getSingleAlt()));
 			context.write(resultKey, resultValue);
 		}
 	}

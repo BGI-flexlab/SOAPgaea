@@ -114,7 +114,6 @@ public class AnnotationReducer extends Reducer<Text, VcfLineWritable, NullWritab
 		// 注释结果header信息
 		resultValue.set(userConfig.getHeader());
 		context.write(NullWritable.get(), resultValue);
-		conf.set("annoHeader" ,userConfig.getHeader() );
 		System.err.println("mapper.setup耗时：" + (System.currentTimeMillis()-setupStart)+"毫秒");
 	}
 

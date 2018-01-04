@@ -82,6 +82,7 @@ public class VcfAnnoContext {
                     SampleAnnotationContext sampleAnnoContext = sampleAnnoContexts.get(sampleName);
                     List<String> alts = sampleAnnoContext.getAlts();
                     Map<String, Integer> alleleDepths = sampleAnnoContext.getAlleleDepths();
+                    Map<String, String> zygosity = sampleAnnoContext.getZygosity();
                     int[] AD = gt.getAD();
                     int i = 0;
                     for(Allele allele: variantContext.getAlternateAlleles()){
@@ -90,16 +91,19 @@ public class VcfAnnoContext {
                             continue;
                         alts.add(allele.getBaseString());
                         alleleDepths.put(allele.getBaseString(), AD[i]);
+                        zygosity.put(allele.getBaseString(), getZygosityType(gt));
                     }
                 }else {
                     SampleAnnotationContext sampleAnnoContext = new SampleAnnotationContext(sampleName);
                     Map<String, Integer> alleleDepths = new HashMap<>();
+                    Map<String, String> zygosity = new HashMap<>();
     //               判断 gt.hasAD()
                     int[] AD = gt.getAD();
                     int i = 0;
                     List<String> alts = new ArrayList<>();
                     for(Allele allele: variantContext.getAlleles()){
                         alleleDepths.put(allele.getBaseString(), AD[i]);
+                        zygosity.put(allele.getBaseString(), getZygosityType(gt));
                         if(i > 0 && AD[i] > 0)
                             alts.add(allele.getBaseString());
                         i++;
@@ -107,10 +111,21 @@ public class VcfAnnoContext {
                     sampleAnnoContext.setAlleleDepths(alleleDepths);
                     sampleAnnoContext.setDepth(gt.getDP());
                     sampleAnnoContext.setAlts(alts);
+                    sampleAnnoContext.setZygosity(zygosity);
                     sampleAnnoContexts.put(sampleName, sampleAnnoContext);
                 }
             }
         }
+    }
+
+    private String getZygosityType(Genotype gt){
+        if(gt.isHet())
+            return "het-ref";
+        else if(gt.isHomVar())
+            return "hom-alt";
+        else if(gt.isHetNonRef())
+            return  "het-alt";
+        return ".";
     }
 
     public boolean hasSample(String sampleName){
@@ -320,6 +335,7 @@ public class VcfAnnoContext {
     }
 
     public void parseAnnotationStrings(String annoLine, List<String> header){
+        annoItems = new HashMap<>();
         String[] fields = annoLine.split("\tSI:;");
         annoStr = fields[0];
         String[] annoFields = annoStr.split("\t");
@@ -345,6 +361,10 @@ public class VcfAnnoContext {
             sb.append(getContig());
             sb.append("\t");
             sb.append(start);
+            sb.append("\t");
+            sb.append(start-1);
+            sb.append("\t");
+            sb.append(end);
             sb.append("\t");
             sb.append(refStr);
             sb.append("\t");

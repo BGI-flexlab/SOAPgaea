@@ -31,6 +31,7 @@ import org.bgi.flexlab.gaea.tools.annotator.interval.Genome;
 import org.bgi.flexlab.gaea.tools.annotator.util.CountByType;
 import org.bgi.flexlab.gaea.tools.annotator.util.Gpr;
 import org.bgi.flexlab.gaea.tools.annotator.util.Timer;
+import org.bgi.flexlab.gaea.util.FileIterator;
 
 import java.io.*;
 import java.util.*;
@@ -53,6 +54,8 @@ public class Config implements Serializable {
 	private String  ref = null;
 	private String  geneInfo = null;
 	private String configFilePath;
+	private List<String> renameOldHeader;
+	private List<String> renameNewHeader;
 
 	private boolean debug = false; // Debug mode?
 	private boolean verbose = false; // Verbose
@@ -78,22 +81,23 @@ public class Config implements Serializable {
 		configFilePath = null;
 	}
 
-	public Config(Configuration conf) {
+	public Config(Configuration conf) throws IOException {
 		this.conf = conf;
 		init();
 		configInstance = this;
 		configFilePath = null;
 	}
 	
-	public Config(Configuration conf, ReferenceShare genomeShare) {
+	public Config(Configuration conf, ReferenceShare genomeShare) throws IOException {
 		this.conf = conf;
 		this.genomeShare = genomeShare;
 		init();
 		configInstance = this;
 		configFilePath = null;
+		genome = new Genome(ref,genomeShare);
 	}
 	
-	private void init(){
+	private void init() throws IOException {
 		treatAllAsProteinCoding = false;
 		onlyRegulation = false;
 		errorOnMissingChromo = true;
@@ -104,7 +108,6 @@ public class Config implements Serializable {
 //		TODO 支持在配置文件中自定义密码子体系 - CodonTable
 //		createCodonTables(genomeVersion, properties);  
 		parseProperties();
-		genome = new Genome(ref,genomeShare);
 	}
 
 	/**
@@ -146,7 +149,7 @@ public class Config implements Serializable {
 			Reader reader;
 			if(properties.containsKey("DB_CONFIG")){
 				String databaseConfig = properties.getProperty("DB_CONFIG");
-				reader = new FileReader(new File(databaseConfig));
+				reader = new InputStreamReader(new FileInputStream(databaseConfig));
 			}else {
 				reader = new InputStreamReader(Config.class.getClassLoader().getResourceAsStream(DB_CONFIG_JSON), "UTF-8");
 			}
@@ -205,7 +208,7 @@ public class Config implements Serializable {
 		}
 	}
 	
-	private boolean parseProperties() {
+	private boolean parseProperties() throws IOException {
 		
 		// Sorted keys
 		ArrayList<String> keys = new ArrayList<String>();
@@ -213,6 +216,8 @@ public class Config implements Serializable {
 			keys.add(k.toString());
 //		Collections.sort(keys);
 		ref = properties.getProperty(KEY_REFERENCE);
+		String renameList = properties.getProperty(KEY_FIELDS_RENAME).trim();
+		setRenameHeader(renameList);
 		setGeneInfo(properties.getProperty(KEY_GENE_INFO));
 		
 		annoFieldsByDB = new HashMap<>();
@@ -381,6 +386,34 @@ public class Config implements Serializable {
 		}
 	}
 
+	public List<String> getRenameOldHeader() {
+		return renameOldHeader;
+	}
+
+	public List<String> getRenameNewHeader() {
+		return renameNewHeader;
+	}
+
+	public void setRenameHeader(String renameList) throws IOException {
+		if (renameList.startsWith("/")) {
+			renameList = "file://" + renameList;
+		}
+		renameOldHeader = new ArrayList<>();
+		renameNewHeader = new ArrayList<>();
+		FileIterator it = new FileIterator(renameList);
+		while (it.hasNext()) {
+			String line = it.next().toString().trim();
+			if(line.isEmpty() || line.startsWith("#"))
+				continue;
+			String[] fields = line.split("\t");
+			fields[0] = fields[0].trim().replaceAll("\"","");
+			fields[1] = fields[1].trim().replaceAll("\"","");
+			renameNewHeader.add(fields[0]);
+			renameOldHeader.add(fields[1]);
+		}
+		it.close();
+	}
+
 	public String getRef() {
 		switch(ref){
 		
@@ -420,30 +453,27 @@ public class Config implements Serializable {
 	public DatabaseJson getDatabaseJson() {
 		return databaseJson;
 	}
-	
-	public String getHeader(){
-		StringBuilder sb = new StringBuilder();
-		sb.append("#CHROM");
-		sb.append("\t");
-		sb.append("POS");
-		sb.append("\t");
-		sb.append("REF");
-		sb.append("\t");
-		sb.append("ALT");
+
+	public List<String> getHeaderList(){
+		List<String> headerList = new ArrayList<>();
+		headerList.add("CHROM");
+		headerList.add("POS");
+		headerList.add("START");
+		headerList.add("END");
+		headerList.add("REF");
+		headerList.add("ALT");
 		ArrayList<String> fields = getFieldsByDB(Config.KEY_GENE_INFO);
-		for (String field : fields) {
-			sb.append("\t");
-			sb.append(field);    
-		}
+		headerList.addAll(fields);
 		List<String> dbNameList = getDbNameList();
 		for (String dbName : dbNameList) {
 			fields = getFieldsByDB(dbName);
-			for (String field : fields) {
-				sb.append("\t");
-				sb.append(field);       
-			}
+			headerList.addAll(fields);
 		}
-		return sb.toString();
+		return headerList;
+	}
+	
+	public String getHeader(){
+		return "#"+String.join("\t", getHeaderList());
 	}
 	
 //	public static void main(String[] args) throws Exception {
