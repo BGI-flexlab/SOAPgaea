@@ -79,6 +79,7 @@ public class AnnotationContext implements Serializable{
 	};
 
 
+	Variant variant;
 	String vcfFieldString; // Original 'raw' string from VCF Info field
 	String vcfFieldStrings[]; // Original 'raw' strings from VCF info field: effectString.split()
 	EffectType effectType;
@@ -458,6 +459,9 @@ public class AnnotationContext implements Serializable{
 		case "DISTANCE":
 			return Integer.toString(distance);
 
+		case "VarType":
+			return variant.getVariantType().toString();
+
 		case "ERRORS":
 		case "WARNINGS":
 		case "INFOS":
@@ -538,7 +542,7 @@ public class AnnotationContext implements Serializable{
 	 */
 	void set(VariantEffect variantEffect) {
 		// Allele
-		Variant variant = variantEffect.getVariant();
+		variant = variantEffect.getVariant();
 		Gene gene = variantEffect.getGene();
 		Marker marker = variantEffect.getMarker();
 		Transcript tr = variantEffect.getTranscript();

@@ -23,20 +23,29 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.bgi.flexlab.gaea.tools.annotator.SampleAnnotationContext;
 import org.bgi.flexlab.gaea.tools.annotator.VcfAnnoContext;
+import org.bgi.flexlab.gaea.tools.annotator.config.Config;
 
 import java.io.IOException;
+import java.util.*;
 
-public class AnnotationSortMapper extends Mapper<LongWritable, Text, Text, Text> {
+public class AnnotationSortMapper extends Mapper<LongWritable, Text, PairWritable, Text> {
 
-	private Text resultKey;
+	private PairWritable resultKey;
 	private Text resultValue;
 	private Configuration conf;
+	private List<String> headerList;
+	private Config userConfig;
+	private List<String> renameOldHeader;
+
 	@Override
 	protected void setup(Context context)
 			throws IOException, InterruptedException {
-		resultKey = new Text();
+		resultKey = new PairWritable();
 		resultValue = new Text();
 		conf = context.getConfiguration();
+		userConfig = new Config(conf);
+		headerList = userConfig.getHeaderList();
+		renameOldHeader = userConfig.getRenameOldHeader();
 	}
 
 	@Override
@@ -46,11 +55,22 @@ public class AnnotationSortMapper extends Mapper<LongWritable, Text, Text, Text>
 		if (annoLine.startsWith("#")) return;
 
 		VcfAnnoContext vac = new VcfAnnoContext();
-		vac.parseAnnotationStrings(annoLine);
+		vac.parseAnnotationStrings(annoLine, headerList);
+		String[] fields = annoLine.split("\t", 3);
+		String secondKey = fields[0] + "-" + String.format("%09d",Integer.parseInt(fields[1]));
 
 		for(SampleAnnotationContext sac: vac.getSampleAnnoContexts().values()){
-			resultKey.set(sac.getSampleName());
-			resultValue.set(vac.getAnnoStr()+"\t"+sac.toAlleleString(sac.getSingleAlt()));
+			resultKey.set(sac.getSampleName(), secondKey);
+			List<String> anno = new ArrayList<>();
+			for (String oldKey : renameOldHeader) {
+				String annoValue = sac.getFieldByName(oldKey, sac.getSingleAlt());
+				if (annoValue == null) {
+					annoValue = vac.getAnnoItem(oldKey);
+				}
+				anno.add(annoValue);
+			}
+			resultValue.set(String.join("\t",anno));
+//			resultValue.set(vac.getAnnoStr()+"\t"+sac.toAlleleString(sac.getSingleAlt()));
 			context.write(resultKey, resultValue);
 		}
 	}

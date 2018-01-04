@@ -16,34 +16,47 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.mapreduce.annotator;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
+import org.bgi.flexlab.gaea.tools.annotator.config.Config;
 
 import java.io.IOException;
-import java.util.Iterator;
+import java.util.*;
 
-public class AnnotationSortReducer extends Reducer<Text, Text, NullWritable, Text> {
+public class AnnotationSortReducer extends Reducer<PairWritable, Text, NullWritable, Text> {
 
 	private MultipleOutputs<NullWritable,Text> multipleOutputs = null;
 	private Text resultValue;
+	private String newAnnoHeader;
+	private boolean printHeader = true;
 
 	@Override
 	protected void setup(Context context) throws IOException, InterruptedException {
 		resultValue = new Text();
-		multipleOutputs = new MultipleOutputs<NullWritable,Text>(context);
+		multipleOutputs = new MultipleOutputs<>(context);
+		Configuration conf = context.getConfiguration();
+		Config userConfig = new Config(conf);
+		List<String> renameNewHeader = userConfig.getRenameNewHeader();
+		newAnnoHeader = "#" + String.join("\t", renameNewHeader);
+		resultValue.set(newAnnoHeader);
 	}
 
 	@Override
-	protected void reduce(Text key, Iterable<Text> values, Context context)
+	protected void reduce(PairWritable key, Iterable<Text> values, Context context)
 			throws IOException, InterruptedException {
-		long start = System.currentTimeMillis();
+		if(printHeader) {
+			multipleOutputs.write(NullWritable.get(), resultValue, key.getFirst());
+			printHeader = false;
+		}
 		Iterator<Text> iter =  values.iterator();
 		while(iter.hasNext()) {
 			Text inputLine = iter.next();
 			resultValue.set(inputLine);
-			multipleOutputs.write(NullWritable.get(), resultValue, key.toString());
+			multipleOutputs.write(NullWritable.get(), resultValue, key.getFirst());
 //			context.write(NullWritable.get(), resultValue);
 		}
 	}
