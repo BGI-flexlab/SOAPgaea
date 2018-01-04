@@ -37,16 +37,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Annotator extends ToolsRunner {
-
-    class KeyMultipleTextOutputFormat extends MultipleTextOutputFormat<Text, Text> {
-        @Override
-        protected String generateFileNameForKeyValue(Text key, Text value, String name) {
-            return key.toString()+'-'+name;
-        }
-    }
-
+    
     private Configuration conf;
-    private FileSystem fs;
     private AnnotatorOptions options;
     private List<String> sampleNames;
 
@@ -79,7 +71,7 @@ public class Annotator extends ToolsRunner {
         sampleNames = new ArrayList<>();
 
         Path inputPath = new Path(conf.get("inputFilePath"));
-        fs = FileSystem.get(conf);
+        FileSystem fs = inputPath.getFileSystem(conf);
         FileStatus[] files = fs.listStatus(inputPath);
 
         for(FileStatus file : files) {//统计sample names
@@ -125,6 +117,7 @@ public class Annotator extends ToolsRunner {
         LazyOutputFormat.setOutputFormatClass(job, TextOutputFormat.class);
 
         Path inputPath = new Path(options.getTmpPath());
+        FileSystem fs = inputPath.getFileSystem(conf);
         FileInputFormat.setInputPaths(job, inputPath);
         FileOutputFormat.setOutputPath(job, new Path(options.getOutputPath()));
 
