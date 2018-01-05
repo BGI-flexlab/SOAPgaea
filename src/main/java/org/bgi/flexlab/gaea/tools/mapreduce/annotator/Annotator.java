@@ -33,8 +33,10 @@ import org.bgi.flexlab.gaea.data.structure.header.SingleVCFHeader;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.BioJob;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.ToolsRunner;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class Annotator extends ToolsRunner {
     
@@ -123,16 +125,35 @@ public class Annotator extends ToolsRunner {
 
         FileSystem fs = outputPath.getFileSystem(conf);
         if(job.waitForCompletion(true)){
+            int loop = 0;
             for (String sampleName : sampleNames){
-                FileStatus[] fileStatuses = fs.globStatus(new Path(options.getOutputPath() + "/" + sampleName + "-r-*"));
-                if(fileStatuses.length>1)
-                    System.err.println(sampleName+": rename result file error!"); ;
+                Path outputPart = getSampleOutputPath(sampleName);
+                while (outputPart == null && loop < 10){
+                    TimeUnit.MILLISECONDS.sleep(6000);
+                    outputPart = getSampleOutputPath(sampleName);
+                    loop ++;
+                }
                 Path outputName = new Path(options.getOutputPath() + "/" + sampleName + ".tsv");
-                fs.rename(fileStatuses[0].getPath(), outputName);
+                fs.rename(outputPart, outputName);
             }
             return 0;
         }
         return 1;
+    }
+
+    private Path getSampleOutputPath(String sample) throws IOException {
+        Path outputPath = new Path(options.getOutputPath());
+        FileSystem fs = outputPath.getFileSystem(conf);
+        FileStatus[] fileStatuses = fs.globStatus(new Path(options.getOutputPath() + "/" + sample + "-r-[0-9]*"));
+        if(fileStatuses.length == 0){
+            System.err.println(sample+": cann't get the output part file!");
+            FileStatus[] fss = fs.globStatus(new Path(options.getOutputPath() + "/*"));
+            for (FileStatus f: fss){
+                System.err.println("OutPath" + f.getPath().toString());
+            }
+            return null;
+        }
+        return fileStatuses[0].getPath();
     }
 
 

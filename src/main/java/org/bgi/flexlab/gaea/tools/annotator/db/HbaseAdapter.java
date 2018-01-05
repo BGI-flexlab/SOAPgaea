@@ -73,7 +73,7 @@ public class HbaseAdapter implements DBAdapterInterface{
 
 		HashMap<String,String> resultMap = new HashMap<>();
 		for  (Cell cell : result.rawCells()) {
-			String key = Bytes.toString(CellUtil.cloneQualifier (cell));
+			String key = Bytes.toString(CellUtil.cloneQualifier(cell));
 			String value = Bytes.toString(CellUtil.cloneValue(cell));
 			resultMap.put(key, value);
 		}
