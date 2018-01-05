@@ -58,6 +58,11 @@ public class WholeGenomeCoverReport{
 		if(depth != 0) {
 			bTracker.setTrackerAttribute(Interval.WHOLEGENOME, DepthType.NORMAL.setDepth(depth), DepthType.WITHOUT_PCR.setDepth(rmdupDepth));
 			bTracker.setTrackerAttribute(BaseType.COVERED);
+			if(rmdupDepth > 4){
+				bTracker.setTrackerAttribute(BaseType.FOURXCOVERED);
+				if(chrInfo.getBase(pos) != 'N')
+					bTracker.setTrackerAttribute(BaseType.FOURXNONNCOVERED);
+			}
 			if(chrInfo.getBase(pos) != 'N')
 				bTracker.setTrackerAttribute(BaseType.NONNCOVERED);
 			if(deep.hasIndelReads(i))
@@ -68,6 +73,8 @@ public class WholeGenomeCoverReport{
 		} else {
 			if(deep.isDeletionBaseWithNoConver(i)) {
 				bTracker.setTrackerAttribute(BaseType.COVERED);
+//				bTracker.setTrackerAttribute(BaseType.FOURX);
+//				TODO  推测delelion附近深度
 				if(chrInfo.getBase(pos) != 'N')
 					bTracker.setTrackerAttribute(BaseType.NONNCOVERED);
 			}
@@ -97,14 +104,18 @@ public class WholeGenomeCoverReport{
 		StringBuffer coverString = new StringBuffer();
 		coverString.append("chromsome:\t");
 		coverString.append(chrInfo.getChromosomeName());
-		coverString.append("\nCoverage:\t");
+		coverString.append("\nCoverage (>0x):\t");
 		coverString.append(df.format(getCoverage()));
+		coverString.append("%\nCoverage (>4x):\t");
+		coverString.append(df.format(getFourxCoverage()));
 		coverString.append("%\nMean Depth:\t");
 		coverString.append(df.format(getMeanDepth()));
 		coverString.append("\nMean Rmdup Depth:\t");
 		coverString.append(df.format(getMeanRmdupDepth()));
-		coverString.append("\nNonN Coverage:\t");
+		coverString.append("\nNonN Coverage (>0x):\t");
 		coverString.append(df.format(getNonNbaseCoverage()));
+		coverString.append("%\nNonN Coverage (>4x):\t");
+		coverString.append(df.format(getNonNFourxCoverage()));
 		coverString.append("%\nNonN Mean Depth:\t");
 		coverString.append(df.format(getNonNMeanDepth()));
 		coverString.append("\nNonN Mean Rmdup Depth:\t");
@@ -151,12 +162,28 @@ public class WholeGenomeCoverReport{
 		return bTracker.getProperty(BaseType.COVERED);
 	}
 
+	public long getFourXCoverBaseNum() {
+		return bTracker.getProperty(BaseType.FOURXCOVERED);
+	}
+
 	public long getNonNCoverBaseNum() {
 		return bTracker.getProperty(BaseType.NONNCOVERED);
 	}
 
+	public long getNonNFourXCoverBaseNum() {
+		return bTracker.getProperty(BaseType.FOURXNONNCOVERED);
+	}
+
 	public double getCoverage() {
 		return (100 * (getCoverBaseNum()/(double)chrInfo.getLength()));
+	}
+
+	public double getFourxCoverage() {
+		return (100 * (getFourXCoverBaseNum()/(double)chrInfo.getLength()));
+	}
+
+	public double getNonNFourxCoverage() {
+		return (100 * (getNonNFourXCoverBaseNum()/(double)chrInfo.getNonNbaselength()));
 	}
 
 	public double getNonNbaseCoverage() {
@@ -191,10 +218,13 @@ public class WholeGenomeCoverReport{
 		List<BaseCounter> counters = new ArrayList<>();
 		Collections.addAll(counters, new BaseCounter(Interval.WHOLEGENOME, Depth.TOTALDEPTH, DepthType.NORMAL),
 				                     new BaseCounter(Interval.WHOLEGENOME, Depth.TOTALDEPTH, DepthType.WITHOUT_PCR),
+									 new BaseCounter(BaseType.FOURXCOVERED),
+									 new BaseCounter(BaseType.FOURXNONNCOVERED),
 									 new BaseCounter(BaseType.NONNCOVERED),
 									 new BaseCounter(BaseType.COVERED),
 									 new BaseCounter(BaseType.INDELREF),
 									 new BaseCounter(BaseType.MISMATCHREF));
+
 		return counters;
 	}
 	

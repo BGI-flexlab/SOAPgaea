@@ -193,7 +193,7 @@ public class SingleRegionReport {
 			statistic.addPart(coverNum, depthNum, rmdupDepthNum, depth);
 			result.put(singleReigon.getRegion(regionIndex), statistic);
 		} else {
-			statistic = (SingleRegionStatistic) result.get(singleReigon.getRegion(regionIndex));
+			statistic = result.get(singleReigon.getRegion(regionIndex));
 			statistic.addPart(coverNum, depthNum, rmdupDepthNum, depth);
 		}
 	}

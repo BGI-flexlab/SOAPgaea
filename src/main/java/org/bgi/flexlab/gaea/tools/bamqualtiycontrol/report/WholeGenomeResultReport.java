@@ -24,6 +24,7 @@ import org.apache.hadoop.util.LineReader;
 import org.bgi.flexlab.gaea.data.structure.positioninformation.depth.PositionDepth;
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
 import org.bgi.flexlab.gaea.data.structure.reference.ReferenceShare;
+import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.CounterProperty;
 import org.bgi.flexlab.gaea.tools.mapreduce.bamqualitycontrol.BamQualityControlOptions;
 
 import java.io.IOException;
@@ -155,13 +156,17 @@ public class WholeGenomeResultReport extends ResultReport{
 		long depth = 0;
 		long rmdupDepth = 0;
 		long coverBaseNum = 0;
+		long fourxCoverBaseNum = 0;
 		long nonnCoverBaseNum = 0;
+		long fourxNonnCoverBaseNum = 0;
 		long genomeLength = 0;
 		long nonnGenomeLength = 0;
 		TreeSet<String> keys = new TreeSet<String>(coverReports.keySet());
 		for(String key : keys) {
 			WholeGenomeCoverReport cover = coverReports.get(key);
 			coverBaseNum += cover.getCoverBaseNum();
+			fourxCoverBaseNum += cover.getFourXCoverBaseNum();
+			fourxNonnCoverBaseNum += cover.getFourXCoverBaseNum();
 			nonnCoverBaseNum += cover.getNonNCoverBaseNum();
 			genomeLength += cover.getChrInfo().getLength();
 			nonnGenomeLength += cover.getChrInfo().getNonNbaselength();
@@ -175,12 +180,16 @@ public class WholeGenomeResultReport extends ResultReport{
 		info.append(df.format(rmdupDepth/(double)coverBaseNum));
 		info.append("\nCoverage (>0x):\t");
 		info.append(df.format(100*coverBaseNum/(double)genomeLength));
+		info.append("%\nCoverage (>4x):\t");
+		info.append(df.format(100*fourxCoverBaseNum/(double)genomeLength));
 		info.append("%\nNonN Average depth:\t");
 		info.append(df.format(depth/(double)nonnCoverBaseNum));
 		info.append("\nNonN Average depth(rmdup):\t");
 		info.append(df.format(rmdupDepth/(double)nonnCoverBaseNum));
 		info.append("\nNonN Coverage (>0x):\t");
 		info.append(df.format(100*nonnCoverBaseNum/(double)nonnGenomeLength));
+		info.append("%\nNonN Coverage (>4x):\t");
+		info.append(df.format(100*fourxNonnCoverBaseNum/(double)nonnGenomeLength));
 		if(cnvSingleRegionReport != null) {
 			info.append("%\n[Target] Len of region(without XY):\t");
 			info.append((long) cnvSingleRegionReport.getRegionSizeTotal());
