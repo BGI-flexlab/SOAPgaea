@@ -8,7 +8,7 @@
   "databaseInfo":{
     "HGNC":{
       "database":"HBASE",
-      "queryClassName":"HGNCQuery",
+      "queryClassName":"GeneDBQuery",
       "queryCondition":"GENE",
       "dbVersion":{
         "GRCh37":{
@@ -21,27 +21,15 @@
     },
      "OMIM":{
       "database":"HBASE",
-      "queryClassName":"DBQuery",
+      "queryClassName":"GeneDBQuery",
       "queryCondition":"GENE",
       "dbVersion":{
         "GRCh37":{
-          "table":"omim_genemap",
-          "key":"mim_id",
-          "indexTable":"omim_genemap_index_gene_symbol"
+          "table":"annotation:t_omim_gene"
         },
         "GRCh38":{
-          "table":"omim_genemap",
-          "key":"mim_id",
-          "indexTable":"omim_genemap_index_gene_symbol"
+          "table":"annotation:t_omim_gene"
         }
-      },
-      "fields":{
-        "OMIM_gene_symbol":"gene_symbol",
-        "OMIM_gene_status":"gene_status",
-        "OMIM_loc":"location",
-        "OMIM_disorders":"disorders",
-        "OMIM_title":"title",
-        "OMIM_ID":"mim_id"
       }
     },
     "HGMD":{
@@ -84,9 +72,6 @@
           "key":"id",
           "indexTable":"ESP6500_hg19_index"
         }
-      },
-      "fields":{
-        "ESP6500_AF":"AF"
       }
     },
     "dbSNP":{

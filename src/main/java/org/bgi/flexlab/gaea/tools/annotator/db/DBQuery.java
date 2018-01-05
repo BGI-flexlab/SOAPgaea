@@ -27,10 +27,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
 
-/**
- * @author huangzhibo
- *
- */
 public class DBQuery implements Serializable {
 
 	private static final long serialVersionUID = -897843908487603204L;
@@ -148,8 +144,7 @@ public class DBQuery implements Serializable {
 	 * @return
 	 */
 	LinkedList<HashMap<String, String>> getAcResultList(AnnotationContext ac) {
-		LinkedList<HashMap<String, String>> resultList = results.get(ac.getAllele());
-		return resultList;
+		return results.get(ac.getAllele());
 	}
 	
 	/**

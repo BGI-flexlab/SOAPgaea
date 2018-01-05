@@ -33,7 +33,6 @@ import org.bgi.flexlab.gaea.data.structure.reference.ReferenceShare;
 import org.bgi.flexlab.gaea.tools.annotator.AnnotationEngine;
 import org.bgi.flexlab.gaea.tools.annotator.SampleAnnotationContext;
 import org.bgi.flexlab.gaea.tools.annotator.VcfAnnoContext;
-import org.bgi.flexlab.gaea.tools.annotator.VcfAnnotator;
 import org.bgi.flexlab.gaea.tools.annotator.config.Config;
 import org.bgi.flexlab.gaea.tools.annotator.db.DBAnnotator;
 
@@ -45,8 +44,6 @@ public class AnnotationReducer extends Reducer<Text, VcfLineWritable, NullWritab
 	private Text resultValue = new Text();
 	private AnnotatorOptions options;
 	private HashMap<String, VCFCodec> vcfCodecs;
-	private List<String> sampleNames;
-	private VcfAnnotator vcfAnnotator;
 	private AnnotationEngine annoEngine;
 	private DBAnnotator dbAnnotator;
 	private MultipleOutputs<NullWritable, Text> multipleOutputs;
@@ -77,7 +74,6 @@ public class AnnotationReducer extends Reducer<Text, VcfLineWritable, NullWritab
 		annoBuild.buildForest();
 		if(options.isDebug())
 			System.err.println("build SnpEffectPredictor耗时：" + (System.currentTimeMillis()-start)+"毫秒");
-		sampleNames = new ArrayList<>();
 		vcfCodecs = new HashMap<>();
 		Path inputPath = new Path(options.getInputFilePath());
 		FileSystem fs = inputPath.getFileSystem(conf);

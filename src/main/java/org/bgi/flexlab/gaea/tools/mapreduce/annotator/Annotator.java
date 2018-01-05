@@ -124,7 +124,7 @@ public class Annotator extends ToolsRunner {
         FileSystem fs = outputPath.getFileSystem(conf);
         if(job.waitForCompletion(true)){
             for (String sampleName : sampleNames){
-                FileStatus[] fileStatuses = fs.globStatus(new Path(options.getOutputPath() + "/" + sampleName + "-r-[0-9][0-9][0-9][0-9][0-9]*"));
+                FileStatus[] fileStatuses = fs.globStatus(new Path(options.getOutputPath() + "/" + sampleName + "-r-*"));
                 if(fileStatuses.length>1)
                     System.err.println(sampleName+": rename result file error!"); ;
                 Path outputName = new Path(options.getOutputPath() + "/" + sampleName + ".tsv");
