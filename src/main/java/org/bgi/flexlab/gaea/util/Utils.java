@@ -82,6 +82,24 @@ public class Utils {
         else if (lhs == null) return false;
         else return lhs.equals(rhs);
     }
+    
+    public static <T> T nonNull(final T object) {
+        return Utils.nonNull(object, "Null object is not allowed here.");
+    }
+
+    /**
+     * Checks that an {@link Object} is not {@code null} and returns the same object or throws an {@link IllegalArgumentException}
+     * @param object any Object
+     * @param message the text message that would be passed to the exception thrown when {@code o == null}.
+     * @return the same object
+     * @throws IllegalArgumentException if a {@code o == null}
+     */
+    public static <T> T nonNull(final T object, final String message) {
+        if (object == null) {
+            throw new IllegalArgumentException(message);
+        }
+        return object;
+    }
 
     public static <T> List<T> cons(final T elt, final List<T> l) {
         List<T> l2 = new ArrayList<T>();

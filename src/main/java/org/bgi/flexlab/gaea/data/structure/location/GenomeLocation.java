@@ -43,6 +43,9 @@
 package org.bgi.flexlab.gaea.data.structure.location;
 
 import org.bgi.flexlab.gaea.data.exception.UserException;
+import org.bgi.flexlab.gaea.util.Utils;
+
+import htsjdk.samtools.SAMSequenceDictionary;
 
 import java.io.Serializable;
 import java.util.*;
@@ -439,5 +442,40 @@ public class GenomeLocation implements Comparable<GenomeLocation>,
 			result = compare(this, that);
 		}
 		return result;
+	}
+	
+	public static final int compareLocatables(GenomeLocation first, GenomeLocation second, SAMSequenceDictionary dictionary) {
+	    Utils.nonNull(first);
+	    Utils.nonNull(second);
+	    Utils.nonNull(dictionary);
+
+	    int result = 0;
+	    if(first != second) {
+	        // compare the contigs
+	        result = compareContigs(first, second, dictionary);
+	        if (result == 0) {
+	            // compare start position
+	            result = Integer.compare(first.getStart(), second.getStart());
+	            if (result == 0) {
+	                // compare end position
+	                result = Integer.compare(first.getStop(), second.getStop());
+	            }
+	        }
+	    }
+	    return result;
+	}
+	
+	public static int compareContigs(final GenomeLocation first, final GenomeLocation second, final SAMSequenceDictionary dictionary) {
+	    Utils.nonNull(first);
+	    Utils.nonNull(second);
+	    Utils.nonNull(dictionary);
+
+	    final int firstRefIndex = dictionary.getSequenceIndex(first.getContig());
+	    final int secondRefIndex = dictionary.getSequenceIndex(second.getContig());
+	    if (firstRefIndex == -1 || secondRefIndex == -1) {
+	        throw new IllegalArgumentException("Can't do comparison because Locatables' contigs not found in sequence dictionary");
+	    }
+	    // compare the contigs
+	    return Integer.compare(firstRefIndex, secondRefIndex);
 	}
 }

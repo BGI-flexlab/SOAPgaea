@@ -76,8 +76,10 @@ public class GaeaVCFOutputFormat<K> extends FileOutputFormat<K, VariantContextWr
         final Configuration conf = ContextUtil.getConfiguration(context);
         initBaseOF(conf);
         if (baseOF.getHeader() == null) {
-            final Path p = new Path(conf.get(OUT_PATH_PROP));
-            baseOF.readHeaderFrom(p, p.getFileSystem(conf));
+        	if(conf.get(OUT_PATH_PROP) != null){
+        		final Path p = new Path(conf.get(OUT_PATH_PROP));
+        		baseOF.readHeaderFrom(p, p.getFileSystem(conf));
+        	}
         }
         
         if(conf.getBoolean(GaeaVCFOutputFormat.HEADER_MODIFY, false)){
