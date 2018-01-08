@@ -23,7 +23,7 @@ import org.bgi.flexlab.gaea.data.options.GaeaOptions;
 
 public class FastqQualityControlOptions extends GaeaOptions implements
 		HadoopOptions {
-	private final static String SOFTWARE_NAME = "FilterQualityControl";
+	private final static String SOFTWARE_NAME = "FastqQualityControl";
 	private final static String SOFTWARE_VERSION = "1.0";
 	private final static int LENGTH_QUALITY = 64;
 
@@ -53,7 +53,7 @@ public class FastqQualityControlOptions extends GaeaOptions implements
 		addOption("o", "output", true, "output directory", true);
 		addOption("d", "qualityFreq", false, "output quality frequency statice");
 		addOption("M", "ignoredSample", false, "QC statictis together");
-		addOption("D", "dyncut", false, "run dyncutadaptor process");
+		addOption("y", "dyncut", false, "run dyncutadaptor process");
 		addOption("S", "seed", true, "initial length of adaptor.(default:10)");
 		addOption("T", "ignoredTail", true,
 				"don't cut tail in the last n bp.(default:3)");
@@ -130,7 +130,7 @@ public class FastqQualityControlOptions extends GaeaOptions implements
 		readType = getOptionIntValue("t",0);
 
 		qualTrim = getOptionBooleanValue("C", false);
-		dyncut = getOptionBooleanValue("D", false);
+		dyncut = getOptionBooleanValue("y", false);
 		multiStatis = getOptionBooleanValue("M", true);
 		qualFreq = getOptionBooleanValue("d", false);
 		ignoredfastq1 = getOptionBooleanValue("5", false);

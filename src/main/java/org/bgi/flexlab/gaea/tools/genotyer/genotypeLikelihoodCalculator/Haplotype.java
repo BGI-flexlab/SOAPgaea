@@ -263,6 +263,8 @@ public class Haplotype {
             //System.err.println("mk hp allele:" + a.getBaseString());
 
             final byte[] alleleBases = a.getBases();
+            if(alleleBases.length <= 0)
+                continue;
             // use string concatenation
             String haplotypeString = basesBeforeVariant + new String(Arrays.copyOfRange(alleleBases, 1, alleleBases.length)) + basesAfterVariant;
             haplotypeString = haplotypeString.substring(0,haplotypeSize);

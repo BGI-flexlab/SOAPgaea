@@ -75,8 +75,8 @@ public class SamRecordDatum extends SAMInformationBasic {
 	  	 cigarState.parseCigar(cigarString);
    	  	 int softClipStart = ParseSAMBasic.getStartSoftClipLength(cigarState.getCigar());
 	  	 int softClipEnd = ParseSAMBasic.getEndSoftClipLength(cigarState.getCigar());
-		 readSequence = ParseSAMBasic.parseSeq(alignmentArray, softClipStart, softClipEnd, false);
-	  	 qualityString = ParseSAMBasic.parseQual(alignmentArray, softClipStart, softClipEnd, false);
+		 readSequence = ParseSAMBasic.parseSeq(alignmentArray, softClipStart, softClipEnd, true);
+	  	 qualityString = ParseSAMBasic.parseQual(alignmentArray, softClipStart, softClipEnd, true);
 	  	 bestHitCount = ParseSAMBasic.parseBestHitCount(alignmentArray);
 	  	 insertSize = ParseSAMBasic.parseInsertSize(alignmentArray);
 	  	 lenValue = ParseSAMBasic.parseCigar(position, cigarState);

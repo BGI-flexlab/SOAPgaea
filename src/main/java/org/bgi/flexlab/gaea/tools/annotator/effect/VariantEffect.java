@@ -34,6 +34,7 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.annotator.effect;
 
+import org.bgi.flexlab.gaea.tools.annotator.AnnotationContext;
 import org.bgi.flexlab.gaea.tools.annotator.codons.CodonTable;
 import org.bgi.flexlab.gaea.tools.annotator.config.Config;
 import org.bgi.flexlab.gaea.tools.annotator.interval.*;

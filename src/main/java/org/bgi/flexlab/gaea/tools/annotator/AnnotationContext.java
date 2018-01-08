@@ -32,9 +32,11 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-package org.bgi.flexlab.gaea.tools.annotator.effect;
+package org.bgi.flexlab.gaea.tools.annotator;
 
 import htsjdk.variant.vcf.VCFConstants;
+import org.bgi.flexlab.gaea.tools.annotator.effect.EffectType;
+import org.bgi.flexlab.gaea.tools.annotator.effect.VariantEffect;
 import org.bgi.flexlab.gaea.tools.annotator.effect.VariantEffect.FunctionalClass;
 import org.bgi.flexlab.gaea.tools.annotator.interval.*;
 
@@ -77,6 +79,7 @@ public class AnnotationContext implements Serializable{
 	};
 
 
+	Variant variant;
 	String vcfFieldString; // Original 'raw' string from VCF Info field
 	String vcfFieldStrings[]; // Original 'raw' strings from VCF info field: effectString.split()
 	EffectType effectType;
@@ -101,9 +104,12 @@ public class AnnotationContext implements Serializable{
 	boolean useHgvs;
 	boolean useGeneId;
 	boolean useFirstEffect;
+	String strand;
 
 	private static Map<String, Object> NO_VALUE = Collections.unmodifiableMap(new HashMap<String, Object>());
 	private Map<String, Object> annoItems = NO_VALUE;
+
+	public AnnotationContext() {}
 
 	public AnnotationContext(VariantEffect variantEffect) {
 		this(variantEffect, true, false);
@@ -126,6 +132,7 @@ public class AnnotationContext implements Serializable{
 		useSequenceOntology = true;
 		useHgvs = true;
 		useGeneId = false;
+		strand = ".";
 	}
 
 
@@ -454,6 +461,12 @@ public class AnnotationContext implements Serializable{
 		case "DISTANCE":
 			return Integer.toString(distance);
 
+		case "VarType":
+			return variant.getVariantType().toString();
+
+		case "Strand":
+			return strand;
+
 		case "ERRORS":
 		case "WARNINGS":
 		case "INFOS":
@@ -534,7 +547,7 @@ public class AnnotationContext implements Serializable{
 	 */
 	void set(VariantEffect variantEffect) {
 		// Allele
-		Variant variant = variantEffect.getVariant();
+		variant = variantEffect.getVariant();
 		Gene gene = variantEffect.getGene();
 		Marker marker = variantEffect.getMarker();
 		Transcript tr = variantEffect.getTranscript();
@@ -590,6 +603,7 @@ public class AnnotationContext implements Serializable{
 			} else if (tr != null) {
 				featureType = "transcript";
 				featureId = transcriptId = tr.getId();
+				strand = tr.getStrand();
 				// Append version number (this is recommended by HGVS specification)
 				if (tr.getVersion() != null && !tr.getVersion().isEmpty()) featureId += "." + tr.getVersion();
 			} else {

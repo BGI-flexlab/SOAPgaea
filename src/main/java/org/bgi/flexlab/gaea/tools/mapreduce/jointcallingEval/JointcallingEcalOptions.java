@@ -14,58 +14,37 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  *******************************************************************************/
-package org.bgi.flexlab.gaea.tools.mapreduce.annotator;
+package org.bgi.flexlab.gaea.tools.mapreduce.jointcallingEval;
 
 import org.apache.commons.cli.ParseException;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
 import org.bgi.flexlab.gaea.data.mapreduce.options.HadoopOptions;
 import org.bgi.flexlab.gaea.data.options.GaeaOptions;
-import org.seqdoop.hadoop_bam.SAMFormat;
 
 import java.io.File;
-import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 
 /**
- * Created by huangzhibo on 2017/7/7.
+ * Created by huangzhibo on 2017/12/12.
  */
-public class AnnotatorOptions extends GaeaOptions implements HadoopOptions{
-    private final static String SOFTWARE_NAME = "Annotator";
+public class JointcallingEcalOptions extends GaeaOptions implements HadoopOptions {
+    private final static String SOFTWARE_NAME = "JointcallingEval";
     private final static String SOFTWARE_VERSION = "1.0";
 
-    private String configFile = null; //用户配置文件
-    //	private String outputType = null; //输出格式 txt,vcf
     private String tmpPath = null; //输出格式 txt,vcf
     private String outputPath = null;
     private String inputFilePath = null;
-
-    private String referenceSequencePath = null; //参考序列gaeaindex
-
-    private boolean multiOutput = false;
-    private boolean verbose = false;
-    private boolean debug = false;
-
+    private String baselineFile = null;
     private int reducerNum;
 
-    public AnnotatorOptions() {
+    public JointcallingEcalOptions() {
         addOption("i", "input",      true,  "input file(VCF). [request]", true);
+        addOption("b", "baseline",      true,  "baseline file(VCF). [request]", true);
         addOption("o", "output",     true,  "output file of annotation results(.gz) [request]", true);
-        addOption("c", "config",     true,  "config file. [request]", true);
-        addOption("r", "reference",  true,  "indexed reference sequence file list [request]", true);
-        //addOption("T", "outputType", true,  "output file foramt[txt, vcf].");
-        addOption("M", "MultiOutput", true,  "output to multi file when have more than one sample");
-        addOption(null,"verbose",    false, "display verbose information.");
-        addOption(null,"debug",      false, "for debug.");
         addOption("h", "help",       false, "help information.");
         addOption("R", "reducer", true, "reducer numbers [30]");
-
         FormatHelpInfo(SOFTWARE_NAME,SOFTWARE_VERSION);
-
     }
 
     @Override
@@ -80,41 +59,25 @@ public class AnnotatorOptions extends GaeaOptions implements HadoopOptions{
             helpInfo.printHelp("Options:", options, true);
             System.exit(1);
         }
-
-
         reducerNum = getOptionIntValue("R", 30);
-
         SimpleDateFormat df = new SimpleDateFormat("yyyyMMddHHmmss");
         tmpPath = "/user/" + System.getProperty("user.name") + "/annotmp-" + df.format(new Date());
-
         setInputFilePath(cmdLine.getOptionValue("input"));
-        setConfigFile(cmdLine.getOptionValue("config"));
-        setReferenceSequencePath(cmdLine.getOptionValue("reference",""));
-        setMultiOutput(getOptionBooleanValue("multiOutput", false));
         setOutputPath(cmdLine.getOptionValue("output"));
-        setVerbose(getOptionBooleanValue("verbose", false));
-        setDebug(getOptionBooleanValue("debug", false));
+        setBaselineFile(cmdLine.getOptionValue("baseline"));
     }
 
     @Override
     public void setHadoopConf(String[] args, Configuration conf) {
         conf.setStrings("args", args);
         conf.set("inputFilePath", getInputFilePath());
-        conf.set("reference", getReferenceSequencePath());
-        conf.set("configFile", getConfigFile());
-        conf.set("outputType", getOutputType());
-        conf.setBoolean("verbose", isVerbose());
-        conf.setBoolean("debug", isDebug());
+        conf.set("outputPath", getOutputTmpPath());
     }
 
     @Override
     public void getOptionsFromHadoopConf(Configuration conf) {
         String[] args = conf.getStrings("args");
         this.parse(args);
-    }
-
-    public int getReducerNum() {
-        return reducerNum;
     }
 
     private String formatPath(String p) {
@@ -124,6 +87,14 @@ public class AnnotatorOptions extends GaeaOptions implements HadoopOptions{
             p = "file://" + new File(p).getAbsolutePath();
         }
         return p;
+    }
+
+    public int getReducerNum() {
+        return reducerNum;
+    }
+
+    public String getOutputTmpPath() {
+        return formatPath(outputPath+"/tmp");
     }
 
     public String getOutputPath() {
@@ -142,64 +113,23 @@ public class AnnotatorOptions extends GaeaOptions implements HadoopOptions{
         this.tmpPath = tmpPath;
     }
 
-    public String getOutputType() {
-//		return outputType;
-        return "txt";
-    }
-
     public String getInputFilePath() {
         return inputFilePath;
-    }
-
-    public void setInputFilePath(String inputFilePath) {
-        this.inputFilePath = formatPath(inputFilePath);
-    }
-
-    public String getConfigFile() {
-        return configFile;
-    }
-
-    public void setConfigFile(String configFile) {
-        this.configFile = formatPath(configFile);
-    }
-
-    public String getReferenceSequencePath() {
-        return referenceSequencePath;
-    }
-
-    public void setReferenceSequencePath(String referenceSequencePath) {
-        this.referenceSequencePath = formatPath(referenceSequencePath);
-    }
-
-    public boolean isVerbose() {
-        return verbose;
-    }
-
-    public void setVerbose(boolean verbose) {
-        this.verbose = verbose;
-    }
-
-    public boolean isDebug() {
-        return debug;
-    }
-
-    public void setDebug(boolean debug) {
-        this.debug = debug;
-    }
-
-    public String getOutput() {
-        return formatPath(outputPath);
     }
 
     public String getInput() {
         return inputFilePath;
     }
 
-    public boolean isMultiOutput() {
-        return multiOutput;
+    public void setInputFilePath(String inputFilePath) {
+        this.inputFilePath = inputFilePath;
     }
 
-    public void setMultiOutput(boolean multiOutput) {
-        this.multiOutput = multiOutput;
+    public String getBaselineFile() {
+        return baselineFile;
+    }
+
+    public void setBaselineFile(String baselineFile) {
+        this.baselineFile = baselineFile;
     }
 }

@@ -34,6 +34,7 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.annotator.effect;
 
+import org.bgi.flexlab.gaea.tools.annotator.AnnotationContext;
 import org.bgi.flexlab.gaea.tools.annotator.effect.VariantEffect.EffectImpact;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Variant;
 

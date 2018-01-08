@@ -16,7 +16,6 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.mapreduce.annotator;
 
-import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFCodec;
 import htsjdk.variant.vcf.VCFHeader;
@@ -31,57 +30,56 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
 import org.bgi.flexlab.gaea.data.structure.header.SingleVCFHeader;
 import org.bgi.flexlab.gaea.data.structure.reference.ReferenceShare;
+import org.bgi.flexlab.gaea.tools.annotator.AnnotationEngine;
+import org.bgi.flexlab.gaea.tools.annotator.SampleAnnotationContext;
+import org.bgi.flexlab.gaea.tools.annotator.VcfAnnoContext;
 import org.bgi.flexlab.gaea.tools.annotator.config.Config;
 import org.bgi.flexlab.gaea.tools.annotator.db.DBAnnotator;
-import org.bgi.flexlab.gaea.tools.annotator.effect.VcfAnnotationContext;
-import org.bgi.flexlab.gaea.tools.annotator.effect.VcfAnnotator;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 public class AnnotationReducer extends Reducer<Text, VcfLineWritable, NullWritable, Text> {
 
 	private Text resultValue = new Text();
+	private AnnotatorOptions options;
 	private HashMap<String, VCFCodec> vcfCodecs;
-	private List<String> sampleNames;
-	private VcfAnnotator vcfAnnotator;
+	private AnnotationEngine annoEngine;
 	private DBAnnotator dbAnnotator;
-	private Configuration conf;
 	private MultipleOutputs<NullWritable, Text> multipleOutputs;
-	long mapTime = 0; 
+	Config userConfig;
+	long mapTime = 0;
 	long mapCount = 0;
 	
 	@Override
 	protected void setup(Context context) throws IOException, InterruptedException {
+		options = new AnnotatorOptions();
+		Configuration conf = context.getConfiguration();
+		options.getOptionsFromHadoopConf(conf);
+
 		long setupStart = System.currentTimeMillis();
-		conf = context.getConfiguration();
-		
 		long start = System.currentTimeMillis();
 		ReferenceShare genomeShare = new ReferenceShare();
-		genomeShare.loadChromosomeList();
+		genomeShare.loadChromosomeList(options.getReferenceSequencePath());
+		if(options.isDebug())
+			System.err.println("genomeShare耗时：" + (System.currentTimeMillis()-start)+"毫秒");
 
-		System.err.println("genomeShare耗时：" + (System.currentTimeMillis()-start)+"毫秒");
-		
-		Config userConfig = new Config(conf, genomeShare);
-		userConfig.setVerbose(conf.getBoolean("verbose", false));
-		userConfig.setDebug(conf.getBoolean("debug", false));
-		
+		userConfig = new Config(conf, genomeShare);
+		userConfig.setVerbose(options.isVerbose());
+		userConfig.setDebug(options.isDebug());
+
 		start = System.currentTimeMillis();
 		AnnotatorBuild annoBuild = new AnnotatorBuild(userConfig);
 		userConfig.setSnpEffectPredictor(annoBuild.createSnpEffPredictor());
 		annoBuild.buildForest();
-		System.err.println("build SnpEffectPredictor耗时：" + (System.currentTimeMillis()-start)+"毫秒");
-		sampleNames = new ArrayList<>();
+		if(options.isDebug())
+			System.err.println("build SnpEffectPredictor耗时：" + (System.currentTimeMillis()-start)+"毫秒");
 		vcfCodecs = new HashMap<>();
-		Path inputPath = new Path(conf.get("inputFilePath"));
+		Path inputPath = new Path(options.getInputFilePath());
 		FileSystem fs = inputPath.getFileSystem(conf);
 		FileStatus[] files = fs.listStatus(inputPath);
 
 		for(FileStatus file : files) {
-			System.out.println(file.getPath());
 			if (file.isFile()) {
 				SingleVCFHeader singleVcfHeader = new SingleVCFHeader();
 				singleVcfHeader.readHeaderFrom(file.getPath(), fs);
@@ -90,20 +88,14 @@ public class AnnotationReducer extends Reducer<Text, VcfLineWritable, NullWritab
 				VCFCodec vcfcodec = new VCFCodec();
 				vcfcodec.setVCFHeader(vcfHeader, vcfVersion);
 				vcfCodecs.put(file.getPath().getName(), vcfcodec);
-				System.out.println("getname: "+file.getPath().getName());
-
-				sampleNames.addAll(vcfHeader.getSampleNamesInOrder());
-				System.out.println(sampleNames.toString());
 			}
 
 		}
+		if(options.isDebug())
+			System.err.println("getVCFHeader耗时：" + (System.currentTimeMillis()-start)+"毫秒");
 
+		annoEngine = new AnnotationEngine(userConfig);
 
-		multipleOutputs = new MultipleOutputs(context);
-		System.err.println("getVCFHeader耗时：" + (System.currentTimeMillis()-start)+"毫秒");
-		
-		vcfAnnotator = new VcfAnnotator(userConfig);
-		
 		start = System.currentTimeMillis();
 		//用于从数据库中查找信息
 		dbAnnotator = new DBAnnotator(userConfig);
@@ -114,62 +106,84 @@ public class AnnotationReducer extends Reducer<Text, VcfLineWritable, NullWritab
 			e.printStackTrace();
 		}
 		System.err.println("dbAnnotator.connection耗时：" + (System.currentTimeMillis()-start)+"毫秒");
-		
+
 		// 注释结果header信息
 		resultValue.set(userConfig.getHeader());
-		for(int i = 0; i < sampleNames.size(); i ++) {
-			multipleOutputs.write(SampleNameModifier.modify(sampleNames.get(i)), NullWritable.get(), resultValue, sampleNames.get(i) + "/part");
-		}
+		context.write(NullWritable.get(), resultValue);
 		System.err.println("mapper.setup耗时：" + (System.currentTimeMillis()-setupStart)+"毫秒");
 	}
 
 	@Override
 	protected void reduce(Text key, Iterable<VcfLineWritable> values, Context context)
 			throws IOException, InterruptedException {
-
+		long start = System.currentTimeMillis();
 		Iterator<VcfLineWritable> iter =  values.iterator();
-		List<VcfAnnotationContext> vcfList = new ArrayList<>();
+		Map<String, VcfAnnoContext> posVariantInfo = new HashMap<>();
+		Map<Integer, String> posToPosKey = new HashMap<>();
+		List<Integer> positions = new ArrayList<>();
+
 		while(iter.hasNext()) {
 			VcfLineWritable vcfInput =  iter.next();
 			String fileName = vcfInput.getFileName();
 			String vcfLine = vcfInput.getVCFLine();
-			System.out.println("reducer: " + key.toString() + " " + vcfLine);
-
 			VariantContext variantContext =  vcfCodecs.get(fileName).decode(vcfLine);
-			VcfAnnotationContext vcfAnnoContext = new VcfAnnotationContext(variantContext);
-			if (!vcfAnnotator.annotate(vcfAnnoContext)) {
-				continue;
+			String refStr = variantContext.getReference().getBaseString();
+			int pos = variantContext.getStart();
+			if(!positions.contains(pos))
+				positions.add(pos);
+			String posKey = pos + refStr;
+			posToPosKey.put(pos, posKey);
+			if(posVariantInfo.containsKey(posKey)){
+				posVariantInfo.get(posKey).add(variantContext);
+			}else {
+				VcfAnnoContext vcfAnnoContext = new VcfAnnoContext(variantContext);
+				posVariantInfo.put(posKey, vcfAnnoContext);
 			}
-			vcfList.add(vcfAnnoContext);
 		}
 
-		/*相同key只查询一次*/
-		dbAnnotator.annotate(vcfList);
-		mapCount++;
+		Collections.sort(positions);
 
-		for( int i = 0 ; i < vcfList.size(); i ++) {
-			VcfAnnotationContext vcfAnnoContext = vcfList.get(i);
-			List<String> annoLines = vcfAnnotator.convertAnnotationStrings(vcfAnnoContext);
-			for (int j = 0; j < vcfAnnoContext.getNSamples(); j ++) {
-				Genotype genotype = vcfAnnoContext.getGenotype(j);
-				if(genotype.isCalled())
-				for (String annoLine : annoLines) {
-					resultValue.set(annoLine);
-					multipleOutputs.write(SampleNameModifier.modify(genotype.getSampleName()), NullWritable.get(),
-							resultValue, genotype.getSampleName() + "/part");
+		for(VcfAnnoContext vcfAnnoContext: posVariantInfo.values()){
+			String posPrefix = vcfAnnoContext.getContig()+"-"+vcfAnnoContext.getStart()/1000;
+			if(!posPrefix.equals(key.toString()))
+				continue;
+
+			// 标记附近有其他变异的点
+			int index = positions.indexOf(vcfAnnoContext.getStart());
+			if(index > 0 && vcfAnnoContext.getStart() - positions.get(index-1) <= 5){
+				String posKey = posToPosKey.get(positions.get(index-1));
+				VcfAnnoContext vcfAnnoContextNear = posVariantInfo.get(posKey);
+				for(SampleAnnotationContext sac: vcfAnnoContext.getSampleAnnoContexts().values()){
+					String sampleName = sac.getSampleName();
+					if(vcfAnnoContextNear.hasSample(sampleName)){
+						sac.setHasNearVar();
+						vcfAnnoContextNear.getSampleAnnoContexts().get(sampleName).setHasNearVar();
+					}
 				}
 			}
+			if (!annoEngine.annotate(vcfAnnoContext)) {
+				continue;
+			}
+			dbAnnotator.annotate(vcfAnnoContext);
+			List<String> annoLines = vcfAnnoContext.toAnnotationStrings(userConfig);
+			for (String annoLine : annoLines) {
+				resultValue.set(annoLine);
+				context.write(NullWritable.get(), resultValue);
+			}
+		}
+
+		if(options.isDebug()) {
+			System.err.println("step3:" + (System.currentTimeMillis() - start) + "ms");
+			mapTime += System.currentTimeMillis() - start;
+			mapCount++;
 		}
 	}
 
-		
-
-	
 	@Override
 	protected void cleanup(Context context)
 			throws IOException, InterruptedException {
 		dbAnnotator.disconnection();
-		multipleOutputs.close();
-		System.err.println("dbAnnotator平均耗时(mapTime/mapCount)：" +mapTime+"/"+mapCount+" = ? 毫秒");
+		if(options.isDebug())
+			System.err.println("dbAnnotator平均耗时(mapTime/mapCount)：" +mapTime+"/"+mapCount+" = ? 毫秒");
 	}
 }

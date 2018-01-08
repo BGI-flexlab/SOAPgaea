@@ -16,14 +16,25 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.annotator.db;
 
-import org.bgi.flexlab.gaea.tools.annotator.effect.AnnotationContext;
+import org.apache.hadoop.hbase.Cell;
+import org.apache.hadoop.hbase.CellUtil;
+import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.client.Result;
+import org.apache.hadoop.hbase.client.ResultScanner;
+import org.apache.hadoop.hbase.client.Scan;
+import org.apache.hadoop.hbase.client.Table;
+import org.apache.hadoop.hbase.filter.BinaryPrefixComparator;
+import org.apache.hadoop.hbase.filter.CompareFilter;
+import org.apache.hadoop.hbase.filter.Filter;
+import org.apache.hadoop.hbase.filter.RowFilter;
+import org.apache.hadoop.hbase.util.Bytes;
+import org.bgi.flexlab.gaea.tools.annotator.config.DatabaseInfo;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.Map.Entry;
 
-public class HGNCQuery extends DBQuery {
+public class BGIGaPQuery extends DBQuery {
 
 	private static final long serialVersionUID = 805441802476032672L;
 
@@ -32,25 +43,26 @@ public class HGNCQuery extends DBQuery {
 		HashMap<String, String> fieldMap = condition.getFields();
 		Results results = new Results();
 
-		for (String gene : condition.getGenes()) {
-			HashMap<String,String> result = dbAdapter.getResult(condition.getRefTable().getTable(), gene);
+		//	keyValue = alt:conditionString
+		for (Entry<String, String> keyValue : condition.getConditionHash().entrySet()) {
+			HashMap<String,String> result = dbAdapter.getResult(condition.getRefTable().getTable(), keyValue.getValue());
 			if (result ==null || result.isEmpty()) return null;
-				
 			HashMap<String,String> annoResult = new HashMap<String, String>();
 			for (Entry<String, String> entry : fieldMap.entrySet()) {
 				annoResult.put(entry.getKey(), result.get(entry.getValue()));
 			}
-			results.add(gene, annoResult);
+
+			results.add(keyValue.getKey(), annoResult);
 		}
+
 		return results;
 	}
-	
-	
-	@Override
-	LinkedList<HashMap<String, String>> getAcResultList(AnnotationContext ac) {
-		LinkedList<HashMap<String, String>> resultList = results.get(ac.getGeneName());
-		return resultList;
+
+
+
+	public void connection(String dbName, DatabaseInfo.DbType dbType, String connInfo) throws IOException{
+		dbAdapter = DBAdapterFactory.createDbAdapter(dbType, connInfo);
+		dbAdapter.connection("base");
 	}
-	
 
 }

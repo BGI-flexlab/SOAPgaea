@@ -23,33 +23,33 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map.Entry;
 
-public class IndexGeneDBQuery extends DBQuery {
+public class GeneDBQuery extends DBQuery {
 
-	private static final long serialVersionUID = 7515609026719464241L;
-	
+	private static final long serialVersionUID = 805441802476032672L;
+
 	@Override
 	public Results query(Condition condition)throws IOException{
 		HashMap<String, String> fieldMap = condition.getFields();
 		Results results = new Results();
-		
-		// entry = alt:conditionString, gene:conditionString		
-		for(Entry<String, String> entry : condition.getConditionHash().entrySet()){
-			HashMap<String,String> result = dbAdapter.getResult(condition.getRefTable().getIndexTable(), entry.getValue());
-			if (result ==null || result.isEmpty()) continue;
-			String key = result.get(condition.getRefTable().getKey());
-			result = dbAdapter.getResult(condition.getRefTable().getTable(), key, fieldMap);
-			if (result ==null || result.isEmpty()) continue;
-			results.add(entry.getKey(), result);
+
+		for (String gene : condition.getGenes()) {
+			HashMap<String,String> result = dbAdapter.getResult(condition.getRefTable().getTable(), gene);
+			if (result ==null || result.isEmpty()) return null;
+				
+			HashMap<String,String> annoResult = new HashMap<>();
+			for (Entry<String, String> entry : fieldMap.entrySet()) {
+				annoResult.put(entry.getKey(), result.get(entry.getValue()));
+			}
+			results.add(gene, annoResult);
 		}
-		
 		return results;
 	}
-
+	
+	
 	@Override
-	LinkedList<HashMap<String, String>> getAcResultList(
-			AnnotationContext annotationContext) {
-		LinkedList<HashMap<String, String>> resultList = results.get(annotationContext.getGeneName());
-		return resultList;
+	LinkedList<HashMap<String, String>> getAcResultList(AnnotationContext ac) {
+		return results.get(ac.getGeneName());
 	}
+	
 
 }

@@ -16,12 +16,13 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.annotator.db;
 
+import org.bgi.flexlab.gaea.tools.annotator.VcfAnnoContext;
 import org.bgi.flexlab.gaea.tools.annotator.config.Config;
 import org.bgi.flexlab.gaea.tools.annotator.config.DatabaseInfo;
 import org.bgi.flexlab.gaea.tools.annotator.config.DatabaseInfo.ConditionKey;
 import org.bgi.flexlab.gaea.tools.annotator.config.DatabaseInfo.DbType;
 import org.bgi.flexlab.gaea.tools.annotator.config.RefTableInfo;
-import org.bgi.flexlab.gaea.tools.annotator.effect.VcfAnnotationContext;
+import org.bgi.flexlab.gaea.tools.annotator.VcfAnnotationContext;
 
 import java.io.Serializable;
 import java.util.*;
@@ -258,7 +259,7 @@ public class Condition implements Serializable{
 		}
 	}
 
-	public void createConditionMap(VcfAnnotationContext vac) {
+	public void createConditionMap(VcfAnnoContext vac) {
 		// TODO Auto-generated method stub
 		conditionMap.put(ConditionKey.CHR, vac.getChromeNoChr());
 		conditionMap.put(ConditionKey.CHROM, vac.getChrome());
