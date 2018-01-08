@@ -3,3 +3,7 @@
 /.classpath
 /.idea
 /gaea.iml
+/pom.xml
+/src/main/resources
+src/main/java/org/bgi/flexlab/gaea/tools/jointcalling
+src/main/java/org/bgi/flexlab/gaea/tools/mapreduce/jointcalling
