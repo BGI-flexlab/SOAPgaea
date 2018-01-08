@@ -9,7 +9,7 @@ import org.bgi.flexlab.gaea.data.options.GaeaOptions;
 public class CallStructuralVariationOptions extends GaeaOptions implements HadoopOptions{
 	private final static String SOFTWARE_NAME = "CallStructuralVariation";
     private final static String SOFTWARE_VERSION = "1.0";
-	
+    
 	/**
 	 * input path of bam/sam files, should be hdfs path
 	 */
