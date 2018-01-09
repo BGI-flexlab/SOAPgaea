@@ -94,6 +94,7 @@ public class VCFQualityControlOptions extends GaeaOptions implements HadoopOptio
 				"VQSR:The number of prior counts to use in the variational Bayes algorithm.");
 		addOption("q", "qualThreshold", true,
 				"VQSR:If a known variant has raw QUAL value less than -qual then don't use it for building the Gaussian mixture model.");
+		addOption("Q","statics",false,"variants statics.");
 		addOption("R", "resource", true, "VQSR:A list of sites for which to apply a prior probability of"
 				+ " being correct but which aren't used by the algorithm, separated by ':'.", true);
 		addOption("r", "reference", true, "VQSR:reference in fasta format.", true);
@@ -106,7 +107,10 @@ public class VCFQualityControlOptions extends GaeaOptions implements HadoopOptio
 				"VQSR:the expected novel Ti/Tv ratio to use when calculating FDR tranches"
 						+ " and for display on the optimization curve output figures. (approx 2.15 for whole genome"
 						+ " experiments). ONLY USED FOR PLOTTING PURPOSES!");
+		addOption("w","static_file",true,"statics file output path.");
 	}
+	
+	private boolean vcf_statics = false;
 
 	private String trancheFile = null;
 
@@ -273,6 +277,8 @@ public class VCFQualityControlOptions extends GaeaOptions implements HadoopOptio
 	private String regionFile = null;
 
 	private boolean IGNORE_ALL_FILTERS = false;
+	
+	private String staticsPath = null;
 
 	/**
 	 * class of Model
@@ -402,6 +408,10 @@ public class VCFQualityControlOptions extends GaeaOptions implements HadoopOptio
 			scatter = getOptionBooleanValue("K",false);
 			
 			sampleMode = getOptionIntValue("L",1);
+			
+			vcf_statics = getOptionBooleanValue("Q",false);
+			
+			staticsPath = getOptionValue("w",null);
 		} else if (vcfqcMode == 2) {
 			try {
 				filterName = getOptionValue("F", null);
@@ -861,5 +871,13 @@ public class VCFQualityControlOptions extends GaeaOptions implements HadoopOptio
 
 	public int getSampleMode() {
 		return sampleMode;
+	}
+	
+	public boolean isStatics(){
+		return vcf_statics;
+	}
+	
+	public String getStaticsPath(){
+		return staticsPath;
 	}
 }

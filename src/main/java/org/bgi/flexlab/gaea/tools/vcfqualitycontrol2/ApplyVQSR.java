@@ -1,8 +1,10 @@
 package org.bgi.flexlab.gaea.tools.vcfqualitycontrol2;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -16,6 +18,7 @@ import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 
 import org.bgi.flexlab.gaea.data.exception.UserException;
+import org.bgi.flexlab.gaea.data.structure.variant.statistic.VariantBasicStatistic;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.ToolsRunner;
 import org.bgi.flexlab.gaea.tools.mapreduce.vcfqualitycontrol.VCFQualityControlOptions;
 import org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin.traindata.DBResource;
@@ -78,6 +81,10 @@ public class ApplyVQSR extends ToolsRunner{
 	
 	private VariantContextWriter vcfWriter;
 	
+	private VariantBasicStatistic basicStatics = null;
+    
+    private VariantBasicStatistic filteredStatics = null;
+	
 	public ApplyVQSR() {
 		this.toolsDescription = "Gaea vcf quality control!\n";
 	}
@@ -96,6 +103,11 @@ public class ApplyVQSR extends ToolsRunner{
 			throw new RuntimeException(e.toString());
 		}
 		recalibrator = new VariantRecalibrator(options,header);
+		
+		if(options.isStatics()){
+			basicStatics = new VariantBasicStatistic(options.isIndividuals());
+			filteredStatics = new VariantBasicStatistic(options.isIndividuals());
+		}
 	}
 	
 	public VCFHeader getHeader() throws FileNotFoundException, IOException{
@@ -162,6 +174,8 @@ public class ApplyVQSR extends ToolsRunner{
 		
 		while ( iterator.hasNext() ){
 			VariantContext vc = codec.decode(iterator.next());
+			if(options.isStatics())
+				basicStatics.variantStatic(vc);
 			applyVqsr(vc,recalibrator.getData());
 		}
 		
@@ -301,10 +315,14 @@ public class ApplyVQSR extends ToolsRunner{
 
 			final VariantContext outputVC = builder.make();
 			if (!EXCLUDE_FILTERED || outputVC.isNotFiltered()) {
+				if(outputVC.isNotFiltered() && options.isStatics())
+					filteredStatics.variantStatic(outputVC);
 				vcfWriter.add(outputVC);
 			}
 		} else { // valid VC but not compatible with this mode, so just emit the
 					// variant untouched
+			if(vc.isNotFiltered() && options.isStatics())
+				filteredStatics.variantStatic(vc);
 			vcfWriter.add(vc);
 		}
 	}
@@ -574,6 +592,19 @@ public class ApplyVQSR extends ToolsRunner{
 			AS_filterString.add(emptyStringValue);
 		}
 	}
+	
+	private void reportWriter() throws IOException{
+		if(!options.isStatics())
+			return;
+		String sampleName = basicStatics.getSampleName();
+		BufferedWriter os = new BufferedWriter(new FileWriter(options.getStaticsPath()+"/"+sampleName));
+		os.write("before filter\n");
+		os.write(basicStatics.toString());
+		os.write("\n");
+		os.write("after filter\n");
+		os.write(filteredStatics.toString());
+		os.close();
+	}
 
 	@Override
 	public int run(String[] args) throws Exception {
@@ -581,6 +612,7 @@ public class ApplyVQSR extends ToolsRunner{
 		options.parse(args);
 		ApplyVQSR applyVQSR = new ApplyVQSR(options);
 		applyVQSR.apply();
+		applyVQSR.reportWriter();
 		return 0;
 	}
 }
