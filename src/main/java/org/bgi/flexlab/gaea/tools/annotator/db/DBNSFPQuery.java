@@ -31,15 +31,21 @@ public class DBNSFPQuery extends DBQuery {
 		
 		//	keyValue = alt:conditionString
 		for (Entry<String, String> keyValue : condition.getConditionHash().entrySet()) {
-			HashMap<String,String> result = dbAdapter.getResult(condition.getRefTable().getIndexTable(), keyValue.getValue());
+			HashMap<String,String> result;
+			String keyStr;
+			if(condition.getRefTable().getIndexTable() != null){
+				result = dbAdapter.getResult(condition.getRefTable().getIndexTable(), keyValue.getValue());
+				if (result ==null || result.isEmpty()) return null;
+				keyStr = result.get(condition.getRefTable().getKey());
+				result = dbAdapter.getResult(condition.getRefTable().getTable(), keyStr);
+			}else {
+				result = dbAdapter.getResult(condition.getRefTable().getTable(), keyValue.getValue());
+			}
 			if (result ==null || result.isEmpty()) return null;
-			String keyStr = result.get(condition.getRefTable().getKey());
-			result = dbAdapter.getResult(condition.getRefTable().getTable(), keyStr);
-			HashMap<String,String> annoResult = new HashMap<String, String>();
+			HashMap<String,String> annoResult = new HashMap<>();
 			for (Entry<String, String> entry : fieldMap.entrySet()) {
 				annoResult.put(entry.getKey(), result.get(entry.getValue()));
 			}
-			
 			results.add(keyValue.getKey(), annoResult);
 		}
 			

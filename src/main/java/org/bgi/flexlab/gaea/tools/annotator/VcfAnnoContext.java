@@ -400,4 +400,10 @@ public class VcfAnnoContext {
         }
         return annoStrings;
     }
+
+    public String toString() {
+        return getContig() +
+                "\t" +  start +
+                "\t" +  refStr;
+    }
 }
