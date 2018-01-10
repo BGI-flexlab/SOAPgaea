@@ -56,9 +56,9 @@
           "indexTable":"HGMD_hg19_index"
         },
         "GRCh38":{
-          "table":"",
-          "key":"",
-          "indexTable":""
+          "table":"annotation:t_hg38_hgmd",
+          "key":"id",
+          "indexTable":"annotation:t_hg38_hgmd_index"
         }
       },
       "fields":{
@@ -98,9 +98,9 @@
           "indexTable":"dbSNP150_index"
         },
         "GRCh38":{
-          "table":"dbSNP150",
+          "table":"annotation:t_dbsnp_hg38",
           "key":"id",
-          "indexTable":"dbSNP150_hg38_index"
+          "indexTable":"annotation:t_dbsnp_hg38_index"
         }
       }
     },
@@ -115,9 +115,24 @@
           "indexTable":"G1000_GRCh37_index"
         },
         "GRCh38":{
-          "table":"",
+          "table":"annotation:t_hg38_G1000",
           "key":"id",
-          "indexTable":""
+          "indexTable":"annotation:t_hg38_G1000_index"
+        }
+      }
+    },
+    "ExAC":{
+      "database":"HBASE",
+      "queryClassName":"DBQuery",
+      "queryCondition":"CHR_POS_END",
+      "dbVersion":{
+        "GRCh37":{
+          "table":""
+        },
+        "GRCh38":{
+          "table":"annotation:t_ExAC_hg38",
+          "key":"id",
+          "indexTable":"annotation:t_ExAC_hg38_index"
         }
       }
     },
@@ -210,19 +225,12 @@
         "ESP6500 AF": "ESP6500_EA_AF",
         "1000G AF": "1000Gp3_AF",
         "1000G EAS AF": "1000Gp3_EAS_AF",
-        "ExAC EAS AC": "ExAC_EAS_AC",
-        "ExAC EAS AF": "ExAC_EAS_AF",
-        "ExAC AC": "ExAC_AC",
-        "ExAC AF": "ExAC_AF",
-        "rsID": "phyloP100way_vertebrate",
         "PhyloP Vertebrates": "phyloP100way_vertebrate",
         "PhyloP Mammals": "phyloP20way_mammalian",
         "SIFT Score": "SIFT_score",
         "SIFT Pred": "SIFT_pred",
         "Polyphen2HumVar Score": "Polyphen2_HVAR_score",
         "Polyphen2HumDiv Score": "Polyphen2_HDIV_score",
-        "MIM Gene ID": "MIM_id",
-        "MIM Pheno IDs": "MIM_phenotype_id",
         "GWAS Trait": "Trait_association(GWAS)"
       }
     },
