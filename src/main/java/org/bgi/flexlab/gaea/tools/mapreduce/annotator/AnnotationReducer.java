@@ -35,6 +35,7 @@ import org.bgi.flexlab.gaea.tools.annotator.SampleAnnotationContext;
 import org.bgi.flexlab.gaea.tools.annotator.VcfAnnoContext;
 import org.bgi.flexlab.gaea.tools.annotator.config.Config;
 import org.bgi.flexlab.gaea.tools.annotator.db.DBAnnotator;
+import org.bgi.flexlab.gaea.util.ChromosomeUtils;
 
 import java.io.IOException;
 import java.util.*;
@@ -142,7 +143,9 @@ public class AnnotationReducer extends Reducer<Text, VcfLineWritable, NullWritab
 		Collections.sort(positions);
 
 		for(VcfAnnoContext vcfAnnoContext: posVariantInfo.values()){
-			String posPrefix = vcfAnnoContext.getContig()+"-"+vcfAnnoContext.getStart()/1000;
+			String chr = ChromosomeUtils.getNoChrName(vcfAnnoContext.getContig());
+			String posPrefix = chr+"-"+vcfAnnoContext.getStart()/1000;
+
 			if(!posPrefix.equals(key.toString()))
 				continue;
 

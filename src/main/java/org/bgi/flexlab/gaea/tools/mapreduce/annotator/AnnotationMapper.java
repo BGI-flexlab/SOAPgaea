@@ -31,6 +31,7 @@ import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.bgi.flexlab.gaea.data.structure.header.SingleVCFHeader;
+import org.bgi.flexlab.gaea.util.ChromosomeUtils;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -84,14 +85,7 @@ public class AnnotationMapper extends Mapper<LongWritable, Text, Text, VcfLineWr
 		if (vcfLine.startsWith("#")) return;
 		VariantContext variantContext = vcfcodec.decode(vcfLine);
 
-		String chr = null;
-
-		if(variantContext.getContig().startsWith("chr")){
-			chr = variantContext.getContig().substring(3);
-		}
-		else
-			chr = variantContext.getContig();
-
+		String chr = ChromosomeUtils.getNoChrName(variantContext.getContig());
 
 		resultValue.set(fileName, vcfLine);
 
