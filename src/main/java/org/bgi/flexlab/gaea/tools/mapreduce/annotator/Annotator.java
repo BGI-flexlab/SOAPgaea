@@ -72,7 +72,7 @@ public class Annotator extends ToolsRunner {
 
         sampleNames = new ArrayList<>();
 
-        Path inputPath = new Path(conf.get("inputFilePath"));
+        Path inputPath = new Path(options.getInputFilePath());
         FileSystem fs = inputPath.getFileSystem(conf);
         FileStatus[] files = fs.listStatus(inputPath);
 

@@ -49,7 +49,10 @@ public class AnnotationMapper extends Mapper<LongWritable, Text, Text, VcfLineWr
 		conf = context.getConfiguration();
 		vcfCodecs = new HashMap<>();
 
-		Path inputPath = new Path(conf.get("inputFilePath"));
+		AnnotatorOptions options = new AnnotatorOptions();
+		options.getOptionsFromHadoopConf(conf);
+
+		Path inputPath = new Path(options.getInputFilePath());
 		FileSystem fs = inputPath.getFileSystem(conf);
 		FileStatus[] files = fs.listStatus(inputPath);
 		for(FileStatus file : files) {
@@ -74,9 +77,6 @@ public class AnnotationMapper extends Mapper<LongWritable, Text, Text, VcfLineWr
 	@Override
 	protected void map(LongWritable key, Text value, Context context)
 			throws IOException, InterruptedException {
-
-
-
 		InputSplit inputSplit = context.getInputSplit();
 		String fileName = ((FileSplit) inputSplit).getPath().getName();
 		VCFCodec vcfcodec = vcfCodecs.get(fileName);

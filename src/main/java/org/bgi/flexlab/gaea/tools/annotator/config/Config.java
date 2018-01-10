@@ -31,6 +31,7 @@ import org.bgi.flexlab.gaea.tools.annotator.interval.Genome;
 import org.bgi.flexlab.gaea.tools.annotator.util.CountByType;
 import org.bgi.flexlab.gaea.tools.annotator.util.Gpr;
 import org.bgi.flexlab.gaea.tools.annotator.util.Timer;
+import org.bgi.flexlab.gaea.tools.mapreduce.annotator.AnnotatorOptions;
 import org.bgi.flexlab.gaea.util.FileIterator;
 
 import java.io.*;
@@ -53,7 +54,6 @@ public class Config implements Serializable {
 	
 	private String  ref = null;
 	private String  geneInfo = null;
-	private String configFilePath;
 	private List<String> renameOldHeader;
 	private List<String> renameNewHeader;
 
@@ -73,38 +73,32 @@ public class Config implements Serializable {
 	private List<String> dbNameList;
 	private Properties properties;
 	private Genome genome;
-	private ReferenceShare genomeShare;
 	private SnpEffectPredictor snpEffectPredictor;
 	private Configuration conf;
-
-	public Config(){
-		configFilePath = null;
-	}
+	private AnnotatorOptions options;
 
 	public Config(Configuration conf) throws IOException {
 		this.conf = conf;
 		init();
 		configInstance = this;
-		configFilePath = null;
 	}
 	
 	public Config(Configuration conf, ReferenceShare genomeShare) throws IOException {
 		this.conf = conf;
-		this.genomeShare = genomeShare;
 		init();
 		configInstance = this;
-		configFilePath = null;
 		genome = new Genome(ref,genomeShare);
 	}
 	
 	private void init() throws IOException {
+		options = new AnnotatorOptions();
+		options.getOptionsFromHadoopConf(conf);
 		treatAllAsProteinCoding = false;
 		onlyRegulation = false;
 		errorOnMissingChromo = true;
 		errorChromoHit = true;
-		configFilePath = conf.get("configFile");
-		
-		loadProperties(configFilePath); // Read config file and get a genome
+
+		loadProperties(options.getConfigFile()); // Read config file and get a genome
 //		TODO 支持在配置文件中自定义密码子体系 - CodonTable
 //		createCodonTables(genomeVersion, properties);  
 		parseProperties();
@@ -475,8 +469,12 @@ public class Config implements Serializable {
 	public String getHeader(){
 		return "#"+String.join("\t", getHeaderList());
 	}
-	
-//	public static void main(String[] args) throws Exception {
+
+	public AnnotatorOptions getOptions() {
+		return options;
+	}
+
+	//	public static void main(String[] args) throws Exception {
 //		Config config = new Config();
 //		config.loadJson();
 //		System.out.println(config.databaseJson.getDatabaseInfo("dbNSFP").getRefTable("GRCh38").getIndexTable());

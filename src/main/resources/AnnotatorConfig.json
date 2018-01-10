@@ -217,10 +217,6 @@
         }
       },
       "fields": {
-        "GnomAD Exome AC": "gnomAD_exomes_AC",
-        "GnomAD Exome AF": "gnomAD_exomes_AF",
-        "GnomAD Genome AC": "gnomAD_genomes_AC",
-        "GnomAD Genome AF": "gnomAD_genomes_AF",
         "ESP6500 AC": "ESP6500_EA_AC",
         "ESP6500 AF": "ESP6500_EA_AF",
         "1000G AF": "1000Gp3_AF",

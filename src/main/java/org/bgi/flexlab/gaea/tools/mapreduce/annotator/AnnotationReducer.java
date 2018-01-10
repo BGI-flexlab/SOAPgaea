@@ -65,8 +65,6 @@ public class AnnotationReducer extends Reducer<Text, VcfLineWritable, NullWritab
 			System.err.println("genomeShare耗时：" + (System.currentTimeMillis()-start)+"毫秒");
 
 		userConfig = new Config(conf, genomeShare);
-		userConfig.setVerbose(options.isVerbose());
-		userConfig.setDebug(options.isDebug());
 
 		start = System.currentTimeMillis();
 		AnnotatorBuild annoBuild = new AnnotatorBuild(userConfig);

@@ -99,12 +99,6 @@ public class AnnotatorOptions extends GaeaOptions implements HadoopOptions{
     @Override
     public void setHadoopConf(String[] args, Configuration conf) {
         conf.setStrings("args", args);
-        conf.set("inputFilePath", getInputFilePath());
-        conf.set("reference", getReferenceSequencePath());
-        conf.set("configFile", getConfigFile());
-        conf.set("outputType", getOutputType());
-        conf.setBoolean("verbose", isVerbose());
-        conf.setBoolean("debug", isDebug());
     }
 
     @Override
@@ -152,7 +146,7 @@ public class AnnotatorOptions extends GaeaOptions implements HadoopOptions{
     }
 
     public void setInputFilePath(String inputFilePath) {
-        this.inputFilePath = formatPath(inputFilePath);
+        this.inputFilePath = inputFilePath;
     }
 
     public String getConfigFile() {
