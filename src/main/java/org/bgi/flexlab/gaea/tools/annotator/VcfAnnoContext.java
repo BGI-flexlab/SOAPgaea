@@ -77,45 +77,47 @@ public class VcfAnnoContext {
         for(String sampleName : variantContext.getSampleNamesOrderedByName())
         {
             Genotype gt = variantContext.getGenotype(sampleName);
-            if(isVar(gt)){
-                if(hasSample(sampleName)){
-                    SampleAnnotationContext sampleAnnoContext = sampleAnnoContexts.get(sampleName);
-                    List<String> alts = sampleAnnoContext.getAlts();
-                    Map<String, Integer> alleleDepths = sampleAnnoContext.getAlleleDepths();
-                    Map<String, String> zygosity = sampleAnnoContext.getZygosity();
-                    int[] AD = gt.getAD();
-                    int i = 0;
-                    for(Allele allele: variantContext.getAlternateAlleles()){
-                        i++;
-                        if(alts.contains(allele.getBaseString()))
-                            continue;
-                        alts.add(allele.getBaseString());
-                        alleleDepths.put(allele.getBaseString(), AD[i]);
-                        zygosity.put(allele.getBaseString(), getZygosityType(gt));
-                    }
-                }else {
-                    SampleAnnotationContext sampleAnnoContext = new SampleAnnotationContext(sampleName);
-                    Map<String, Integer> alleleDepths = new HashMap<>();
-                    Map<String, String> zygosity = new HashMap<>();
-    //               判断 gt.hasAD()
-                    int[] AD = gt.getAD();
-                    int i = 0;
-                    List<String> alts = new ArrayList<>();
-                    for(Allele allele: variantContext.getAlleles()){
-                        alleleDepths.put(allele.getBaseString(), AD[i]);
-                        zygosity.put(allele.getBaseString(), getZygosityType(gt));
-                        if(i > 0 && AD[i] > 0)
-                            alts.add(allele.getBaseString());
-                        i++;
-                    }
-                    sampleAnnoContext.setAlleleDepths(alleleDepths);
-                    sampleAnnoContext.setDepth(gt.getDP());
-                    sampleAnnoContext.setAlts(alts);
-                    sampleAnnoContext.setZygosity(zygosity);
-                    sampleAnnoContexts.put(sampleName, sampleAnnoContext);
+
+//            if(isVar(gt)){
+            if(hasSample(sampleName)){
+                SampleAnnotationContext sampleAnnoContext = sampleAnnoContexts.get(sampleName);
+                List<String> alts = sampleAnnoContext.getAlts();
+                Map<String, Integer> alleleDepths = sampleAnnoContext.getAlleleDepths();
+                Map<String, String> zygosity = sampleAnnoContext.getZygosity();
+                int[] AD = gt.getAD();
+                int i = 0;
+                for(Allele allele: variantContext.getAlternateAlleles()){
+                    i++;
+                    if(alts.contains(allele.getBaseString()))
+                        continue;
+                    alts.add(allele.getBaseString());
+                    alleleDepths.put(allele.getBaseString(), AD[i]);
+                    zygosity.put(allele.getBaseString(), getZygosityType(gt));
                 }
+            }else {
+                SampleAnnotationContext sampleAnnoContext = new SampleAnnotationContext(sampleName);
+                Map<String, Integer> alleleDepths = new HashMap<>();
+                Map<String, String> zygosity = new HashMap<>();
+                int i = 0;
+                List<String> alts = new ArrayList<>();
+                for(Allele allele: variantContext.getAlleles()){
+                    if(gt.hasAD()){
+                        alleleDepths.put(allele.getBaseString(), gt.getAD()[i]);
+                    }
+                    zygosity.put(allele.getBaseString(), getZygosityType(gt));
+                    if(i > 0)
+                        alts.add(allele.getBaseString());
+                    i++;
+                }
+                sampleAnnoContext.setCalled(gt.isCalled());
+                sampleAnnoContext.setAlleleDepths(alleleDepths);
+                sampleAnnoContext.setDepth(gt.getDP());
+                sampleAnnoContext.setAlts(alts);
+                sampleAnnoContext.setZygosity(zygosity);
+                sampleAnnoContexts.put(sampleName, sampleAnnoContext);
             }
         }
+//        }
     }
 
     private String getZygosityType(Genotype gt){
@@ -125,6 +127,8 @@ public class VcfAnnoContext {
             return "hom-alt";
         else if(gt.isHetNonRef())
             return  "het-alt";
+        else if(gt.isNoCall())
+            return "noCall";
         return ".";
     }
 
@@ -391,7 +395,7 @@ public class VcfAnnoContext {
 
             sb.append("\tSI:");
             for(SampleAnnotationContext sac: sampleAnnoContexts.values()){
-                if(sac.hasAlt(ac.getAllele())){
+                if(sac.hasAlt(ac.getAllele()) || !sac.isCalled()){
                     sb.append(";");
                     sb.append(sac.toAlleleString(ac.getAllele()));
                 };

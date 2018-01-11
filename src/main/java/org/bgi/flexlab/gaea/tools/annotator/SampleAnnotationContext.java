@@ -35,6 +35,7 @@ public class SampleAnnotationContext{
 	private Map<String, String> zygosity = null;
 	private Map<String, String> filter = null;
 	private boolean hasNearVar = false;
+	private boolean isCalled;
 	private String singleAlt;
 
 	public SampleAnnotationContext() {
@@ -85,6 +86,8 @@ public class SampleAnnotationContext{
 	}
 
 	private void setAlleleRatios(){
+		if(alleleDepths.isEmpty() || getDepth() == -1) return;
+
 		DecimalFormat df = new DecimalFormat("0.00");
 		df.setRoundingMode(RoundingMode.HALF_UP);
 		alleleRatios = new HashMap<>();
@@ -139,10 +142,14 @@ public class SampleAnnotationContext{
 	}
 
 	public String getAlleleRatio(String allele){
+		if(alleleRatios == null || alleleRatios.isEmpty())
+			return ".";
 		return alleleRatios.get(allele);
 	}
 
 	public int getAlleleDepth(String allele){
+		if(alleleDepths == null || alleleDepths.isEmpty())
+			return -1;
 		return alleleDepths.get(allele);
 	}
 
@@ -156,7 +163,7 @@ public class SampleAnnotationContext{
 		sb.append("|");
 		sb.append(getAlleleRatio(allele));
 		sb.append("|");
-		sb.append(getAlleleDepth(allele));
+		sb.append(getAlleleDepth(allele) == -1 ? "." : getAlleleDepth(allele));
 		sb.append("|");
 		sb.append(isHasNearVar() ? 1 : 0);
 		sb.append("|");
@@ -166,18 +173,25 @@ public class SampleAnnotationContext{
 
 	public void parseAlleleString(String alleleString){
 		String[] fields = alleleString.split("\\|");
-		System.err.println("SI:"+alleleString);
-		System.err.println("Fields:"+fields[0]);
 		setSampleName(fields[0]);
 		singleAlt = fields[1];
 		alleleRatios = new HashMap<>();
 		alleleDepths = new HashMap<>();
 		zygosity = new HashMap<>();
-		alleleRatios.put(singleAlt, fields[2]);
-		alleleDepths.put(singleAlt, Integer.parseInt(fields[3]));
+		if(!fields[2].equals("."))
+			alleleRatios.put(singleAlt, fields[2]);
+		if(!fields[3].equals("."))
+			alleleDepths.put(singleAlt, Integer.parseInt(fields[3]));
 		if(fields[4].equals("1"))
 			setHasNearVar();
 		zygosity.put(singleAlt, fields[5]);
 	}
 
+	public boolean isCalled() {
+		return isCalled;
+	}
+
+	public void setCalled(boolean called) {
+		isCalled = called;
+	}
 }

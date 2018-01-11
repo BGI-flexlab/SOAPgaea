@@ -97,6 +97,8 @@ public class Config implements Serializable {
 		onlyRegulation = false;
 		errorOnMissingChromo = true;
 		errorChromoHit = true;
+		verbose = options.isVerbose();
+		debug = options.isDebug();
 
 		loadProperties(options.getConfigFile()); // Read config file and get a genome
 //		TODO 支持在配置文件中自定义密码子体系 - CodonTable

@@ -61,7 +61,7 @@ class AnnotatorBuild implements Serializable{
 	SnpEffectPredictor createSnpEffPredictor() {
 
 		// Create factory
-		SnpEffPredictorFactory factory = null;
+		SnpEffPredictorFactory factory;
 		
 //		TODO 支持多种基因信息格式:  RefSeq, EMBL, UCSC KnownGenes ...
 		factory = new SnpEffPredictorFactoryRefSeq(config);
