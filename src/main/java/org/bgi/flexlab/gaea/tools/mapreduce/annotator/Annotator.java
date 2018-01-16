@@ -18,53 +18,44 @@ package org.bgi.flexlab.gaea.tools.mapreduce.annotator;
 
 import htsjdk.variant.vcf.VCFHeader;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapred.lib.MultipleTextOutputFormat;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
+import org.apache.hadoop.mapreduce.lib.output.LazyOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.bgi.flexlab.gaea.data.structure.header.SingleVCFHeader;
-import org.bgi.flexlab.gaea.data.structure.reference.ReferenceShare;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.BioJob;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.ToolsRunner;
 
-import java.io.BufferedReader;
-import java.io.FileOutputStream;
-import java.io.InputStreamReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.zip.GZIPOutputStream;
+import java.util.concurrent.TimeUnit;
 
-/**
- * Created by huangzhibo on 2017/7/7.
- */
 public class Annotator extends ToolsRunner {
+    
+    private Configuration conf;
+    private AnnotatorOptions options;
+    private List<String> sampleNames;
 
     public Annotator(){}
 
+    private int runAnnotator(String[] arg0) throws Exception {
 
-
-    public int runAnnotator(String[] arg0) throws Exception {
-
-        Configuration conf = new Configuration();
+        conf = new Configuration();
         String[] remainArgs = remainArgs(arg0, conf);
 
-        AnnotatorOptions options = new AnnotatorOptions();
+        options = new AnnotatorOptions();
         options.parse(remainArgs);
         options.setHadoopConf(remainArgs, conf);
-        System.out.println("inputFilePath: "+conf.get("inputFilePath"));
         BioJob job = BioJob.getInstance(conf);
 
-        if(options.isCachedRef())
-            System.err.println("--------- isCachedRef --------");
-        ReferenceShare.distributeCache(options.getReferenceSequencePath(), job);
-
-
-        job.setHeader(new Path(options.getInput()), new Path(options.getOutput()));
         job.setJobName("GaeaAnnotator");
         job.setJarByClass(this.getClass());
         job.setMapperClass(AnnotationMapper.class);
@@ -79,7 +70,7 @@ public class Annotator extends ToolsRunner {
         job.setOutputValueClass(Text.class);
         job.setInputFormatClass(MNLineInputFormat.class);
 
-        List<String> sampleNames = new ArrayList<>();
+        sampleNames = new ArrayList<>();
 
         Path inputPath = new Path(conf.get("inputFilePath"));
         FileSystem fs = inputPath.getFileSystem(conf);
@@ -87,65 +78,91 @@ public class Annotator extends ToolsRunner {
 
         for(FileStatus file : files) {//统计sample names
             System.out.println(file.getPath());
-
             if (file.isFile()) {
                 SingleVCFHeader singleVcfHeader = new SingleVCFHeader();
                 singleVcfHeader.readHeaderFrom(file.getPath(), fs);
                 VCFHeader vcfHeader = singleVcfHeader.getHeader();
-                sampleNames.addAll(vcfHeader.getSampleNamesInOrder());
+                for(String sample: vcfHeader.getSampleNamesInOrder()) {
+                    if(!sampleNames.contains(sample))
+                        sampleNames.add(sample);
+                }
             }
-
         }
 
         MNLineInputFormat.addInputPath(job, new Path(options.getInputFilePath()));
         MNLineInputFormat.setMinNumLinesToSplit(job,1000); //按行处理的最小单位
-        MNLineInputFormat.setMapperNum(job, options.getMapperNum());
+        MNLineInputFormat.setMapperNum(job, options.getReducerNum());
         Path partTmp = new Path(options.getTmpPath());
 
         FileOutputFormat.setOutputPath(job, partTmp);
-        for(int i = 0; i < sampleNames.size(); i++)//相同sample name输出到同一个文件夹
-        {
-            System.out.println("sampleName "+i+":"+SampleNameModifier.modify(sampleNames.get(i)));
-            MultipleOutputs.addNamedOutput(job, SampleNameModifier.modify(sampleNames.get(i)), TextOutputFormat.class, NullWritable.class, Text.class);
-        }
-        if (job.waitForCompletion(true)) {
-            for(int i = 0; i < sampleNames.size(); i++) {//同一个文件夹下的结果整合到一个文件
-                GZIPOutputStream os = new GZIPOutputStream(new FileOutputStream(options.getOutputPath()+ "/" + sampleNames.get(i) + ".tsv.gz"));
-                final FileStatus[] parts = partTmp.getFileSystem(conf).globStatus(new Path(options.getTmpPath() + "/" +sampleNames.get(i) +
-                        "/part" + "-*-[0-9][0-9][0-9][0-9][0-9]*"));
-                boolean writeHeader = true;
-                for (FileStatus p : parts) {
-                    FSDataInputStream dis = p.getPath().getFileSystem(conf).open(p.getPath());
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(dis));
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        if (line.startsWith("#")) {
-                            if (writeHeader) {
-                                os.write(line.getBytes());
-                                os.write('\n');
-                                writeHeader = false;
-                            }
-                            continue;
-                        }
-                        os.write(line.getBytes());
-                        os.write('\n');
-                    }
-                }
-                os.close();
-            }
-            partTmp.getFileSystem(conf).delete(partTmp, true);
 
+        return job.waitForCompletion(true) ? 0 : 1;
+    }
+
+
+    private int runAnnotatorSort() throws Exception {
+
+        BioJob job = BioJob.getInstance(conf);
+
+        job.setJobName("GaeaAnnotatorSortResult");
+        job.setJarByClass(this.getClass());
+        job.setMapperClass(AnnotationSortMapper.class);
+        job.setReducerClass(AnnotationSortReducer.class);
+        job.setNumReduceTasks(sampleNames.size());
+
+        job.setMapOutputKeyClass(PairWritable.class);
+        job.setMapOutputValueClass(Text.class);
+
+        job.setOutputKeyClass(NullWritable.class);
+        job.setOutputValueClass(Text.class);
+        job.setInputFormatClass(TextInputFormat.class);
+        LazyOutputFormat.setOutputFormatClass(job, TextOutputFormat.class);
+
+        Path inputPath = new Path(options.getTmpPath());
+        Path outputPath = new Path(options.getOutputPath());
+        FileInputFormat.setInputPaths(job, inputPath);
+        FileOutputFormat.setOutputPath(job, outputPath);
+
+        FileSystem fs = outputPath.getFileSystem(conf);
+        if(job.waitForCompletion(true)){
+            int loop = 0;
+            for (String sampleName : sampleNames){
+                Path outputPart = getSampleOutputPath(sampleName);
+                while (outputPart == null && loop < 10){
+                    TimeUnit.MILLISECONDS.sleep(6000);
+                    outputPart = getSampleOutputPath(sampleName);
+                    loop ++;
+                }
+                Path outputName = new Path(options.getOutputPath() + "/" + sampleName + ".tsv");
+                fs.rename(outputPart, outputName);
+            }
             return 0;
-        }else {
-            return 1;
         }
+        return 1;
+    }
+
+    private Path getSampleOutputPath(String sample) throws IOException {
+        Path outputPath = new Path(options.getOutputPath());
+        FileSystem fs = outputPath.getFileSystem(conf);
+        FileStatus[] fileStatuses = fs.globStatus(new Path(options.getOutputPath() + "/" + sample + "-r-[0-9]*"));
+        if(fileStatuses.length == 0){
+            System.err.println(sample+": cann't get the output part file!");
+            FileStatus[] fss = fs.globStatus(new Path(options.getOutputPath() + "/*"));
+            for (FileStatus f: fss){
+                System.err.println("OutPath" + f.getPath().toString());
+            }
+            return null;
+        }
+        return fileStatuses[0].getPath();
     }
 
 
     @Override
     public int run(String[] args) throws Exception {
-        Annotator md = new Annotator();
-        return md.runAnnotator(args);
+        Annotator annotator = new Annotator();
+        if(annotator.runAnnotator(args) != 0)
+            return 1;
+        return annotator.runAnnotatorSort();
     }
 
 }

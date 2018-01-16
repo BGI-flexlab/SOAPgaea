@@ -20,13 +20,16 @@ import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.compress.CompressionCodec;
+import org.apache.hadoop.io.compress.CompressionCodecFactory;
+import org.apache.hadoop.io.compress.CompressionOutputStream;
 import org.apache.hadoop.mapreduce.Reducer.Context;
 import org.apache.hadoop.util.LineReader;
 import org.bgi.flexlab.gaea.data.structure.positioninformation.depth.PositionDepth;
 import org.bgi.flexlab.gaea.data.structure.reference.ReferenceShare;
 import org.bgi.flexlab.gaea.data.structure.region.SingleRegion;
 import org.bgi.flexlab.gaea.data.structure.region.SingleRegion.Regiondata;
-import org.bgi.flexlab.gaea.data.structure.region.statistic.CNVSingleRegionStatistic;
+import org.bgi.flexlab.gaea.data.structure.region.SingleRegionStatistic;
 import org.bgi.flexlab.gaea.tools.mapreduce.bamqualitycontrol.BamQualityControlOptions;
 import org.bgi.flexlab.gaea.util.SamRecordDatum;
 
@@ -47,7 +50,7 @@ public abstract class ResultReport {
 	
 	protected RegionCoverReport rmdupRegionCoverReport;
 	
-	protected CNVSingleRegionReport cnvSingleRegionReport;
+	protected SingleRegionReport cnvSingleRegionReport;
 	
 	protected UnmappedReport unmappedReport;
 	
@@ -82,7 +85,7 @@ public abstract class ResultReport {
 		rmdupRegionCoverReport = new RegionCoverReport(1000);
 		
 		if(options.getSingleRegion() != null) {
-			cnvSingleRegionReport = new CNVSingleRegionReport(singleRegion);
+			cnvSingleRegionReport = new SingleRegionReport(singleRegion);
 		}
 		insertSize = new int[options.getInsertSzie()];
 		insertSizeWithoutDup = new int[options.getInsertSzieWithoutDup()];
@@ -111,7 +114,7 @@ public abstract class ResultReport {
 	
 	public void singleRegionReports(String chrName, long winStart, int winSize , PositionDepth pd) {
 		if(options.getSingleRegion() != null)
-			cnvSingleRegionReport.getStatisticString(chrName, (int) winStart, winSize, pd.getRMDupPosDepth(), "cnv");
+			cnvSingleRegionReport.getStatisticString(chrName, (int) winStart, winSize, pd, "cnv");
 	}
 	
 	public void insertReport(SamRecordDatum datum) {
@@ -201,43 +204,69 @@ public abstract class ResultReport {
 	
 	public void write(FileSystem fs, String sampleName) throws IOException {
 		if(cnvSingleRegionReport != null) {
-			StringBuffer singleRegionFilePath = new StringBuffer();
-			singleRegionFilePath.append(options.getOutputPath());
-			singleRegionFilePath.append("/");
-			singleRegionFilePath.append(sampleName);
-			singleRegionFilePath.append(".anno_region.txt");
-			Path singleRegionPath = new Path(singleRegionFilePath.toString());
-			FSDataOutputStream singleRegionwriter = fs.create(singleRegionPath);
-			
-			StringBuffer unsingleRegionFilePath = new StringBuffer();
-			unsingleRegionFilePath.append(options.getOutputPath());
-			unsingleRegionFilePath.append("/");
-			unsingleRegionFilePath.append(sampleName);
-			unsingleRegionFilePath.append(".anno_region_low_depth.txt");
-			Path unsingleRegionPath = new Path(unsingleRegionFilePath.toString());
+			String depthFileStr = options.getOutputPath() +
+					"/" + sampleName + ".region.depth.tsv.gz";
+			Path depthFilePath = new Path(depthFileStr);
+			FSDataOutputStream cnvDepthStream = fs.create(depthFilePath);
+			CompressionCodecFactory codecFactory = new CompressionCodecFactory(fs.getConf());
+			CompressionCodec codec = codecFactory.getCodec(depthFilePath);
+			CompressionOutputStream depthCompressedOutput = codec.createOutputStream(cnvDepthStream);
+			StringBuilder sb = new StringBuilder();
+
+			String singleRegionFileStr = options.getOutputPath() +
+					"/" +
+					sampleName +
+					".region.cov.tsv.gz";
+			Path singleRegionPath = new Path(singleRegionFileStr);
+			FSDataOutputStream singleRegionStream = fs.create(singleRegionPath);
+			CompressionCodecFactory covCodecFactory = new CompressionCodecFactory(fs.getConf());
+			CompressionCodec covCodec = covCodecFactory.getCodec(singleRegionPath);
+			CompressionOutputStream covCompressedOutput = covCodec.createOutputStream(singleRegionStream);
+			covCompressedOutput.write(SingleRegionStatistic.toReportTitleString().getBytes());
+			covCompressedOutput.write('\n');
+
+			String unsingleRegionFilePath = options.getOutputPath() +
+					"/" +
+					sampleName +
+					".region.lowdepth.cov.tsv";
+			Path unsingleRegionPath = new Path(unsingleRegionFilePath);
 			FSDataOutputStream unsingleRegionwriter = fs.create(unsingleRegionPath);
-			
-			Map<Regiondata, CNVSingleRegionStatistic> result = cnvSingleRegionReport.getResult();
+			unsingleRegionwriter.write(SingleRegionStatistic.toReportTitleString().getBytes());
+			unsingleRegionwriter.write('\n');
+
+			Map<Regiondata, SingleRegionStatistic> result = cnvSingleRegionReport.getResult();
 			cnvSingleRegionReport.updateAllRegionAverageDeepth();
-			for(Regiondata regionData : result.keySet()) {
-				if(result.get(regionData).getDepth(regionData) > options.getMinSingleRegionDepth())
-					singleRegionwriter.write(result.get(regionData).toString(regionData, false, cnvSingleRegionReport.getAllRegionAverageDeepth()).getBytes());
+			sb.append("#Chr\tPos\tRaw Depth\tRmdup depth\n");
+			for(Regiondata regionData : cnvSingleRegionReport.getRegion().getRegions()) {
+				SingleRegionStatistic singleRegionStat = result.get(regionData);
+				for (int i = 0; i < regionData.size(); i++) {
+					sb.append(regionData.getChrName());
+					sb.append("\t");
+					sb.append(i + regionData.getStart() + 1);
+					sb.append("\t");
+					sb.append(singleRegionStat.getPosDepth(i));
+					sb.append("\t");
+					sb.append(singleRegionStat.getPosRmdupDepth(i));
+					sb.append("\n");
+				}
+
+				if(singleRegionStat.getDepth(regionData) > options.getMinSingleRegionDepth())
+					covCompressedOutput.write(result.get(regionData).toReportString(regionData, cnvSingleRegionReport.getAllRegionAverageDepth()).getBytes());
 				else {
-					singleRegionwriter.write(result.get(regionData).toString(regionData, false, cnvSingleRegionReport.getAllRegionAverageDeepth()).getBytes());
-					unsingleRegionwriter.write(result.get(regionData).toString(regionData, false, cnvSingleRegionReport.getAllRegionAverageDeepth()).getBytes());
+					covCompressedOutput.write(result.get(regionData).toReportString(regionData, cnvSingleRegionReport.getAllRegionAverageDepth()).getBytes());
+					unsingleRegionwriter.write(result.get(regionData).toReportString(regionData, cnvSingleRegionReport.getAllRegionAverageDepth()).getBytes());
 				}
 			}
-			singleRegionwriter.close();
+			depthCompressedOutput.write(sb.toString().getBytes());
+			depthCompressedOutput.close();
+			cnvDepthStream.close();
+			covCompressedOutput.close();
 			unsingleRegionwriter.close();
 		}
-		
+
 		if(regionCoverReport != null) {
-			StringBuffer RegionDepthFilePath = new StringBuffer();
-			RegionDepthFilePath.append(options.getOutputPath());
-			RegionDepthFilePath.append("/");
-			RegionDepthFilePath.append(sampleName);
-			RegionDepthFilePath.append(".depth.txt");
-			Path regionDepthPath = new Path(RegionDepthFilePath.toString());
+			String RegionDepthFilePath = options.getOutputPath() +	"/" + sampleName + ".depth.txt";
+			Path regionDepthPath = new Path(RegionDepthFilePath);
 			FSDataOutputStream regionDepthWriter = fs.create(regionDepthPath);
 			int[] depth = regionCoverReport.getDepthArray();
 			
@@ -261,8 +290,7 @@ public abstract class ResultReport {
 			regionDepthWriter.close();
 		}
 		
-		StringBuffer reportFilePath = new StringBuffer();
-		reportFilePath.setLength(0);
+		StringBuilder reportFilePath = new StringBuilder();
 		reportFilePath.append(options.getOutputPath());
 		reportFilePath.append("/");
 		reportFilePath.append(sampleName);
@@ -334,7 +362,7 @@ public abstract class ResultReport {
 		}
 	}
 	
-	public CNVSingleRegionReport getCNVSingleRegionReport() {
+	public SingleRegionReport getCNVSingleRegionReport() {
 		return cnvSingleRegionReport;
 	}
 	

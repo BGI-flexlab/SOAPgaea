@@ -32,7 +32,7 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-package org.bgi.flexlab.gaea.tools.annotator.effect;
+package org.bgi.flexlab.gaea.tools.annotator;
 
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.VariantContext;
@@ -60,6 +60,8 @@ public class VcfAnnotationContext extends VariantContext{
 	protected LinkedList<Variant> variants;
 	
 	private List<AnnotationContext> annotationContexts;
+
+	private boolean hasNearVar = false;
 	
 	public VcfAnnotationContext(VariantContext variantContext){
 		super(variantContext);
@@ -225,7 +227,7 @@ public class VcfAnnotationContext extends VariantContext{
 			List<String> dbNameList = config.getDbNameList();
 			for (String dbName : dbNameList) {
 				
-				String[] fields = config.getFieldsByDB(dbName);
+				ArrayList<String> fields = config.getFieldsByDB(dbName);
 				
 				if (dbName.equalsIgnoreCase("GeneInfo")) {
 					for (String field : fields) {
@@ -273,5 +275,15 @@ public class VcfAnnotationContext extends VariantContext{
 		}
 		return getContig();
 	}
+
+
+	public boolean hasNearVar() {
+		return hasNearVar;
+	}
+
+	public void setHasNearVar(boolean hasNearVar) {
+		this.hasNearVar = hasNearVar;
+	}
+
 }
 

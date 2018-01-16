@@ -47,106 +47,110 @@ import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
 
 import java.util.ArrayList;
 
-public class TrainData {	
-	
+public class TrainData {
+
 	private String contextName;
-	
+
 	private ResourceType ram;
-	
+
 	private String ref;
-	
+
+	private ResourceTags tags = null;
+
 	/**
 	 * default constructor
 	 */
 	public TrainData(String ref, String resource) {
 		this.ref = ref;
-		ResourceTag.parseTag(resource);
-		contextName = (isDB() ? ResourceTag.valueOf("DB").getProperty(): ResourceTag.valueOf("FILE").getProperty());
+		tags = new ResourceTags();
+		tags.parseTag(resource);
+		contextName = tags.getProperty(ResourceTag.DB) != null ? tags.getProperty(ResourceTag.DB)
+				: tags.getProperty(ResourceTag.FILE);
 	}
 
 	public void setType(ResourceType ram) {
 		this.ram = ram;
 	}
-	
+
 	public void initialize() {
 		ram.initialize(ref, contextName);
 	}
-	
+
 	public ArrayList<VariantContext> get(GenomeLocation loc) {
 		// TODO Auto-generated method stub
 		return ram.get(loc);
 	}
-	
+
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		for(ResourceTag tag : ResourceTag.values()) {
-			sb.append(tag.getProperty());
+		for (ResourceTag tag : ResourceTag.values()) {
+			sb.append(tags.getProperty(tag));
 			sb.append("\t");
 		}
 		return sb.toString();
 	}
-	
-	public Object clone() {  
-		TrainData o = null;  
-        try {  
-            o = (TrainData) super.clone();  
-        } catch (CloneNotSupportedException e) {  
-            e.printStackTrace();  
-        }  
-        return o; 
-    }  
-	
+
+	public Object clone() {
+		TrainData o = null;
+		try {
+			o = (TrainData) super.clone();
+		} catch (CloneNotSupportedException e) {
+			e.printStackTrace();
+		}
+		return o;
+	}
+
 	/**
 	 * @return the name
 	 */
 	public String getName() {
-		return ResourceTag.valueOf("NAME").getProperty();
+		return tags.getProperty(ResourceTag.NAME);
 	}
 
 	/**
 	 * @return the isKnown
 	 */
 	public boolean isKnown() {
-		return Boolean.parseBoolean(ResourceTag.valueOf("KNOWN").getProperty());
+		return Boolean.parseBoolean(tags.getProperty(ResourceTag.KNOWN));
 	}
 
 	/**
 	 * @return the isTraining
 	 */
 	public boolean isTraining() {
-		return Boolean.parseBoolean(ResourceTag.valueOf("TRAINING").getProperty());
+		return Boolean.parseBoolean(tags.getProperty(ResourceTag.TRAINING));
 	}
 
 	/**
 	 * @return the isAntiTraining
 	 */
 	public boolean isAntiTraining() {
-		return Boolean.parseBoolean(ResourceTag.valueOf("ANTITRAINING").getProperty());
+		return Boolean.parseBoolean(tags.getProperty(ResourceTag.ANTITRAINING));
 	}
 
 	public boolean isDB() {
-		return ResourceTag.valueOf("DB").getProperty() != null;
+		return tags.getProperty(ResourceTag.DB) != null;
 	}
-	
+
 	/**
 	 * @return the isTruth
 	 */
 	public boolean isTruth() {
-		return Boolean.parseBoolean(ResourceTag.valueOf("TRUTH").getProperty());
+		return Boolean.parseBoolean(tags.getProperty(ResourceTag.TRUTH));
 	}
 
 	/**
 	 * @return the isConsensus
 	 */
 	public boolean isConsensus() {
-		return Boolean.parseBoolean(ResourceTag.valueOf("CONSENSUS").getProperty());
+		return Boolean.parseBoolean(tags.getProperty(ResourceTag.CONSENSUS));
 	}
 
 	/**
 	 * @return the prior
 	 */
 	public double getPrior() {
-		return Double.parseDouble(ResourceTag.valueOf("PRIOR").getProperty());
+		return Double.parseDouble(tags.getProperty(ResourceTag.PRIOR));
 	}
 
 	public String getContextName() {

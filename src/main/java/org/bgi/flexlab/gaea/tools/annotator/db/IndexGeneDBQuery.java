@@ -16,7 +16,7 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.annotator.db;
 
-import org.bgi.flexlab.gaea.tools.annotator.effect.AnnotationContext;
+import org.bgi.flexlab.gaea.tools.annotator.AnnotationContext;
 
 import java.io.IOException;
 import java.util.HashMap;

@@ -104,7 +104,7 @@ public class RealignerOptions extends GaeaOptions implements HadoopOptions{
 			cmdLine = parser.parse(options, args);
 		} catch (ParseException e) {
 			System.err.println(e.getMessage());
-			FormatHelpInfo(RealignerExtendOptions.SOFTWARE_NAME, RealignerExtendOptions.SOFTWARE_VERSION);
+			printHelpInfotmation(RealignerExtendOptions.SOFTWARE_NAME);
 			System.exit(1);
 		}
 		

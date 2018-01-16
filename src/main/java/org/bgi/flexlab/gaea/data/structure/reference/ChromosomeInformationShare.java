@@ -27,6 +27,8 @@ import org.bgi.flexlab.gaea.util.SystemConfiguration;
  */
 public class ChromosomeInformationShare extends BioMemoryShare {
 
+	private int NonNbaselength = 0;
+
 	public ChromosomeInformationShare() {
 		super(Byte.SIZE / 4);
 	}
@@ -156,5 +158,16 @@ public class ChromosomeInformationShare extends BioMemoryShare {
 			l |= (((long) (b[i + j] & 0xff)) << (8 * j));
 		}
 		return Double.longBitsToDouble(l);
+	}
+
+	public int getNonNbaselength() {
+		if( NonNbaselength == 0) {
+			for (int i = 0; i < length; i++) {
+				if (getBase(i) != 'N') {
+					NonNbaselength++;
+				}
+			}
+		}
+		return NonNbaselength;
 	}
 }

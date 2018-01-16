@@ -124,19 +124,21 @@ public class VCFRecalibrationTable {
 	 * generate recal table
 	 * @return
 	 */
-	public final void getRecalibrationTable() {    
+	public final void getRecalibrationTable() {
 		dataManager.normalizeData(); // Each data point is now (x - mean) / standard deviation
 	
+		long start = System.currentTimeMillis();
+		
 	    // Generate the positive model using the training data and evaluate each variant
 	    final GaussianMixtureModel goodModel = engine.generateModel( dataManager.getTrainingData() );
 	    engine.evaluateData( dataManager.getData(), goodModel, false );
-	
+	    
 	    // Generate the negative model using the worst performing data and evaluate each variant contrastively
 	  	final ExpandingArrayList<VariantDatum> negativeTrainingData = dataManager.selectWorstVariants( options.getPercentBadVariants(), options.getMinNumBadVariants() );
 	 	GaussianMixtureModel badModel = engine.generateModel( negativeTrainingData );
 	  	engine.evaluateData( dataManager.getData(), badModel, true );
-	
-	  	// Detect if the negative model failed to converge because of too few points and/or too many Gaussians and try again
+
+    	// Detect if the negative model failed to converge because of too few points and/or too many Gaussians and try again
 	  	while( badModel.failedToConverge && options.getMaxGaussians() > 4 ) {
 	  		System.out.println("Negative model failed to converge. Retrying...");
 	       	options.setMaxGaussians(options.getMaxGaussians() - 1);
@@ -144,53 +146,29 @@ public class VCFRecalibrationTable {
 	      	engine.evaluateData( dataManager.getData(), goodModel, false );
 	       	engine.evaluateData( dataManager.getData(), badModel, true );
 	   	}
+	  	
+	  	System.err.println("generateModel time:"+(System.currentTimeMillis()-start)/1000+"s");
 	
 	   	if( badModel.failedToConverge || goodModel.failedToConverge ) {
 	       	throw new UserException("NaN LOD value assigned. Clustering with this few variants and these annotations is unsafe. Please consider raising the number of variants used to train the negative model (via --percentBadVariants 0.05, for example) or lowering the maximum number of Gaussians to use in the model (via --maxGaussians 4, for example)");
 	   	}
-	
-	   	engine.calculateWorstPerformingAnnotation( dataManager.getData(), goodModel, badModel );
+
+	   	//engine.calculateWorstPerformingAnnotation( dataManager.getData(), goodModel, badModel );
+	   	engine.calculateWorstPerformingAnnotationMultiTask(negativeTrainingData, goodModel, badModel, options.getMaxGaussians());
 	
 	   	// Find the VQSLOD cutoff values which correspond to the various tranches of calls requested by the user
 	   	final int nCallsAtTruth = TrancheManager.countCallsAtTruth( dataManager.getData(), Double.NEGATIVE_INFINITY );
 	   	final TrancheManager.SelectionMetric metric = new TrancheManager.TruthSensitivityMetric( nCallsAtTruth );
+
 	   	tranches = TrancheManager.findTranches( dataManager.getData(), options.getTsTranchesDouble(), metric, options.getMode() );
+    	
 	   	Collections.sort( tranches, new Tranche.TrancheTruthSensitivityComparator() );
 	   	Tranche prev = null;
         for ( Tranche t : tranches ) {
             t.name = String.format("VQSRTranche%s%.2fto%.2f", t.model.toString(),(prev == null ? 0.0 : prev.ts), t.ts, t.model.toString());
             prev = t;
         }
-        System.out.println(Tranche.tranchesString( tranches ));
 	}
-	
-//	/**
-//	 * get recal data
-//	 * @param chrName
-//	 * @param start
-//	 * @param end
-//	 * @return recal table in chr:start-end
-//	 */
-//    public List<VariantContext> getData(String chrName, int start, int end) {
-//    	List<VariantContext> vcs = new ArrayList<VariantContext>();
-//    	ArrayList<Integer> index = dataIndex.get(chrName).get(start);
-//    	if(index == null)
-//    		return null;
-//    	for(int i : index) {
-//    		VariantDatum datum = data.get(i);
-//    		if(datum.loc.getStart() == start && datum.loc.getStop() <= end) {
-//    			attributes.put(VCFConstants.END_KEY, datum.loc.getStop());
-//                attributes.put(VariantRecalibration.VQS_LOD_KEY, String.format("%.4f", datum.lod));
-//                attributes.put(VariantRecalibration.CULPRIT_KEY, (datum.worstAnnotation != -1 ? options.getUseAnnotations().get(datum.worstAnnotation) : "NULL"));
-//
-//                VariantContextBuilder builder = new VariantContextBuilder("VQSR", datum.loc.getContig(), datum.loc.getStart(), datum.loc.getStop(), alleles).attributes(attributes);
-//                vcs.add(builder.make());
-//    		}
-//    		else if(datum.loc.getStart() > start)
-//    			break;
-//    	}
-//    	return vcs;
-//    }
     
 	public VariantContext getData(String chrName, int start, int end) {
     	ArrayList<Integer> index = dataIndex.get(chrName).get(start);

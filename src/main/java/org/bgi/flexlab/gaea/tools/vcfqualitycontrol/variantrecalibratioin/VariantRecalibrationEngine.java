@@ -48,6 +48,8 @@ import org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin.traind
 import org.bgi.flexlab.gaea.util.RandomUtils;
 
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class VariantRecalibrationEngine {
 
@@ -96,6 +98,29 @@ public class VariantRecalibrationEngine {
                             : thisLod ); // positive model only so set the lod and return
         }
     }
+    
+    public void calculateWorstPerformingAnnotationMultiTask(final List<VariantDatum> data, final GaussianMixtureModel goodModel, final GaussianMixtureModel badModel,int taskNumber){
+    	ExecutorService fixedThreadPool = Executors.newFixedThreadPool(taskNumber);
+    	int size = data.size();
+    	for(int i = 0 ; i < size ; i++){
+    		final VariantDatum datum = data.get(i);
+    		
+    		fixedThreadPool.execute(new Runnable() {
+				public void run() {
+					int worstAnnotation = -1;
+					double minProb = Double.MAX_VALUE;
+					for( int iii = 0; iii < datum.annotations.length; iii++ ) {
+						final Double goodProbLog10 = goodModel.evaluateDatumInOneDimension(datum, iii);
+						final Double badProbLog10 = badModel.evaluateDatumInOneDimension(datum, iii);
+						if( goodProbLog10 != null && badProbLog10 != null ) {
+							final double prob = goodProbLog10 - badProbLog10;
+							if(prob < minProb) { minProb = prob; worstAnnotation = iii; }
+						}
+					}
+					datum.worstAnnotation = worstAnnotation;
+			}});
+        }
+    }
 
     public void calculateWorstPerformingAnnotation( final List<VariantDatum> data, final GaussianMixtureModel goodModel, final GaussianMixtureModel badModel ) {
         for( final VariantDatum datum : data ) {
@@ -119,26 +144,30 @@ public class VariantRecalibrationEngine {
     /////////////////////////////
 
     private void variationalBayesExpectationMaximization( final GaussianMixtureModel model, final List<VariantDatum> data ) {
-
         model.initializeRandomModel( data, options.getNumKMeansIterations() );
 
         // The VBEM loop
         model.normalizePMixtureLog10();
-        model.expectationStep( data );
+        
+        model.expectationStepMulti( data ,0);
+    	
         double currentChangeInMixtureCoefficients;
         int iteration = 0;
+        long start = System.currentTimeMillis();
         while( iteration < options.getMaxIterations() ) {
             iteration++;
-            model.maximizationStep( data );
+            model.maximizationStepMulti( data);
             currentChangeInMixtureCoefficients = model.normalizePMixtureLog10();
-            model.expectationStep( data );
+            model.expectationStepMulti( data , iteration);
             if( iteration % 5 == 0 ) { // cut down on the number of output lines so that users can read the warning messages
             }
             if( iteration > 2 && currentChangeInMixtureCoefficients < MIN_PROB_CONVERGENCE ) {
                 break;
             }
         }
-
+        
+        System.err.println("while time:"+(System.currentTimeMillis()-start)/1000+"s");
+        
         model.evaluateFinalModelParameters( data );
     }
 

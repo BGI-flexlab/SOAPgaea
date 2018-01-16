@@ -117,9 +117,16 @@ public class VCFRecalibrator {
      * @throws IOException
      */
     public void recalVCF(int id, Context context) throws IOException, InterruptedException{
-    	
+    	long start,end;
+    	start = System.currentTimeMillis();
     	recalTable.getRecalibrationTable();
+    	end = System.currentTimeMillis();
+    	System.err.println("recal table time:"+(end-start)/1000+"s");
+    	
+    	start = System.currentTimeMillis();
     	recalTable.indexData();
+    	end = System.currentTimeMillis();
+    	System.err.println("recal table index time:"+(end-start)/1000+"s");
     	for (final Tranche t : recalTable.getTranches()) {
             if (t.ts >= options.getTSFilterLevel()) {
                 tranches.add(t);

@@ -390,9 +390,11 @@ public class VariantBasicStatistic {
 	public String toString() {
 		ArrayList<StringFormat> list = new ArrayList<StringFormat>();
 		StringBuilder sb = new StringBuilder();
-		addBasicStatics(list, basicArray);
-		sb.append(format(list));
-		list.clear();
+		if(individuals && sampleStatics.size() > 1){
+			addBasicStatics(list, basicArray);
+			sb.append(format(list));
+			list.clear();
+		}
 		if (individuals) {
 			for (String name : sampleStatics.keySet()) {
 				IntArray array = sampleStatics.get(name);
@@ -413,7 +415,7 @@ public class VariantBasicStatistic {
 	
 	public int getMixed(){
 		return mixed;
-	}
+	}/*
 
 	public static void main(String[] args) throws IOException {
 		VariantBasicStatistic statics = new VariantBasicStatistic(true);
@@ -431,5 +433,5 @@ public class VariantBasicStatistic {
 		}
 
 		System.out.println(statics.toString());
-	}
+	}*/
 }

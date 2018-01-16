@@ -56,6 +56,7 @@ public class VariantRecalibrationMapper extends Mapper<LongWritable, VariantCont
 
 		manager = new ResourceManager(options);
 		for(String resource : options.getResources()) {
+			System.err.println("resource:"+resource);
 			TrainData trainData = new TrainData(options.getReference(), resource);
 			if(trainData.isDB()) {
 				trainData.setType(new DBResource());
@@ -86,13 +87,13 @@ public class VariantRecalibrationMapper extends Mapper<LongWritable, VariantCont
 		
 		boolean inRegion = false;
 		for(int i = vc.getStart() ; i <= vc.getEnd() ; i++){
-			if(region != null && !region.isPositionInRegion(vc.getContig(), i - 1)) {
+			if(region != null && region.isPositionInRegion(vc.getContig(), i - 1)) {
                 inRegion = true;
                 break;
             }
 		}
 		
-		if(!inRegion)
+		if(region != null && !inRegion)
 			return;
 		
 		VariantDatumMessenger datum = new VariantDatumMessenger.Builder(manager, vc, options)

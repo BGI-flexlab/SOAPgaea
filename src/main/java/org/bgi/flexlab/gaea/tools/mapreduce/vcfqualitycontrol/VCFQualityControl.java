@@ -76,9 +76,11 @@ public class VCFQualityControl extends ToolsRunner{
 		Configuration conf = job.getConfiguration();
 		conf.setBoolean(GaeaVCFOutputFormat.HEADER_MODIFY, true);
 		
+		String[] remainArgs = remainArgs(args, conf);
+		
 		options = new VCFQualityControlOptions();
-		options.parse(args);
-		options.setHadoopConf(args, conf);
+		options.parse(remainArgs);
+		options.setHadoopConf(remainArgs, conf);
 		
 		//merge header
 		vcfHeaders = new MultipleVCFHeader();

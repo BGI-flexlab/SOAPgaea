@@ -46,13 +46,10 @@ public class AnnotatorOptions extends GaeaOptions implements HadoopOptions{
 
     private String referenceSequencePath = null; //参考序列gaeaindex
 
-    private boolean mutiSample = false;
-    private boolean isCachedRef = false;
-
+    private boolean multiOutput = false;
     private boolean verbose = false;
     private boolean debug = false;
 
-    private int mapperNum;
     private int reducerNum;
 
     public AnnotatorOptions() {
@@ -61,8 +58,7 @@ public class AnnotatorOptions extends GaeaOptions implements HadoopOptions{
         addOption("c", "config",     true,  "config file. [request]", true);
         addOption("r", "reference",  true,  "indexed reference sequence file list [request]", true);
         //addOption("T", "outputType", true,  "output file foramt[txt, vcf].");
-        addOption("m", "mapperNum", true,  "mapper number. [50]");
-        addOption(null,"cacheref",   false,  "DistributedCache reference sequence file list");
+        addOption("M", "MultiOutput", true,  "output to multi file when have more than one sample");
         addOption(null,"verbose",    false, "display verbose information.");
         addOption(null,"debug",      false, "for debug.");
         addOption("h", "help",       false, "help information.");
@@ -94,9 +90,8 @@ public class AnnotatorOptions extends GaeaOptions implements HadoopOptions{
         setInputFilePath(cmdLine.getOptionValue("input"));
         setConfigFile(cmdLine.getOptionValue("config"));
         setReferenceSequencePath(cmdLine.getOptionValue("reference",""));
-        setMapperNum(getOptionIntValue("mapperNum", 50));
+        setMultiOutput(getOptionBooleanValue("multiOutput", false));
         setOutputPath(cmdLine.getOptionValue("output"));
-        setCachedRef(getOptionBooleanValue("cacheref", false));
         setVerbose(getOptionBooleanValue("verbose", false));
         setDebug(getOptionBooleanValue("debug", false));
     }
@@ -108,7 +103,6 @@ public class AnnotatorOptions extends GaeaOptions implements HadoopOptions{
         conf.set("reference", getReferenceSequencePath());
         conf.set("configFile", getConfigFile());
         conf.set("outputType", getOutputType());
-        conf.setBoolean("cacheref", isCachedRef());
         conf.setBoolean("verbose", isVerbose());
         conf.setBoolean("debug", isDebug());
     }
@@ -119,10 +113,10 @@ public class AnnotatorOptions extends GaeaOptions implements HadoopOptions{
         this.parse(args);
     }
 
-
     public int getReducerNum() {
         return reducerNum;
     }
+
     private String formatPath(String p) {
         if (p.startsWith("/")) {
             p = "file://" + p;
@@ -151,22 +145,6 @@ public class AnnotatorOptions extends GaeaOptions implements HadoopOptions{
     public String getOutputType() {
 //		return outputType;
         return "txt";
-    }
-
-    public boolean isMutiSample() {
-        return mutiSample;
-    }
-
-    public void setMutiSample(boolean mutiSample) {
-        this.mutiSample = mutiSample;
-    }
-
-    public boolean isCachedRef() {
-        return isCachedRef;
-    }
-
-    public void setCachedRef(boolean isCachedRef) {
-        this.isCachedRef = isCachedRef;
     }
 
     public String getInputFilePath() {
@@ -209,18 +187,19 @@ public class AnnotatorOptions extends GaeaOptions implements HadoopOptions{
         this.debug = debug;
     }
 
-    public int getMapperNum() {
-        return mapperNum;
+    public String getOutput() {
+        return formatPath(outputPath);
     }
 
-    public void setMapperNum(int mapperNum) {
-        this.mapperNum = mapperNum;
-    }
-    public String getOutput() {
-        return outputPath;
-    }
     public String getInput() {
         return inputFilePath;
     }
 
+    public boolean isMultiOutput() {
+        return multiOutput;
+    }
+
+    public void setMultiOutput(boolean multiOutput) {
+        this.multiOutput = multiOutput;
+    }
 }

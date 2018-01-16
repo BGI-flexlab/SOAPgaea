@@ -31,15 +31,10 @@ import org.bgi.flexlab.gaea.tools.annotator.interval.Genome;
 import org.bgi.flexlab.gaea.tools.annotator.util.CountByType;
 import org.bgi.flexlab.gaea.tools.annotator.util.Gpr;
 import org.bgi.flexlab.gaea.tools.annotator.util.Timer;
+import org.bgi.flexlab.gaea.util.FileIterator;
 
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Properties;
+import java.io.*;
+import java.util.*;
 
 public class Config implements Serializable {
 	
@@ -49,6 +44,7 @@ public class Config implements Serializable {
 	
 	public static final String KEY_REFERENCE = "ref";
 	public static final String KEY_GENE_INFO = "GeneInfo";
+	public static final String KEY_FIELDS_RENAME = "FieldRenameList";
 	public static final String KEY_CODON_PREFIX = "codon.";
 	public static final String KEY_CODONTABLE_SUFIX = ".codonTable";
 	public static final String DB_CONFIG_JSON = "AnnotatorConfig.json";
@@ -58,6 +54,8 @@ public class Config implements Serializable {
 	private String  ref = null;
 	private String  geneInfo = null;
 	private String configFilePath;
+	private List<String> renameOldHeader;
+	private List<String> renameNewHeader;
 
 	private boolean debug = false; // Debug mode?
 	private boolean verbose = false; // Verbose
@@ -70,7 +68,7 @@ public class Config implements Serializable {
 	private boolean hgvsOneLetterAa = false; // Use HGVS 1 letter amino acid in HGVS notation?
 	private boolean hgvsTrId = false; // Use HGVS transcript ID in HGVS notation?
 	private CountByType warningsCounter = new CountByType();
-	private HashMap<String, String[]> annoFieldsByDB = null;  // fields in user config
+	private HashMap<String, ArrayList<String>> annoFieldsByDB = null;  // fields in user config
 	private DatabaseJson databaseJson;
 	private List<String> dbNameList;
 	private Properties properties;
@@ -83,22 +81,23 @@ public class Config implements Serializable {
 		configFilePath = null;
 	}
 
-	public Config(Configuration conf) {
+	public Config(Configuration conf) throws IOException {
 		this.conf = conf;
 		init();
 		configInstance = this;
 		configFilePath = null;
 	}
 	
-	public Config(Configuration conf, ReferenceShare genomeShare) {
+	public Config(Configuration conf, ReferenceShare genomeShare) throws IOException {
 		this.conf = conf;
 		this.genomeShare = genomeShare;
 		init();
 		configInstance = this;
 		configFilePath = null;
+		genome = new Genome(ref,genomeShare);
 	}
 	
-	private void init(){
+	private void init() throws IOException {
 		treatAllAsProteinCoding = false;
 		onlyRegulation = false;
 		errorOnMissingChromo = true;
@@ -108,9 +107,7 @@ public class Config implements Serializable {
 		loadProperties(configFilePath); // Read config file and get a genome
 //		TODO 支持在配置文件中自定义密码子体系 - CodonTable
 //		createCodonTables(genomeVersion, properties);  
-		loadJson();
 		parseProperties();
-		genome = new Genome(ref,genomeShare);
 	}
 
 	/**
@@ -131,7 +128,7 @@ public class Config implements Serializable {
 			properties.load(fs.open(confFilePath));
 			
 			if (!properties.isEmpty()) {
-				return true;
+				return loadJson();
 			}
 		} catch (Exception e) {
 			properties = null;
@@ -145,11 +142,17 @@ public class Config implements Serializable {
 	 * load database info json
 	 * @return
 	 */
-	boolean loadJson() {
+	private boolean loadJson() {
 
 		Gson gson = new Gson();
 		try {
-			Reader reader =  new InputStreamReader(Config.class.getClassLoader().getResourceAsStream(DB_CONFIG_JSON), "UTF-8");
+			Reader reader;
+			if(properties.containsKey("DB_CONFIG")){
+				String databaseConfig = properties.getProperty("DB_CONFIG");
+				reader = new InputStreamReader(new FileInputStream(databaseConfig));
+			}else {
+				reader = new InputStreamReader(Config.class.getClassLoader().getResourceAsStream(DB_CONFIG_JSON), "UTF-8");
+			}
 			databaseJson = gson.fromJson(reader, new TypeToken<DatabaseJson>(){}.getType());
 		} catch ( JsonSyntaxException | IOException e) {
 			databaseJson = null;
@@ -205,7 +208,7 @@ public class Config implements Serializable {
 		}
 	}
 	
-	private boolean parseProperties() {
+	private boolean parseProperties() throws IOException {
 		
 		// Sorted keys
 		ArrayList<String> keys = new ArrayList<String>();
@@ -213,6 +216,8 @@ public class Config implements Serializable {
 			keys.add(k.toString());
 //		Collections.sort(keys);
 		ref = properties.getProperty(KEY_REFERENCE);
+		String renameList = properties.getProperty(KEY_FIELDS_RENAME).trim();
+		setRenameHeader(renameList);
 		setGeneInfo(properties.getProperty(KEY_GENE_INFO));
 		
 		annoFieldsByDB = new HashMap<>();
@@ -222,43 +227,49 @@ public class Config implements Serializable {
 		for (String key : keys) {
 			if (key.endsWith(ANNO_FIELDS_SUFIX)) {
 				String dbName = key.substring(0, key.length() - ANNO_FIELDS_SUFIX.length());
-				HashMap<String, String> newFieldMap = new HashMap<>();
 				String[] annoFields = properties.getProperty(key).split(",");
+				ArrayList<String> annoFieldList = new ArrayList<>();
 				
 				if (!key.startsWith(KEY_GENE_INFO)) {
 					DatabaseInfo dbInfo = databaseJson.getDatabaseInfo(dbName);
 					HashMap<String, String> fieldMap = dbInfo.getFields();
 					for (int i = 0; i < annoFields.length; i++) {
 						String annoField = annoFields[i];
-						if (fieldMap.containsKey(annoField)) {
-							newFieldMap.put(annoField, fieldMap.get(annoField));
-						}else {
+						if (!fieldMap.containsValue(annoField)) {
 							if(annoField.startsWith(dbName)){
-								newFieldMap.put(annoField, annoField);
+								fieldMap.put(annoField, annoField);
+								annoFieldList.add(annoField);
 							}else {
 								annoFields[i] = dbName+"_"+annoField;
-								newFieldMap.put(annoFields[i], annoField);
+								fieldMap.put(annoFields[i], annoField);
+								annoFieldList.add(annoFields[i]);
+							}
+						}else {
+							for (Map.Entry<String, String> entry : fieldMap.entrySet()) {
+								if(entry.getValue().equalsIgnoreCase(annoField))
+									annoFieldList.add(entry.getKey());
 							}
 						}
 					}
 					dbNameList.add(dbName);
-					dbInfo.setFields(newFieldMap);
+				}else {
+					annoFieldList.addAll(Arrays.asList(annoFields));
 				}
-				annoFieldsByDB.put(dbName, annoFields);
+				annoFieldsByDB.put(dbName, annoFieldList);
 			}
 		}
 		
 		return true;
 	}
 	
-	public String[] getFieldsByDB(String dbName){
+	public ArrayList<String> getFieldsByDB(String dbName){
 		return annoFieldsByDB.get(dbName);
 	}
 
 	public static Config getConfigInstance() {
 		return configInstance;
 	}
-	
+
 	public static Config get(){
 		return configInstance;
 	}
@@ -375,6 +386,34 @@ public class Config implements Serializable {
 		}
 	}
 
+	public List<String> getRenameOldHeader() {
+		return renameOldHeader;
+	}
+
+	public List<String> getRenameNewHeader() {
+		return renameNewHeader;
+	}
+
+	public void setRenameHeader(String renameList) throws IOException {
+		if (renameList.startsWith("/")) {
+			renameList = "file://" + renameList;
+		}
+		renameOldHeader = new ArrayList<>();
+		renameNewHeader = new ArrayList<>();
+		FileIterator it = new FileIterator(renameList);
+		while (it.hasNext()) {
+			String line = it.next().toString().trim();
+			if(line.isEmpty() || line.startsWith("#"))
+				continue;
+			String[] fields = line.split("\t");
+			fields[0] = fields[0].trim().replaceAll("\"","");
+			fields[1] = fields[1].trim().replaceAll("\"","");
+			renameNewHeader.add(fields[0]);
+			renameOldHeader.add(fields[1]);
+		}
+		it.close();
+	}
+
 	public String getRef() {
 		switch(ref){
 		
@@ -414,30 +453,27 @@ public class Config implements Serializable {
 	public DatabaseJson getDatabaseJson() {
 		return databaseJson;
 	}
-	
-	public String getHeader(){
-		StringBuilder sb = new StringBuilder();
-		sb.append("#CHROM");
-		sb.append("\t");
-		sb.append("POS");
-		sb.append("\t");
-		sb.append("REF");
-		sb.append("\t");
-		sb.append("ALT");
-		String[] fields = getFieldsByDB(Config.KEY_GENE_INFO);
-		for (String field : fields) {
-			sb.append("\t");
-			sb.append(field);    
-		}
+
+	public List<String> getHeaderList(){
+		List<String> headerList = new ArrayList<>();
+		headerList.add("CHROM");
+		headerList.add("POS");
+		headerList.add("START");
+		headerList.add("END");
+		headerList.add("REF");
+		headerList.add("ALT");
+		ArrayList<String> fields = getFieldsByDB(Config.KEY_GENE_INFO);
+		headerList.addAll(fields);
 		List<String> dbNameList = getDbNameList();
 		for (String dbName : dbNameList) {
 			fields = getFieldsByDB(dbName);
-			for (String field : fields) {
-				sb.append("\t");
-				sb.append(field);       
-			}
+			headerList.addAll(fields);
 		}
-		return sb.toString();
+		return headerList;
+	}
+	
+	public String getHeader(){
+		return "#"+String.join("\t", getHeaderList());
 	}
 	
 //	public static void main(String[] args) throws Exception {

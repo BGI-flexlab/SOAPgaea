@@ -16,11 +16,12 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.annotator.db;
 
+import org.bgi.flexlab.gaea.tools.annotator.VcfAnnoContext;
 import org.bgi.flexlab.gaea.tools.annotator.config.Config;
 import org.bgi.flexlab.gaea.tools.annotator.config.DatabaseInfo;
 import org.bgi.flexlab.gaea.tools.annotator.config.DatabaseInfo.DbType;
-import org.bgi.flexlab.gaea.tools.annotator.effect.AnnotationContext;
-import org.bgi.flexlab.gaea.tools.annotator.effect.VcfAnnotationContext;
+import org.bgi.flexlab.gaea.tools.annotator.AnnotationContext;
+import org.bgi.flexlab.gaea.tools.annotator.VcfAnnotationContext;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -40,10 +41,10 @@ public class DBAnnotator implements Serializable{
 	
 	public DBAnnotator(Config config){
 		this.config = config;
-		dbConditionHashMap = new HashMap<String, Condition>();
+		dbConditionHashMap = new HashMap<>();
 	}
 	
-	public void annotate(VcfAnnotationContext vac) throws IOException {
+	public void annotate(VcfAnnoContext vac) throws IOException {
 		
 		List<String> dbNameList = config.getDbNameList();
 		for (String dbName : dbNameList) {
@@ -64,32 +65,7 @@ public class DBAnnotator implements Serializable{
 			
 		}
 	}
-	public void annotate(List<VcfAnnotationContext> vacs) throws IOException {
 
-		List<String> dbNameList = config.getDbNameList();
-		if(vacs == null)
-			return;
-		VcfAnnotationContext vac0 = vacs.get(0);
-		for (String dbName : dbNameList) {
-			Condition condition = dbConditionHashMap.get(dbName);
-			condition.createConditionMap(vac0);
-
-			DBQuery dbQuery = DbQueryMap.get(dbName);
-			if (!dbQuery.executeQuery(condition)) continue;
-
-			for(VcfAnnotationContext vac : vacs) {
-				for (AnnotationContext annotationContext : vac.getAnnotationContexts()) {
-					LinkedList<HashMap<String, String>> resultList = dbQuery.getAcResultList(annotationContext);
-					HashMap<String, String> result = mergeResult(resultList);
-					if (result == null) continue;
-					for (Entry<String, String> entry : result.entrySet()) {
-						annotationContext.putAnnoItem(entry.getKey(), entry.getValue(), false);
-					}
-				}
-			}
-
-		}
-	}
 	private HashMap<String, String> mergeResult(
 			LinkedList<HashMap<String, String>> resultList) {
 		if (resultList == null || resultList.isEmpty()) return null;

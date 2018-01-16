@@ -105,13 +105,13 @@ public class VariantRecalibrationReducer extends Reducer<IntWritable, Text, Null
 			
 			boolean inRegion = false;
 			for(int i = vc.getStart() ; i <= vc.getEnd() ; i++){
-				if(region != null && !region.isPositionInRegion(vc.getContig(), i - 1)) {
+				if(region != null && region.isPositionInRegion(vc.getContig(), i - 1)) {
 	                inRegion = true;
 	                break;
 	            }
 			}
 			
-			if(!inRegion)
+			if(region !=null && !inRegion)
 				continue;
 			
 			basicStatics.variantStatic(vc);

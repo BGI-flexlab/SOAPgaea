@@ -19,7 +19,7 @@ package org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report;
 import org.bgi.flexlab.gaea.data.exception.BAMQCException;
 import org.bgi.flexlab.gaea.data.structure.region.SingleRegion;
 import org.bgi.flexlab.gaea.data.structure.region.SingleRegion.Regiondata;
-import org.bgi.flexlab.gaea.data.structure.region.statistic.BedSingleRegionStatistic;
+import org.bgi.flexlab.gaea.data.structure.region.SingleRegionStatistic;
 import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report.RegionReport.Sex;
 import org.bgi.flexlab.gaea.util.Lowess;
 
@@ -36,7 +36,7 @@ public class GenderPredict {
 	private double totalMeanDepth;
 	private int totalRegionNum = 0;
 	
-	public GenderPredict(Map<Regiondata, BedSingleRegionStatistic> result, SingleRegion sg, double[] filterVale) {
+	public GenderPredict(Map<Regiondata, SingleRegionStatistic> result, SingleRegion sg, double[] filterVale) {
 		lowessData = new HashMap<Integer, GenderPredict.LowessData>();
 		GCFinal = new ArrayList<Double>();
 		int i = 0;
@@ -49,12 +49,12 @@ public class GenderPredict {
 		//Regiondata rdlast = null;
 		for(Regiondata rd : sg.getRegions()) {
 			//rdlast = rd;
-			BedSingleRegionStatistic bsrs = result.get(rd);
+			SingleRegionStatistic bsrs = result.get(rd);
 			if(bsrs == null)
 				continue;
 			if(bsrs.getAverageDepth() >= filterVale[1] || bsrs.getAverageDepth() <= filterVale[0])
 				continue;
-			if(bsrs.getCoverageNum() / rd.size() < 0.5) {
+			if(bsrs.getCoverBaseNum() / rd.size() < 0.5) {
 				coverageFilterNum++;
 				continue;
 			}
