@@ -146,6 +146,14 @@ public class SampleAnnotationContext{
 
 	public void setHasNearVar() {
 		this.hasNearVar = true;
+		updateFilterTag();
+	}
+
+	private void updateFilterTag() {
+		for (String key: filter.keySet()){
+			if(filter.get(key).equals(FilterTag.PASS.toString()))
+				filter.put(key, FilterTag.DUBIOUS.toString());
+		}
 	}
 
 	private void setAlleleRatios(){
@@ -282,7 +290,7 @@ public class SampleAnnotationContext{
 		int plIndicator = getAllelePLindicator(vc, gt);
 		if(alleleDepth <= 2 || plIndicator < 0)
 			return FilterTag.FAIL;
-		if(alleleDepth >= 8 && plIndicator > 0 && vc.isNotFiltered() && !hasNearVar)
+		if(alleleDepth >= 8 && plIndicator > 0 && vc.isNotFiltered())
 			return FilterTag.PASS;
 		return FilterTag.DUBIOUS;
 	}
