@@ -16,12 +16,11 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.annotator.db;
 
+import org.bgi.flexlab.gaea.tools.annotator.AnnotationContext;
 import org.bgi.flexlab.gaea.tools.annotator.VcfAnnoContext;
 import org.bgi.flexlab.gaea.tools.annotator.config.Config;
 import org.bgi.flexlab.gaea.tools.annotator.config.DatabaseInfo;
 import org.bgi.flexlab.gaea.tools.annotator.config.DatabaseInfo.DbType;
-import org.bgi.flexlab.gaea.tools.annotator.AnnotationContext;
-import org.bgi.flexlab.gaea.tools.annotator.VcfAnnotationContext;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -78,9 +77,13 @@ public class DBAnnotator implements Serializable{
 		resultList.removeFirst();
 		for (HashMap<String, String> r : resultList) {
 			for (Entry<String, String> entry : r.entrySet()) {
-				if(!result.get(entry.getKey()).equals(entry.getValue())){
-					String value = result.get(entry.getKey()) + "," + entry.getValue();
-					result.put(entry.getKey(), value);
+				String key = entry.getKey();
+				String value = entry.getValue();
+				if(result.putIfAbsent(key, value) != null) {
+					if (!result.get(key).equals(value)) {
+						String mergeValue = result.get(key) + "," + value;
+						result.put(key, mergeValue);
+					}
 				}
 			}
 		}

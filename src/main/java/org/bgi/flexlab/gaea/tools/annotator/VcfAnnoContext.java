@@ -18,6 +18,7 @@ package org.bgi.flexlab.gaea.tools.annotator;
 
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.Genotype;
+import htsjdk.variant.variantcontext.GenotypeLikelihoods;
 import htsjdk.variant.variantcontext.VariantContext;
 import org.bgi.flexlab.gaea.tools.annotator.config.Config;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Chromosome;
@@ -28,6 +29,11 @@ import org.bgi.flexlab.gaea.tools.annotator.realignment.VcfRefAltAlign;
 import java.util.*;
 
 public class VcfAnnoContext {
+
+    public enum AlleleFrequencyType {
+        Common, LowFrequency, Rare
+    }
+
     private String contig;
     private String refStr;
     private int start;
@@ -78,58 +84,17 @@ public class VcfAnnoContext {
         {
             Genotype gt = variantContext.getGenotype(sampleName);
 
-//            if(isVar(gt)){
+            if(!isVar(gt))
+                continue;
+
             if(hasSample(sampleName)){
                 SampleAnnotationContext sampleAnnoContext = sampleAnnoContexts.get(sampleName);
-                List<String> alts = sampleAnnoContext.getAlts();
-                Map<String, Integer> alleleDepths = sampleAnnoContext.getAlleleDepths();
-                Map<String, String> zygosity = sampleAnnoContext.getZygosity();
-                int[] AD = gt.getAD();
-                int i = 0;
-                for(Allele allele: variantContext.getAlternateAlleles()){
-                    i++;
-                    if(alts.contains(allele.getBaseString()))
-                        continue;
-                    alts.add(allele.getBaseString());
-                    alleleDepths.put(allele.getBaseString(), AD[i]);
-                    zygosity.put(allele.getBaseString(), getZygosityType(gt));
-                }
+                sampleAnnoContext.add(variantContext);
             }else {
-                SampleAnnotationContext sampleAnnoContext = new SampleAnnotationContext(sampleName);
-                Map<String, Integer> alleleDepths = new HashMap<>();
-                Map<String, String> zygosity = new HashMap<>();
-                int i = 0;
-                List<String> alts = new ArrayList<>();
-                for(Allele allele: variantContext.getAlleles()){
-                    if(gt.hasAD()){
-                        alleleDepths.put(allele.getBaseString(), gt.getAD()[i]);
-                    }
-                    zygosity.put(allele.getBaseString(), getZygosityType(gt));
-                    if(i > 0)
-                        alts.add(allele.getBaseString());
-                    i++;
-                }
-                sampleAnnoContext.setCalled(gt.isCalled());
-                sampleAnnoContext.setAlleleDepths(alleleDepths);
-                sampleAnnoContext.setDepth(gt.getDP());
-                sampleAnnoContext.setAlts(alts);
-                sampleAnnoContext.setZygosity(zygosity);
+                SampleAnnotationContext sampleAnnoContext = new SampleAnnotationContext(sampleName, variantContext);
                 sampleAnnoContexts.put(sampleName, sampleAnnoContext);
             }
         }
-//        }
-    }
-
-    private String getZygosityType(Genotype gt){
-        if(gt.isHet())
-            return "het-ref";
-        else if(gt.isHomVar())
-            return "hom-alt";
-        else if(gt.isHetNonRef())
-            return  "het-alt";
-        else if(gt.isNoCall())
-            return "noCall";
-        return ".";
     }
 
     public boolean hasSample(String sampleName){
@@ -349,7 +314,7 @@ public class VcfAnnoContext {
             i ++;
         }
 
-        if(!fields[1].equals("")){
+        if(fields.length > 1 && !fields[1].equals("")){
             for(String sampleInfo: fields[1].split(";")){
                 SampleAnnotationContext sac = new SampleAnnotationContext();
                 sac.parseAlleleString(sampleInfo);

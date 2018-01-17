@@ -113,6 +113,7 @@ public class Annotator extends ToolsRunner {
         job.setMapOutputKeyClass(PairWritable.class);
         job.setMapOutputValueClass(Text.class);
 
+        job.setPartitionerClass(FirstPartitioner.class);
         job.setOutputKeyClass(NullWritable.class);
         job.setOutputValueClass(Text.class);
         job.setInputFormatClass(TextInputFormat.class);
