@@ -224,7 +224,7 @@ public class ConsensusAlleleCounter {
                 // get deletion length
                 final int dLen = Integer.valueOf(s.substring(1));
                 // get ref bases of accurate deletion
-                final byte[] refBases = reference.getBaseBytes(position, position + dLen);
+                final byte[] refBases = reference.getGA4GHBaseBytes(position, position + dLen);
                 stop = position + dLen + 1;
                 //System.err.println("indel string:" + s + "\tdeletion len:" + dLen + "\tref:" + new String(refBases));
 

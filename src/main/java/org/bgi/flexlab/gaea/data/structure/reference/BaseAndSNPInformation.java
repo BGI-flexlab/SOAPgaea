@@ -36,9 +36,9 @@ public class BaseAndSNPInformation {
 		_end--;
 
 		this.start = _start;
-		byte[] bases = chrInfo.getBytes(_start, _end);
+		byte[] bases = chrInfo.getGA4GHBytes(_start, _end);
 
-		sequences = chrInfo.getBaseSequence(bases, _start, _end);
+		sequences = chrInfo.getGA4GHBaseSequence(bases, _start, _end);
 		snps = chrInfo.isSNPs(bases, _start, _end);
 	}
 

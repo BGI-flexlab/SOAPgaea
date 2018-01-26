@@ -567,7 +567,7 @@ public class Genome extends Marker implements Serializable, Iterable<Chromosome>
 	public String querySequence(Marker marker) {
 		String chr = marker.getChromosomeName();
 		// Calculate start and end coordiantes
-		String seq = genomeShare.getChromosomeInfo(chr).getBaseSequence(marker.getStart(), marker.getEnd());
+		String seq = genomeShare.getChromosomeInfo(chr).getGA4GHBaseSequence(marker.getStart(), marker.getEnd());
 		// Return sequence in same direction as 'marker'
 		if (marker.isStrandMinus()) seq = GprSeq.reverseWc(seq);
 		return seq;
@@ -577,7 +577,7 @@ public class Genome extends Marker implements Serializable, Iterable<Chromosome>
 	 * Get sequence from start and end coordiantes
 	 */
 	public String querySequence(String chr, int start, int end) {
-		String seq = genomeShare.getChromosomeInfo(chr).getBaseSequence(start, end);
+		String seq = genomeShare.getChromosomeInfo(chr).getGA4GHBaseSequence(start, end);
 		return seq;
 	}
 
