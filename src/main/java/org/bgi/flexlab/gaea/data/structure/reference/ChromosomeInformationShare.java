@@ -129,6 +129,10 @@ public class ChromosomeInformationShare extends BioMemoryShare {
 		
 		return seq.toString();
 	}
+	
+	public byte[] getGA4GHBaseBytes(int start) {
+		return getGA4GHBaseSequence(start, start).getBytes();
+	}
 
 	public byte[] getGA4GHBaseBytes(int start, int end) {
 		return getGA4GHBaseSequence(start, end).getBytes();

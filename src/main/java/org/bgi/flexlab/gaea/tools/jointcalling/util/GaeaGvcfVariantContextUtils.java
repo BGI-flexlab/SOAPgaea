@@ -1,5 +1,6 @@
 package org.bgi.flexlab.gaea.tools.jointcalling.util;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -16,10 +17,14 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.log4j.Logger;
 import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
+import org.bgi.flexlab.gaea.tools.jointcalling.genotypelikelihood.GenotypeAlleleCounts;
+import org.bgi.flexlab.gaea.tools.jointcalling.genotypelikelihood.GenotypeLikelihoodCalculator;
+import org.bgi.flexlab.gaea.tools.jointcalling.genotypelikelihood.GenotypeLikelihoodCalculators;
 import org.bgi.flexlab.gaea.util.BaseUtils;
 import org.bgi.flexlab.gaea.util.GaeaVCFConstants;
 import org.bgi.flexlab.gaea.util.GaeaVariantContextUtils;
@@ -30,6 +35,8 @@ import org.bgi.flexlab.gaea.util.Utils;
 import com.google.java.contract.Ensures;
 import com.google.java.contract.Requires;
 
+import htsjdk.samtools.SAMSequenceDictionary;
+import htsjdk.tribble.AbstractFeatureReader;
 import htsjdk.tribble.util.popgen.HardyWeinbergCalculation;
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.CommonInfo;
@@ -40,10 +47,15 @@ import htsjdk.variant.variantcontext.GenotypesContext;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.VariantContextBuilder;
 import htsjdk.variant.variantcontext.VariantContextUtils;
+import htsjdk.variant.variantcontext.writer.Options;
+import htsjdk.variant.variantcontext.writer.VariantContextWriter;
+import htsjdk.variant.variantcontext.writer.VariantContextWriterBuilder;
 import htsjdk.variant.vcf.VCFConstants;
 
-public class GaeaGvcfVariantContextUtils extends  GaeaVariantContextUtils{
+public class GaeaGvcfVariantContextUtils extends GaeaVariantContextUtils {
 	private static Logger logger = Logger.getLogger(GaeaGvcfVariantContextUtils.class);
+	
+	private static final GenotypeLikelihoodCalculators GL_CALCS = new GenotypeLikelihoodCalculators();
 
 	/**
 	 * Checks whether a variant-context overlaps with a region.
@@ -435,42 +447,53 @@ public class GaeaGvcfVariantContextUtils extends  GaeaVariantContextUtils{
 	 *        or backward (at end of string)
 	 * @return Number of repetitions (0 if testString is not a concatenation of
 	 *         n repeatUnit's
-	 * @deprecated Move to use TandemRepeatFinder in protected (move to public
-	 *             if needed).
 	 */
-	@Deprecated
-	public static int findNumberOfRepetitions(byte[] repeatUnit, byte[] testString, boolean lookForward) {
+	public static int findNumberOfRepetitions(byte[] repeatUnit, byte[] testString, boolean leadingRepeats) {
+        Utils.nonNull(repeatUnit, "repeatUnit");
+        Utils.nonNull(testString, "testString");
+        Utils.validateArg(repeatUnit.length != 0, "empty repeatUnit");
+        if (testString.length == 0){
+            return 0;
+        }
+        return findNumberOfRepetitions(repeatUnit, 0, repeatUnit.length, testString, 0, testString.length, leadingRepeats);
+    }
+	
+	public static int findNumberOfRepetitions(final byte[] repeatUnitFull, final int offsetInRepeatUnitFull, final int repeatUnitLength, final byte[] testStringFull, final int offsetInTestStringFull, final int testStringLength, final boolean leadingRepeats) {
+	    Utils.nonNull(repeatUnitFull, "repeatUnit");
+	    Utils.nonNull(testStringFull, "testString");
+	    Utils.validIndex(offsetInRepeatUnitFull, repeatUnitFull.length);
+	    Utils.validateArg(repeatUnitLength >= 0 && repeatUnitLength <= repeatUnitFull.length, "repeatUnitLength");
+	    if (testStringLength == 0){
+	        return 0;
+	    }
+	    Utils.validIndex(offsetInTestStringFull, testStringFull.length);
+	    Utils.validateArg(testStringLength >= 0 && testStringLength <= testStringFull.length, "testStringLength");
+	    final int lengthDifference = testStringLength - repeatUnitLength;
 
-		if (repeatUnit == null)
-			throw new IllegalArgumentException("the repeat unit cannot be null");
-		if (testString == null)
-			throw new IllegalArgumentException("the test string cannot be null");
-
-		int numRepeats = 0;
-		if (lookForward) {
-			// look forward on the test string
-			for (int start = 0; start < testString.length; start += repeatUnit.length) {
-				final int end = start + repeatUnit.length;
-				final byte[] unit = Arrays.copyOfRange(testString, start, end);
-				if (!Arrays.equals(unit, repeatUnit))
-					break;
-				numRepeats++;
-			}
-			return numRepeats;
-		}
-
-		// look backward. For example, if repeatUnit = AT and testString =
-		// GATAT, number of repeat units is still 2
-		// look forward on the test string
-		for (int start = testString.length - repeatUnit.length; start >= 0; start -= repeatUnit.length) {
-			final int end = start + repeatUnit.length;
-			final byte[] unit = Arrays.copyOfRange(testString, start, end);
-			if (Arrays.equals(unit, repeatUnit))
-				numRepeats++;
-			else
-				break;
-		}
-		return numRepeats;
+	    if (leadingRepeats) {
+	        int numRepeats = 0;
+	        // look forward on the test string
+	        for (int start = 0; start <= lengthDifference; start += repeatUnitLength) {
+	            if(Utils.equalRange(testStringFull, start + offsetInTestStringFull, repeatUnitFull, offsetInRepeatUnitFull, repeatUnitLength)) {
+	                numRepeats++;
+	            } else {
+	                return numRepeats;
+	            }
+	        }
+	        return numRepeats;
+	    } else {
+	        // look backward. For example, if repeatUnit = AT and testString = GATAT, number of repeat units is still 2
+	        int numRepeats = 0;
+	        // look backward on the test string
+	        for (int start = lengthDifference; start >= 0; start -= repeatUnitLength) {
+	            if (Utils.equalRange(testStringFull, start + offsetInTestStringFull, repeatUnitFull, offsetInRepeatUnitFull, repeatUnitLength)) {
+	                numRepeats++;
+	            } else {
+	                return numRepeats;
+	            }
+	        }
+	        return numRepeats;
+	    }
 	}
 
 	/**
@@ -580,7 +603,8 @@ public class GaeaGvcfVariantContextUtils extends  GaeaVariantContextUtils{
 			return GenotypesContext.create();
 
 		// find the likelihoods indexes to use from the used alternate alleles
-		//final List<Integer> likelihoodIndexesToUse = determineDiploidLikelihoodIndexesToUse(vc, allelesToUse);
+		// final List<Integer> likelihoodIndexesToUse =
+		// determineDiploidLikelihoodIndexesToUse(vc, allelesToUse);
 		final List<List<Integer>> likelihoodIndexesToUse = determineLikelihoodIndexesToUse(vc, allelesToUse);
 
 		// find the strand allele count indexes to use from the used alternate
@@ -601,7 +625,8 @@ public class GaeaGvcfVariantContextUtils extends  GaeaVariantContextUtils{
 	 *            the subset of alleles to use
 	 * @return a list of PL indexes to use or null if none
 	 */
-	private static List<List<Integer>> determineLikelihoodIndexesToUse(final VariantContext originalVC, final List<Allele> allelesToUse) {
+	private static List<List<Integer>> determineLikelihoodIndexesToUse(final VariantContext originalVC,
+			final List<Allele> allelesToUse) {
 
 		if (originalVC == null)
 			throw new IllegalArgumentException("the original VariantContext cannot be null");
@@ -615,7 +640,7 @@ public class GaeaGvcfVariantContextUtils extends  GaeaVariantContextUtils{
 		// of a ref call) of the alleles,
 		// then we can keep the PLs as is; otherwise, we determine which ones to
 		// keep
-		if ( alleleIndexesToUse.cardinality() == alleleIndexesToUse.size() )
+		if (alleleIndexesToUse.cardinality() == alleleIndexesToUse.size())
 			return null;
 
 		return getLikelihoodIndexes(originalVC, alleleIndexesToUse);
@@ -662,19 +687,21 @@ public class GaeaGvcfVariantContextUtils extends  GaeaVariantContextUtils{
 	 *            #getAlleleIndexBitset)
 	 * @return a non-null List
 	 */
-	private static List<List<Integer>> getLikelihoodIndexes(final VariantContext originalVC, BitSet alleleIndexesToUse) {
+	private static List<List<Integer>> getLikelihoodIndexes(final VariantContext originalVC,
+			BitSet alleleIndexesToUse) {
 		final List<List<Integer>> likelihoodIndexesPerGenotype = new ArrayList<List<Integer>>(10);
-		
+
 		for (final Genotype g : originalVC.getGenotypes()) {
-            final int numLikelihoods = GenotypeLikelihoods.numLikelihoods(originalVC.getNAlleles(), g.getPloidy());
-            final List<Integer> likelihoodIndexes = new ArrayList<>(30);
-            for ( int PLindex = 0; PLindex < numLikelihoods; PLindex++ ) {
-                // consider this entry only if all the alleles are good
-                if ( GenotypeLikelihoods.getAlleles(PLindex, g.getPloidy()).stream().allMatch(i -> alleleIndexesToUse.get(i)) )
-                    likelihoodIndexes.add(PLindex);
-            }
-            likelihoodIndexesPerGenotype.add(likelihoodIndexes);
-        }
+			final int numLikelihoods = GenotypeLikelihoods.numLikelihoods(originalVC.getNAlleles(), g.getPloidy());
+			final List<Integer> likelihoodIndexes = new ArrayList<>(30);
+			for (int PLindex = 0; PLindex < numLikelihoods; PLindex++) {
+				// consider this entry only if all the alleles are good
+				if (GenotypeLikelihoods.getAlleles(PLindex, g.getPloidy()).stream()
+						.allMatch(i -> alleleIndexesToUse.get(i)))
+					likelihoodIndexes.add(PLindex);
+			}
+			likelihoodIndexesPerGenotype.add(likelihoodIndexes);
+		}
 
 		return likelihoodIndexesPerGenotype;
 	}
@@ -851,7 +878,8 @@ public class GaeaGvcfVariantContextUtils extends  GaeaVariantContextUtils{
 				newLikelihoods = null;
 				gb.noPL();
 			} else {
-				final int expectedNumLikelihoods = GenotypeLikelihoods.numLikelihoods(originalVC.getNAlleles(), g.getPloidy());
+				final int expectedNumLikelihoods = GenotypeLikelihoods.numLikelihoods(originalVC.getNAlleles(),
+						g.getPloidy());
 				final double[] originalLikelihoods = g.getLikelihoods().getAsVector();
 				if (likelihoodIndexesToUse == null) {
 					newLikelihoods = originalLikelihoods;
@@ -870,9 +898,9 @@ public class GaeaGvcfVariantContextUtils extends  GaeaVariantContextUtils{
 				}
 
 				if (newLikelihoods == null || (originalVC.getAttributeAsInt(VCFConstants.DEPTH_KEY, 0) == 0
-						&& likelihoodsAreUninformative(newLikelihoods))){
+						&& likelihoodsAreUninformative(newLikelihoods))) {
 					gb.noPL();
-				}else{
+				} else {
 					gb.PL(newLikelihoods);
 				}
 			}
@@ -883,7 +911,8 @@ public class GaeaGvcfVariantContextUtils extends  GaeaVariantContextUtils{
 				gb.attribute(GaeaVCFConstants.STRAND_COUNT_BY_SAMPLE_KEY, newSACs);
 			}
 
-			updateGenotypeAfterSubsetting(g.getAlleles(), g.getPloidy(), gb, assignGenotypes, newLikelihoods, allelesToUse);
+			updateGenotypeAfterSubsetting(g.getAlleles(), g.getPloidy(), gb, assignGenotypes, newLikelihoods,
+					allelesToUse);
 			newGTs.add(gb.make());
 		}
 
@@ -911,8 +940,8 @@ public class GaeaGvcfVariantContextUtils extends  GaeaVariantContextUtils{
 	 * @param allelesToUse
 	 *            the alleles we are using for our subsetting
 	 */
-	public static void updateGenotypeAfterSubsetting(final List<Allele> originalGT, final int ploidy,final GenotypeBuilder gb,
-			final GenotypeAssignmentMethod assignmentMethod, final double[] newLikelihoods,
+	public static void updateGenotypeAfterSubsetting(final List<Allele> originalGT, final int ploidy,
+			final GenotypeBuilder gb, final GenotypeAssignmentMethod assignmentMethod, final double[] newLikelihoods,
 			final List<Allele> allelesToUse) {
 		if (originalGT == null)
 			throw new IllegalArgumentException("originalGT cannot be null");
@@ -945,10 +974,10 @@ public class GaeaGvcfVariantContextUtils extends  GaeaVariantContextUtils{
 				// find the genotype with maximum likelihoods
 				final int PLindex = MathUtils.maxElementIndex(newLikelihoods);
 				final List<Allele> alleles = new ArrayList<>();
-                for ( final Integer alleleIndex : GenotypeLikelihoods.getAlleles(PLindex, ploidy)) {
-                    alleles.add(allelesToUse.get(alleleIndex) );
-                }
-                gb.alleles(alleles);
+				for (final Integer alleleIndex : GenotypeLikelihoods.getAlleles(PLindex, ploidy)) {
+					alleles.add(allelesToUse.get(alleleIndex));
+				}
+				gb.alleles(alleles);
 				gb.log10PError(GenotypeLikelihoods.getGQLog10FromLikelihoods(PLindex, newLikelihoods));
 			}
 			break;
@@ -1102,8 +1131,7 @@ public class GaeaGvcfVariantContextUtils extends  GaeaVariantContextUtils{
 			// if any of the genotypes ar ehet-not-ref (i.e. 1/2), set all of
 			// them to no-call
 			final GenotypeAssignmentMethod genotypeAssignmentMethodUsed = hasHetNonRef(vc.getGenotypes())
-					? GenotypeAssignmentMethod.SET_TO_NO_CALL_NO_ANNOTATIONS
-					: genotypeAssignmentMethod;
+					? GenotypeAssignmentMethod.SET_TO_NO_CALL_NO_ANNOTATIONS : genotypeAssignmentMethod;
 
 			for (final Allele alt : vc.getAlternateAlleles()) {
 				final VariantContextBuilder builder = new VariantContextBuilder(vc);
@@ -1602,12 +1630,12 @@ public class GaeaGvcfVariantContextUtils extends  GaeaVariantContextUtils{
 		final int[] oldAD = genotype.getAD();
 		final int[] newAD = new int[alleleIndexesToUse.cardinality()];
 
-        int currentIndex = 0;
-        for ( int i = alleleIndexesToUse.nextSetBit(0); i >= 0; i = alleleIndexesToUse.nextSetBit(i+1) ) {
-            newAD[currentIndex++] = oldAD[i];
-        }
-		
-        return builder.AD(newAD).make();
+		int currentIndex = 0;
+		for (int i = alleleIndexesToUse.nextSetBit(0); i >= 0; i = alleleIndexesToUse.nextSetBit(i + 1)) {
+			newAD[currentIndex++] = oldAD[i];
+		}
+
+		return builder.AD(newAD).make();
 	}
 
 	// TODO as part of a larger refactoring effort {@link #createAlleleMapping}
@@ -1714,7 +1742,7 @@ public class GaeaGvcfVariantContextUtils extends  GaeaVariantContextUtils{
 		return (originalIndex2 < originalIndex1) ? GenotypeLikelihoods.calculatePLindex(originalIndex2, originalIndex1)
 				: GenotypeLikelihoods.calculatePLindex(originalIndex1, originalIndex2);
 	}
-	
+
 	/**
 	 * Trim the alleles in inputVC from the reverse direction
 	 *
@@ -2475,30 +2503,106 @@ public class GaeaGvcfVariantContextUtils extends  GaeaVariantContextUtils{
 			builder.attribute(VCFConstants.ALLELE_FREQUENCY_KEY, alleleFrequency.toArray());
 		}
 	}
-	
-	/**
-     * @param plValues  array of PL values
-     * @return          the genotype quality corresponding to the PL values
-     */
-    public static int calculateGQFromPLs(final int[] plValues) {
-        if ( plValues == null ) throw new IllegalArgumentException("Array of PL values cannot be null.");
-        if ( plValues.length < 2 ) throw new IllegalArgumentException("Array of PL values must contain at least two elements.");
 
-        int first = plValues[0];
-        int second = plValues[1];
-        if (first > second) {
-            second = first;
-            first = plValues[1];
-        }
-        for (int i = 2; i < plValues.length; i++) {
-            final int candidate = plValues[i];
-            if (candidate >= second) continue;
-            if (candidate <= first) {
-                second = first;
-                first = candidate;
-            } else
-                second = candidate;
-        }
-        return second - first;
-    }
+	/**
+	 * @param plValues
+	 *            array of PL values
+	 * @return the genotype quality corresponding to the PL values
+	 */
+	public static int calculateGQFromPLs(final int[] plValues) {
+		if (plValues == null)
+			throw new IllegalArgumentException("Array of PL values cannot be null.");
+		if (plValues.length < 2)
+			throw new IllegalArgumentException("Array of PL values must contain at least two elements.");
+
+		int first = plValues[0];
+		int second = plValues[1];
+		if (first > second) {
+			second = first;
+			first = plValues[1];
+		}
+		for (int i = 2; i < plValues.length; i++) {
+			final int candidate = plValues[i];
+			if (candidate >= second)
+				continue;
+			if (candidate <= first) {
+				second = first;
+				first = candidate;
+			} else
+				second = candidate;
+		}
+		return second - first;
+	}
+
+	public static boolean isInformative(final double[] gls) {
+		return MathUtils.sum(gls) < SUM_GL_THRESH_NOCALL;
+	}
+
+	public static void makeGenotypeCall(final int ploidy, final GenotypeBuilder gb,
+			final GenotypeAssignmentMethod assignmentMethod, final double[] genotypeLikelihoods,
+			final List<Allele> allelesToUse) {
+		if (assignmentMethod == GenotypeAssignmentMethod.SET_TO_NO_CALL) {
+			gb.alleles(noCallAlleles(ploidy)).noGQ();
+		} else if (assignmentMethod == GenotypeAssignmentMethod.USE_PLS_TO_ASSIGN) {
+			if (genotypeLikelihoods == null || !isInformative(genotypeLikelihoods)) {
+				gb.alleles(noCallAlleles(ploidy)).noGQ();
+			} else {
+				final int maxLikelihoodIndex = MathUtils.maxElementIndex(genotypeLikelihoods);
+				final GenotypeLikelihoodCalculator glCalc = GL_CALCS.getInstance(ploidy, allelesToUse.size());
+				final GenotypeAlleleCounts alleleCounts = glCalc.genotypeAlleleCountsAt(maxLikelihoodIndex);
+
+				gb.alleles(alleleCounts.asAlleleList(allelesToUse));
+				final int numAltAlleles = allelesToUse.size() - 1;
+				if (numAltAlleles > 0) {
+					gb.log10PError(
+							GenotypeLikelihoods.getGQLog10FromLikelihoods(maxLikelihoodIndex, genotypeLikelihoods));
+				}
+			}
+		}
+	}
+	
+	public static VariantContextWriter createVCFWriter(
+	        final File outFile,
+	        final SAMSequenceDictionary referenceDictionary,
+	        final boolean createMD5,
+	        final Options... options)
+	{
+	    Utils.nonNull(outFile);
+
+	    VariantContextWriterBuilder vcWriterBuilder =
+	            new VariantContextWriterBuilder().clearOptions().setOutputFile(outFile);
+
+	    if (VariantContextWriterBuilder.OutputType.UNSPECIFIED == getVariantFileTypeFromExtension(outFile)) {
+	        // the only way the user has to specify an output type is by file extension, and htsjdk
+	        // throws if it can't map the file extension to a known vcf type, so fallback to a default
+	        // of VCF
+	        vcWriterBuilder = vcWriterBuilder.setOutputFileType(VariantContextWriterBuilder.OutputType.VCF);
+	    }
+
+	    if (createMD5) {
+	        vcWriterBuilder.setCreateMD5();
+	    }
+
+	    if (null != referenceDictionary) {
+	        vcWriterBuilder = vcWriterBuilder.setReferenceDictionary(referenceDictionary);
+	    }
+
+	    for (Options opt : options) {
+	        vcWriterBuilder = vcWriterBuilder.setOption(opt);
+	    }
+
+	    return vcWriterBuilder.build();
+	}
+	
+	private static VariantContextWriterBuilder.OutputType getVariantFileTypeFromExtension(final File outputFile) {
+	    final String extension = FilenameUtils.getExtension(outputFile.getPath()).toLowerCase();
+	    if (extension.equals("vcf")) {
+	        return VariantContextWriterBuilder.OutputType.VCF;
+	    } else if (extension.equals("bcf")) {
+	        return VariantContextWriterBuilder.OutputType.BCF;
+	    } else if (AbstractFeatureReader.hasBlockCompressedExtension(outputFile.getPath())) {
+	        return VariantContextWriterBuilder.OutputType.BLOCK_COMPRESSED_VCF;
+	    }
+	    return VariantContextWriterBuilder.OutputType.UNSPECIFIED;
+	}
 }

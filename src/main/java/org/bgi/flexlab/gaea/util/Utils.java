@@ -619,25 +619,6 @@ public class Utils {
 		return newA;
 	}
 
-	/*
-	 * TEST ME public static void main(String[] argv) { List<Integer> l1 = new
-	 * LinkedList<Integer>(); List<Integer> l2 = new ArrayList<Integer>();
-	 * 
-	 * l1.add(1); l1.add(5); l1.add(3); l1.add(10); l1.add(4); l1.add(2);
-	 * l2.add(1); l2.add(5); l2.add(3); l2.add(10); l2.add(4); l2.add(2);
-	 * 
-	 * Predicate<Integer> p = new Predicate<Integer>() { public boolean
-	 * apply(Integer i) { return i > 2; } }; filterInPlace(p, l1);
-	 * filterInPlace(p, l2);
-	 * 
-	 * for ( int i = 0 ; i < l1.size(); i++ ) System.out.print(" "+l1.get(i));
-	 * System.out.println(); for ( int i = 0 ; i < l2.size(); i++ )
-	 * System.out.print(" " + l2.get(i)); System.out.println();
-	 * 
-	 * }
-	 * 
-	 */
-
 	/**
 	 * a helper method. Turns a single character string into a char.
 	 *
@@ -783,37 +764,7 @@ public class Utils {
 		for (int i = 0; i < array.length; i++)
 			array[i] = value;
 	}
-
-	/*
-	 * public static void setupWriter(SAMFileWriter writer, GenomeAnalysisEngine
-	 * toolkit, boolean preSorted, boolean KEEP_ALL_PG_RECORDS, Object walker,
-	 * String PROGRAM_RECORD_NAME) { final SAMProgramRecord programRecord =
-	 * createProgramRecord(toolkit, walker, PROGRAM_RECORD_NAME);
-	 * 
-	 * SAMFileHeader header = toolkit.getSAMFileHeader(); List<SAMProgramRecord>
-	 * oldRecords = header.getProgramRecords(); List<SAMProgramRecord>
-	 * newRecords = new ArrayList<SAMProgramRecord>(oldRecords.size()+1); for (
-	 * SAMProgramRecord record : oldRecords ) if (
-	 * !record.getId().startsWith(PROGRAM_RECORD_NAME) || KEEP_ALL_PG_RECORDS )
-	 * newRecords.add(record);
-	 * 
-	 * newRecords.add(programRecord); header.setProgramRecords(newRecords);
-	 * 
-	 * writer.writeHeader(header); writer.setPresorted(preSorted); }
-	 */
-	/*
-	 * public static SAMProgramRecord createProgramRecord(GenomeAnalysisEngine
-	 * toolkit, Object walker, String PROGRAM_RECORD_NAME) { final
-	 * SAMProgramRecord programRecord = new
-	 * SAMProgramRecord(PROGRAM_RECORD_NAME); final ResourceBundle headerInfo =
-	 * TextFormattingUtils.loadResourceBundle("StingText"); try { final String
-	 * version = headerInfo.getString("org.broadinstitute.sting.gatk.version");
-	 * programRecord.setProgramVersion(version); } catch
-	 * (MissingResourceException e) { // couldn't care less if the resource is
-	 * missing... } programRecord.setCommandLine(toolkit.
-	 * createApproximateCommandLineArgumentString(toolkit, walker)); return
-	 * programRecord; }
-	 */
+	
 	public static <E> Collection<E> makeCollection(Iterable<E> iter) {
 		Collection<E> list = new ArrayList<E>();
 		for (E item : iter) {

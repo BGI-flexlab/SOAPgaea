@@ -44,6 +44,7 @@ package org.bgi.flexlab.gaea.util;
 
 import htsjdk.samtools.*;
 import htsjdk.samtools.SAMUtils;
+import htsjdk.samtools.cram.build.CramIO;
 
 import org.bgi.flexlab.gaea.data.exception.OutOfBoundException;
 import org.bgi.flexlab.gaea.data.exception.UserException;
@@ -52,6 +53,8 @@ import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
 import org.bgi.flexlab.gaea.data.structure.sequenceplatform.NGSPlatform;
 
+import java.io.File;
+import java.nio.file.OpenOption;
 import java.util.*;
 
 public class ReadUtils {
@@ -853,4 +856,41 @@ public class ReadUtils {
 			return read.getStart() <= read.getMateStart() + read.getInferredInsertSize();
 		}
 	}
+	
+	public static SAMFileWriter createCommonSAMWriter(
+	        final File outputPath,
+	        final File referenceFile,
+	        final SAMFileHeader header,
+	        final boolean preSorted,
+	        boolean createOutputBamIndex,
+	        final boolean createMD5)
+	    {
+	        Utils.nonNull(outputPath);
+	        Utils.nonNull(header);
+
+	        if (createOutputBamIndex && header.getSortOrder() != SAMFileHeader.SortOrder.coordinate) {
+	            createOutputBamIndex = false;
+	        }
+
+	        final SAMFileWriterFactory factory = new SAMFileWriterFactory().setCreateIndex(createOutputBamIndex).setCreateMd5File(createMD5);
+	        return ReadUtils.createCommonSAMWriterFromFactory(factory, outputPath, referenceFile, header, preSorted);
+	    }
+	
+	public static SAMFileWriter createCommonSAMWriterFromFactory(
+		    final SAMFileWriterFactory factory,
+		    final File outputPath,
+		    final File referenceFile,
+		    final SAMFileHeader header,
+		    final boolean preSorted,
+		    OpenOption... openOptions)
+		{
+		    Utils.nonNull(outputPath);
+		    Utils.nonNull(header);
+
+		    if (null == referenceFile && outputPath.toString().endsWith(CramIO.CRAM_FILE_EXTENSION)) {
+		        throw new UserException("A reference file is required for writing CRAM files");
+		    }
+
+		    return factory.makeWriter(header.clone(), preSorted, outputPath, referenceFile);
+		}
 }

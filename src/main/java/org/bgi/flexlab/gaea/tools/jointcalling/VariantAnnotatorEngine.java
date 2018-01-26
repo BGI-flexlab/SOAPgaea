@@ -16,15 +16,15 @@ import org.bgi.flexlab.gaea.data.exception.UserException.BadArgumentValueExcepti
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocationParser;
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
+import org.bgi.flexlab.gaea.tools.haplotypecaller.annotator.VariantOverlapAnnotator;
+import org.bgi.flexlab.gaea.tools.haplotypecaller.utils.ReducibleAnnotationData;
+import org.bgi.flexlab.gaea.tools.haplotypecaller.utils.RefMetaDataTracker;
 import org.bgi.flexlab.gaea.tools.jointcalling.annotator.AnnotationInterfaceManager;
-import org.bgi.flexlab.gaea.tools.jointcalling.annotator.VariantOverlapAnnotator;
 import org.bgi.flexlab.gaea.tools.jointcalling.genotypegvcfs.annotation.GenotypeAnnotation;
 import org.bgi.flexlab.gaea.tools.jointcalling.genotypegvcfs.annotation.InfoFieldAnnotation;
 import org.bgi.flexlab.gaea.tools.jointcalling.genotypegvcfs.annotation.ReducibleAnnotation;
 import org.bgi.flexlab.gaea.tools.jointcalling.genotypegvcfs.annotation.VariantAnnotatorAnnotation;
 import org.bgi.flexlab.gaea.tools.jointcalling.util.GaeaGvcfVariantContextUtils;
-import org.bgi.flexlab.gaea.tools.jointcalling.util.ReducibleAnnotationData;
-import org.bgi.flexlab.gaea.tools.jointcalling.util.RefMetaDataTracker;
 import org.bgi.flexlab.gaea.tools.jointcalling.util.RodBinding;
 
 import com.google.java.contract.Ensures;
@@ -129,7 +129,7 @@ public class VariantAnnotatorEngine {
 		if (dbSNPBindings != null && dbSNPBindings.size() == 0)
 			dbSNPBindings = null;
 
-		final Map<String, ArrayList<VariantContext>> overlapBindings = new LinkedHashMap<>();
+		final Map<String, List<VariantContext>> overlapBindings = new LinkedHashMap<>();
 
 		if (dbSNPBindings != null )
 			overlapBindings.put( VCFConstants.DBSNP_KEY, dbSNPBindings); 

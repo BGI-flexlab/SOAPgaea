@@ -45,4 +45,6 @@ public class RMSMappingQuality extends RMSAnnotation
 	public List<String> getKeyNames() {
 		return Arrays.asList(VCFConstants.RMS_MAPPING_QUALITY_KEY);
 	}
+	
+	
 }

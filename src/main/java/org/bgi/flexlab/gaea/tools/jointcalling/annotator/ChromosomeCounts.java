@@ -8,11 +8,11 @@ import java.util.Map;
 import java.util.Set;
 
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
+import org.bgi.flexlab.gaea.tools.haplotypecaller.utils.RefMetaDataTracker;
 import org.bgi.flexlab.gaea.tools.jointcalling.genotypegvcfs.annotation.ActiveRegionBasedAnnotation;
 import org.bgi.flexlab.gaea.tools.jointcalling.genotypegvcfs.annotation.InfoFieldAnnotation;
 import org.bgi.flexlab.gaea.tools.jointcalling.genotypegvcfs.annotation.StandardAnnotation;
 import org.bgi.flexlab.gaea.tools.jointcalling.util.ChromosomeCountConstants;
-import org.bgi.flexlab.gaea.tools.jointcalling.util.RefMetaDataTracker;
 
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.VariantContextUtils;

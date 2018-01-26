@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import org.bgi.flexlab.gaea.tools.jointcalling.util.IndexRange;
+import org.bgi.flexlab.gaea.util.IndexRange;
 import org.bgi.flexlab.gaea.util.MathUtils;
 
 import htsjdk.variant.variantcontext.Allele;
