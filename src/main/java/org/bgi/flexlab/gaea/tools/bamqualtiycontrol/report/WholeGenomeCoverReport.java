@@ -63,6 +63,12 @@ public class WholeGenomeCoverReport{
 				if(chrInfo.getBase(pos) != 'N')
 					bTracker.setTrackerAttribute(BaseType.FOURXNONNCOVERED);
 			}
+			if(rmdupDepth > 10){
+				bTracker.setTrackerAttribute(BaseType.TENXCOVERED);
+			}
+			if(rmdupDepth > 30){
+				bTracker.setTrackerAttribute(BaseType.THIRTYXCOVERED);
+			}
 			if(chrInfo.getBase(pos) != 'N')
 				bTracker.setTrackerAttribute(BaseType.NONNCOVERED);
 			if(deep.hasIndelReads(i))
@@ -108,6 +114,10 @@ public class WholeGenomeCoverReport{
 		coverString.append(df.format(getCoverage()));
 		coverString.append("%\nCoverage (>4x):\t");
 		coverString.append(df.format(getFourxCoverage()));
+		coverString.append("%\nCoverage (>10x):\t");
+		coverString.append(df.format(getTenxCoverage()));
+		coverString.append("%\nCoverage (>30x):\t");
+		coverString.append(df.format(getThirtyxCoverage()));
 		coverString.append("%\nMean Depth:\t");
 		coverString.append(df.format(getMeanDepth()));
 		coverString.append("\nMean Rmdup Depth:\t");
@@ -166,6 +176,14 @@ public class WholeGenomeCoverReport{
 		return bTracker.getProperty(BaseType.FOURXCOVERED);
 	}
 
+	public long getTenXCoverBaseNum() {
+		return bTracker.getProperty(BaseType.TENXCOVERED);
+	}
+
+	public long getThirtyXCoverBaseNum() {
+		return bTracker.getProperty(BaseType.THIRTYXCOVERED);
+	}
+
 	public long getNonNCoverBaseNum() {
 		return bTracker.getProperty(BaseType.NONNCOVERED);
 	}
@@ -184,6 +202,14 @@ public class WholeGenomeCoverReport{
 
 	public double getNonNFourxCoverage() {
 		return (100 * (getNonNFourXCoverBaseNum()/(double)chrInfo.getNonNbaselength()));
+	}
+
+	public double getTenxCoverage() {
+		return (100 * (getTenXCoverBaseNum()/(double)chrInfo.getLength()));
+	}
+
+	public double getThirtyxCoverage() {
+		return (100 * (getThirtyXCoverBaseNum()/(double)chrInfo.getLength()));
 	}
 
 	public double getNonNbaseCoverage() {
@@ -220,6 +246,8 @@ public class WholeGenomeCoverReport{
 				                     new BaseCounter(Interval.WHOLEGENOME, Depth.TOTALDEPTH, DepthType.WITHOUT_PCR),
 									 new BaseCounter(BaseType.FOURXCOVERED),
 									 new BaseCounter(BaseType.FOURXNONNCOVERED),
+									 new BaseCounter(BaseType.TENXCOVERED),
+									 new BaseCounter(BaseType.THIRTYXCOVERED),
 									 new BaseCounter(BaseType.NONNCOVERED),
 									 new BaseCounter(BaseType.COVERED),
 									 new BaseCounter(BaseType.INDELREF),

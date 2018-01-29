@@ -204,14 +204,14 @@ public abstract class ResultReport {
 	
 	public void write(FileSystem fs, String sampleName) throws IOException {
 		if(cnvSingleRegionReport != null) {
-			String depthFileStr = options.getOutputPath() +
-					"/" + sampleName + ".region.depth.tsv.gz";
-			Path depthFilePath = new Path(depthFileStr);
-			FSDataOutputStream cnvDepthStream = fs.create(depthFilePath);
-			CompressionCodecFactory codecFactory = new CompressionCodecFactory(fs.getConf());
-			CompressionCodec codec = codecFactory.getCodec(depthFilePath);
-			CompressionOutputStream depthCompressedOutput = codec.createOutputStream(cnvDepthStream);
-			StringBuilder sb = new StringBuilder();
+//			String depthFileStr = options.getOutputPath() +
+//					"/" + sampleName + ".region.depth.tsv.gz";
+//			Path depthFilePath = new Path(depthFileStr);
+//			FSDataOutputStream cnvDepthStream = fs.create(depthFilePath);
+//			CompressionCodecFactory codecFactory = new CompressionCodecFactory(fs.getConf());
+//			CompressionCodec codec = codecFactory.getCodec(depthFilePath);
+//			CompressionOutputStream depthCompressedOutput = codec.createOutputStream(cnvDepthStream);
+//			StringBuilder sb = new StringBuilder();
 
 			String singleRegionFileStr = options.getOutputPath() +
 					"/" +
@@ -236,19 +236,19 @@ public abstract class ResultReport {
 
 			Map<Regiondata, SingleRegionStatistic> result = cnvSingleRegionReport.getResult();
 			cnvSingleRegionReport.updateAllRegionAverageDeepth();
-			sb.append("#Chr\tPos\tRaw Depth\tRmdup depth\n");
+//			sb.append("#Chr\tPos\tRaw Depth\tRmdup depth\n");
 			for(Regiondata regionData : cnvSingleRegionReport.getRegion().getRegions()) {
 				SingleRegionStatistic singleRegionStat = result.get(regionData);
-				for (int i = 0; i < regionData.size(); i++) {
-					sb.append(regionData.getChrName());
-					sb.append("\t");
-					sb.append(i + regionData.getStart() + 1);
-					sb.append("\t");
-					sb.append(singleRegionStat.getPosDepth(i));
-					sb.append("\t");
-					sb.append(singleRegionStat.getPosRmdupDepth(i));
-					sb.append("\n");
-				}
+//				for (int i = 0; i < regionData.size(); i++) {
+//					sb.append(regionData.getChrName());
+//					sb.append("\t");
+//					sb.append(i + regionData.getStart() + 1);
+//					sb.append("\t");
+//					sb.append(singleRegionStat.getPosDepth(i));
+//					sb.append("\t");
+//					sb.append(singleRegionStat.getPosRmdupDepth(i));
+//					sb.append("\n");
+//				}
 
 				if(singleRegionStat.getDepth(regionData) > options.getMinSingleRegionDepth())
 					covCompressedOutput.write(result.get(regionData).toReportString(regionData, cnvSingleRegionReport.getAllRegionAverageDepth()).getBytes());
@@ -257,9 +257,9 @@ public abstract class ResultReport {
 					unsingleRegionwriter.write(result.get(regionData).toReportString(regionData, cnvSingleRegionReport.getAllRegionAverageDepth()).getBytes());
 				}
 			}
-			depthCompressedOutput.write(sb.toString().getBytes());
-			depthCompressedOutput.close();
-			cnvDepthStream.close();
+//			depthCompressedOutput.write(sb.toString().getBytes());
+//			depthCompressedOutput.close();
+//			cnvDepthStream.close();
 			covCompressedOutput.close();
 			unsingleRegionwriter.close();
 		}

@@ -27,6 +27,7 @@ import java.util.Collections;
 public class SingleRegionStatistic {
 	private double refGCrate;
 	private int coverBaseNum = 0;
+	private int fourxCoverBaseNum = 0;
 	private int depthNum = 0;
 	private int rmdupDepthNum = 0;
 	private double middleDepth = 0;
@@ -70,12 +71,16 @@ public class SingleRegionStatistic {
 		sb.append(depthNum);
 		sb.append("\t");
 		sb.append(rmdupDepthNum);
-		
+		sb.append("\t");
+		sb.append(fourxCoverBaseNum);
+
 		return sb.toString();
 	}
 	
-	public void addCoverage() {
+	public void addCoverage(int depthNum) {
 		coverBaseNum++;
+		if(depthNum > 4)
+			fourxCoverBaseNum++;
 	}
 	
 	public void addDepth(int depth) {
@@ -155,8 +160,31 @@ public class SingleRegionStatistic {
 		this.middleRmdupDepth = middleRmdupDepth;
 	}
 
+	public void add(int coverNum, int fourxCoverNum, int depthNum, int rmdupDepthNum, double middleDepth, double middleRmdupDepth) {
+		this.coverBaseNum = coverNum;
+		this.fourxCoverBaseNum = fourxCoverNum;
+		this.depthNum = depthNum;
+		this.rmdupDepthNum = rmdupDepthNum;
+		this.middleDepth = middleDepth;
+		this.middleRmdupDepth = middleRmdupDepth;
+	}
+
 	public void addPart(int coverNum, int depthNum, int rmdupDepthNum, ArrayList<String> depthPartList) {
 		this.coverBaseNum += coverNum;
+		this.depthNum += depthNum;
+		this.rmdupDepthNum += rmdupDepthNum;
+
+		// depthStr : depth,rmdupDepth
+		for(String depthStr : depthPartList) {
+			String[] depths = depthStr.split(",");
+			depth.add(Integer.valueOf(depths[0]));
+			rmdupDepth.add(Integer.valueOf(depths[1]));
+		}
+	}
+
+	public void addPart(int coverNum, int fourxCoverNum, int depthNum, int rmdupDepthNum, ArrayList<String> depthPartList) {
+		this.coverBaseNum += coverNum;
+		this.fourxCoverBaseNum += fourxCoverNum;
 		this.depthNum += depthNum;
 		this.rmdupDepthNum += rmdupDepthNum;
 
@@ -207,6 +235,10 @@ public class SingleRegionStatistic {
 
 	public int getCoverBaseNum() {
 		return coverBaseNum;
+	}
+
+	public int getFourxCoverBaseNum() {
+		return fourxCoverBaseNum;
 	}
 
 	public double getDepth(SingleRegion.Regiondata regiondata) {

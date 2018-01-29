@@ -157,6 +157,8 @@ public class WholeGenomeResultReport extends ResultReport{
 		long rmdupDepth = 0;
 		long coverBaseNum = 0;
 		long fourxCoverBaseNum = 0;
+		long tenxCoverBaseNum = 0;
+		long thirtyxCoverBaseNum = 0;
 		long nonnCoverBaseNum = 0;
 		long fourxNonnCoverBaseNum = 0;
 		long genomeLength = 0;
@@ -167,6 +169,8 @@ public class WholeGenomeResultReport extends ResultReport{
 			coverBaseNum += cover.getCoverBaseNum();
 			fourxCoverBaseNum += cover.getFourXCoverBaseNum();
 			fourxNonnCoverBaseNum += cover.getFourXCoverBaseNum();
+			tenxCoverBaseNum += cover.getTenXCoverBaseNum();
+			thirtyxCoverBaseNum += cover.getThirtyXCoverBaseNum();
 			nonnCoverBaseNum += cover.getNonNCoverBaseNum();
 			genomeLength += cover.getChrInfo().getLength();
 			nonnGenomeLength += cover.getChrInfo().getNonNbaselength();
@@ -182,6 +186,10 @@ public class WholeGenomeResultReport extends ResultReport{
 		info.append(df.format(100*coverBaseNum/(double)genomeLength));
 		info.append("%\nCoverage (>4x):\t");
 		info.append(df.format(100*fourxCoverBaseNum/(double)genomeLength));
+		info.append("%\nCoverage (>10x):\t");
+		info.append(df.format(100*tenxCoverBaseNum/(double)genomeLength));
+		info.append("%\nCoverage (>30x):\t");
+		info.append(df.format(100*thirtyxCoverBaseNum/(double)genomeLength));
 		info.append("%\nNonN Average depth:\t");
 		info.append(df.format(depth/(double)nonnCoverBaseNum));
 		info.append("\nNonN Average depth(rmdup):\t");
@@ -199,6 +207,8 @@ public class WholeGenomeResultReport extends ResultReport{
 			info.append(df.format(cnvSingleRegionReport.getAllRegionAverageRmdupDepth()));
 			info.append("\n[Target] Coverage (>0x):\t");
 			info.append(df.format(100*cnvSingleRegionReport.getAllRegionCoverage()));
+			info.append("%\n[Target] Coverage (>4x):\t");
+			info.append(df.format(100*cnvSingleRegionReport.getAllRegionFourxCoverage()));
 		}
 		info.append("%\ncoverage information:\n");
 		TreeSet<String> keys2 = new TreeSet<String>(coverReports.keySet());
