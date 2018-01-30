@@ -1,4 +1,4 @@
-package org.bgi.flexlab.gaea.tools.jointcalling.util;
+package org.bgi.flexlab.gaea.tools.haplotypecaller.utils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
+import org.bgi.flexlab.gaea.tools.jointcalling.util.RodBinding;
 
 import htsjdk.tribble.Feature;
 import htsjdk.variant.variantcontext.VariantContext;
@@ -21,7 +22,7 @@ public class RefMetaDataTracker {
 		return location;
 	}
 	
-	public static List<VariantContext> getValues(ArrayList<VariantContext> binding,GenomeLocation location){
+	public static List<VariantContext> getValues(List<VariantContext> binding,GenomeLocation location){
 		if(location.getStart() != location.getStop())
 			throw new UserException("location must length is 1!");
 		List<VariantContext> results = new ArrayList<VariantContext>();

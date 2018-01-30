@@ -1,6 +1,9 @@
 package org.bgi.flexlab.gaea.tools.jointcalling.genotypelikelihood;
 
+import org.bgi.flexlab.gaea.tools.haplotypecaller.LikelihoodMatrix;
+import org.bgi.flexlab.gaea.tools.jointcalling.util.GvcfMathUtils;
 import org.bgi.flexlab.gaea.util.MathUtils;
+import org.bgi.flexlab.gaea.util.Utils;
 
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.GenotypeLikelihoods;
@@ -256,17 +259,10 @@ public class GenotypeLikelihoodCalculator {
      *
      * @return never {@code null}.
      */
-    /*public <A extends Allele> GenotypeLikelihoods genotypeLikelihoods(final ReadLikelihoods.Matrix<A> likelihoods) {
-        if (likelihoods == null)
-            throw new IllegalArgumentException("the likelihood map cannot be null");
-
-        if (likelihoods.alleleCount() != alleleCount)
-            throw new IllegalArgumentException("mismatch between allele list and alleleCount");
-
-
-        final int readCount = likelihoods.readCount();
-
-
+    public <A extends Allele> GenotypeLikelihoods genotypeLikelihoods(final LikelihoodMatrix<A> likelihoods) {
+        Utils.nonNull(likelihoods);
+        Utils.validateArg(likelihoods.numberOfAlleles() == alleleCount, "mismatch between allele list and alleleCount");
+        final int readCount = likelihoods.numberOfReads();
         ensureReadCapacity(readCount);
 
         /// [x][y][z] = z * LnLk(Read_x | Allele_y)
@@ -275,7 +271,28 @@ public class GenotypeLikelihoodCalculator {
         final double[][] genotypeLikelihoodByRead = genotypeLikelihoodByRead(readLikelihoodComponentsByAlleleCount,readCount);
         final double[] readLikelihoodsByGenotypeIndex = genotypeLikelihoods(genotypeLikelihoodByRead, readCount);
         return GenotypeLikelihoods.fromLog10Likelihoods(readLikelihoodsByGenotypeIndex);
-    }*/
+    }
+    
+    private <A extends Allele> double[] readLikelihoodComponentsByAlleleCount(final LikelihoodMatrix<A> likelihoods) {
+        final int readCount = likelihoods.numberOfReads();
+        final int alleleDataSize = readCount * (ploidy + 1);
+
+        // frequency1Offset = readCount to skip the useless frequency == 0. So now we are at the start frequency == 1
+        // frequency1Offset += alleleDataSize to skip to the next allele index data location (+ readCount) at each iteration.
+        for (int a = 0, frequency1Offset = readCount; a < alleleCount; a++, frequency1Offset += alleleDataSize) {
+            likelihoods.copyAlleleLikelihoods(a, readAlleleLikelihoodByAlleleCount, frequency1Offset);
+
+            // p = 2 because the frequency == 1 we already have it.
+            for (int frequency = 2, destinationOffset = frequency1Offset + readCount; frequency <= ploidy; frequency++) {
+                final double log10frequency = GvcfMathUtils.log10(frequency);
+                for (int r = 0, sourceOffset = frequency1Offset; r < readCount; r++) {
+                    readAlleleLikelihoodByAlleleCount[destinationOffset++] =
+                            readAlleleLikelihoodByAlleleCount[sourceOffset++] + log10frequency;
+                }
+            }
+        }
+        return readAlleleLikelihoodByAlleleCount;
+    }
 
     /**
      * Calculates the final genotype likelihood array out of the likelihoods for each genotype per read.

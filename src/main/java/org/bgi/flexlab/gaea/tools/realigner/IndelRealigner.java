@@ -178,7 +178,7 @@ public class IndelRealigner {
 					if (neededBases > 0) {
 						int padLeft = Math.max(leftMostIndex - neededBases, 1);
 						int padRight = Math.min(leftMostIndex + ref.length + neededBases,parser.getContigInfo(location.getContig()).getSequenceLength()-1);
-						ref = chrInfo.getBaseSequence(padLeft, padRight).getBytes();
+						ref = chrInfo.getGA4GHBaseSequence(padLeft, padRight).getBytes();
 						leftMostIndex = padLeft;
 					}
 

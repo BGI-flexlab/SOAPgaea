@@ -6,6 +6,8 @@ import java.util.Map;
 import java.util.Set;
 
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
+import org.bgi.flexlab.gaea.tools.haplotypecaller.utils.ReducibleAnnotationData;
+import org.bgi.flexlab.gaea.tools.haplotypecaller.utils.RefMetaDataTracker;
 import org.bgi.flexlab.gaea.tools.jointcalling.genotypegvcfs.annotation.ActiveRegionBasedAnnotation;
 import org.bgi.flexlab.gaea.tools.jointcalling.genotypegvcfs.annotation.InfoFieldAnnotation;
 import org.bgi.flexlab.gaea.tools.jointcalling.genotypegvcfs.annotation.ReducibleAnnotation;
@@ -13,8 +15,6 @@ import org.bgi.flexlab.gaea.tools.jointcalling.genotypegvcfs.annotation.Standard
 import org.bgi.flexlab.gaea.tools.jointcalling.util.AnnotationUtils;
 import org.bgi.flexlab.gaea.tools.jointcalling.util.GaeaVcfHeaderLines;
 import org.bgi.flexlab.gaea.tools.jointcalling.util.HeterozygosityUtils;
-import org.bgi.flexlab.gaea.tools.jointcalling.util.ReducibleAnnotationData;
-import org.bgi.flexlab.gaea.tools.jointcalling.util.RefMetaDataTracker;
 import org.bgi.flexlab.gaea.util.GaeaVCFConstants;
 
 import htsjdk.variant.variantcontext.Allele;

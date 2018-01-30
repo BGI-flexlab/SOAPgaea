@@ -176,7 +176,7 @@ public class SingleRegionStatistic {
 				extendSize = (200 - regionData.size()) / 2 + 1;
 			}
 		}
-		for(char base : chrInfo.getBaseSequence(regionData.getStart() - extendSize > 0 ? regionData.getStart() - extendSize : 0, regionData.getEnd() + extendSize).toCharArray()) {
+		for(char base : chrInfo.getGA4GHBaseSequence(regionData.getStart() - extendSize > 0 ? regionData.getStart() - extendSize : 0, regionData.getEnd() + extendSize).toCharArray()) {
 			if(base == 'C' || base == 'G' || base == 'c' || base == 'g') {
 				CGbaseNum++;
 			}

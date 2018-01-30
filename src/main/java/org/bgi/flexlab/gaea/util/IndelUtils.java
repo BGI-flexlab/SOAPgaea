@@ -167,7 +167,7 @@ public class IndelUtils {
             return inds;
         }
 
-        byte[] refBases = ref.getBaseBytes(Math.max(0, position - 200), Math.min(ref.getLength(), position + 200));
+        byte[] refBases = ref.getGA4GHBaseBytes(Math.max(0, position - 200), Math.min(ref.getLength(), position + 200));
 
         indelAlleleString = findMinimalEvent(indelAlleleString);
         eventLength = indelAlleleString.length();

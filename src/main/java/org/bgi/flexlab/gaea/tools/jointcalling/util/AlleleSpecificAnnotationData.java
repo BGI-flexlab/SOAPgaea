@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.bgi.flexlab.gaea.data.exception.UserException;
+import org.bgi.flexlab.gaea.tools.haplotypecaller.utils.ReducibleAnnotationData;
 
 import htsjdk.variant.variantcontext.Allele;
 

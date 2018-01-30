@@ -138,6 +138,10 @@ public class UserException extends RuntimeException {
 		public BadArgumentValueException(int value,int min,int max){
 			super(String.format("Argument must in (%d,%d),but user is set to %d", min,max,value));
 		}
+		
+		public BadArgumentValueException(String arg, String value, String message){
+            super(String.format("Argument %s has a bad value: %s. %s", arg, value,message));
+        }
     }
     
     public static class CouldNotCreateOutputFile extends UserException {

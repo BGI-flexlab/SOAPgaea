@@ -43,6 +43,9 @@
 package org.bgi.flexlab.gaea.util;
 
 import htsjdk.samtools.*;
+import htsjdk.samtools.SAMUtils;
+import htsjdk.samtools.cram.build.CramIO;
+
 import org.bgi.flexlab.gaea.data.exception.OutOfBoundException;
 import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.data.structure.alignment.AlignmentsBasic;
@@ -50,6 +53,8 @@ import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
 import org.bgi.flexlab.gaea.data.structure.sequenceplatform.NGSPlatform;
 
+import java.io.File;
+import java.nio.file.OpenOption;
 import java.util.*;
 
 public class ReadUtils {
@@ -96,8 +101,7 @@ public class ReadUtils {
 	}
 
 	public enum ReadAndIntervalOverlap {
-		NO_OVERLAP_CONTIG, NO_OVERLAP_LEFT, NO_OVERLAP_RIGHT, NO_OVERLAP_HARDCLIPPED_LEFT, NO_OVERLAP_HARDCLIPPED_RIGHT, OVERLAP_LEFT, 
-		OVERLAP_RIGHT, OVERLAP_LEFT_AND_RIGHT, OVERLAP_CONTAINED
+		NO_OVERLAP_CONTIG, NO_OVERLAP_LEFT, NO_OVERLAP_RIGHT, NO_OVERLAP_HARDCLIPPED_LEFT, NO_OVERLAP_HARDCLIPPED_RIGHT, OVERLAP_LEFT, OVERLAP_RIGHT, OVERLAP_LEFT_AND_RIGHT, OVERLAP_CONTAINED
 	}
 
 	/**
@@ -114,12 +118,10 @@ public class ReadUtils {
 	 */
 	public static boolean isBaseInsideAdaptor(final SAMRecord read, long basePos) {
 		Integer adaptorBoundary = getAdaptorBoundary(read);
-		if (adaptorBoundary == null
-				|| read.getInferredInsertSize() > DEFAULT_ADAPTOR_SIZE)
+		if (adaptorBoundary == null || read.getInferredInsertSize() > DEFAULT_ADAPTOR_SIZE)
 			return false;
 
-		return read.getReadNegativeStrandFlag() ? basePos <= adaptorBoundary
-				: basePos >= adaptorBoundary;
+		return read.getReadNegativeStrandFlag() ? basePos <= adaptorBoundary : basePos >= adaptorBoundary;
 	}
 
 	/**
@@ -131,15 +133,13 @@ public class ReadUtils {
 	 *
 	 * There are two cases we need to treat here:
 	 *
-	 * 1) Our read is in the reverse strand :
-	 *     <----------------------| *
-     *   |--------------------->
+	 * 1) Our read is in the reverse strand : <----------------------| *
+	 * |--------------------->
 	 *
 	 * in these cases, the adaptor boundary is at the mate start (minus one)
 	 *
-	 * 2) Our read is in the forward strand :
-     *   |---------------------->   *
-     *     <----------------------|
+	 * 2) Our read is in the forward strand : |----------------------> *
+	 * <----------------------|
 	 *
 	 * in these cases the adaptor boundary is at the start of the read plus the
 	 * inferred insert size (plus one)
@@ -151,20 +151,17 @@ public class ReadUtils {
 		if (insertSize == 0 || read.getReadUnmappedFlag())
 			return null;
 
-		Integer adaptorBoundary; 
-		if (read.getReadNegativeStrandFlag()){
+		Integer adaptorBoundary;
+		if (read.getReadNegativeStrandFlag()) {
 			// case 1
 			adaptorBoundary = read.getMateAlignmentStart() - 1;
-		}
-		else{
+		} else {
 			// case 2
 			adaptorBoundary = read.getAlignmentStart() + insertSize + 1;
 		}
 
-		if ((adaptorBoundary < read.getAlignmentStart()
-				- MAXIMUM_ADAPTOR_LENGTH)
-				|| (adaptorBoundary > read.getAlignmentEnd()
-						+ MAXIMUM_ADAPTOR_LENGTH))
+		if ((adaptorBoundary < read.getAlignmentStart() - MAXIMUM_ADAPTOR_LENGTH)
+				|| (adaptorBoundary > read.getAlignmentEnd() + MAXIMUM_ADAPTOR_LENGTH))
 			adaptorBoundary = null;
 
 		return adaptorBoundary;
@@ -223,8 +220,7 @@ public class ReadUtils {
 	 * @param reads
 	 * @return
 	 */
-	public final static List<GaeaSamRecord> sortReadsByCoordinate(
-			List<GaeaSamRecord> reads) {
+	public final static List<GaeaSamRecord> sortReadsByCoordinate(List<GaeaSamRecord> reads) {
 		final SAMRecordComparator comparer = new SAMRecordCoordinateComparator();
 		Collections.sort(reads, comparer);
 		return reads;
@@ -248,7 +244,7 @@ public class ReadUtils {
 		int cigar = read.getCigars()[0];
 		int cigarOp = (cigar & SystemConfiguration.BAM_CIGAR_MASK);
 
-		if(cigarOp == SystemConfiguration.BAM_CINS)
+		if (cigarOp == SystemConfiguration.BAM_CINS)
 			return (cigar >> SystemConfiguration.BAM_CIGAR_SHIFT);
 		else
 			return 0;
@@ -261,8 +257,7 @@ public class ReadUtils {
 	 * function will return 0.
 	 */
 	public final static int getLastInsertionOffset(SAMRecord read) {
-		CigarElement e = read.getCigar().getCigarElement(
-				read.getCigarLength() - 1);
+		CigarElement e = read.getCigar().getCigarElement(read.getCigarLength() - 1);
 		if (e.getOperator() == CigarOperator.I)
 			return e.getLength();
 		else
@@ -273,7 +268,7 @@ public class ReadUtils {
 		int cigar = read.getCigars()[read.getCigars().length - 1];
 		int cigarOp = (cigar & SystemConfiguration.BAM_CIGAR_MASK);
 
-		if(cigarOp == SystemConfiguration.BAM_CINS)
+		if (cigarOp == SystemConfiguration.BAM_CINS)
 			return (cigar >> SystemConfiguration.BAM_CIGAR_SHIFT);
 		else
 			return 0;
@@ -284,8 +279,7 @@ public class ReadUtils {
 	 * Note: This function uses the UNCLIPPED ENDS of the reads for the
 	 * comparison.
 	 */
-	public static ReadAndIntervalOverlap getReadAndIntervalOverlapType(
-			GaeaSamRecord read, GenomeLocation interval) {
+	public static ReadAndIntervalOverlap getReadAndIntervalOverlapType(GaeaSamRecord read, GenomeLocation interval) {
 
 		int sStart = read.getSoftStart();
 		int sStop = read.getSoftEnd();
@@ -307,8 +301,7 @@ public class ReadUtils {
 		else if (sStart > interval.getStop())
 			return ReadAndIntervalOverlap.NO_OVERLAP_HARDCLIPPED_RIGHT;
 
-		else if ((sStart >= interval.getStart())
-				&& (sStop <= interval.getStop()))
+		else if ((sStart >= interval.getStart()) && (sStop <= interval.getStop()))
 			return ReadAndIntervalOverlap.OVERLAP_CONTAINED;
 
 		else if ((sStart < interval.getStart()) && (sStop > interval.getStop()))
@@ -338,28 +331,23 @@ public class ReadUtils {
 	 * skip the leading insertion (because it has the same reference coordinate
 	 * as the following base).
 	 */
-	public static int getReadCoordinateForReferenceCoordinate(SAMRecord read,
-			int refCoord, ClippingTail tail) {
-		return getReadCoordinateForReferenceCoordinate(
-				SamRecordUtils.getSoftStart(read), read.getCigar(), refCoord,
+	public static int getReadCoordinateForReferenceCoordinate(SAMRecord read, int refCoord, ClippingTail tail) {
+		return getReadCoordinateForReferenceCoordinate(SamRecordUtils.getSoftStart(read), read.getCigar(), refCoord,
 				tail, false);
 	}
 
-	public static int getReadCoordinateForReferenceCoordinate(
-			final int alignmentStart, final Cigar cigar, final int refCoord,
-			final ClippingTail tail, final boolean allowGoalNotReached) {
-		Pair<Integer, Boolean> result = getReadCoordinateForReferenceCoordinate(
-				alignmentStart, cigar, refCoord, allowGoalNotReached);
+	public static int getReadCoordinateForReferenceCoordinate(final int alignmentStart, final Cigar cigar,
+			final int refCoord, final ClippingTail tail, final boolean allowGoalNotReached) {
+		Pair<Integer, Boolean> result = getReadCoordinateForReferenceCoordinate(alignmentStart, cigar, refCoord,
+				allowGoalNotReached);
 		int readCoord = result.getFirst();
 
 		if (result.getSecond() && tail == ClippingTail.RIGHT_TAIL)
 			readCoord++;
 
 		Pair<Boolean, CigarElement> firstElementIsInsertion = readStartsWithInsertion(cigar);
-		if (readCoord == 0 && tail == ClippingTail.LEFT_TAIL
-				&& firstElementIsInsertion.getFirst())
-			readCoord = Math.min(firstElementIsInsertion.getSecond()
-					.getLength(), cigar.getReadLength() - 1);
+		if (readCoord == 0 && tail == ClippingTail.LEFT_TAIL && firstElementIsInsertion.getFirst())
+			readCoord = Math.min(firstElementIsInsertion.getSecond().getLength(), cigar.getReadLength() - 1);
 
 		return readCoord;
 	}
@@ -379,15 +367,12 @@ public class ReadUtils {
 	 * normal clipping needs. Or you can use this function and tailor the
 	 * behavior to your needs.
 	 */
-	public static Pair<Integer, Boolean> getReadCoordinateForReferenceCoordinate(
-			GaeaSamRecord read, int refCoord) {
-		return getReadCoordinateForReferenceCoordinate(read.getSoftStart(),
-				read.getCigar(), refCoord, false);
+	public static Pair<Integer, Boolean> getReadCoordinateForReferenceCoordinate(GaeaSamRecord read, int refCoord) {
+		return getReadCoordinateForReferenceCoordinate(read.getSoftStart(), read.getCigar(), refCoord, false);
 	}
 
-	public static Pair<Integer, Boolean> getReadCoordinateForReferenceCoordinate(
-			final int alignmentStart, final Cigar cigar, final int refCoord,
-			final boolean allowGoalNotReached) {
+	public static Pair<Integer, Boolean> getReadCoordinateForReferenceCoordinate(final int alignmentStart,
+			final Cigar cigar, final int refCoord, final boolean allowGoalNotReached) {
 		int readBases = 0;
 		int refBases = 0;
 		boolean fallsInsideDeletion = false;
@@ -396,8 +381,7 @@ public class ReadUtils {
 												// reference bases
 		if (goal < 0) {
 			if (allowGoalNotReached) {
-				return new Pair<Integer, Boolean>(CLIPPING_GOAL_NOT_REACHED,
-						false);
+				return new Pair<Integer, Boolean>(CLIPPING_GOAL_NOT_REACHED, false);
 			} else {
 				throw new UserException(
 						"Somehow the requested coordinate is not covered by the read. Too many deletions?");
@@ -405,8 +389,7 @@ public class ReadUtils {
 		}
 		boolean goalReached = refBases == goal;
 
-		Iterator<CigarElement> cigarElementIterator = cigar.getCigarElements()
-				.iterator();
+		Iterator<CigarElement> cigarElementIterator = cigar.getCigarElements().iterator();
 		while (!goalReached && cigarElementIterator.hasNext()) {
 			CigarElement cigarElement = cigarElementIterator.next();
 			int shift = 0;
@@ -436,8 +419,7 @@ public class ReadUtils {
 				// length, so this is just a sanity check.
 				if (!endsWithinCigar && !cigarElementIterator.hasNext()) {
 					if (allowGoalNotReached) {
-						return new Pair<Integer, Boolean>(
-								CLIPPING_GOAL_NOT_REACHED, false);
+						return new Pair<Integer, Boolean>(CLIPPING_GOAL_NOT_REACHED, false);
 					} else {
 						throw new UserException(
 								"Reference coordinate corresponds to a non-existent base in the read. This should never happen -- call Mauricio");
@@ -462,8 +444,7 @@ public class ReadUtils {
 						readBases += nextCigarElement.getLength();
 						if (!cigarElementIterator.hasNext()) {
 							if (allowGoalNotReached) {
-								return new Pair<Integer, Boolean>(
-										CLIPPING_GOAL_NOT_REACHED, false);
+								return new Pair<Integer, Boolean>(CLIPPING_GOAL_NOT_REACHED, false);
 							} else {
 								throw new UserException(
 										"Reference coordinate corresponds to a non-existent base in the read. This should never happen -- call Mauricio");
@@ -479,8 +460,7 @@ public class ReadUtils {
 				}
 
 				// If we reached our goal outside a deletion, add the shift
-				if (!fallsInsideDeletion
-						&& cigarElement.getOperator().consumesReadBases())
+				if (!fallsInsideDeletion && cigarElement.getOperator().consumesReadBases())
 					readBases += shift;
 
 				// If we reached our goal inside a deletion, but the deletion is
@@ -500,12 +480,10 @@ public class ReadUtils {
 
 		if (!goalReached) {
 			if (allowGoalNotReached) {
-				return new Pair<Integer, Boolean>(CLIPPING_GOAL_NOT_REACHED,
-						false);
+				return new Pair<Integer, Boolean>(CLIPPING_GOAL_NOT_REACHED, false);
 			} else {
-				throw new UserException(
-						"Somehow the requested coordinate is not covered by the read. Alignment "
-								+ alignmentStart + " | " + cigar);
+				throw new UserException("Somehow the requested coordinate is not covered by the read. Alignment "
+						+ alignmentStart + " | " + cigar);
 			}
 		}
 
@@ -521,7 +499,7 @@ public class ReadUtils {
 	 */
 
 	public static int compareSAMRecords(GaeaSamRecord read1, GaeaSamRecord read2) {
-		if(read1.getReferenceIndex() != read2.getReferenceIndex())
+		if (read1.getReferenceIndex() != read2.getReferenceIndex())
 			return read1.getReferenceIndex() - read2.getReferenceIndex();
 		return read1.getAlignmentStart() - read2.getAlignmentStart();
 	}
@@ -529,10 +507,8 @@ public class ReadUtils {
 	/**
 	 * Is a base inside a read?
 	 */
-	public static boolean isInsideRead(final GaeaSamRecord read,
-			final int referenceCoordinate) {
-		return referenceCoordinate >= read.getAlignmentStart()
-				&& referenceCoordinate <= read.getAlignmentEnd();
+	public static boolean isInsideRead(final GaeaSamRecord read, final int referenceCoordinate) {
+		return referenceCoordinate >= read.getAlignmentStart() && referenceCoordinate <= read.getAlignmentEnd();
 	}
 
 	/**
@@ -550,13 +526,11 @@ public class ReadUtils {
 	 * Checks if a read starts with an insertion. It looks beyond Hard and Soft
 	 * clips if there are any.
 	 */
-	public static Pair<Boolean, CigarElement> readStartsWithInsertion(
-			GaeaSamRecord read) {
+	public static Pair<Boolean, CigarElement> readStartsWithInsertion(GaeaSamRecord read) {
 		return readStartsWithInsertion(read.getCigar());
 	}
 
-	public static Pair<Boolean, CigarElement> readStartsWithInsertion(
-			final Cigar cigar) {
+	public static Pair<Boolean, CigarElement> readStartsWithInsertion(final Cigar cigar) {
 		for (CigarElement cigarElement : cigar.getCigarElements()) {
 			if (cigarElement.getOperator() == CigarOperator.INSERTION)
 				return new Pair<Boolean, CigarElement>(true, cigarElement);
@@ -575,13 +549,11 @@ public class ReadUtils {
 	 * See getCoverageDistributionOfRead for information on how the coverage is
 	 * calculated.
 	 */
-	public static int[] getCoverageDistributionOfReads(
-			List<GaeaSamRecord> list, int startLocation, int stopLocation) {
+	public static int[] getCoverageDistributionOfReads(List<GaeaSamRecord> list, int startLocation, int stopLocation) {
 		int[] totalCoverage = new int[stopLocation - startLocation + 1];
 
 		for (GaeaSamRecord read : list) {
-			int[] readCoverage = getCoverageDistributionOfRead(read,
-					startLocation, stopLocation);
+			int[] readCoverage = getCoverageDistributionOfRead(read, startLocation, stopLocation);
 			totalCoverage = MathUtils.addArrays(totalCoverage, readCoverage);
 		}
 
@@ -596,8 +568,7 @@ public class ReadUtils {
 	 * is to downsample reads for variant regions, and deletions count as
 	 * variants)
 	 */
-	public static int[] getCoverageDistributionOfRead(GaeaSamRecord read,
-			int startLocation, int stopLocation) {
+	public static int[] getCoverageDistributionOfRead(GaeaSamRecord read, int startLocation, int stopLocation) {
 		int[] coverage = new int[stopLocation - startLocation + 1];
 		int refLocation = read.getSoftStart();
 		for (CigarElement cigarElement : read.getCigar().getCigarElements()) {
@@ -609,11 +580,9 @@ public class ReadUtils {
 			case X:
 			case D:
 				for (int i = 0; i < cigarElement.getLength(); i++) {
-					if (refLocation >= startLocation
-							&& refLocation <= stopLocation) {
-						int baseCount = read.isReducedRead() ? read
-								.getReducedCount(refLocation
-										- read.getSoftStart()) : 1;
+					if (refLocation >= startLocation && refLocation <= stopLocation) {
+						int baseCount = read.isReducedRead() ? read.getReducedCount(refLocation - read.getSoftStart())
+								: 1;
 						// this may be a reduced read,so add the proper number
 						// of bases
 						coverage[refLocation - startLocation] += baseCount;
@@ -654,24 +623,22 @@ public class ReadUtils {
 
 		HashMap<Integer, HashSet<GaeaSamRecord>> locusToReadMap = new HashMap<Integer, HashSet<GaeaSamRecord>>(
 				2 * (stopLocation - startLocation + 1), 0.5f);
-		HashMap<GaeaSamRecord, Boolean[]> readToLocusMap = new HashMap<GaeaSamRecord, Boolean[]>(
-				2 * readList.size(), 0.5f);
+		HashMap<GaeaSamRecord, Boolean[]> readToLocusMap = new HashMap<GaeaSamRecord, Boolean[]>(2 * readList.size(),
+				0.5f);
 
 		for (int i = startLocation; i <= stopLocation; i++)
-			locusToReadMap.put(i, new HashSet<GaeaSamRecord>()); // Initialize						
+			locusToReadMap.put(i, new HashSet<GaeaSamRecord>()); // Initialize
 
 		for (GaeaSamRecord read : readList) {
-			readToLocusMap.put(read, new Boolean[arraySize]); 
+			readToLocusMap.put(read, new Boolean[arraySize]);
 
-			int[] readCoverage = getCoverageDistributionOfRead(read,
-					startLocation, stopLocation);
+			int[] readCoverage = getCoverageDistributionOfRead(read, startLocation, stopLocation);
 
 			for (int i = 0; i < readCoverage.length; i++) {
 				int refLocation = i + startLocation;
 				if (readCoverage[i] > 0) {
 					// Update the hash for this locus
-					HashSet<GaeaSamRecord> readSet = locusToReadMap
-							.get(refLocation);
+					HashSet<GaeaSamRecord> readSet = locusToReadMap.get(refLocation);
 					readSet.add(read);
 
 					// Add this locus to the read hash
@@ -682,18 +649,15 @@ public class ReadUtils {
 					readToLocusMap.get(read)[refLocation - startLocation] = false;
 			}
 		}
-		return new Pair<HashMap<Integer, HashSet<GaeaSamRecord>>, HashMap<GaeaSamRecord, Boolean[]>>(
-				locusToReadMap, readToLocusMap);
+		return new Pair<HashMap<Integer, HashSet<GaeaSamRecord>>, HashMap<GaeaSamRecord, Boolean[]>>(locusToReadMap,
+				readToLocusMap);
 	}
 
-	public static String prettyPrintSequenceRecords(
-			SAMSequenceDictionary sequenceDictionary) {
+	public static String prettyPrintSequenceRecords(SAMSequenceDictionary sequenceDictionary) {
 		String[] sequenceRecordNames = new String[sequenceDictionary.size()];
 		int sequenceRecordIndex = 0;
-		for (SAMSequenceRecord sequenceRecord : sequenceDictionary
-				.getSequences())
-			sequenceRecordNames[sequenceRecordIndex++] = sequenceRecord
-					.getSequenceName();
+		for (SAMSequenceRecord sequenceRecord : sequenceDictionary.getSequences())
+			sequenceRecordNames[sequenceRecordIndex++] = sequenceRecord.getSequenceName();
 		return Arrays.deepToString(sequenceRecordNames);
 	}
 
@@ -706,14 +670,12 @@ public class ReadUtils {
 	 *            the base in the read (coordinate in the read)
 	 * @return the reference coordinate correspondent to this base
 	 */
-	public static long getReferenceCoordinateForReadCoordinate(
-			GaeaSamRecord read, int offset) {
+	public static long getReferenceCoordinateForReadCoordinate(GaeaSamRecord read, int offset) {
 		if (offset > read.getReadLength())
-			throw new OutOfBoundException(offset,read.getReadLength());
+			throw new OutOfBoundException(offset, read.getReadLength());
 
 		long location = read.getAlignmentStart();
-		Iterator<CigarElement> cigarElementIterator = read.getCigar()
-				.getCigarElements().iterator();
+		Iterator<CigarElement> cigarElementIterator = read.getCigar().getCigarElements().iterator();
 		while (offset > 0 && cigarElementIterator.hasNext()) {
 			CigarElement cigarElement = cigarElementIterator.next();
 			long move = 0;
@@ -738,8 +700,7 @@ public class ReadUtils {
 	 *            the read
 	 * @return a map with the properties described above. See example
 	 */
-	public static Map<CigarOperator, ArrayList<Integer>> getCigarOperatorForAllBases(
-			GaeaSamRecord read) {
+	public static Map<CigarOperator, ArrayList<Integer>> getCigarOperatorForAllBases(GaeaSamRecord read) {
 		Map<CigarOperator, ArrayList<Integer>> events = new HashMap<CigarOperator, ArrayList<Integer>>();
 
 		int position = 0;
@@ -764,4 +725,172 @@ public class ReadUtils {
 		}
 		return events;
 	}
+
+	public static boolean hasBaseIndelQualities(final GaeaSamRecord read) {
+		return read.getAttribute(GaeaSamRecord.BQSR_BASE_INSERTION_QUALITIES) != null
+				|| read.getAttribute(GaeaSamRecord.BQSR_BASE_DELETION_QUALITIES) != null;
+	}
+
+	public static void setInsertionBaseQualities(final GaeaSamRecord read, final byte[] quals) {
+		read.setAttribute(GaeaSamRecord.BQSR_BASE_INSERTION_QUALITIES,
+				quals == null ? null : SAMUtils.phredToFastq(quals));
+	}
+
+	public static void setDeletionBaseQualities(final GaeaSamRecord read, final byte[] quals) {
+		read.setAttribute(GaeaSamRecord.BQSR_BASE_DELETION_QUALITIES,
+				quals == null ? null : SAMUtils.phredToFastq(quals));
+	}
+
+	public static GaeaSamRecord emptyRead(final GaeaSamRecord read) {
+		GaeaSamRecord emptyRead = null;
+		try {
+			emptyRead = (GaeaSamRecord) read.clone();
+		} catch (CloneNotSupportedException e) {
+			throw new RuntimeException(e.toString());
+		}
+
+		emptyRead.setCigar(null);
+		emptyRead.setReadBases(new byte[0]);
+		emptyRead.setBaseQualities(new byte[0]);
+
+		emptyRead.clearAttributes();
+		String readGroup = (String) read.getAttribute("RG");
+		if (readGroup != null) {
+			emptyRead.setAttribute(SAMTag.RG.name(), readGroup);
+		}
+
+		return emptyRead;
+	}
+
+	public static int getAssignedReferenceIndex(final GaeaSamRecord read, final SAMFileHeader header) {
+		return header.getSequenceIndex(read.getReferenceName());
+	}
+
+	public static int getMateReferenceIndex(final GaeaSamRecord read, final SAMFileHeader header) {
+		if (read.mateIsUnmapped()) {
+			return SAMRecord.NO_ALIGNMENT_REFERENCE_INDEX;
+		}
+
+		if (read.mateIsUnmapped())
+			return -1;
+
+		return header.getSequenceIndex(read.getMateReferenceName());
+	}
+
+	public static int getSAMFlagsForRead(final GaeaSamRecord read) {
+		return read.getFlags();
+	}
+
+	public static Set<String> getSamplesFromHeader(final SAMFileHeader header) {
+		// get all of the unique sample names
+		final Set<String> samples = new TreeSet<>();
+		final List<SAMReadGroupRecord> readGroups = header.getReadGroups();
+
+		for (SAMReadGroupRecord readGroup : readGroups) {
+			final String sample = readGroup.getSample();
+			if (sample != null) {
+				samples.add(sample);
+			}
+		}
+
+		return samples;
+	}
+
+	public static SAMReadGroupRecord getSAMReadGroupRecord(final GaeaSamRecord read, final SAMFileHeader header) {
+		final String readGroupName = read.getStringAttribute(SAMTag.RG.name());
+		return readGroupName != null ? header.getReadGroup(readGroupName) : null;
+	}
+
+	public static String getSampleName(final GaeaSamRecord read, final SAMFileHeader header) {
+		final SAMReadGroupRecord readGroup = getSAMReadGroupRecord(read, header);
+		return readGroup != null ? readGroup.getSample() : null;
+	}
+
+	public static int getReferenceIndex(final GaeaSamRecord read, final SAMFileHeader header) {
+		if (read.isUnmapped()) {
+			return SAMRecord.NO_ALIGNMENT_REFERENCE_INDEX;
+		}
+
+		return header.getSequenceIndex(read.getContig());
+	}
+
+	public static boolean alignmentAgreesWithHeader(final SAMFileHeader header, final GaeaSamRecord read) {
+		final int referenceIndex = getReferenceIndex(read, header);
+		// Read is aligned to nonexistent contig
+		if (!read.isUnmapped() && referenceIndex == SAMRecord.NO_ALIGNMENT_REFERENCE_INDEX) {
+			return false;
+		}
+		final SAMSequenceRecord contigHeader = header.getSequence(referenceIndex);
+		// Read is aligned to a point after the end of the contig
+		return read.isUnmapped() || read.getStart() <= contigHeader.getSequenceLength();
+	}
+
+	public static int getReadCoordinateForReferenceCoordinateUpToEndOfRead(final GaeaSamRecord read, final int refCoord,
+			final ClippingTail tail) {
+		final int leftmostSafeVariantPosition = Math.max(read.getSoftStart(), refCoord);
+		return getReadCoordinateForReferenceCoordinate(read.getSoftStart(), read.getCigar(),
+				leftmostSafeVariantPosition, tail, false);
+	}
+
+	public static boolean hasWellDefinedFragmentSize(final GaeaSamRecord read) {
+		if (read.getInferredInsertSize() == 0) {
+			return false;
+		}
+		if (!read.getReadPairedFlag()) {
+			return false;
+		}
+		if (read.isUnmapped() || read.mateIsUnmapped()) {
+			return false;
+		}
+
+		if (read.getReadNegativeStrandFlag() == read.getMateNegativeStrandFlag()) {
+			return false;
+		}
+
+		if (read.getReadNegativeStrandFlag()) {
+			// we're on the negative strand, so our read runs right to left
+			return read.getEnd() > read.getMateStart();
+		} else {
+			// we're on the positive strand, so our mate should be to our right
+			// (his start + insert size should be past our start)
+			return read.getStart() <= read.getMateStart() + read.getInferredInsertSize();
+		}
+	}
+	
+	public static SAMFileWriter createCommonSAMWriter(
+	        final File outputPath,
+	        final File referenceFile,
+	        final SAMFileHeader header,
+	        final boolean preSorted,
+	        boolean createOutputBamIndex,
+	        final boolean createMD5)
+	    {
+	        Utils.nonNull(outputPath);
+	        Utils.nonNull(header);
+
+	        if (createOutputBamIndex && header.getSortOrder() != SAMFileHeader.SortOrder.coordinate) {
+	            createOutputBamIndex = false;
+	        }
+
+	        final SAMFileWriterFactory factory = new SAMFileWriterFactory().setCreateIndex(createOutputBamIndex).setCreateMd5File(createMD5);
+	        return ReadUtils.createCommonSAMWriterFromFactory(factory, outputPath, referenceFile, header, preSorted);
+	    }
+	
+	public static SAMFileWriter createCommonSAMWriterFromFactory(
+		    final SAMFileWriterFactory factory,
+		    final File outputPath,
+		    final File referenceFile,
+		    final SAMFileHeader header,
+		    final boolean preSorted,
+		    OpenOption... openOptions)
+		{
+		    Utils.nonNull(outputPath);
+		    Utils.nonNull(header);
+
+		    if (null == referenceFile && outputPath.toString().endsWith(CramIO.CRAM_FILE_EXTENSION)) {
+		        throw new UserException("A reference file is required for writing CRAM files");
+		    }
+
+		    return factory.makeWriter(header.clone(), preSorted, outputPath, referenceFile);
+		}
 }
