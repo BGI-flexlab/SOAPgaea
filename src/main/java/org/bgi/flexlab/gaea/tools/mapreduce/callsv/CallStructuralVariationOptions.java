@@ -64,10 +64,10 @@ public class CallStructuralVariationOptions extends GaeaOptions implements Hadoo
 		addOption("i", "input", true, "input path of bam/sam files, should be hdfs path [default: NULL]");
 		addOption("hdfs", "hdfsdir", true, "hdfs dir for tmp result [default: NULL]");
 		addOption("reducenum", "reducenum", true, "reduce number [default: 1]");
-		addOption("mean", "mean", true, "mean of fragments (Recommend) [default: -1]");
-		addOption("sd", "std", true, "the standard deviation of ragments (Recommend) [default: -1]");
+		//addOption("mean", "mean", true, "mean of fragments (Recommend) [default: -1]");
+		//addOption("sd", "std", true, "the standard deviation of ragments (Recommend) [default: -1]");
 		addOption("s", "stdtimes", true, "set std times for range of insert size (mean-stdtimes*std) < normal insertsize < (mean+stdtimes*std) [default: 4] ");
-		addOption("q", "minqual", true, "minimum mapping quality [default: 25]");
+		addOption("q", "minqual", true, "minimum mapping quality [default: 35]");
 		addOption("l", "minlen", true, "minimum length of a region [default: 7]");
 		addOption("p", "minpair", true, "minimum number of read pairs required for a SV [default: 2]");
 		addOption("c", "maxcoverage", true, "maximum threshold of haploid sequence coverage for regions to be ignored [default: 1000]");
