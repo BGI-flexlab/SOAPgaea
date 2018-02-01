@@ -111,7 +111,7 @@ public class VariantRealign {
 		String seqVar = sequenceRef.substring(basesAddedLeft); // This is where the variant is
 
 		// Remove 'ref' part
-		String vref = variant.getReference().toLowerCase();
+		String vref = variant.getReference().toUpperCase();
 		if (!vref.isEmpty()) {
 			// Sanity check
 			if (!seqVar.startsWith(vref)) {
