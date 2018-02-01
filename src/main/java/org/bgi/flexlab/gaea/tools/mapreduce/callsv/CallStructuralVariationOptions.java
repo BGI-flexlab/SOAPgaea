@@ -19,10 +19,6 @@ public class CallStructuralVariationOptions extends GaeaOptions implements Hadoo
 	 */
 	private String hdfsdir;
 	/**
-	 * local results file
-	 */
-	private String outfile;
-	/**
 	 * reduce number
 	 */
 	private int reducenum;
@@ -67,7 +63,6 @@ public class CallStructuralVariationOptions extends GaeaOptions implements Hadoo
 	public CallStructuralVariationOptions() {
 		addOption("i", "input", true, "input path of bam/sam files, should be hdfs path [default: NULL]");
 		addOption("hdfs", "hdfsdir", true, "hdfs dir for tmp result [default: NULL]");
-		addOption("o", "outfile", true, "local results file [default: ./callSV.ctx]");
 		addOption("reducenum", "reducenum", true, "reduce number [default: 1]");
 		addOption("mean", "mean", true, "mean of fragments (Recommend) [default: -1]");
 		addOption("sd", "std", true, "the standard deviation of ragments (Recommend) [default: -1]");
@@ -112,7 +107,6 @@ public class CallStructuralVariationOptions extends GaeaOptions implements Hadoo
 		
 		input = getOptionValue("i", null);
 		hdfsdir = getOptionValue("hdfs", null);
-		outfile = getOptionValue("o", "./callSV.ctx");
 		reducenum = getOptionIntValue("reducenum", 1);
 		mean = getOptionIntValue("mean", -1);
 		std = getOptionIntValue("sd", -1);
@@ -156,17 +150,7 @@ public class CallStructuralVariationOptions extends GaeaOptions implements Hadoo
 	public void setHdfsdir(String hdfsdir) {
 		this.hdfsdir = hdfsdir;
 	}
-
-
-	public String getOutfile() {
-		return outfile;
-	}
-
-
-	public void setOutfile(String outfile) {
-		this.outfile = outfile;
-	}
-
+	
 
 	public int getReducenum() {
 		return reducenum;

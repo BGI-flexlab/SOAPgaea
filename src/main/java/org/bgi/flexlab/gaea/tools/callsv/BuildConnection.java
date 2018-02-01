@@ -1,7 +1,6 @@
 package org.bgi.flexlab.gaea.tools.callsv;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -20,10 +19,10 @@ public class BuildConnection {
 	 * 保存了程序的输入参数
 	 */
 	private CallStructuralVariationOptions options;
-	/**
-	 * Map集合，key是染色体编号chr，value是所对应的dist值，用作区分区域的标准
-	 */
-	private Map<String, List<Integer>> dist;
+	
+	private float dist;
+	
+	private int ref_length;
 
 	/**
 	 * Map集合，key是ReadName，value是Reads的对象，保存了reads的信息
@@ -38,19 +37,33 @@ public class BuildConnection {
 	 * @param para Parameter类型的参数，将上层的para传递进来
 	 * @param dist Map集合，保存了每个染色体的dist和ref_length
 	 */
-	public BuildConnection(CallStructuralVariationOptions options, Map<String, List<Integer>> dist) {
+	public BuildConnection(CallStructuralVariationOptions options, float dist, int ref_length) {
 		this.options = options;
 		this.dist = dist;
+		this.ref_length = ref_length;
 		this.readInfoMap = new TreeMap<String, Reads>();
 	}
 
-	public Map<String, List<Integer>> getDist() {
+
+	public float getDist() {
 		return dist;
 	}
 
-	public void setDist(Map<String, List<Integer>> dist) {
+
+	public void setDist(float dist) {
 		this.dist = dist;
 	}
+
+
+	public int getRef_length() {
+		return ref_length;
+	}
+
+
+	public void setRef_length(int ref_length) {
+		this.ref_length = ref_length;
+	}
+
 
 	public Map<String, Reads> getReadInfoMap() {
 		return readInfoMap;
@@ -66,20 +79,18 @@ public class BuildConnection {
 	 * @param it 此参数输入的是一个iterator迭代器，保存了此reducer任务接收到的reads信息
 	 * @return 一个Map集合，保存了所有reg信息，key是regid，value是Region对象
 	 */
-	public  Map<Integer, Region> getRegion(Iterator<Format> it) {
+	public  Map<Integer, Region> getRegion(List<Format> aprs) {
 		Map<Integer, Region> regInfoMap = new TreeMap<Integer, Region>();
 		
 		Region reg = new Region();
 		int regId = 0;
 		
-		while(it.hasNext()) {
-			Format r = it.next(); //read record
-			
+		for(Format r : aprs) {
 			/**
 			 * chr不相同，并且间隔大于dist，满足划分为两个区域的条件，做break
 			 * 但是还要判断是真的break还是要去掉的break
 			 */
-			if(!r.getChr().equals(reg.getChr()) || (r.getStart() - reg.getpStart()) > dist.get(r.getChr()).get(0)) { //break
+			if(!r.getChr().equals(reg.getChr()) || (r.getStart() - reg.getpStart()) > dist) { //break
 				float coverage = reg.getRegCoverage();
 				
 				if(coverage > 0 && coverage < options.getMaxcoverage() &&  reg.getRegLength() > options.getMinlen()) { //real break

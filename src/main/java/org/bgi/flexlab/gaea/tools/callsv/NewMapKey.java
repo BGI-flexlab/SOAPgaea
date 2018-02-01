@@ -15,6 +15,7 @@ public class NewMapKey implements WritableComparable<NewMapKey>{
 	
 	private String chr;
 	private int pos;
+	private int end;
 	
 	/**
 	 * 空构造函数
@@ -26,9 +27,10 @@ public class NewMapKey implements WritableComparable<NewMapKey>{
 	 * @param chr 染色体
 	 * @param pos 比对上的位置
 	 */
-	public NewMapKey(String chr, int pos) {
+	public NewMapKey(String chr, int pos, int end) {
 		this.chr = chr;
 		this.pos = pos;
+		this.end = end;
 	}
 
 	public String getChr() {
@@ -47,21 +49,29 @@ public class NewMapKey implements WritableComparable<NewMapKey>{
 		this.pos = pos;
 	}
 
+	public int getEnd() {
+		return end;
+	}
+
+	public void setEnd(int end) {
+		this.end = end;
+	}
+
 	public void readFields(DataInput in) throws IOException {
 		this.chr = in.readUTF();
 		this.pos = in.readInt();
-		
+		this.end = in.readInt();
 	}
 
 	public void write(DataOutput out) throws IOException {
 		out.writeUTF(chr);
 		out.writeInt(pos);
-		
+		out.writeInt(end);
 	}
 	
 	@Override
 	public String toString() {
-		return this.chr + "\t" + this.pos;
+		return this.chr + "\t" + this.pos + "\t" + this.end;
 	}
 
 	/**
@@ -69,8 +79,12 @@ public class NewMapKey implements WritableComparable<NewMapKey>{
 	 */
 	public int compareTo(NewMapKey o) {
 		int num = o.getChr().compareTo(this.getChr());
-		if(num==0)
-			return new Integer(this.pos).compareTo(new Integer(o.pos));
+		if(num==0) {
+			int npos = this.pos - o.pos;
+			if(npos == 0) 
+				return new Integer(this.end).compareTo(new Integer(o.end));
+			return npos;
+		}
 		return num;
 	}
 
@@ -84,7 +98,7 @@ public class NewMapKey implements WritableComparable<NewMapKey>{
 		if(!(obj instanceof NewMapKey))
 			throw new ClassCastException("Can not cast to NewMapKey class!");
 		NewMapKey n = (NewMapKey) obj;
-		 return this.chr.equals(n.chr) && this.pos==n.pos;
+		 return this.chr.equals(n.chr) && this.pos==n.pos && this.end==n.end;
 	}
 
 	

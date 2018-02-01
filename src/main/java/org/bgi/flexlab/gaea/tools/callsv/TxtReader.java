@@ -81,6 +81,43 @@ public class TxtReader {
 	}
 	
 	
+	public Map<Integer, Integer> readInsertFile(String libconftxt){
+		
+		Map<Integer, Integer> map = new TreeMap<Integer, Integer>();
+		
+		BufferedReader br = null;
+		FileSystem fs;
+		
+		try {
+			fs = FileSystem.get(this.conf);
+			FileStatus[] flist = fs.listStatus(new Path(libconftxt));
+			
+			for(FileStatus file : flist) {
+				
+				FSDataInputStream fsopen = fs.open(file.getPath());
+				br = new BufferedReader(new InputStreamReader(fsopen));
+				
+				String line = null;
+				while((line = br.readLine())!= null) {
+					String[] lines = line.split("\\t");
+					
+					int num;
+					if(!map.containsKey(Integer.parseInt(lines[0]))) {
+						num = Integer.parseInt(lines[1]);
+					}else {
+						int pnum = map.get(Integer.parseInt(lines[0]));
+						num = pnum + Integer.parseInt(lines[1]);
+					}
+					map.put(Integer.parseInt(lines[0]), num);
+				}
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}		
+		return map;
+	}
+	
+	
 	public Map<String, List<Integer>> readConfFile(String libconftxt, String chr){
 		Map<String, List<Integer>> map = new TreeMap<String, List<Integer>>();
 		
