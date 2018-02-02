@@ -43,7 +43,9 @@
 package org.bgi.flexlab.gaea.data.structure.location;
 
 import org.bgi.flexlab.gaea.data.exception.UserException;
+import org.bgi.flexlab.gaea.data.mapreduce.input.bed.RegionHdfsParser;
 import org.bgi.flexlab.gaea.util.Utils;
+import org.bgi.flexlab.gaea.util.Window;
 
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.SAMSequenceRecord;
@@ -511,4 +513,46 @@ public class GenomeLocation implements Comparable<GenomeLocation>, Comparator<Ge
 		return new GenomeLocation(getContig(), Math.min(getStart(), that.getStart()),
 				Math.max(getEnd(), that.getEnd()));
 	}
+	
+	public static List<GenomeLocation> getGenomeLocationFormWindow(Window win,RegionHdfsParser region){
+		List<GenomeLocation> intervals = new ArrayList<GenomeLocation>();
+		if (!intervals.isEmpty())
+			intervals.clear();
+
+		String chr = win.getContigName();
+		int start = win.getStart();
+		int index = win.getChrIndex();
+		int stop = win.getStop();
+		if (region == null) {
+			intervals.add(new GenomeLocation(chr, index, start, stop - 1));
+			return intervals;
+		}
+		int length = stop - start;
+
+		BitSet bitSet = new BitSet(length);
+		for (int i = start; i < stop; i++) {
+			if (region.isPositionInRegion(chr, i))
+				bitSet.set(i - start);
+		}
+
+		int intervalStart = -1;
+
+		for (int i = 0; i < length; i++) {
+			if (bitSet.get(i)) {
+				if (intervalStart == -1) {
+					intervalStart = i + start;
+				}
+			} else {
+				if (intervalStart != -1) {
+					intervals.add(new GenomeLocation(chr, index, intervalStart, i + start - 1));
+					intervalStart = -1;
+				}
+			}
+		}
+		bitSet = null;
+
+		if (intervalStart != -1)
+			intervals.add(new GenomeLocation(chr, index, intervalStart, stop - 1));
+		return intervals;
+	} 
 }

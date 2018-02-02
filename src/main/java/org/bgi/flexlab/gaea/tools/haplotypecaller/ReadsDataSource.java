@@ -1,53 +1,76 @@
 package org.bgi.flexlab.gaea.tools.haplotypecaller;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
+import org.seqdoop.hadoop_bam.SAMRecordWritable;
+
+import htsjdk.samtools.SAMFileHeader;
 
 public class ReadsDataSource {
+	private GaeaSamRecord currentRecord = null;
 
-	private List<GaeaSamRecord> reads = null;
+	// reads iterator
+	private Iterable<SAMRecordWritable> reads;
+	
+	private List<GaeaSamRecord> overlaps = new ArrayList<GaeaSamRecord>();
+	
+	private SAMFileHeader header = null;
 
-	public ReadsDataSource(List<GaeaSamRecord> inputReads) {
-		this.reads = inputReads;
+	public ReadsDataSource(Iterable<SAMRecordWritable> iterable,SAMFileHeader header) {
+		this.reads = iterable;
+		this.header = header;
+	}
+	
+	public void dataReset(Iterable<SAMRecordWritable> iterable){
+		reads = iterable;
+		if(!overlaps.isEmpty())
+			overlaps.clear();
 	}
 
 	public Iterator<GaeaSamRecord> query(final GenomeLocation interval) {
-		return prepareIteratorsForTraversal(Arrays.asList(interval));
+		return prepareIteratorsForTraversal(interval,false);
 	}
 
-	private Iterator<GaeaSamRecord> prepareIteratorsForTraversal(final List<GenomeLocation> queryIntervals) {
-		return prepareIteratorsForTraversal(queryIntervals, false);
-	}
-
-	private Iterator<GaeaSamRecord> prepareIteratorsForTraversal(final List<GenomeLocation> queryIntervals,
+	private Iterator<GaeaSamRecord> prepareIteratorsForTraversal(final GenomeLocation queryInterval,
 			final boolean queryUnmapped) {
 
-		final boolean traversalIsBounded = (queryIntervals != null && !queryIntervals.isEmpty()) || queryUnmapped;
+		final boolean traversalIsBounded = queryInterval != null || queryUnmapped;
 
-		List<GaeaSamRecord> overlaps = new ArrayList<GaeaSamRecord>();
-		if (traversalIsBounded) {
-			for (GaeaSamRecord read : reads) {
-				for (GenomeLocation interval : queryIntervals) {
-					if ((read.getAlignmentStart() >= interval.getStart()
-							&& read.getAlignmentStart() <= interval.getEnd())
-							|| (read.getAlignmentEnd() >= interval.getStart()
-									&& read.getAlignmentEnd() <= interval.getEnd()))
-						overlaps.add(read);
-				}
+		if(!overlaps.isEmpty()){
+			List<GaeaSamRecord> remove = new ArrayList<GaeaSamRecord>();
+			for(GaeaSamRecord read : overlaps){
+				if(read.getEnd() < queryInterval.getStart())
+					remove.add(read);
+				else if(read.getStart() >= queryInterval.getStart())
+					break;
 			}
-		} else {
-			return reads.iterator();
+			overlaps.removeAll(remove);
+			remove.clear();
+		}
+		
+		if(traversalIsBounded){
+			for(SAMRecordWritable srw : reads){
+				currentRecord = new GaeaSamRecord(header,srw.get());
+				if(currentRecord.getEnd() < queryInterval.getStart())
+					continue;
+				else if((currentRecord.getAlignmentStart() >= queryInterval.getStart()
+						&& currentRecord.getAlignmentStart() <= queryInterval.getEnd())
+						|| (currentRecord.getAlignmentEnd() >= queryInterval.getStart()
+								&& currentRecord.getAlignmentEnd() <= queryInterval.getEnd())){
+					overlaps.add(currentRecord);
+				}else
+					break;
+			}
 		}
 
 		return overlaps.iterator();
 	}
 	
 	public void clear(){
-		this.reads.clear();
+		this.reads = null;
 	}
 }

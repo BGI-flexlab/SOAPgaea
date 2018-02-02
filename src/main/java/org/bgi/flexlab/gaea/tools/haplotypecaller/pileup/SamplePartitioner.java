@@ -7,6 +7,9 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
+import org.bgi.flexlab.gaea.tools.haplotypecaller.downsampler.Downsampler;
+import org.bgi.flexlab.gaea.tools.haplotypecaller.downsampler.PassThroughDownsampler;
+import org.bgi.flexlab.gaea.tools.haplotypecaller.downsampler.ReservoirDownsampler;
 import org.bgi.flexlab.gaea.util.ReadUtils;
 import org.bgi.flexlab.gaea.util.Utils;
 

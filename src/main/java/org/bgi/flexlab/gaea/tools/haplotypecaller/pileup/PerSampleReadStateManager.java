@@ -4,6 +4,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Iterator;
 
+import org.bgi.flexlab.gaea.tools.haplotypecaller.downsampler.Downsampler;
+import org.bgi.flexlab.gaea.tools.haplotypecaller.downsampler.LevelingDownsampler;
 import org.bgi.flexlab.gaea.util.Utils;
 
 import htsjdk.samtools.CigarOperator;

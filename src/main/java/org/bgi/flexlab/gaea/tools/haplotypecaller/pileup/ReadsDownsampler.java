@@ -1,6 +1,7 @@
 package org.bgi.flexlab.gaea.tools.haplotypecaller.pileup;
 
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
+import org.bgi.flexlab.gaea.tools.haplotypecaller.downsampler.Downsampler;
 
 public abstract class ReadsDownsampler extends Downsampler<GaeaSamRecord> {
 

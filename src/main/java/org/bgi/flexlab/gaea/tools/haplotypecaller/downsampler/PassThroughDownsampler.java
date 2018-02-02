@@ -1,9 +1,10 @@
-package org.bgi.flexlab.gaea.tools.haplotypecaller.pileup;
+package org.bgi.flexlab.gaea.tools.haplotypecaller.downsampler;
 
 import java.util.LinkedList;
 import java.util.List;
 
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
+import org.bgi.flexlab.gaea.tools.haplotypecaller.pileup.ReadsDownsampler;
 import org.bgi.flexlab.gaea.util.Utils;
 
 public final class PassThroughDownsampler extends ReadsDownsampler {

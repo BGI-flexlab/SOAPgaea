@@ -1,4 +1,4 @@
-package org.bgi.flexlab.gaea.tools.haplotypecaller.pileup;
+package org.bgi.flexlab.gaea.tools.haplotypecaller.downsampler;
 
 import java.util.ArrayList;
 import java.util.BitSet;

@@ -729,4 +729,12 @@ public class GaeaSamRecord extends SAMRecord implements Locatable {
 
         return getMateReferenceName();
     }
+	
+	public boolean readHasNoAssignedPosition() {
+	    // Check actual assigned positions rather than unmapped status, so that unmapped reads with
+	    // assigned positions will be considered to have a position
+	    return this.getReferenceName() == null ||
+	           this.getReferenceName().equals(SAMRecord.NO_ALIGNMENT_REFERENCE_NAME) ||
+	           this.getAlignmentStart() == SAMRecord.NO_ALIGNMENT_START;
+	}
 }

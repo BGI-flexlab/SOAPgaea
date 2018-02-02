@@ -102,8 +102,8 @@ public final class HaplotypeCallerEngine {
 
 	private VariantAnnotatorEngine annotationEngine = null;
 
-	// fasta reference reader to supplement the edges of the reference sequence
-	private final ChromosomeInformationShare referenceReader;
+	// chromosome sequence
+	private ChromosomeInformationShare referenceReader;
 
 	// writes Haplotypes to a bam file when the -bamout option is specified
 	private Optional<HaplotypeBAMWriter> haplotypeBAMWriter;
@@ -177,16 +177,15 @@ public final class HaplotypeCallerEngine {
 	 *            reader to provide reference data
 	 */
 	public HaplotypeCallerEngine(final HaplotypeCallerArgumentCollection hcArgs, boolean createBamOutIndex,
-			boolean createBamOutMD5, final SAMFileHeader readsHeader, ChromosomeInformationShare referenceReader) {
-		this(hcArgs, createBamOutIndex, createBamOutMD5, readsHeader, referenceReader, null);
+			boolean createBamOutMD5, final SAMFileHeader readsHeader) {
+		this(hcArgs, createBamOutIndex, createBamOutMD5, readsHeader, null);
 	}
 
 	public HaplotypeCallerEngine(final HaplotypeCallerArgumentCollection hcArgs, boolean createBamOutIndex,
-			boolean createBamOutMD5, final SAMFileHeader readsHeader, ChromosomeInformationShare referenceReader,
+			boolean createBamOutMD5, final SAMFileHeader readsHeader,
 			VariantAnnotatorEngine annotationEngine) {
 		this.hcArgs = Utils.nonNull(hcArgs);
 		this.readsHeader = Utils.nonNull(readsHeader);
-		this.referenceReader = Utils.nonNull(referenceReader);
 		this.annotationEngine = annotationEngine;
 		this.aligner = SmithWatermanAligner.getAligner(hcArgs.smithWatermanImplementation);
 		initialize(createBamOutIndex, createBamOutMD5);
@@ -815,5 +814,9 @@ public final class HaplotypeCallerEngine {
 			}
 		}
 		activeRegion.removeAll(readsToRemove);
+	}
+	
+	public void setChromosome(ChromosomeInformationShare chr){
+		this.referenceReader = chr;
 	}
 }

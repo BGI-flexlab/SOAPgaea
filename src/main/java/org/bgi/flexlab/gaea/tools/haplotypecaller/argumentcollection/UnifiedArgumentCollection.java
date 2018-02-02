@@ -9,6 +9,11 @@ import htsjdk.variant.variantcontext.VariantContextUtils;
 
 public class UnifiedArgumentCollection extends StandardCallerArgumentCollection {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
 	public UnifiedGenotypingEngine.Model GLmodel = UnifiedGenotypingEngine.Model.SNP;
 
 	/**
