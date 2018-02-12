@@ -17,8 +17,6 @@ import htsjdk.variant.variantcontext.VariantContext;;
 
 public class HaplotypeCallerArgumentCollection extends StandardCallerArgumentCollection{
 
-	public AssemblyRegionTrimmerArgumentCollection assemblyRegionTrimmerArgs = new AssemblyRegionTrimmerArgumentCollection();
-
     public ReadThreadingAssemblerArgumentCollection assemblerArgs = new ReadThreadingAssemblerArgumentCollection();
 
     public LikelihoodEngineArgumentCollection likelihoodArgs = new LikelihoodEngineArgumentCollection();

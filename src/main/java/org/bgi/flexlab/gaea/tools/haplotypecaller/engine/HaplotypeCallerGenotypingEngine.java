@@ -67,9 +67,9 @@ public class HaplotypeCallerGenotypingEngine extends AssemblyBasedCallerGenotypi
 			final SampleList samples, final AFCalculatorProvider afCalculatorProvider,
 			final boolean doPhysicalPhasing) {
 		super(configuration, samples, afCalculatorProvider, doPhysicalPhasing);
-		ploidyModel = new HomogeneousPloidyModel(samples, configuration.genotypeArgs.samplePloidy);
+		ploidyModel = new HomogeneousPloidyModel(samples, configuration.samplePloidy);
 		genotypingModel = new IndependentSampleGenotypesModel();
-		maxGenotypeCountToEnumerate = configuration.genotypeArgs.MAX_GENOTYPE_COUNT;
+		maxGenotypeCountToEnumerate = configuration.MAX_GENOTYPE_COUNT;
 	}
 
 	@Override
@@ -135,7 +135,7 @@ public class HaplotypeCallerGenotypingEngine extends AssemblyBasedCallerGenotypi
 		// outputted
 		final Set<Haplotype> calledHaplotypes = new HashSet<>();
 		final List<VariantContext> returnCalls = new ArrayList<>();
-		final int ploidy = configuration.genotypeArgs.samplePloidy;
+		final int ploidy = configuration.samplePloidy;
 		final List<Allele> noCallAlleles = GaeaGvcfVariantContextUtils.noCallAlleles(ploidy);
 
 		for (final int loc : startPosKeySet) {

@@ -2,6 +2,7 @@ package org.bgi.flexlab.gaea.tools.haplotypecaller.utils;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 
 import org.bgi.flexlab.gaea.data.exception.UserException;
@@ -14,9 +15,14 @@ import htsjdk.variant.variantcontext.VariantContext;
 public class RefMetaDataTracker {
 	private GenomeLocation location = null;
 	
+	private HashMap<String,List<VariantContext>> dataSources = null;
+	
 	public RefMetaDataTracker(GenomeLocation location){
 		this.location = location;
 	}
+	
+	public RefMetaDataTracker(){}
+	
 	
 	public GenomeLocation getLocation(){
 		return location;
@@ -38,5 +44,22 @@ public class RefMetaDataTracker {
 	@SuppressWarnings("unchecked")
 	public <T extends Feature> List<T> getValues(RodBinding<VariantContext> binding,GenomeLocation loc){
 		return Collections.EMPTY_LIST;
+	}
+	
+	public void add(String name,List<VariantContext> values){
+		if(dataSources == null){
+			dataSources = new HashMap<String,List<VariantContext>>();
+		}
+		
+		if(dataSources.containsKey(name))
+			throw new UserException("RefMetaDataTracker couldn't add same name="+name);
+		
+		dataSources.put(name, values);
+	}
+	
+	public List<VariantContext> getValues(String name){
+		if(dataSources == null || !dataSources.containsKey(name))
+			return Collections.EMPTY_LIST;
+		return dataSources.get(name);
 	}
 }

@@ -96,18 +96,18 @@ public abstract class GenotypingEngine<Config extends StandardCallerArgumentColl
 		this.samples = Utils.nonNull(samples, "the sample list cannot be null");
 		this.afCalculatorProvider = Utils.nonNull(afCalculatorProvider, "the AF calculator provider cannot be null");
 		this.doAlleleSpecificCalcs = doAlleleSpecificCalcs;
-		numberOfGenomes = this.samples.numberOfSamples() * configuration.genotypeArgs.samplePloidy;
+		numberOfGenomes = this.samples.numberOfSamples() * configuration.samplePloidy;
 		log10AlleleFrequencyPriorsSNPs = composeAlleleFrequencyPriorProvider(numberOfGenomes,
-				configuration.genotypeArgs.snpHeterozygosity, configuration.genotypeArgs.inputPrior);
+				configuration.snpHeterozygosity, configuration.inputPrior);
 		log10AlleleFrequencyPriorsIndels = composeAlleleFrequencyPriorProvider(numberOfGenomes,
-				configuration.genotypeArgs.indelHeterozygosity, configuration.genotypeArgs.inputPrior);
+				configuration.indelHeterozygosity, configuration.inputPrior);
 
-		final double refPseudocount = configuration.genotypeArgs.snpHeterozygosity
-				/ Math.pow(configuration.genotypeArgs.heterozygosityStandardDeviation, 2);
-		final double snpPseudocount = configuration.genotypeArgs.snpHeterozygosity * refPseudocount;
-		final double indelPseudocount = configuration.genotypeArgs.indelHeterozygosity * refPseudocount;
+		final double refPseudocount = configuration.snpHeterozygosity
+				/ Math.pow(configuration.heterozygosityStandardDeviation, 2);
+		final double snpPseudocount = configuration.snpHeterozygosity * refPseudocount;
+		final double indelPseudocount = configuration.indelHeterozygosity * refPseudocount;
 		newAFCalculator = new AlleleFrequencyCalculator(refPseudocount, snpPseudocount, indelPseudocount,
-				configuration.genotypeArgs.samplePloidy);
+				configuration.samplePloidy);
 	}
 
 	/**
@@ -205,7 +205,7 @@ public abstract class GenotypingEngine<Config extends StandardCallerArgumentColl
 
 	public Set<VCFInfoHeaderLine> getAppropriateVCFInfoHeaders() {
 		final Set<VCFInfoHeaderLine> headerInfo = new LinkedHashSet<>();
-		if (configuration.genotypeArgs.ANNOTATE_NUMBER_OF_ALLELES_DISCOVERED) {
+		if (configuration.ANNOTATE_NUMBER_OF_ALLELES_DISCOVERED) {
 			headerInfo.add(GaeaVCFHeaderLines.getInfoLine(GaeaVCFConstants.NUMBER_OF_DISCOVERED_ALLELES_KEY));
 		}
 		return headerInfo;
@@ -283,8 +283,8 @@ public abstract class GenotypingEngine<Config extends StandardCallerArgumentColl
 			return emptyCallContext(null, null, null,null,null);
 		}
 
-		final int defaultPloidy = configuration.genotypeArgs.samplePloidy;
-		final int maxAltAlleles = configuration.genotypeArgs.MAX_ALTERNATE_ALLELES;
+		final int defaultPloidy = configuration.samplePloidy;
+		final int maxAltAlleles = configuration.MAX_ALTERNATE_ALLELES;
 
 		VariantContext reducedVC = vc;
 		if (maxAltAlleles < vc.getAlternateAlleles().size()) {
@@ -298,7 +298,7 @@ public abstract class GenotypingEngine<Config extends StandardCallerArgumentColl
 			reducedVC = new VariantContextBuilder(vc).alleles(allelesToKeep).genotypes(reducedGenotypes).make();
 		}
 
-		final AFCalculator afCalculator = configuration.genotypeArgs.USE_NEW_AF_CALCULATOR ? newAFCalculator
+		final AFCalculator afCalculator = configuration.USE_NEW_AF_CALCULATOR ? newAFCalculator
 				: afCalculatorProvider.getInstance(vc, defaultPloidy, maxAltAlleles);
 		final AFCalculationResult AFresult = afCalculator.getLog10PNonRef(reducedVC, defaultPloidy, maxAltAlleles,
 				getAlleleFrequencyPriors(vc, defaultPloidy, model));
@@ -329,7 +329,6 @@ public abstract class GenotypingEngine<Config extends StandardCallerArgumentColl
 			// because it didn't take into account samples with no data, so
 			// let's get a better estimate
 			final double[] AFpriors = getAlleleFrequencyPriors(vc, defaultPloidy, model);
-			final int INDEX_FOR_AC_EQUALS_1 = 1;
 			return null;
 		}
 
@@ -430,7 +429,7 @@ public abstract class GenotypingEngine<Config extends StandardCallerArgumentColl
 				final boolean isNonRefWhichIsLoneAltAllele = alternativeAlleleCount == 1
 						&& allele.equals(GaeaVCFConstants.NON_REF_SYMBOLIC_ALLELE);
 				final boolean isPlausible = afCalculationResult.isPolymorphicPhredScaledQual(allele,
-						configuration.genotypeArgs.STANDARD_CONFIDENCE_FOR_CALLING);
+						configuration.STANDARD_CONFIDENCE_FOR_CALLING);
 
 				siteIsMonomorphic &= !isPlausible;
 
@@ -599,7 +598,7 @@ public abstract class GenotypingEngine<Config extends StandardCallerArgumentColl
 		if (vc != null && annotationEngine != null) {
 			// Note: we want to use the *unfiltered* and *unBAQed* context for
 			// the annotations
-			final ReadPileup pileup = rawContext.getBasePileup();
+			//final ReadPileup pileup = rawContext.getBasePileup();
 			vc = annotationEngine.annotateContext(vc,  null, a -> true);
 		}
 
@@ -682,7 +681,7 @@ public abstract class GenotypingEngine<Config extends StandardCallerArgumentColl
 	}
 
 	protected final boolean passesCallThreshold(final double conf) {
-		return conf >= configuration.genotypeArgs.STANDARD_CONFIDENCE_FOR_CALLING;
+		return conf >= configuration.STANDARD_CONFIDENCE_FOR_CALLING;
 	}
 
 	protected Map<String, Object> composeCallAttributes(final boolean inheritAttributesFromInputVC,
@@ -720,7 +719,7 @@ public abstract class GenotypingEngine<Config extends StandardCallerArgumentColl
 			attributes.put(GaeaVCFConstants.AS_QUAL_KEY, perAlleleQuals);
 		}
 
-		if (configuration.genotypeArgs.ANNOTATE_NUMBER_OF_ALLELES_DISCOVERED) {
+		if (configuration.ANNOTATE_NUMBER_OF_ALLELES_DISCOVERED) {
 			attributes.put(GaeaVCFConstants.NUMBER_OF_DISCOVERED_ALLELES_KEY, vc.getAlternateAlleles().size());
 		}
 
@@ -742,11 +741,11 @@ public abstract class GenotypingEngine<Config extends StandardCallerArgumentColl
 	 */
 	public double calculateSingleSampleRefVsAnyActiveStateProfileValue(final double[] log10GenotypeLikelihoods) {
 		Utils.nonNull(log10GenotypeLikelihoods, "the input likelihoods cannot be null");
-		Utils.validateArg(log10GenotypeLikelihoods.length == this.configuration.genotypeArgs.samplePloidy + 1,
+		Utils.validateArg(log10GenotypeLikelihoods.length == this.configuration.samplePloidy + 1,
 				"wrong likelihoods dimensions");
 
 		final double[] log10Priors = log10AlleleFrequencyPriorsSNPs
-				.forTotalPloidy(this.configuration.genotypeArgs.samplePloidy);
+				.forTotalPloidy(this.configuration.samplePloidy);
 		final double log10ACeq0Likelihood = log10GenotypeLikelihoods[0];
 		final double log10ACeq0Prior = log10Priors[0];
 		final double log10ACeq0Posterior = log10ACeq0Likelihood + log10ACeq0Prior;
@@ -777,7 +776,7 @@ public abstract class GenotypingEngine<Config extends StandardCallerArgumentColl
 		// This is another condition to return a 0.0 also present in
 		// AFCalculator code as well.
 		if (normalizedLog10ACeq0Posterior >= QualityUtils
-				.qualToErrorProbLog10(configuration.genotypeArgs.STANDARD_CONFIDENCE_FOR_CALLING)) {
+				.qualToErrorProbLog10(configuration.STANDARD_CONFIDENCE_FOR_CALLING)) {
 			return 0.0;
 		}
 

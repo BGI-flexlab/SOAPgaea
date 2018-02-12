@@ -68,7 +68,6 @@ import org.bgi.flexlab.gaea.util.Utils;
 
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMSequenceDictionary;
-import htsjdk.samtools.reference.ReferenceSequenceFile;
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.GenotypeBuilder;
@@ -225,7 +224,7 @@ public final class HaplotypeCallerEngine {
 		assemblyEngine = AssemblyBasedCallerUtils.createReadThreadingAssembler(hcArgs);
 		likelihoodCalculationEngine = AssemblyBasedCallerUtils.createLikelihoodCalculationEngine(hcArgs.likelihoodArgs);
 
-		trimmer.initialize(hcArgs.assemblyRegionTrimmerArgs, readsHeader.getSequenceDictionary(), hcArgs.debug,
+		trimmer.initialize(hcArgs, readsHeader.getSequenceDictionary(), hcArgs.debug,
 				hcArgs.genotypingOutputMode == GenotypingOutputMode.GENOTYPE_GIVEN_ALLELES, emitReferenceConfidence());
 	}
 
@@ -246,7 +245,7 @@ public final class HaplotypeCallerEngine {
 	}
 
 	private void validateAndInitializeArgs() {
-		if (hcArgs.genotypeArgs.samplePloidy != HomoSapiensConstants.DEFAULT_PLOIDY
+		if (hcArgs.samplePloidy != HomoSapiensConstants.DEFAULT_PLOIDY
 				&& !hcArgs.doNotRunPhysicalPhasing) {
 			hcArgs.doNotRunPhysicalPhasing = true;
 		}
@@ -261,7 +260,7 @@ public final class HaplotypeCallerEngine {
 						"you cannot request reference confidence output and GENOTYPE_GIVEN_ALLELES at the same time");
 			}
 
-			hcArgs.genotypeArgs.STANDARD_CONFIDENCE_FOR_CALLING = -0.0;
+			hcArgs.STANDARD_CONFIDENCE_FOR_CALLING = -0.0;
 
 			// also, we don't need to output several of the annotations
 			hcArgs.variantAnnotationArgumentCollection.annotationsToExclude.add(ChromosomeCounts.class.getSimpleName());
@@ -327,9 +326,9 @@ public final class HaplotypeCallerEngine {
 
 		simpleUAC.outputMode = OutputMode.EMIT_VARIANTS_ONLY;
 		simpleUAC.genotypingOutputMode = GenotypingOutputMode.DISCOVERY;
-		simpleUAC.genotypeArgs.STANDARD_CONFIDENCE_FOR_CALLING = Math.min(
+		simpleUAC.STANDARD_CONFIDENCE_FOR_CALLING = Math.min(
 				MAXMIN_CONFIDENCE_FOR_CONSIDERING_A_SITE_AS_POSSIBLE_VARIANT_IN_ACTIVE_REGION_DISCOVERY,
-				hcArgs.genotypeArgs.STANDARD_CONFIDENCE_FOR_CALLING); 
+				hcArgs.STANDARD_CONFIDENCE_FOR_CALLING); 
 		
 		simpleUAC.CONTAMINATION_FRACTION = 0.0;
 		simpleUAC.CONTAMINATION_FRACTION_FILE = null;
@@ -337,8 +336,8 @@ public final class HaplotypeCallerEngine {
 		// Seems that at least with some test data we can lose genuine haploid
 		// variation if we use
 		// UGs engine with ploidy == 1
-		simpleUAC.genotypeArgs.samplePloidy = Math.max(MINIMUM_PUTATIVE_PLOIDY_FOR_ACTIVE_REGION_DISCOVERY,
-				hcArgs.genotypeArgs.samplePloidy);
+		simpleUAC.samplePloidy = Math.max(MINIMUM_PUTATIVE_PLOIDY_FOR_ACTIVE_REGION_DISCOVERY,
+				hcArgs.samplePloidy);
 
 		activeRegionEvaluationGenotyperEngine = new MinimalGenotypingEngine(simpleUAC, samplesList,
 				FixedAFCalculatorProvider.createThreadSafeProvider(simpleUAC));
@@ -380,7 +379,7 @@ public final class HaplotypeCallerEngine {
 
 		if (hcArgs.emitReferenceConfidence == ReferenceConfidenceMode.GVCF) {
 			try {
-				writer = new GVCFWriter(writer, hcArgs.GVCFGQBands, hcArgs.genotypeArgs.samplePloidy);
+				writer = new GVCFWriter(writer, hcArgs.GVCFGQBands, hcArgs.samplePloidy);
 			} catch (IllegalArgumentException e) {
 				throw new BadArgumentValueException("GQBands", "are malformed: " + e.getMessage());
 			}
@@ -478,7 +477,7 @@ public final class HaplotypeCallerEngine {
 
 		if (hcArgs.USE_ALLELES_TRIGGER) {
 			return new ActivityProfileState(interval,
-					features.getValues(hcArgs.alleles, interval).size() > 0 ? 1.0 : 0.0);
+					RefMetaDataTracker.getValues(hcArgs.alleles, interval).size() > 0 ? 1.0 : 0.0);
 		}
 
 		if (context == null || context.getBasePileup().isEmpty()) {
@@ -486,7 +485,7 @@ public final class HaplotypeCallerEngine {
 			return new ActivityProfileState(interval, 0.0);
 		}
 
-		final int ploidy = activeRegionEvaluationGenotyperEngine.getConfiguration().genotypeArgs.samplePloidy;
+		final int ploidy = activeRegionEvaluationGenotyperEngine.getConfiguration().samplePloidy;
 		final List<Allele> noCall = GaeaGvcfVariantContextUtils.noCallAlleles(ploidy); 
 
 		final Map<String, AlignmentContext> splitContexts;
@@ -505,7 +504,7 @@ public final class HaplotypeCallerEngine {
 			// genotyping-engine used to determine whether regions are active or
 			// not.
 			final int activeRegionDetectionHackishSamplePloidy = activeRegionEvaluationGenotyperEngine
-					.getConfiguration().genotypeArgs.samplePloidy;
+					.getConfiguration().samplePloidy;
 			final double[] genotypeLikelihoods = referenceConfidenceModel.calcGenotypeLikelihoodsOfRefVsAny(
 					activeRegionDetectionHackishSamplePloidy, sample.getValue().getBasePileup(), ref.getGA4GHBaseBytes(interval.getStart()-1)[0],
 					hcArgs.minBaseQualityScore, averageHQSoftClips).getGenotypeLikelihoods();
@@ -581,7 +580,6 @@ public final class HaplotypeCallerEngine {
 		final SortedSet<VariantContext> allVariationEvents = untrimmedAssemblyResult.getVariationEvents();
 		// TODO - line bellow might be unnecessary : it might be that
 		// assemblyResult will always have those alleles anyway
-		// TODO - so check and remove if that is the case:
 		allVariationEvents.addAll(givenAlleles);
 
 		final AssemblyRegionTrimmer.Result trimmingResult = trimmer.trim(region, allVariationEvents);

@@ -8,7 +8,7 @@ import java.util.SortedSet;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
-import org.bgi.flexlab.gaea.tools.haplotypecaller.argumentcollection.AssemblyRegionTrimmerArgumentCollection;
+import org.bgi.flexlab.gaea.tools.haplotypecaller.argumentcollection.StandardCallerArgumentCollection;
 import org.bgi.flexlab.gaea.util.Utils;
 
 import htsjdk.samtools.SAMSequenceDictionary;
@@ -27,7 +27,7 @@ public final class AssemblyRegionTrimmer {
      */
     private boolean emitReferenceConfidence;
 
-    private AssemblyRegionTrimmerArgumentCollection assemblyRegionTrimmerArgs;
+    private StandardCallerArgumentCollection standardArgs;
 
     private SAMSequenceDictionary sequenceDictionary;
 
@@ -48,16 +48,16 @@ public final class AssemblyRegionTrimmer {
      * @throws IllegalArgumentException if the input location parser is {@code null}.
      * @throws CommandLineException.BadArgumentValue if any of the user argument values is invalid.
      */
-    public void initialize(final AssemblyRegionTrimmerArgumentCollection assemblyRegionTrimmerArgs, final SAMSequenceDictionary sequenceDictionary, final boolean debug, final boolean isGGA, final boolean emitReferenceConfidence) {
-        if (this.assemblyRegionTrimmerArgs != null) {
+    public void initialize(final StandardCallerArgumentCollection assemblyRegionTrimmerArgs, final SAMSequenceDictionary sequenceDictionary, final boolean debug, final boolean isGGA, final boolean emitReferenceConfidence) {
+        if (this.standardArgs != null) {
             throw new IllegalStateException(getClass().getSimpleName() + " instance initialized twice");
         }
 
-        this.assemblyRegionTrimmerArgs = Utils.nonNull(assemblyRegionTrimmerArgs);;
+        this.standardArgs = Utils.nonNull(assemblyRegionTrimmerArgs);;
         this.sequenceDictionary = sequenceDictionary;
 
         checkUserArguments();
-        usableExtension = isGGA ? this.assemblyRegionTrimmerArgs.ggaExtension : this.assemblyRegionTrimmerArgs.discoverExtension;
+        usableExtension = isGGA ? this.standardArgs.ggaExtension : this.standardArgs.discoverExtension;
         this.emitReferenceConfidence = emitReferenceConfidence;
     }
 
@@ -67,17 +67,17 @@ public final class AssemblyRegionTrimmer {
      * @throws CommandLineException.BadArgumentValue if there is some problem with any of the arguments values.
      */
     private void checkUserArguments() {
-        if ( assemblyRegionTrimmerArgs.snpPadding < 0 ) {
-            throw new UserException.BadArgumentValueException("paddingAroundSNPs", "" + assemblyRegionTrimmerArgs.snpPadding + "< 0");
+        if ( standardArgs.snpPadding < 0 ) {
+            throw new UserException.BadArgumentValueException("paddingAroundSNPs", "" + standardArgs.snpPadding + "< 0");
         }
-        if ( assemblyRegionTrimmerArgs.indelPadding < 0 ) {
-            throw new UserException.BadArgumentValueException("paddingAroundIndels", "" + assemblyRegionTrimmerArgs.indelPadding + "< 0");
+        if ( standardArgs.indelPadding < 0 ) {
+            throw new UserException.BadArgumentValueException("paddingAroundIndels", "" + standardArgs.indelPadding + "< 0");
         }
-        if ( assemblyRegionTrimmerArgs.discoverExtension < 0) {
-            throw new UserException.BadArgumentValueException("maxDiscARExtension", "" + assemblyRegionTrimmerArgs.discoverExtension + "< 0");
+        if ( standardArgs.discoverExtension < 0) {
+            throw new UserException.BadArgumentValueException("maxDiscARExtension", "" + standardArgs.discoverExtension + "< 0");
         }
-        if ( assemblyRegionTrimmerArgs.ggaExtension < 0) {
-            throw new UserException.BadArgumentValueException("maxGGAAREExtension", "" + assemblyRegionTrimmerArgs.ggaExtension + "< 0");
+        if ( standardArgs.ggaExtension < 0) {
+            throw new UserException.BadArgumentValueException("maxGGAAREExtension", "" + standardArgs.ggaExtension + "< 0");
         }
     }
 
@@ -129,7 +129,6 @@ public final class AssemblyRegionTrimmer {
          *
          * @return never {@code null}.
          */
-        @SuppressWarnings("unused")
         public GenomeLocation getIdealSpan() {
             return idealSpan;
         }
@@ -163,7 +162,6 @@ public final class AssemblyRegionTrimmer {
          *
          * @return 0 or greater.
          */
-        @SuppressWarnings("unused")
         public int getPadding() {
             return padding;
         }
@@ -190,7 +188,6 @@ public final class AssemblyRegionTrimmer {
          *
          * @return 0 or greater.
          */
-        @SuppressWarnings("unused")
         public int getUsableExtension() {
             return usableExtension;
         }
@@ -386,7 +383,7 @@ public final class AssemblyRegionTrimmer {
 
         if ( allVariantsWithinExtendedRegion.isEmpty() ) // no variants,
         {
-            return Result.noVariation(emitReferenceConfidence, originalRegion, assemblyRegionTrimmerArgs.snpPadding, usableExtension);
+            return Result.noVariation(emitReferenceConfidence, originalRegion, standardArgs.snpPadding, usableExtension);
         }
 
         final List<VariantContext> withinActiveRegion = new LinkedList<>();
@@ -401,7 +398,7 @@ public final class AssemblyRegionTrimmer {
                 withinActiveRegion.add(vc);
             }
         }
-        final int padding = foundNonSnp ? assemblyRegionTrimmerArgs.indelPadding : assemblyRegionTrimmerArgs.snpPadding;
+        final int padding = foundNonSnp ? standardArgs.indelPadding : standardArgs.snpPadding;
 
         // we don't actually have anything in the region after skipping out variants that don't overlap
         // the region's full location
@@ -409,7 +406,7 @@ public final class AssemblyRegionTrimmer {
             return Result.noVariation(emitReferenceConfidence, originalRegion, padding, usableExtension);
         }
 
-        if ( assemblyRegionTrimmerArgs.dontTrimActiveRegions) {
+        if ( standardArgs.dontTrimActiveRegions) {
             return Result.noTrimming(emitReferenceConfidence, originalRegion, padding, usableExtension, withinActiveRegion);
         }
 
