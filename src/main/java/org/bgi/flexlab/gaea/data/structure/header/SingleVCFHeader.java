@@ -162,7 +162,8 @@ public class SingleVCFHeader extends GaeaVCFHeader implements Serializable{
 	public String getHeaderInfo() {
 		return headerInfo;
 	}
-	
+
+	@Deprecated
 	public VCFHeaderVersion getVCFVersion(VCFHeader vcfHeader) {
 		String versionLine = null;
 		Set<VCFHeaderLine> vcfHeaderLineSet = vcfHeader.getMetaDataInInputOrder();
@@ -171,6 +172,18 @@ public class SingleVCFHeader extends GaeaVCFHeader implements Serializable{
     			versionLine = vcfHeaderLine.toString();
     			break;
     		}
+		}
+		return VCFHeaderVersion.getHeaderVersion("##"+versionLine);
+	}
+
+	public static VCFHeaderVersion getVCFHeaderVersion(VCFHeader vcfHeader) {
+		String versionLine = null;
+		Set<VCFHeaderLine> vcfHeaderLineSet = vcfHeader.getMetaDataInInputOrder();
+		for (VCFHeaderLine vcfHeaderLine : vcfHeaderLineSet) {
+			if(VCFHeaderVersion.isFormatString(vcfHeaderLine.getKey())){
+				versionLine = vcfHeaderLine.toString();
+				break;
+			}
 		}
 		return VCFHeaderVersion.getHeaderVersion("##"+versionLine);
 	}
