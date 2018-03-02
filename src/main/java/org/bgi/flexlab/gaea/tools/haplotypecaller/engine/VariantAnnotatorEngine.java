@@ -27,6 +27,7 @@ import org.bgi.flexlab.gaea.tools.haplotypecaller.annotator.VariantOverlapAnnota
 import org.bgi.flexlab.gaea.tools.haplotypecaller.argumentcollection.VariantAnnotationArgumentCollection;
 import org.bgi.flexlab.gaea.tools.haplotypecaller.utils.ClassUtils;
 import org.bgi.flexlab.gaea.tools.haplotypecaller.utils.ReducibleAnnotationData;
+import org.bgi.flexlab.gaea.tools.jointcalling.genotypegvcfs.annotation.VariantAnnotatorAnnotation;
 import org.bgi.flexlab.gaea.util.Utils;
 import org.reflections.ReflectionUtils;
 
@@ -129,6 +130,7 @@ public final class VariantAnnotatorEngine {
                 argumentCollection.annotationsToExclude,
                 dbSNPInput, comparisonFeatureInputs);
     }
+    
     private VariantOverlapAnnotator initializeOverlapAnnotator(final List<VariantContext> dbSNPInput, final Map<String,List<VariantContext>> featureInputs) {
         final Map<String, List<VariantContext>> overlaps = new LinkedHashMap<>();
         for ( final String fi : featureInputs.keySet()) {

@@ -106,8 +106,6 @@ public final class HaplotypeCallerEngine {
 
 	// writes Haplotypes to a bam file when the -bamout option is specified
 	private Optional<HaplotypeBAMWriter> haplotypeBAMWriter;
-	
-	private static final String ALLELE_VALUE = "ALLELE_VALUE";
 
 	private Set<String> sampleSet;
 	private SampleList samplesList;
@@ -175,19 +173,17 @@ public final class HaplotypeCallerEngine {
 	 * @param referenceReader
 	 *            reader to provide reference data
 	 */
-	public HaplotypeCallerEngine(final HaplotypeCallerArgumentCollection hcArgs, boolean createBamOutIndex,
-			boolean createBamOutMD5, final SAMFileHeader readsHeader) {
-		this(hcArgs, createBamOutIndex, createBamOutMD5, readsHeader, null);
+	public HaplotypeCallerEngine(final HaplotypeCallerArgumentCollection hcArgs, final SAMFileHeader readsHeader) {
+		this(hcArgs, readsHeader, null);
 	}
 
-	public HaplotypeCallerEngine(final HaplotypeCallerArgumentCollection hcArgs, boolean createBamOutIndex,
-			boolean createBamOutMD5, final SAMFileHeader readsHeader,
+	public HaplotypeCallerEngine(final HaplotypeCallerArgumentCollection hcArgs, final SAMFileHeader readsHeader,
 			VariantAnnotatorEngine annotationEngine) {
 		this.hcArgs = Utils.nonNull(hcArgs);
 		this.readsHeader = Utils.nonNull(readsHeader);
 		this.annotationEngine = annotationEngine;
 		this.aligner = SmithWatermanAligner.getAligner(hcArgs.smithWatermanImplementation);
-		initialize(createBamOutIndex, createBamOutMD5);
+		initialize(hcArgs.createOutputBamIndex, hcArgs.createOutputBamMD5);
 	}
 
 	private void initialize(boolean createBamOutIndex, final boolean createBamOutMD5) {
@@ -226,6 +222,14 @@ public final class HaplotypeCallerEngine {
 
 		trimmer.initialize(hcArgs, readsHeader.getSequenceDictionary(), hcArgs.debug,
 				hcArgs.genotypingOutputMode == GenotypingOutputMode.GENOTYPE_GIVEN_ALLELES, emitReferenceConfidence());
+	}
+	
+	public VariantAnnotatorEngine getVariantAnnotatorEngine() {
+		return this.annotationEngine;
+	}
+	
+	public HaplotypeCallerGenotypingEngine getGenotypeingEngine() {
+		return this.genotypingEngine;
 	}
 
 	private boolean isVCFMode() {
@@ -332,7 +336,6 @@ public final class HaplotypeCallerEngine {
 		
 		simpleUAC.CONTAMINATION_FRACTION = 0.0;
 		simpleUAC.CONTAMINATION_FRACTION_FILE = null;
-		simpleUAC.exactCallsLog = null;
 		// Seems that at least with some test data we can lose genuine haploid
 		// variation if we use
 		// UGs engine with ploidy == 1
@@ -560,7 +563,7 @@ public final class HaplotypeCallerEngine {
 
 		final List<VariantContext> givenAlleles = new ArrayList<>();
 		if (hcArgs.genotypingOutputMode == GenotypingOutputMode.GENOTYPE_GIVEN_ALLELES) {
-			features.getValues(ALLELE_VALUE).stream().filter(VariantContext::isNotFiltered)
+			features.getValues(RefMetaDataTracker.ALLELE_VALUE).stream().filter(VariantContext::isNotFiltered)
 					.forEach(givenAlleles::add);
 
 			// No alleles found in this region so nothing to do!

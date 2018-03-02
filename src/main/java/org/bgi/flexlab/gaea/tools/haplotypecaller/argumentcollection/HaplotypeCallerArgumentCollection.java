@@ -17,7 +17,9 @@ import htsjdk.variant.variantcontext.VariantContext;;
 
 public class HaplotypeCallerArgumentCollection extends StandardCallerArgumentCollection{
 
-    public ReadThreadingAssemblerArgumentCollection assemblerArgs = new ReadThreadingAssemblerArgumentCollection();
+	private static final long serialVersionUID = -4395404272491065086L;
+
+	public ReadThreadingAssemblerArgumentCollection assemblerArgs = new ReadThreadingAssemblerArgumentCollection();
 
     public LikelihoodEngineArgumentCollection likelihoodArgs = new LikelihoodEngineArgumentCollection();
 
@@ -34,13 +36,12 @@ public class HaplotypeCallerArgumentCollection extends StandardCallerArgumentCol
      */
     public Map<String,List<VariantContext>> comps = null;
 
-    public boolean debug;
+    public boolean debug = false;
 
     public boolean USE_FILTERED_READ_MAP_FOR_ANNOTATIONS = false;
 
     /**
      * The reference confidence mode makes it possible to emit a per-bp or summarized confidence estimate for a site being strictly homozygous-reference.
-     * See http://www.broadinstitute.org/gatk/guide/article?id=2940 for more details of how this works.
      * Note that if you set -ERC GVCF, you also need to set -variant_index_type LINEAR and -variant_index_parameter 128000 (with those exact values!).
      * This requirement is a temporary workaround for an issue with index compression.
      */
@@ -50,31 +51,6 @@ public class HaplotypeCallerArgumentCollection extends StandardCallerArgumentCol
      * The assembled haplotypes and locally realigned reads will be written as BAM to this file if requested.  Really
      * for debugging purposes only. Note that the output here does not include uninformative reads so that not every
      * input read is emitted to the bam.
-     *
-     * Turning on this mode may result in serious performance cost for the caller.  It's really only appropriate to
-     * use in specific areas where you want to better understand why the caller is making specific calls.
-     *
-     * The reads are written out containing an "HC" tag (integer) that encodes which haplotype each read best matches
-     * according to the haplotype caller's likelihood calculation.  The use of this tag is primarily intended
-     * to allow good coloring of reads in IGV.  Simply go to "Color Alignments By > Tag" and enter "HC" to more
-     * easily see which reads go with these haplotype.
-     *
-     * Note that the haplotypes (called or all, depending on mode) are emitted as single reads covering the entire
-     * active region, coming from sample "HC" and a special read group called "ArtificialHaplotype". This will increase the
-     * pileup depth compared to what would be expected from the reads only, especially in complex regions.
-     *
-     * Note also that only reads that are actually informative about the haplotypes are emitted.  By informative we mean
-     * that there's a meaningful difference in the likelihood of the read coming from one haplotype compared to
-     * its next best haplotype.
-     *
-     * If multiple BAMs are passed as input to the tool (as is common for M2), then they will be combined in the bamout
-     * output and tagged with the appropriate sample names.
-     *
-     * The best way to visualize the output of this mode is with IGV.  Tell IGV to color the alignments by tag,
-     * and give it the "HC" tag, so you can see which reads support each haplotype.  Finally, you can tell IGV
-     * to group by sample, which will separate the potential haplotypes from the reads.  All of this can be seen in
-     * <a href="https://www.dropbox.com/s/xvy7sbxpf13x5bp/haplotypecaller%20bamout%20for%20docs.png">this screenshot</a>
-     *
      */
     public String bamOutputPath = null;
 
@@ -103,16 +79,12 @@ public class HaplotypeCallerArgumentCollection extends StandardCallerArgumentCol
      */
     public boolean justDetermineActiveRegions = false;
 
-    /**
-     * This argument is intended for benchmarking and scalability testing.
-     */
     public boolean dontGenotype = false;
 
     public boolean dontUseSoftClippedBases = false;
 
     public boolean captureAssemblyFailureBAM = false;
 
-    // Parameters to control read error correction
     /**
      * Enabling this argument may cause fundamental problems with the assembly graph itself.
      */
@@ -125,16 +97,11 @@ public class HaplotypeCallerArgumentCollection extends StandardCallerArgumentCol
      */
     public byte minBaseQualityScore = 10;
 
-    //Annotations
-
     public Implementation smithWatermanImplementation = SmithWatermanAligner.Implementation.FASTEST_AVAILABLE;
-    
-	private static final long serialVersionUID = 1L;
 
     /**
      * When HaplotypeCaller is run with -ERC GVCF or -ERC BP_RESOLUTION, some annotations are excluded from the
-     * output by default because they will only be meaningful once they have been recalculated by GenotypeGVCFs. As
-     * of version 3.3 this concerns ChromosomeCounts, FisherStrand, StrandOddsRatio and QualByDepth.
+     * output by default because they will only be meaningful once they have been recalculated by GenotypeGVCFs.
      */
     public VariantAnnotationArgumentCollection variantAnnotationArgumentCollection = new VariantAnnotationArgumentCollection(
             Arrays.asList(StandardAnnotation.class.getSimpleName(), StandardHCAnnotation.class.getSimpleName()),
@@ -183,4 +150,8 @@ public class HaplotypeCallerArgumentCollection extends StandardCallerArgumentCol
     public int indelSizeToEliminateInRefModel = 10;
 
     public boolean USE_ALLELES_TRIGGER = false;
+    
+    public boolean createOutputBamIndex = true;
+
+	public boolean createOutputBamMD5 = true;
 }

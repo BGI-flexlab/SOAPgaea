@@ -514,7 +514,7 @@ public class GenomeLocation implements Comparable<GenomeLocation>, Comparator<Ge
 				Math.max(getEnd(), that.getEnd()));
 	}
 	
-	public static List<GenomeLocation> getGenomeLocationFormWindow(Window win,RegionHdfsParser region){
+	public static List<GenomeLocation> getGenomeLocationFromWindow(Window win,RegionHdfsParser region){
 		List<GenomeLocation> intervals = new ArrayList<GenomeLocation>();
 		if (!intervals.isEmpty())
 			intervals.clear();

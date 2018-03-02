@@ -2,26 +2,36 @@ package org.bgi.flexlab.gaea.tools.haplotypecaller;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
+import org.bgi.flexlab.gaea.data.exception.UserException;
+import org.bgi.flexlab.gaea.data.exception.UserException.BadArgumentValueException;
 import org.bgi.flexlab.gaea.data.mapreduce.input.bed.RegionHdfsParser;
+import org.bgi.flexlab.gaea.data.mapreduce.output.vcf.GaeaVariantContextWriter;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
+import org.bgi.flexlab.gaea.data.structure.location.GenomeLocationParser;
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
+import org.bgi.flexlab.gaea.tools.haplotypecaller.argumentcollection.HaplotypeCallerArgumentCollection;
 import org.bgi.flexlab.gaea.tools.haplotypecaller.assembly.ActivityProfileState;
 import org.bgi.flexlab.gaea.tools.haplotypecaller.assembly.AssemblyRegion;
 import org.bgi.flexlab.gaea.tools.haplotypecaller.downsampler.PositionalDownsampler;
 import org.bgi.flexlab.gaea.tools.haplotypecaller.engine.HaplotypeCallerEngine;
+import org.bgi.flexlab.gaea.tools.haplotypecaller.engine.VariantAnnotatorEngine;
 import org.bgi.flexlab.gaea.tools.haplotypecaller.pileup.AssemblyRegionIterator;
 import org.bgi.flexlab.gaea.tools.haplotypecaller.readfilter.CountingReadFilter;
 import org.bgi.flexlab.gaea.tools.haplotypecaller.readfilter.ReadFilter;
 import org.bgi.flexlab.gaea.tools.haplotypecaller.utils.RefMetaDataTracker;
 import org.bgi.flexlab.gaea.tools.mapreduce.haplotypecaller.HaplotypeCallerOptions;
+import org.bgi.flexlab.gaea.tools.vcfqualitycontrol2.util.GaeaVCFHeaderLines;
+import org.bgi.flexlab.gaea.util.GaeaVCFConstants;
 import org.bgi.flexlab.gaea.util.Utils;
 import org.bgi.flexlab.gaea.util.Window;
 import org.seqdoop.hadoop_bam.SAMRecordWritable;
@@ -29,6 +39,10 @@ import org.seqdoop.hadoop_bam.SAMRecordWritable;
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.util.Locatable;
 import htsjdk.variant.variantcontext.VariantContext;
+import htsjdk.variant.vcf.VCFConstants;
+import htsjdk.variant.vcf.VCFHeader;
+import htsjdk.variant.vcf.VCFHeaderLine;
+import htsjdk.variant.vcf.VCFStandardHeaderLines;
 
 public class HaplotypeCaller {
 	// intervals of windows
@@ -53,7 +67,6 @@ public class HaplotypeCaller {
 	private SAMFileHeader header = null;
 
 	// assembly region output stream
-	// for debug
 	private PrintStream assemblyRegionOutStream = null;
 
 	// activity profile output stream
@@ -78,30 +91,89 @@ public class HaplotypeCaller {
 	private int maxReadsPerAlignmentStart = 0;
 
 	private RefMetaDataTracker features = null;
-	
+
 	private final Map<String, ReadFilter> toolDefaultReadFilters = new LinkedHashMap<>();
-	
+
 	private final Map<String, ReadFilter> allDiscoveredReadFilters = new LinkedHashMap<>();
 
-	public HaplotypeCaller(RegionHdfsParser region, Window win, HaplotypeCallerOptions options,
-			ChromosomeInformationShare ref, Iterable<SAMRecordWritable> iterable, SAMFileHeader header) {
+	private HaplotypeCallerArgumentCollection hcArgs = null;
+
+	private VCFHeader vcfHeader = null;
+
+	private boolean doNotRunPhysicalPhasing = false;
+
+	public HaplotypeCaller(RegionHdfsParser region, HaplotypeCallerOptions options, SAMFileHeader header) {
 		this.options = options;
-		this.ref = ref;
 		this.region = region;
 		this.header = header;
-		this.readsSource = new ReadsDataSource(iterable, header);
-		initializeIntervals(win);
+		hcArgs = options.getHaplotypeCallerArguments();
+		hcEngine = new HaplotypeCallerEngine(hcArgs, header);
+		setHeader();
 	}
 
-	public void dataSourceReset(Window win, Iterable<SAMRecordWritable> iterable, RefMetaDataTracker features) {
+	private void setHeader() {
+		VariantAnnotatorEngine engine = hcEngine.getVariantAnnotatorEngine();
+
+		final Set<VCFHeaderLine> headerInfo = new HashSet<>();
+
+		// initialize the annotations (this is particularly important to turn off
+		// RankSumTest dithering in integration tests)
+		// do this before we write the header because SnpEff adds to header lines
+		headerInfo.addAll(engine.getVCFAnnotationDescriptions());
+
+		headerInfo.addAll(hcEngine.getGenotypeingEngine().getAppropriateVCFInfoHeaders());
+		// all annotation fields from VariantAnnotatorEngine
+		headerInfo.addAll(engine.getVCFAnnotationDescriptions());
+		// all callers need to add these standard annotation header lines
+		headerInfo.add(GaeaVCFHeaderLines.getInfoLine(GaeaVCFConstants.DOWNSAMPLED_KEY));
+		headerInfo.add(GaeaVCFHeaderLines.getInfoLine(GaeaVCFConstants.MLE_ALLELE_COUNT_KEY));
+		headerInfo.add(GaeaVCFHeaderLines.getInfoLine(GaeaVCFConstants.MLE_ALLELE_FREQUENCY_KEY));
+		// all callers need to add these standard FORMAT field header lines
+		VCFStandardHeaderLines.addStandardFormatLines(headerInfo, true, VCFConstants.GENOTYPE_KEY,
+				VCFConstants.GENOTYPE_QUALITY_KEY, VCFConstants.DEPTH_KEY, VCFConstants.GENOTYPE_PL_KEY);
+
+		if (!doNotRunPhysicalPhasing) {
+			headerInfo.add(GaeaVCFHeaderLines.getFormatLine(GaeaVCFConstants.HAPLOTYPE_CALLER_PHASING_ID_KEY));
+			headerInfo.add(GaeaVCFHeaderLines.getFormatLine(GaeaVCFConstants.HAPLOTYPE_CALLER_PHASING_GT_KEY));
+		}
+
+		// FILTER fields are added unconditionally as it's not always 100% certain the
+		// circumstances
+		// where the filters are used. For example, in emitting all sites the lowQual
+		// field is used
+		headerInfo.add(GaeaVCFHeaderLines.getFilterLine(GaeaVCFConstants.LOW_QUAL_FILTER_NAME));
+
+		//getReferenceConfidenceModelHeaderLine(headerInfo);
+
+		vcfHeader = new VCFHeader(headerInfo);
+	}
+
+	private void getReferenceConfidenceModelHeaderLine( SampleList samples,final Set<VCFHeaderLine> headerInfo) {
+		ReferenceConfidenceModel referenceConfidenceModel = new ReferenceConfidenceModel(samples, header,
+				hcArgs.indelSizeToEliminateInRefModel);
+		if (hcArgs.emitReferenceConfidence != ReferenceConfidenceMode.NONE) {
+			headerInfo.addAll(referenceConfidenceModel.getVCFHeaderLines());
+		}
+	}
+
+	public VCFHeader getVCFHeader() {
+		return this.vcfHeader;
+	}
+
+	public void dataSourceReset(Window win, Iterable<SAMRecordWritable> iterable, ChromosomeInformationShare ref,
+			RefMetaDataTracker features) {
 		if (readsSource != null)
 			readsSource.dataReset(iterable);
+		else
+			readsSource = new ReadsDataSource(iterable, header);
+		this.ref = ref;
 		this.features = features;
 		initializeIntervals(win);
+		makeReadsShard(options.getReadShardSize(), options.getReadShardPadding());
 	}
 
 	private void initializeIntervals(Window win) {
-		this.intervals = GenomeLocation.getGenomeLocationFormWindow(win, region);
+		this.intervals = GenomeLocation.getGenomeLocationFromWindow(win, region);
 	}
 
 	private void makeReadsShard(int readShardSize, int readShardPadding) {
@@ -115,66 +187,65 @@ public class HaplotypeCaller {
 			}
 		}
 	}
-	
+
 	public final CountingReadFilter getMergedCountingReadFilter(final SAMFileHeader samHeader) {
-        Utils.nonNull(samHeader);
-        return getMergedReadFilter(
-                samHeader,
-                CountingReadFilter::fromList
-        );
-    }
+		Utils.nonNull(samHeader);
+		return getMergedReadFilter(samHeader, CountingReadFilter::fromList);
+	}
 
-    /**
-     * Merge the default filters with the users's command line read filter requests, then initialize
-     * the resulting filters.
-     *
-     * @param samHeader a SAMFileHeader to initialize read filter instances. May not be null.
-     * @param aggregateFunction function to use to merge ReadFilters, usually ReadFilter::fromList. The function
-     *                          must return the ALLOW_ALL_READS filter wrapped in the appropriate type when passed
-     *                          a null or empty list.
-     * @param <T> extends ReadFilter, type returned by the wrapperFunction
-     * @return Single merged read filter.
-     */
-    public <T extends ReadFilter> T getMergedReadFilter(
-            final SAMFileHeader samHeader,
-            final BiFunction<List<ReadFilter>, SAMFileHeader, T> aggregateFunction) {
+	/**
+	 * Merge the default filters with the users's command line read filter requests,
+	 * then initialize the resulting filters.
+	 *
+	 * @param samHeader
+	 *            a SAMFileHeader to initialize read filter instances. May not be
+	 *            null.
+	 * @param aggregateFunction
+	 *            function to use to merge ReadFilters, usually
+	 *            ReadFilter::fromList. The function must return the ALLOW_ALL_READS
+	 *            filter wrapped in the appropriate type when passed a null or empty
+	 *            list.
+	 * @param <T>
+	 *            extends ReadFilter, type returned by the wrapperFunction
+	 * @return Single merged read filter.
+	 */
+	public <T extends ReadFilter> T getMergedReadFilter(final SAMFileHeader samHeader,
+			final BiFunction<List<ReadFilter>, SAMFileHeader, T> aggregateFunction) {
 
-        Utils.nonNull(samHeader);
-        Utils.nonNull(aggregateFunction);
+		Utils.nonNull(samHeader);
+		Utils.nonNull(aggregateFunction);
 
-        // start with the tool's default filters in the order they were specified, and remove any that were disabled
-        // on the command line
-        // if --disableToolDefaultReadFilters is specified, just initialize an empty list with initial capacity of user filters
-        final List<ReadFilter> finalFilters =
-                options.getDisableToolDefaultReadFilters() ?
-                        new ArrayList<>(options.getUserEnabledReadFilterNames().size()) :
-                        toolDefaultReadFilters.entrySet()
-                                .stream()
-                                .filter(e -> !isDisabledFilter(e.getKey()))
-                                .map(e -> e.getValue())
-                                .collect(Collectors.toList());
+		// start with the tool's default filters in the order they were specified, and
+		// remove any that were disabled
+		// on the command line
+		// if --disableToolDefaultReadFilters is specified, just initialize an empty
+		// list with initial capacity of user filters
+		final List<ReadFilter> finalFilters = options.getDisableToolDefaultReadFilters()
+				? new ArrayList<>(options.getUserEnabledReadFilterNames().size())
+				: toolDefaultReadFilters.entrySet().stream().filter(e -> !isDisabledFilter(e.getKey()))
+						.map(e -> e.getValue()).collect(Collectors.toList());
 
-        // now add in any additional filters enabled on the command line (preserving order)
-        final List<ReadFilter> clFilters = getAllInstances();
-        if (clFilters != null) {
-            clFilters.stream()
-                    .filter(f -> !finalFilters.contains(f)) // remove redundant filters
-                    .forEach(f -> finalFilters.add(f));
-        }
+		// now add in any additional filters enabled on the command line (preserving
+		// order)
+		final List<ReadFilter> clFilters = getAllInstances();
+		if (clFilters != null) {
+			clFilters.stream().filter(f -> !finalFilters.contains(f)) // remove redundant filters
+					.forEach(f -> finalFilters.add(f));
+		}
 
-        return aggregateFunction.apply(finalFilters, samHeader);
-    }
-    
-    private List<ReadFilter> getAllInstances() {
-        final ArrayList<ReadFilter> filters = new ArrayList<>(options.getUserEnabledReadFilterNames().size());
-        options.getUserEnabledReadFilterNames().forEach(s -> {
-            ReadFilter rf = allDiscoveredReadFilters.get(s);
-            filters.add(rf);
-        });
-        return filters;
-    }
+		return aggregateFunction.apply(finalFilters, samHeader);
+	}
 
-	public final void traverse() {
+	private List<ReadFilter> getAllInstances() {
+		final ArrayList<ReadFilter> filters = new ArrayList<>(options.getUserEnabledReadFilterNames().size());
+		options.getUserEnabledReadFilterNames().forEach(s -> {
+			ReadFilter rf = allDiscoveredReadFilters.get(s);
+			filters.add(rf);
+		});
+		return filters;
+	}
+
+	public final void traverse(GaeaVariantContextWriter writer) {
 		CountingReadFilter countedFilter = getMergedCountingReadFilter(header);
 
 		for (final LocalReadShard readShard : shards) {
@@ -187,11 +258,12 @@ public class HaplotypeCaller {
 							: null);
 			currentReadShard = readShard;
 
-			processReadShard(readShard, features);
+			processReadShard(readShard, features, writer);
 		}
 	}
 
-	private void processReadShard(Shard<GaeaSamRecord> shard, RefMetaDataTracker features) {
+	private void processReadShard(Shard<GaeaSamRecord> shard, RefMetaDataTracker features,
+			GaeaVariantContextWriter writer) {
 		final Iterator<AssemblyRegion> assemblyRegionIter = new AssemblyRegionIterator(shard, header, ref, features,
 				hcEngine, minAssemblyRegionSize, maxAssemblyRegionSize, assemblyRegionPadding, activeProbThreshold,
 				maxProbPropagationDistance, true);
@@ -201,7 +273,10 @@ public class HaplotypeCaller {
 		while (assemblyRegionIter.hasNext()) {
 			final AssemblyRegion assemblyRegion = assemblyRegionIter.next();
 			writeAssemblyRegion(assemblyRegion);
-			apply(assemblyRegion, features);
+			List<VariantContext> results = apply(assemblyRegion, features);
+
+			for (VariantContext context : results)
+				writer.write(context);
 		}
 	}
 
@@ -239,13 +314,22 @@ public class HaplotypeCaller {
 		}
 		out.println();
 	}
-	
+
 	public boolean isDisabledFilter(final String filterName) {
-	    return options.getUserDisabledReadFilterNames().contains(filterName)
-	            || (options.getDisableToolDefaultReadFilters() && !options.getUserEnabledReadFilterNames().contains(filterName));
+		return options.getUserDisabledReadFilterNames().contains(filterName)
+				|| (options.getDisableToolDefaultReadFilters()
+						&& !options.getUserEnabledReadFilterNames().contains(filterName));
 	}
-	
+
 	public void setReadFilters() {
-		
+
+	}
+
+	public GenomeLocation getCurrentLocation() {
+		return this.currentReadShard.getInterval();
+	}
+
+	public void clear() {
+
 	}
 }

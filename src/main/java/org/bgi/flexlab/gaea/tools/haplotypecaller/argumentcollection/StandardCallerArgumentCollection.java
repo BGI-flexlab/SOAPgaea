@@ -24,8 +24,6 @@ public class StandardCallerArgumentCollection implements Serializable {
      */
     public AFCalculatorImplementation requestedAlleleFrequencyCalculationModel;
 
-    public File exactCallsLog = null;
-
     public OutputMode outputMode = OutputMode.EMIT_VARIANTS_ONLY;
 
     /**
@@ -183,7 +181,6 @@ public class StandardCallerArgumentCollection implements Serializable {
             setSampleContamination(other.sampleContamination);
         }
         this.requestedAlleleFrequencyCalculationModel = other.requestedAlleleFrequencyCalculationModel;
-        this.exactCallsLog = other.exactCallsLog != null ? new File(other.exactCallsLog.getAbsolutePath()) : null;
         this.outputMode = other.outputMode;
         this.annotateAllSitesWithPLs = other.annotateAllSitesWithPLs;
         

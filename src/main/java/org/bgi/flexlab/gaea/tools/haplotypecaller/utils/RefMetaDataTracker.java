@@ -17,6 +17,9 @@ public class RefMetaDataTracker {
 	
 	private HashMap<String,List<VariantContext>> dataSources = null;
 	
+	public static final String ALLELE_VALUE = "ALLELE_VALUE";
+	public static final String DB_VALUE = "DB";
+	
 	public RefMetaDataTracker(GenomeLocation location){
 		this.location = location;
 	}
