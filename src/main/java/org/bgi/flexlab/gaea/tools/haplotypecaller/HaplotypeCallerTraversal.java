@@ -11,10 +11,9 @@ import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
-import org.bgi.flexlab.gaea.data.exception.UserException;
-import org.bgi.flexlab.gaea.data.exception.UserException.BadArgumentValueException;
 import org.bgi.flexlab.gaea.data.mapreduce.input.bed.RegionHdfsParser;
 import org.bgi.flexlab.gaea.data.mapreduce.output.vcf.GaeaVariantContextWriter;
+import org.bgi.flexlab.gaea.data.mapreduce.writable.SamRecordWritable;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocationParser;
@@ -34,7 +33,6 @@ import org.bgi.flexlab.gaea.tools.vcfqualitycontrol2.util.GaeaVCFHeaderLines;
 import org.bgi.flexlab.gaea.util.GaeaVCFConstants;
 import org.bgi.flexlab.gaea.util.Utils;
 import org.bgi.flexlab.gaea.util.Window;
-import org.seqdoop.hadoop_bam.SAMRecordWritable;
 
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.util.Locatable;
@@ -44,7 +42,7 @@ import htsjdk.variant.vcf.VCFHeader;
 import htsjdk.variant.vcf.VCFHeaderLine;
 import htsjdk.variant.vcf.VCFStandardHeaderLines;
 
-public class HaplotypeCaller {
+public class HaplotypeCallerTraversal {
 	// intervals of windows
 	private List<GenomeLocation> intervals = null;
 
@@ -102,7 +100,7 @@ public class HaplotypeCaller {
 
 	private boolean doNotRunPhysicalPhasing = false;
 
-	public HaplotypeCaller(RegionHdfsParser region, HaplotypeCallerOptions options, SAMFileHeader header) {
+	public HaplotypeCallerTraversal(RegionHdfsParser region, HaplotypeCallerOptions options, SAMFileHeader header) {
 		this.options = options;
 		this.region = region;
 		this.header = header;
@@ -160,7 +158,7 @@ public class HaplotypeCaller {
 		return this.vcfHeader;
 	}
 
-	public void dataSourceReset(Window win, Iterable<SAMRecordWritable> iterable, ChromosomeInformationShare ref,
+	public void dataSourceReset(Window win, Iterable<SamRecordWritable> iterable, ChromosomeInformationShare ref,
 			RefMetaDataTracker features) {
 		if (readsSource != null)
 			readsSource.dataReset(iterable);

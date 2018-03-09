@@ -27,7 +27,7 @@ public abstract class GaeaOptions {
 	protected CommandLineParser parser = new PosixParser();
 	protected HelpFormatter helpInfo = new HelpFormatter();
 	protected List<Option> optionsList = new ArrayList<Option>();
-
+	
 	/**
 	 * parse parameter
 	 */
@@ -55,6 +55,10 @@ public abstract class GaeaOptions {
 		helpInfo.setSyntaxPrefix("hadoop jar " + "gaea.jar " + softwareName
 				+ " [options]\n" + sb.toString() + "\n");
 		helpInfo.setWidth(2 * HelpFormatter.DEFAULT_WIDTH);
+	}
+	
+	protected void initialization() {
+		
 	}
 
 	protected void printHelpInfotmation(String softwareName) {

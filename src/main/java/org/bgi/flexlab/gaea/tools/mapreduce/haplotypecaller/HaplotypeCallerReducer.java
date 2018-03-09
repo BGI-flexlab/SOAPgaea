@@ -9,6 +9,7 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.bgi.flexlab.gaea.data.mapreduce.input.bed.RegionHdfsParser;
 import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamHdfsFileHeader;
 import org.bgi.flexlab.gaea.data.mapreduce.util.VariantContextHadoopWriter;
+import org.bgi.flexlab.gaea.data.mapreduce.writable.SamRecordWritable;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.WindowsBasedWritable;
 import org.bgi.flexlab.gaea.data.structure.dbsnp.DbsnpShare;
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
@@ -16,7 +17,7 @@ import org.bgi.flexlab.gaea.data.structure.reference.ReferenceShare;
 import org.bgi.flexlab.gaea.data.structure.reference.index.VcfIndex;
 import org.bgi.flexlab.gaea.data.structure.vcf.VCFLocalLoader;
 import org.bgi.flexlab.gaea.data.variant.filter.VariantRegionFilter;
-import org.bgi.flexlab.gaea.tools.haplotypecaller.HaplotypeCaller;
+import org.bgi.flexlab.gaea.tools.haplotypecaller.HaplotypeCallerTraversal;
 import org.bgi.flexlab.gaea.tools.haplotypecaller.utils.RefMetaDataTracker;
 import org.bgi.flexlab.gaea.util.Window;
 import org.seqdoop.hadoop_bam.SAMRecordWritable;
@@ -25,7 +26,7 @@ import org.seqdoop.hadoop_bam.VariantContextWritable;
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.variant.variantcontext.VariantContext;
 
-public class HaplotypeCallerReducer extends Reducer<WindowsBasedWritable, SAMRecordWritable, NullWritable, VariantContextWritable>{
+public class HaplotypeCallerReducer extends Reducer<WindowsBasedWritable, SamRecordWritable, NullWritable, VariantContextWritable>{
 
 	/**
      * region
@@ -63,7 +64,7 @@ public class HaplotypeCallerReducer extends Reducer<WindowsBasedWritable, SAMRec
 	 */
 	private VariantRegionFilter filter = null;
 	
-	private HaplotypeCaller haplotypecaller = null;
+	private HaplotypeCallerTraversal haplotypecaller = null;
 	
 	/**
 	 * variant context writer
@@ -97,7 +98,7 @@ public class HaplotypeCallerReducer extends Reducer<WindowsBasedWritable, SAMRec
         	alleleLoader = new VCFLocalLoader(options.getAlleleFile());
         }
         
-        haplotypecaller = new HaplotypeCaller(region,options,header);
+        haplotypecaller = new HaplotypeCallerTraversal(region,options,header);
         
         writer = new VariantContextHadoopWriter(context,haplotypecaller.getVCFHeader());
 	}
@@ -133,7 +134,7 @@ public class HaplotypeCallerReducer extends Reducer<WindowsBasedWritable, SAMRec
 	}
 	
 	@Override
-    public void reduce(WindowsBasedWritable key, Iterable<SAMRecordWritable> values, Context context) throws IOException, InterruptedException {
+    public void reduce(WindowsBasedWritable key, Iterable<SamRecordWritable> values, Context context) throws IOException, InterruptedException {
 		Window win = new Window(header, key.getChromosomeIndex(), key.getWindowsNumber(), options.getWindowSize());
 		
 		int start = key.getWindowsNumber() * options.getWindowSize() ;

@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.bgi.flexlab.gaea.data.mapreduce.writable.SamRecordWritable;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
-import org.seqdoop.hadoop_bam.SAMRecordWritable;
 
 import htsjdk.samtools.SAMFileHeader;
 
@@ -14,18 +14,18 @@ public class ReadsDataSource {
 	private GaeaSamRecord currentRecord = null;
 
 	// reads iterator
-	private Iterable<SAMRecordWritable> reads;
+	private Iterable<SamRecordWritable> reads;
 	
 	private List<GaeaSamRecord> overlaps = new ArrayList<GaeaSamRecord>();
 	
 	private SAMFileHeader header = null;
 
-	public ReadsDataSource(Iterable<SAMRecordWritable> iterable,SAMFileHeader header) {
+	public ReadsDataSource(Iterable<SamRecordWritable> iterable,SAMFileHeader header) {
 		this.reads = iterable;
 		this.header = header;
 	}
 	
-	public void dataReset(Iterable<SAMRecordWritable> iterable){
+	public void dataReset(Iterable<SamRecordWritable> iterable){
 		reads = iterable;
 		if(!overlaps.isEmpty())
 			overlaps.clear();
@@ -53,7 +53,7 @@ public class ReadsDataSource {
 		}
 		
 		if(traversalIsBounded){
-			for(SAMRecordWritable srw : reads){
+			for(SamRecordWritable srw : reads){
 				currentRecord = new GaeaSamRecord(header,srw.get());
 				if(currentRecord.getEnd() < queryInterval.getStart())
 					continue;
