@@ -24,6 +24,7 @@ import org.apache.hadoop.fs.Path;
 import org.bgi.flexlab.gaea.data.mapreduce.options.HadoopOptions;
 import org.bgi.flexlab.gaea.data.options.GaeaOptions;
 import org.seqdoop.hadoop_bam.SAMFormat;
+import org.seqdoop.hadoop_bam.VCFOutputFormat;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,16 +36,22 @@ import java.util.Date;
  * Created by huangzhibo on 2017/7/7.
  */
 public class AnnotatorOptions extends GaeaOptions implements HadoopOptions{
+
+    //the results file format:  tsv,vcf
+    public enum OutputFormat {
+        TSV, VCF
+    }
+
     private final static String SOFTWARE_NAME = "Annotator";
     private final static String SOFTWARE_VERSION = "1.0";
 
-    private String configFile = null; //用户配置文件
-    //	private String outputType = null; //输出格式 txt,vcf
-    private String tmpPath = null; //输出格式 txt,vcf
-    private String outputPath = null;
-    private String inputFilePath = null;
+    private String configFile; //用户配置文件
+    private OutputFormat outputFormat;
+    private String tmpPath;
+    private String outputPath;
+    private String inputFilePath;
 
-    private String referenceSequencePath = null; //参考序列gaeaindex
+    private String referenceSequencePath; //参考序列gaeaindex
 
     private boolean multiOutput = false;
     private boolean verbose = false;
@@ -57,7 +64,7 @@ public class AnnotatorOptions extends GaeaOptions implements HadoopOptions{
         addOption("o", "output",     true,  "output file of annotation results(.gz) [request]", true);
         addOption("c", "config",     true,  "config file. [request]", true);
         addOption("r", "reference",  true,  "indexed reference sequence file list [request]", true);
-        //addOption("T", "outputType", true,  "output file foramt[txt, vcf].");
+        addOption("O", "outputFormat", true,  "output file foramt (TSV, VCF) [TSV].");
         addOption("M", "MultiOutput", true,  "output to multi file when have more than one sample");
         addOption(null,"verbose",    false, "display verbose information.");
         addOption(null,"debug",      false, "for debug.");
@@ -89,6 +96,7 @@ public class AnnotatorOptions extends GaeaOptions implements HadoopOptions{
 
         setInputFilePath(cmdLine.getOptionValue("input"));
         setConfigFile(cmdLine.getOptionValue("config"));
+        setOutputFormat(OutputFormat.valueOf(cmdLine.getOptionValue("outputFormat", "TSV")));
         setReferenceSequencePath(cmdLine.getOptionValue("reference",""));
         setMultiOutput(getOptionBooleanValue("multiOutput", false));
         setOutputPath(cmdLine.getOptionValue("output"));
@@ -134,11 +142,6 @@ public class AnnotatorOptions extends GaeaOptions implements HadoopOptions{
 
     public void setTmpPath(String tmpPath) {
         this.tmpPath = tmpPath;
-    }
-
-    public String getOutputType() {
-//		return outputType;
-        return "txt";
     }
 
     public String getInputFilePath() {
@@ -195,5 +198,13 @@ public class AnnotatorOptions extends GaeaOptions implements HadoopOptions{
 
     public void setMultiOutput(boolean multiOutput) {
         this.multiOutput = multiOutput;
+    }
+
+    public OutputFormat getOutputFormat() {
+        return outputFormat;
+    }
+
+    public void setOutputFormat(OutputFormat outputFormat) {
+        this.outputFormat = outputFormat;
     }
 }

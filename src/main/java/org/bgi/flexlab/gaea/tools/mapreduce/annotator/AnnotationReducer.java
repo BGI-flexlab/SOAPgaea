@@ -18,6 +18,7 @@ package org.bgi.flexlab.gaea.tools.mapreduce.annotator;
 
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFCodec;
+import htsjdk.variant.vcf.VCFEncoder;
 import htsjdk.variant.vcf.VCFHeader;
 import htsjdk.variant.vcf.VCFHeaderVersion;
 import org.apache.hadoop.conf.Configuration;
@@ -36,18 +37,20 @@ import org.bgi.flexlab.gaea.tools.annotator.VcfAnnoContext;
 import org.bgi.flexlab.gaea.tools.annotator.config.Config;
 import org.bgi.flexlab.gaea.tools.annotator.db.DBAnnotator;
 import org.bgi.flexlab.gaea.util.ChromosomeUtils;
+import org.seqdoop.hadoop_bam.VariantContextWritable;
 
 import java.io.IOException;
 import java.util.*;
 
-public class AnnotationReducer extends Reducer<Text, VcfLineWritable, NullWritable, Text> {
+public class AnnotationReducer extends Reducer<Text, VcfLineWritable, Text, Text> {
 
+	private Text resultKey = new Text();
 	private Text resultValue = new Text();
 	private AnnotatorOptions options;
 	private HashMap<String, VCFCodec> vcfCodecs;
+	private HashMap<String, VCFHeader> vcfHeaders;
 	private AnnotationEngine annoEngine;
 	private DBAnnotator dbAnnotator;
-	private MultipleOutputs<NullWritable, Text> multipleOutputs;
 	Config userConfig;
 	long mapTime = 0;
 	long mapCount = 0;
@@ -74,6 +77,7 @@ public class AnnotationReducer extends Reducer<Text, VcfLineWritable, NullWritab
 		if(options.isDebug())
 			System.err.println("build SnpEffectPredictor耗时：" + (System.currentTimeMillis()-start)+"毫秒");
 		vcfCodecs = new HashMap<>();
+		vcfHeaders = new HashMap<>();
 		Path inputPath = new Path(options.getInputFilePath());
 		FileSystem fs = inputPath.getFileSystem(conf);
 		FileStatus[] files = fs.listStatus(inputPath);
@@ -83,10 +87,11 @@ public class AnnotationReducer extends Reducer<Text, VcfLineWritable, NullWritab
 				SingleVCFHeader singleVcfHeader = new SingleVCFHeader();
 				singleVcfHeader.readHeaderFrom(file.getPath(), fs);
 				VCFHeader vcfHeader = singleVcfHeader.getHeader();
-				VCFHeaderVersion vcfVersion = singleVcfHeader.getVCFVersion(vcfHeader);
+				VCFHeaderVersion vcfVersion = SingleVCFHeader.getVCFHeaderVersion(vcfHeader);
 				VCFCodec vcfcodec = new VCFCodec();
 				vcfcodec.setVCFHeader(vcfHeader, vcfVersion);
 				vcfCodecs.put(file.getPath().getName(), vcfcodec);
+				vcfHeaders.put(file.getPath().getName(), vcfHeader);
 			}
 
 		}
@@ -106,10 +111,6 @@ public class AnnotationReducer extends Reducer<Text, VcfLineWritable, NullWritab
 		}
 		System.err.println("dbAnnotator.connection耗时：" + (System.currentTimeMillis()-start)+"毫秒");
 
-		// 注释结果header信息
-		resultValue.set(userConfig.getHeader());
-		context.write(NullWritable.get(), resultValue);
-		System.err.println("mapper.setup耗时：" + (System.currentTimeMillis()-setupStart)+"毫秒");
 	}
 
 	@Override
@@ -128,14 +129,16 @@ public class AnnotationReducer extends Reducer<Text, VcfLineWritable, NullWritab
 			VariantContext variantContext =  vcfCodecs.get(fileName).decode(vcfLine);
 			String refStr = variantContext.getReference().getBaseString();
 			int pos = variantContext.getStart();
+
+
 			if(!positions.contains(pos))
 				positions.add(pos);
 			String posKey = pos + refStr;
 			posToPosKey.put(pos, posKey);
 			if(posVariantInfo.containsKey(posKey)){
-				posVariantInfo.get(posKey).add(variantContext);
+				posVariantInfo.get(posKey).add(variantContext, fileName);
 			}else {
-				VcfAnnoContext vcfAnnoContext = new VcfAnnoContext(variantContext);
+				VcfAnnoContext vcfAnnoContext = new VcfAnnoContext(variantContext, fileName);
 				posVariantInfo.put(posKey, vcfAnnoContext);
 			}
 		}
@@ -162,14 +165,28 @@ public class AnnotationReducer extends Reducer<Text, VcfLineWritable, NullWritab
 					}
 				}
 			}
-			if (!annoEngine.annotate(vcfAnnoContext)) {
-				continue;
+			if(){
+				dbAnnotator.annotate(vcfAnnoContext, );
+			}else {
+				if (!annoEngine.annotate(vcfAnnoContext)) {
+					continue;
+				}
+				dbAnnotator.annotate(vcfAnnoContext);
 			}
-			dbAnnotator.annotate(vcfAnnoContext);
-			List<String> annoLines = vcfAnnoContext.toAnnotationStrings(userConfig);
-			for (String annoLine : annoLines) {
-				resultValue.set(annoLine);
-				context.write(NullWritable.get(), resultValue);
+
+			Map<String, List<VariantContext>> annos = vcfAnnoContext.toAnnotationVariantContexts();
+			for(String filename: annos.keySet()){
+				resultKey.set(filename);
+				VCFHeader vcfHeader = vcfHeaders.get(filename);
+				List<VariantContext> variantContexts = annos.get(filename);
+				VCFEncoder vcfEncoder = new VCFEncoder(vcfHeader, true, true);
+				for(VariantContext vc: variantContexts){
+					String vcfLine = vcfEncoder.encode(vc);
+//					VariantContextWritable vcw = new VariantContextWritable();
+//					vcw.set(vc, vcfHeader);
+					resultValue.set(vcfLine);
+					context.write(resultKey, resultValue);
+				}
 			}
 		}
 

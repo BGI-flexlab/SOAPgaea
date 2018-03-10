@@ -50,12 +50,17 @@ public class AnnotationEngine{
 		List<Variant> variants = vac.variants(config.getGenome());
 		for (Variant variant : variants) {
 			// Calculate effects: By default do not annotate non-variant sites
-			if (variant.isVariant()) {
-				VariantEffects variantEffects = snpEffectPredictor.variantEffect(variant);
-				for (VariantEffect variantEffect : variantEffects) {
-					AnnotationContext annotationContext = new AnnotationContext(variantEffect);
-					annotationContexts.add(annotationContext);
+			try {
+				if (variant.isVariant()) {
+					VariantEffects variantEffects = snpEffectPredictor.variantEffect(variant);
+					for (VariantEffect variantEffect : variantEffects) {
+						AnnotationContext annotationContext = new AnnotationContext(variantEffect, config);
+						annotationContexts.add(annotationContext);
+					}
 				}
+			}catch (Exception e){
+				e.printStackTrace();
+				System.err.println("Variant:" + variant.toStr());
 			}
 		}
 		

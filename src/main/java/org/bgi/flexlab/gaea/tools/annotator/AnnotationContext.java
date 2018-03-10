@@ -34,7 +34,9 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.annotator;
 
+import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.vcf.VCFConstants;
+import org.bgi.flexlab.gaea.tools.annotator.config.Config;
 import org.bgi.flexlab.gaea.tools.annotator.effect.EffectType;
 import org.bgi.flexlab.gaea.tools.annotator.effect.VariantEffect;
 import org.bgi.flexlab.gaea.tools.annotator.effect.VariantEffect.FunctionalClass;
@@ -80,6 +82,7 @@ public class AnnotationContext implements Serializable{
 
 
 	Variant variant;
+	Allele allele;
 	String vcfFieldString; // Original 'raw' string from VCF Info field
 	String vcfFieldStrings[]; // Original 'raw' strings from VCF info field: effectString.split()
 	EffectType effectType;
@@ -106,13 +109,17 @@ public class AnnotationContext implements Serializable{
 	boolean useFirstEffect;
 	String strand;
 
-	private static Map<String, Object> NO_VALUE = Collections.unmodifiableMap(new HashMap<String, Object>());
-	private Map<String, Object> annoItems = NO_VALUE;
+	private Map<String, Object> annoItems;
 
 	public AnnotationContext() {}
 
 	public AnnotationContext(VariantEffect variantEffect) {
 		this(variantEffect, true, false);
+	}
+
+	public AnnotationContext(VariantEffect variantEffect, Config config) {
+		this(variantEffect, true, false);
+		config.getDbNameList();
 	}
 
 	public AnnotationContext(VariantEffect variantEffect, boolean useSequenceOntology, boolean useFirstEffect) {
@@ -133,6 +140,7 @@ public class AnnotationContext implements Serializable{
 		useHgvs = true;
 		useGeneId = false;
 		strand = ".";
+		annoItems = new HashMap<>();
 	}
 
 
@@ -153,8 +161,6 @@ public class AnnotationContext implements Serializable{
 	public void putAnnoItems(Map<String, ?> map) {
         if ( map != null ) {
             if (annoItems.isEmpty()) {
-                if ( annoItems == NO_VALUE )
-                	annoItems = new HashMap<String, Object>();
                 annoItems.putAll(map);
             } else {
                 for ( Map.Entry<String, ?> elt : map.entrySet() ) {
@@ -171,10 +177,6 @@ public class AnnotationContext implements Serializable{
 	public void putAnnoItem(String key, Object value, boolean allowOverwrites) {
         if ( ! allowOverwrites && hasAnnoItem(key) )
             throw new IllegalStateException("Attempting to overwrite key->value binding: key = " + key + " this = " + this);
-
-        if ( annoItems == NO_VALUE )
-        	annoItems = new HashMap<String, Object>();
-
         annoItems.put(key, value);
     }
 
@@ -185,8 +187,7 @@ public class AnnotationContext implements Serializable{
 
 
 	public void clearAnnoItems() {
-		annoItems = new HashMap<String, Object>();
-		
+		annoItems = new HashMap<>();
 	}
 	
 	
@@ -269,8 +270,8 @@ public class AnnotationContext implements Serializable{
 		return aaPos;
 	}
 
-	public String getAllele() {
-		return genotype;
+	public String getAlt() {
+		return variant.getAlt();
 	}
 
 	public BioType getBioType() {
@@ -381,10 +382,10 @@ public class AnnotationContext implements Serializable{
 			return effectTypesStr;
 
 		case "IMPACT":
-			return impact != null ? impact.toString() : "";
+			return impact != null ? impact.toString() : ".";
 
 		case "FUNCLASS":
-			return funClass != null ? funClass.toString() : "";
+			return funClass != null ? funClass.toString() : ".";
 
 		case "GENE":
 			return geneName;
@@ -403,7 +404,7 @@ public class AnnotationContext implements Serializable{
 			return transcriptId;
 
 		case "BIOTYPE":
-			return (bioType == null ? "" : bioType.toString());
+			return (bioType == null ? "." : bioType.toString());
 
 		case "RANK":
 		case "EXON_RANK":
@@ -456,7 +457,7 @@ public class AnnotationContext implements Serializable{
 			return Integer.toString(aaLen);
 
 		case "CODING":
-			return coding != null ? coding.toString() : "";
+			return coding != null ? coding.toString() : ".";
 
 		case "DISTANCE":
 			return Integer.toString(distance);
@@ -548,15 +549,17 @@ public class AnnotationContext implements Serializable{
 	void set(VariantEffect variantEffect) {
 		// Allele
 		variant = variantEffect.getVariant();
+		allele = Allele.create(variant.getAlt(), false);
 		Gene gene = variantEffect.getGene();
 		Marker marker = variantEffect.getMarker();
 		Transcript tr = variantEffect.getTranscript();
 
 		// Genotype
-		if (variant.getGenotype() != null) genotype = variant.getGenotype();
-		else if (!variant.isVariant()) genotype = variant.getReference();
-		else genotype = variant.getAlt();
+//		if (variant.getGenotype() != null) genotype = variant.getGenotype();
+//		else if (!variant.isVariant()) genotype = variant.getReference();
+//		else genotype = variant.getAlt();
 		// else if (var.isNonRef()) genotype = var.getGenotype();
+
 
 		// Effect
 		effectType = variantEffect.getEffectType();
@@ -804,5 +807,26 @@ public class AnnotationContext implements Serializable{
 	public void setUseHgvs(boolean useHgvs) {
 		this.useHgvs = useHgvs;
 	}
+
+	public Variant getVariant() {
+		return variant;
+	}
+
+	public void setVariant(Variant variant) {
+		this.variant = variant;
+	}
+
+	public void setAllele(Allele allele) {
+		this.allele = allele;
+	}
+
+	public Allele getAllele() {
+		return allele;
+	}
+
+	public String toAnnoString(){
+		return "None";
+	}
+
 
 }

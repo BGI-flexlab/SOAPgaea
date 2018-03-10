@@ -65,6 +65,23 @@ public class DBAnnotator implements Serializable{
 		}
 	}
 
+	public void annotate(VcfAnnoContext vac, String dbName) throws IOException {
+		Condition condition = dbConditionHashMap.get(dbName);
+		condition.createConditionMap(vac);
+
+		DBQuery dbQuery = DbQueryMap.get(dbName);
+		if (!dbQuery.executeQuery(condition)) return;
+
+		for (AnnotationContext annotationContext : vac.getAnnotationContexts()) {
+			LinkedList<HashMap<String,String>> resultList = dbQuery.getAcResultList(annotationContext);
+			HashMap<String,String> result = mergeResult(resultList);
+			if (result == null) continue;
+			for (Entry<String, String> entry : result.entrySet()) {
+				annotationContext.putAnnoItem(entry.getKey(),entry.getValue(),false);
+			}
+		}
+	}
+
 	private HashMap<String, String> mergeResult(
 			LinkedList<HashMap<String, String>> resultList) {
 		if (resultList == null || resultList.isEmpty()) return null;

@@ -6,6 +6,23 @@
     "VCF":"/hwfssz1/BIGDATA_COMPUTING/hadoop/huangkaiwen/test/clinvar"
   },
   "databaseInfo":{
+    "ANNO":{
+      "database":"HBASE",
+      "queryClassName":"AnnoDBquery",
+      "queryCondition":"CHR_POS_END",
+      "dbVersion":{
+        "GRCh37":{
+          "table":"annotation:t_hg19_anno",
+          "key":"id",
+          "indexTable":"annotation:t_hg19_anno_index"
+        },
+        "GRCh38":{
+          "table":"annotation:t_hg38_anno",
+          "key":"id",
+          "indexTable":"annotation:t_hg19_anno_index"
+        }
+      }
+    },
     "HGNC":{
       "database":"HBASE",
       "queryClassName":"GeneDBQuery",

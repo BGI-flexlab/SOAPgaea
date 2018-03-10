@@ -71,6 +71,8 @@ public class Config implements Serializable {
 	private HashMap<String, ArrayList<String>> annoFieldsByDB = null;  // fields in user config
 	private DatabaseJson databaseJson;
 	private List<String> dbNameList;
+	private List<String> fields = new ArrayList<>();
+	private Map<String, String> headerByField = new HashMap<>();
 	private Properties properties;
 	private Genome genome;
 	private SnpEffectPredictor snpEffectPredictor;
@@ -218,46 +220,54 @@ public class Config implements Serializable {
 		
 		annoFieldsByDB = new HashMap<>();
 		dbNameList = new ArrayList<>();
-		
-		//用户配置文件中注释字段的配置格式： dbSNP.fields = RS,DBSNP_CAF,DBSNP_COMMON,dbSNPBuildID
+
+		//用户配置文件中注释字段的配置格式： dbName.N.fields = field1:header1,field2,field3
 		for (String key : keys) {
 			if (key.endsWith(ANNO_FIELDS_SUFIX)) {
 				String dbName = key.substring(0, key.length() - ANNO_FIELDS_SUFIX.length());
+				if(dbName.contains(".")){
+					dbName = key.substring(0, dbName.lastIndexOf('.'));
+				}
 				String[] annoFields = properties.getProperty(key).split(",");
 				ArrayList<String> annoFieldList = new ArrayList<>();
-				
-				if (!key.startsWith(KEY_GENE_INFO)) {
-					DatabaseInfo dbInfo = databaseJson.getDatabaseInfo(dbName);
-					HashMap<String, String> fieldMap = dbInfo.getFields();
-					for (int i = 0; i < annoFields.length; i++) {
-						String annoField = annoFields[i];
-						if (!fieldMap.containsValue(annoField)) {
-							if(annoField.startsWith(dbName)){
-								fieldMap.put(annoField, annoField);
-								annoFieldList.add(annoField);
-							}else {
-								annoFields[i] = dbName+"_"+annoField;
-								fieldMap.put(annoFields[i], annoField);
-								annoFieldList.add(annoFields[i]);
-							}
-						}else {
-							for (Map.Entry<String, String> entry : fieldMap.entrySet()) {
-								if(entry.getValue().equalsIgnoreCase(annoField))
-									annoFieldList.add(entry.getKey());
-							}
+
+				for (String annoField : annoFields) {
+					if (annoField.contains(":")) {
+						String[] tags = annoField.split(":");
+						fields.add(tags[0]);
+						headerByField.put(tags[0], tags[1]);
+						annoFieldList.add(tags[0]);
+					} else {
+						annoFieldList.add(annoField);
+						fields.add(annoField);
+						if(!key.startsWith(KEY_GENE_INFO) && !annoField.startsWith(dbName)){
+							headerByField.put(annoField, dbName+"_"+annoField);
 						}
 					}
-					dbNameList.add(dbName);
-				}else {
-					annoFieldList.addAll(Arrays.asList(annoFields));
 				}
-				annoFieldsByDB.put(dbName, annoFieldList);
+
+				if (!key.startsWith(KEY_GENE_INFO)) {
+					dbNameList.add(dbName);
+				}
+
+				if(annoFieldsByDB.containsKey(dbName))
+					annoFieldsByDB.get(dbName).addAll(annoFieldList);
+				else
+					annoFieldsByDB.put(dbName, annoFieldList);
 			}
 		}
 		
 		return true;
 	}
-	
+
+	public List<String> getFields() {
+		return fields;
+	}
+
+	public Map<String, String> getHeaderByField() {
+		return headerByField;
+	}
+
 	public ArrayList<String> getFieldsByDB(String dbName){
 		return annoFieldsByDB.get(dbName);
 	}

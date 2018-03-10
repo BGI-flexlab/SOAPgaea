@@ -23,15 +23,18 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapred.lib.MultipleTextOutputFormat;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.LazyOutputFormat;
+import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
+import org.bgi.flexlab.gaea.data.mapreduce.output.vcf.VCFHdfsWriter;
 import org.bgi.flexlab.gaea.data.structure.header.SingleVCFHeader;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.BioJob;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.ToolsRunner;
+import org.seqdoop.hadoop_bam.VCFOutputFormat;
+import org.seqdoop.hadoop_bam.VariantContextWritable;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -51,9 +54,11 @@ public class Annotator extends ToolsRunner {
         conf = new Configuration();
         String[] remainArgs = remainArgs(arg0, conf);
 
-        options = new AnnotatorOptions();
+
+                options = new AnnotatorOptions();
         options.parse(remainArgs);
         options.setHadoopConf(remainArgs, conf);
+        conf.set(VCFOutputFormat.OUTPUT_VCF_FORMAT_PROPERTY, "VCF");
         BioJob job = BioJob.getInstance(conf);
 
         job.setJobName("GaeaAnnotator");
@@ -66,9 +71,10 @@ public class Annotator extends ToolsRunner {
         job.setMapOutputValueClass(VcfLineWritable.class);
 
 
-        job.setOutputKeyClass(NullWritable.class);
+        job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
         job.setInputFormatClass(MNLineInputFormat.class);
+//        job.setOutputFormatClass(MyVCFOutputFormat.class);
 
         sampleNames = new ArrayList<>();
 
@@ -82,6 +88,11 @@ public class Annotator extends ToolsRunner {
                 SingleVCFHeader singleVcfHeader = new SingleVCFHeader();
                 singleVcfHeader.readHeaderFrom(file.getPath(), fs);
                 VCFHeader vcfHeader = singleVcfHeader.getHeader();
+
+                VCFHdfsWriter vcfHdfsWriter = new VCFHdfsWriter(options.getOutputPath(), false, false, conf);
+                vcfHdfsWriter.writeHeader(vcfHeader);
+                vcfHdfsWriter.close();
+
                 for(String sample: vcfHeader.getSampleNamesInOrder()) {
                     if(!sampleNames.contains(sample))
                         sampleNames.add(sample);
@@ -163,7 +174,8 @@ public class Annotator extends ToolsRunner {
         Annotator annotator = new Annotator();
         if(annotator.runAnnotator(args) != 0)
             return 1;
-        return annotator.runAnnotatorSort();
+        return 0;
+//        return annotator.runAnnotatorSort();
     }
 
 }
