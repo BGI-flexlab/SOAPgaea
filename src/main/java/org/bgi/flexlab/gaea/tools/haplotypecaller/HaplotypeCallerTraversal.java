@@ -110,6 +110,8 @@ public class HaplotypeCallerTraversal {
 	}
 
 	private void setHeader() {
+		if(vcfHeader != null)
+			return;
 		VariantAnnotatorEngine engine = hcEngine.getVariantAnnotatorEngine();
 
 		final Set<VCFHeaderLine> headerInfo = new HashSet<>();
@@ -117,11 +119,9 @@ public class HaplotypeCallerTraversal {
 		// initialize the annotations (this is particularly important to turn off
 		// RankSumTest dithering in integration tests)
 		// do this before we write the header because SnpEff adds to header lines
-		headerInfo.addAll(engine.getVCFAnnotationDescriptions());
+		headerInfo.addAll(engine.getVCFAnnotationDescriptions(options.getCompNames()));
 
 		headerInfo.addAll(hcEngine.getGenotypeingEngine().getAppropriateVCFInfoHeaders());
-		// all annotation fields from VariantAnnotatorEngine
-		headerInfo.addAll(engine.getVCFAnnotationDescriptions());
 		// all callers need to add these standard annotation header lines
 		headerInfo.add(GaeaVCFHeaderLines.getInfoLine(GaeaVCFConstants.DOWNSAMPLED_KEY));
 		headerInfo.add(GaeaVCFHeaderLines.getInfoLine(GaeaVCFConstants.MLE_ALLELE_COUNT_KEY));
@@ -167,6 +167,8 @@ public class HaplotypeCallerTraversal {
 		this.ref = ref;
 		this.features = features;
 		initializeIntervals(win);
+		hcArgs.dbsnp = features.getValues("DB");
+		hcEngine.initializeAnnotationEngine(hcArgs);
 		makeReadsShard(options.getReadShardSize(), options.getReadShardPadding());
 	}
 

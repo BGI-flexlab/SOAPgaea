@@ -43,7 +43,7 @@
 package org.bgi.flexlab.gaea.util;
 
 public class QualityUtils {
-	public final static byte MAXIMUM_QUALITY_SCORE = (byte)254;
+	public final static byte MAXIMUM_QUALITY_SCORE = 93;
 	public final static byte MAXIMUM_USABLE_QUALITY_SCORE = 93;
 	public final static byte MINIMUM_USABLE_QUALITY_SCORE = 6;
 	public final static int MAPPING_QUALITY_UNAVAILABLE = 255;

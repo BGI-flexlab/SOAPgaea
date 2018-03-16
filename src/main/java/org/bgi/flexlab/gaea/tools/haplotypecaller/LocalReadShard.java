@@ -43,7 +43,7 @@ public final class LocalReadShard implements Shard<GaeaSamRecord> {
 		Utils.nonNull(interval);
 		Utils.nonNull(paddedInterval);
 		Utils.nonNull(readsSource);
-		Utils.validateArg(paddedInterval.contains(interval), "The padded interval must contain the un-padded interval");
+		//Utils.validateArg(paddedInterval.contains(interval), "The padded interval must contain the un-padded interval");
 
 		this.interval = interval;
 		this.paddedInterval = paddedInterval;

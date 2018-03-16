@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import org.apache.commons.cli.ParseException;
@@ -55,6 +56,8 @@ public class HaplotypeCallerOptions  extends GaeaOptions implements HadoopOption
 	private String output = null;
 	
 	private boolean isSAM = false;
+	
+	private HashMap<String,String> comps  = new HashMap<String,String>();
 	
 	public HaplotypeCallerOptions() {
 		addOption("a","allSitePLs",false,"Annotate all sites with PLs");
@@ -212,5 +215,14 @@ public class HaplotypeCallerOptions  extends GaeaOptions implements HadoopOption
 	
 	public HaplotypeCallerArgumentCollection getHaplotypeCallerArguments() {
 		return this.hcArgs;
+	}
+	
+	public List<String> getCompNames(){
+		List<String> list = new ArrayList<String>();
+		
+		for(String name : comps.keySet())
+			list.add(name);
+		
+		return list;
 	}
 }

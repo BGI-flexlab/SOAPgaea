@@ -34,7 +34,8 @@ public class StrandArtifact extends GenotypeAnnotation implements StandardMutect
     // give more prior weight to beta (i.e. pseudocount for tails) so that the peak shifts towards 0
     private static final int ALPHA = 1;
     private static final int BETA = 6;
-    private static final BetaDistribution betaPrior = new BetaDistribution(null, ALPHA, BETA);
+    //private static final BetaDistribution betaPrior = new BetaDistribution(null, ALPHA, BETA);
+    private static final BetaDistribution betaPrior = new BetaDistribution( ALPHA, BETA);
 
     // Apache Commons uses naive recursion for Gauss-Legendre and is prone to stack overflows
     // capping the number of subdivisions is a stop-gap for a more principled integration scheme

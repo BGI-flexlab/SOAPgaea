@@ -3,6 +3,7 @@ package org.bgi.flexlab.gaea.tools.haplotypecaller.argumentcollection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -34,7 +35,7 @@ public class HaplotypeCallerArgumentCollection extends StandardCallerArgumentCol
      * as such in the output with the track name (e.g. -comp:FOO will have 'FOO' in the INFO field). Records that are
      * filtered in the comp track will be ignored. Note that 'dbSNP' has been special-cased (see the --dbsnp argument).
      */
-    public Map<String,List<VariantContext>> comps = null;
+    public Map<String,List<VariantContext>> comps = new HashMap<String,List<VariantContext>>();
 
     public boolean debug = false;
 

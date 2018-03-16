@@ -135,6 +135,8 @@ public class HaplotypeCallerReducer extends Reducer<WindowsBasedWritable, SamRec
 	
 	@Override
     public void reduce(WindowsBasedWritable key, Iterable<SamRecordWritable> values, Context context) throws IOException, InterruptedException {
+		if(key.getChromosomeIndex() < 0)
+			return;
 		Window win = new Window(header, key.getChromosomeIndex(), key.getWindowsNumber(), options.getWindowSize());
 		
 		int start = key.getWindowsNumber() * options.getWindowSize() ;

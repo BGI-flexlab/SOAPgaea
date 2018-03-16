@@ -27,12 +27,12 @@ import org.bgi.flexlab.gaea.tools.haplotypecaller.annotator.VariantOverlapAnnota
 import org.bgi.flexlab.gaea.tools.haplotypecaller.argumentcollection.VariantAnnotationArgumentCollection;
 import org.bgi.flexlab.gaea.tools.haplotypecaller.utils.ClassUtils;
 import org.bgi.flexlab.gaea.tools.haplotypecaller.utils.ReducibleAnnotationData;
-import org.bgi.flexlab.gaea.tools.jointcalling.genotypegvcfs.annotation.VariantAnnotatorAnnotation;
 import org.bgi.flexlab.gaea.util.Utils;
 import org.reflections.ReflectionUtils;
 
 import com.google.common.collect.Sets;
 
+import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.GenotypeBuilder;
@@ -40,6 +40,7 @@ import htsjdk.variant.variantcontext.GenotypesContext;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.VariantContextBuilder;
 import htsjdk.variant.vcf.VCFConstants;
+import htsjdk.variant.vcf.VCFHeader;
 import htsjdk.variant.vcf.VCFHeaderLine;
 import htsjdk.variant.vcf.VCFHeaderLineType;
 import htsjdk.variant.vcf.VCFInfoHeaderLine;
@@ -50,7 +51,7 @@ public final class VariantAnnotatorEngine {
     private final List<GenotypeAnnotation> genotypeAnnotations;
     private Set<String> reducibleKeys;
     private GenomeLocationParser parser = null;
-    private final VariantOverlapAnnotator variantOverlapAnnotator;
+    private VariantOverlapAnnotator variantOverlapAnnotator;
     
     private List<VariantContext> features = null;
 
@@ -59,13 +60,24 @@ public final class VariantAnnotatorEngine {
                                    final Map<String,List<VariantContext>> featureInputs){
         infoAnnotations = annots.createInfoFieldAnnotations();
         genotypeAnnotations = annots.createGenotypeAnnotations();
-        variantOverlapAnnotator = initializeOverlapAnnotator(dbSNPInput, featureInputs);
+        variantOverlapAnnotator = createOverlapAnnotator(dbSNPInput, featureInputs);
         reducibleKeys = new HashSet<>();
         for (InfoFieldAnnotation annot : infoAnnotations) {
             if (annot instanceof ReducibleAnnotation) {
                 reducibleKeys.add(((ReducibleAnnotation) annot).getRawKeyName());
             }
         }
+    }
+    
+    private VariantAnnotatorEngine(final AnnotationManager annots){
+    	infoAnnotations = annots.createInfoFieldAnnotations();
+    	genotypeAnnotations = annots.createGenotypeAnnotations();
+    	reducibleKeys = new HashSet<>();
+    	for (InfoFieldAnnotation annot : infoAnnotations) {
+    		if (annot instanceof ReducibleAnnotation) {
+    			reducibleKeys.add(((ReducibleAnnotation) annot).getRawKeyName());
+    		}
+    	}
     }
 
     /**
@@ -109,6 +121,15 @@ public final class VariantAnnotatorEngine {
         Utils.nonNull(comparisonFeatureInputs, "comparisonFeatureInputs is null");
         return new VariantAnnotatorEngine(AnnotationManager.ofSelectedMinusExcluded(annotationGroupsToUse, annotationsToUse, annotationsToExclude), dbSNPInput, comparisonFeatureInputs);
     }
+    
+    public static VariantAnnotatorEngine ofSelectedMinusExcluded(final List<String> annotationGroupsToUse,
+            final List<String> annotationsToUse,
+            final List<String> annotationsToExclude) {
+    	Utils.nonNull(annotationGroupsToUse, "annotationGroupsToUse is null");
+    	Utils.nonNull(annotationsToUse, "annotationsToUse is null");
+    	Utils.nonNull(annotationsToExclude, "annotationsToExclude is null");
+    	return new VariantAnnotatorEngine(AnnotationManager.ofSelectedMinusExcluded(annotationGroupsToUse, annotationsToUse, annotationsToExclude));
+    }
 
     /**
      * An overload of {@link org.broadinstitute.hellbender.tools.walkers.annotator.VariantAnnotatorEngine#ofSelectedMinusExcluded ofSelectedMinusExcluded}
@@ -131,7 +152,13 @@ public final class VariantAnnotatorEngine {
                 dbSNPInput, comparisonFeatureInputs);
     }
     
-    private VariantOverlapAnnotator initializeOverlapAnnotator(final List<VariantContext> dbSNPInput, final Map<String,List<VariantContext>> featureInputs) {
+    public static VariantAnnotatorEngine ofSelectedMinusExcluded(final VariantAnnotationArgumentCollection argumentCollection) {
+    	return ofSelectedMinusExcluded(argumentCollection.annotationGroupsToUse,
+    			argumentCollection.annotationsToUse,
+    			argumentCollection.annotationsToExclude);
+    }
+    
+    private VariantOverlapAnnotator createOverlapAnnotator(final List<VariantContext> dbSNPInput, final Map<String,List<VariantContext>> featureInputs) {
         final Map<String, List<VariantContext>> overlaps = new LinkedHashMap<>();
         for ( final String fi : featureInputs.keySet()) {
             overlaps.put(fi, featureInputs.get(fi));
@@ -145,6 +172,21 @@ public final class VariantAnnotatorEngine {
 
         return new VariantOverlapAnnotator(dbSNPInput, overlaps,parser);
     }
+    
+    public void initializeOverlapAnnotator(final List<VariantContext> dbSNPInput, final Map<String,List<VariantContext>> featureInputs) {
+        final Map<String, List<VariantContext>> overlaps = new LinkedHashMap<>();
+        for ( final String fi : featureInputs.keySet()) {
+            overlaps.put(fi, featureInputs.get(fi));
+        }
+        if (overlaps.values().contains(VCFConstants.DBSNP_KEY)){
+            throw new UserException("The map of overlaps must not contain " + VCFConstants.DBSNP_KEY);
+        }
+        if (dbSNPInput != null) {
+            overlaps.put( VCFConstants.DBSNP_KEY,dbSNPInput); // add overlap detection with DBSNP by default
+        }
+
+        variantOverlapAnnotator = new VariantOverlapAnnotator(dbSNPInput, overlaps,parser);
+    }
 
 
     /**
@@ -153,6 +195,10 @@ public final class VariantAnnotatorEngine {
      */
     public List<GenotypeAnnotation> getGenotypeAnnotations() {
         return Collections.unmodifiableList(genotypeAnnotations);
+    }
+    
+    public void setGenomeLocationParser(SAMSequenceDictionary dict) {
+    	parser = new GenomeLocationParser(dict);
     }
 
     /**
@@ -166,15 +212,15 @@ public final class VariantAnnotatorEngine {
     /**
      * Returns the set of descriptions to be added to the VCFHeader line (for all annotations in this engine).
      */
-    public Set<VCFHeaderLine> getVCFAnnotationDescriptions() {
-        return getVCFAnnotationDescriptions(false);
+    public Set<VCFHeaderLine> getVCFAnnotationDescriptions(List<String> overlapNames) {
+        return getVCFAnnotationDescriptions(false,overlapNames);
     }
 
     /**
      * Returns the set of descriptions to be added to the VCFHeader line (for all annotations in this engine).
      * @param useRaw Whether to prefer reducible annotation raw key descriptions over their normal descriptions
      */
-    public Set<VCFHeaderLine> getVCFAnnotationDescriptions(boolean useRaw) {
+    public Set<VCFHeaderLine> getVCFAnnotationDescriptions(boolean useRaw,List<String> overlapNames) {
         final Set<VCFHeaderLine> descriptions = new LinkedHashSet<>();
 
         for ( final InfoFieldAnnotation annotation : infoAnnotations) {
@@ -187,7 +233,7 @@ public final class VariantAnnotatorEngine {
         for ( final GenotypeAnnotation annotation : genotypeAnnotations) {
             descriptions.addAll(annotation.getDescriptions());
         }
-        for ( final String db : variantOverlapAnnotator.getOverlapNames() ) {
+        for ( final String db : overlapNames ) {
             if ( VCFStandardHeaderLines.getInfoLine(db, false) != null ) {
                 descriptions.add(VCFStandardHeaderLines.getInfoLine(db));
             } else {

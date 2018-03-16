@@ -123,18 +123,18 @@ public final class HaplotypeCallerEngine {
 	private static final double AVERAGE_HQ_SOFTCLIPS_HQ_BASES_THRESHOLD = 6.0;
 
 	/**
-	 * Maximum-mininum confidence on a variant to exist to consider the position
-	 * as a potential variant harbouring locus when looking for active regions.
+	 * Maximum-mininum confidence on a variant to exist to consider the position as
+	 * a potential variant harbouring locus when looking for active regions.
 	 */
 	private static final double MAXMIN_CONFIDENCE_FOR_CONSIDERING_A_SITE_AS_POSSIBLE_VARIANT_IN_ACTIVE_REGION_DISCOVERY = 4.0;
 
 	/**
-	 * Minimum ploidy assumed when looking for loci that may harbour variation
-	 * to identify active regions.
+	 * Minimum ploidy assumed when looking for loci that may harbour variation to
+	 * identify active regions.
 	 * <p>
-	 * By default we take the putative ploidy provided by the user, but this
-	 * turned out to be too insensitive for low ploidy, notoriously with haploid
-	 * samples. Therefore we impose this minimum.
+	 * By default we take the putative ploidy provided by the user, but this turned
+	 * out to be too insensitive for low ploidy, notoriously with haploid samples.
+	 * Therefore we impose this minimum.
 	 * </p>
 	 */
 	private static final int MINIMUM_PUTATIVE_PLOIDY_FOR_ACTIVE_REGION_DISCOVERY = 2;
@@ -147,16 +147,16 @@ public final class HaplotypeCallerEngine {
 
 	/**
 	 * Reads with mapping quality lower than this number won't be considered for
-	 * genotyping, even if they have passed earlier filters (e.g. the walkers'
-	 * own min MQ filter).
+	 * genotyping, even if they have passed earlier filters (e.g. the walkers' own
+	 * min MQ filter).
 	 */
 	private static final int READ_QUALITY_FILTER_THRESHOLD = 20;
 
 	private static final List<VariantContext> NO_CALLS = Collections.emptyList();
 
 	private static final Allele FAKE_REF_ALLELE = Allele.create("N", true);
-	
-	private static final Allele FAKE_ALT_ALLELE = Allele.create("<FAKE_ALT>", false); 
+
+	private static final Allele FAKE_ALT_ALLELE = Allele.create("<FAKE_ALT>", false);
 
 	/**
 	 * Create and initialize a new HaplotypeCallerEngine given a collection of
@@ -184,6 +184,7 @@ public final class HaplotypeCallerEngine {
 		this.annotationEngine = annotationEngine;
 		this.aligner = SmithWatermanAligner.getAligner(hcArgs.smithWatermanImplementation);
 		initialize(hcArgs.createOutputBamIndex, hcArgs.createOutputBamMD5);
+		setHeader(readsHeader);
 	}
 
 	private void initialize(boolean createBamOutIndex, final boolean createBamOutMD5) {
@@ -196,12 +197,8 @@ public final class HaplotypeCallerEngine {
 		minTailQuality = (byte) (hcArgs.minBaseQualityScore - 1);
 
 		initializeActiveRegionEvaluationGenotyperEngine();
-
-		if (annotationEngine == null) {
-			annotationEngine = VariantAnnotatorEngine.ofSelectedMinusExcluded(
-					hcArgs.variantAnnotationArgumentCollection, hcArgs.dbsnp, hcArgs.comps);
-
-		}
+		
+		annotationEngine = VariantAnnotatorEngine.ofSelectedMinusExcluded(hcArgs.variantAnnotationArgumentCollection);
 
 		genotypingEngine = new HaplotypeCallerGenotypingEngine(hcArgs, samplesList,
 				FixedAFCalculatorProvider.createThreadSafeProvider(hcArgs), !hcArgs.doNotRunPhysicalPhasing);
@@ -209,11 +206,6 @@ public final class HaplotypeCallerEngine {
 
 		referenceConfidenceModel = new ReferenceConfidenceModel(samplesList, readsHeader,
 				hcArgs.indelSizeToEliminateInRefModel);
-
-		// Allele-specific annotations are not yet supported in the VCF mode
-		if (isAlleleSpecificMode(annotationEngine) && isVCFMode()) {
-			throw new UserException("Allele-specific annotations are not yet supported in the VCF mode");
-		}
 
 		haplotypeBAMWriter = AssemblyBasedCallerUtils.createBamWriter(hcArgs, createBamOutIndex, createBamOutMD5,
 				readsHeader);
@@ -223,11 +215,25 @@ public final class HaplotypeCallerEngine {
 		trimmer.initialize(hcArgs, readsHeader.getSequenceDictionary(), hcArgs.debug,
 				hcArgs.genotypingOutputMode == GenotypingOutputMode.GENOTYPE_GIVEN_ALLELES, emitReferenceConfidence());
 	}
+
+	public void initializeAnnotationEngine(HaplotypeCallerArgumentCollection hcArgs) {
+		this.hcArgs.dbsnp = hcArgs.dbsnp;
+		this.hcArgs.comps = hcArgs.comps;
+		annotationEngine.initializeOverlapAnnotator(hcArgs.dbsnp, hcArgs.comps);
+		// Allele-specific annotations are not yet supported in the VCF mode
+		if (isAlleleSpecificMode(annotationEngine) && isVCFMode()) {
+			throw new UserException("Allele-specific annotations are not yet supported in the VCF mode");
+		}
+	}
+	
+	private void setHeader(SAMFileHeader header) {
+		annotationEngine.setGenomeLocationParser(header.getSequenceDictionary());
+	}
 	
 	public VariantAnnotatorEngine getVariantAnnotatorEngine() {
 		return this.annotationEngine;
 	}
-	
+
 	public HaplotypeCallerGenotypingEngine getGenotypeingEngine() {
 		return this.genotypingEngine;
 	}
@@ -249,8 +255,7 @@ public final class HaplotypeCallerEngine {
 	}
 
 	private void validateAndInitializeArgs() {
-		if (hcArgs.samplePloidy != HomoSapiensConstants.DEFAULT_PLOIDY
-				&& !hcArgs.doNotRunPhysicalPhasing) {
+		if (hcArgs.samplePloidy != HomoSapiensConstants.DEFAULT_PLOIDY && !hcArgs.doNotRunPhysicalPhasing) {
 			hcArgs.doNotRunPhysicalPhasing = true;
 		}
 
@@ -332,15 +337,14 @@ public final class HaplotypeCallerEngine {
 		simpleUAC.genotypingOutputMode = GenotypingOutputMode.DISCOVERY;
 		simpleUAC.STANDARD_CONFIDENCE_FOR_CALLING = Math.min(
 				MAXMIN_CONFIDENCE_FOR_CONSIDERING_A_SITE_AS_POSSIBLE_VARIANT_IN_ACTIVE_REGION_DISCOVERY,
-				hcArgs.STANDARD_CONFIDENCE_FOR_CALLING); 
-		
+				hcArgs.STANDARD_CONFIDENCE_FOR_CALLING);
+
 		simpleUAC.CONTAMINATION_FRACTION = 0.0;
 		simpleUAC.CONTAMINATION_FRACTION_FILE = null;
 		// Seems that at least with some test data we can lose genuine haploid
 		// variation if we use
 		// UGs engine with ploidy == 1
-		simpleUAC.samplePloidy = Math.max(MINIMUM_PUTATIVE_PLOIDY_FOR_ACTIVE_REGION_DISCOVERY,
-				hcArgs.samplePloidy);
+		simpleUAC.samplePloidy = Math.max(MINIMUM_PUTATIVE_PLOIDY_FOR_ACTIVE_REGION_DISCOVERY, hcArgs.samplePloidy);
 
 		activeRegionEvaluationGenotyperEngine = new MinimalGenotypingEngine(simpleUAC, samplesList,
 				FixedAFCalculatorProvider.createThreadSafeProvider(simpleUAC));
@@ -398,14 +402,14 @@ public final class HaplotypeCallerEngine {
 	 *            sequence dictionary for the reads
 	 * @return a VCF header
 	 */
-	public VCFHeader makeVCFHeader(final SAMSequenceDictionary sequenceDictionary,
+	/*public VCFHeader makeVCFHeader(final SAMSequenceDictionary sequenceDictionary,
 			final Set<VCFHeaderLine> defaultToolHeaderLines) {
 		final Set<VCFHeaderLine> headerInfo = new HashSet<>();
 		headerInfo.addAll(defaultToolHeaderLines);
 
 		headerInfo.addAll(genotypingEngine.getAppropriateVCFInfoHeaders());
 		// all annotation fields from VariantAnnotatorEngine
-		headerInfo.addAll(annotationEngine.getVCFAnnotationDescriptions(emitReferenceConfidence()));
+		headerInfo.addAll(annotationEngine.getVCFAnnotationDescriptions(emitReferenceConfidence(),opti));
 		// all callers need to add these standard annotation header lines
 		headerInfo.add(GaeaVCFHeaderLines.getInfoLine(GaeaVCFConstants.DOWNSAMPLED_KEY));
 		headerInfo.add(GaeaVCFHeaderLines.getInfoLine(GaeaVCFConstants.MLE_ALLELE_COUNT_KEY));
@@ -432,27 +436,26 @@ public final class HaplotypeCallerEngine {
 		final VCFHeader vcfHeader = new VCFHeader(headerInfo, sampleSet);
 		vcfHeader.setSequenceDictionary(sequenceDictionary);
 		return vcfHeader;
-	}
+	}*/
 
 	/**
-	 * Writes an appropriate VCF header, given our arguments, to the provided
-	 * writer
+	 * Writes an appropriate VCF header, given our arguments, to the provided writer
 	 *
 	 * @param vcfWriter
 	 *            writer to which the header should be written
 	 */
-	public void writeHeader(final VariantContextWriter vcfWriter, final SAMSequenceDictionary sequenceDictionary,
+	/*public void writeHeader(final VariantContextWriter vcfWriter, final SAMSequenceDictionary sequenceDictionary,
 			final Set<VCFHeaderLine> defaultToolHeaderLines) {
 		Utils.nonNull(vcfWriter);
 		vcfWriter.writeHeader(makeVCFHeader(sequenceDictionary, defaultToolHeaderLines));
-	}
+	}*/
 
 	/**
-	 * Given a pileup, returns an ActivityProfileState containing the
-	 * probability (0.0 to 1.0) that it's an "active" site.
+	 * Given a pileup, returns an ActivityProfileState containing the probability
+	 * (0.0 to 1.0) that it's an "active" site.
 	 *
-	 * Note that the current implementation will always return either 1.0 or
-	 * 0.0, as it relies on the smoothing in
+	 * Note that the current implementation will always return either 1.0 or 0.0, as
+	 * it relies on the smoothing in
 	 * {@link org.broadinstitute.hellbender.utils.activityprofile.BandPassActivityProfile}
 	 * to create the full distribution of probabilities. This is consistent with
 	 * GATK 3.
@@ -463,16 +466,15 @@ public final class HaplotypeCallerEngine {
 	 *            reference base overlapping the pileup locus
 	 * @param features
 	 *            features overlapping the pileup locus
-	 * @return probability between 0.0 and 1.0 that the site is active (in
-	 *         practice with this implementation: either 0.0 or 1.0)
+	 * @return probability between 0.0 and 1.0 that the site is active (in practice
+	 *         with this implementation: either 0.0 or 1.0)
 	 */
 	public ActivityProfileState isActive(final AlignmentContext context, final ChromosomeInformationShare ref,
-			final RefMetaDataTracker features,GenomeLocation interval) {
+			final RefMetaDataTracker features, GenomeLocation interval) {
 
 		if (hcArgs.genotypingOutputMode == GenotypingOutputMode.GENOTYPE_GIVEN_ALLELES) {
 			final VariantContext vcFromAllelesRod = GenotypingGivenAllelesUtils
-					.composeGivenAllelesVariantContextFromRod(features,interval, false,
-							hcArgs.alleles);
+					.composeGivenAllelesVariantContextFromRod(features, interval, false, hcArgs.alleles);
 			if (vcFromAllelesRod != null) {
 				return new ActivityProfileState(interval, 1.0);
 			}
@@ -489,7 +491,7 @@ public final class HaplotypeCallerEngine {
 		}
 
 		final int ploidy = activeRegionEvaluationGenotyperEngine.getConfiguration().samplePloidy;
-		final List<Allele> noCall = GaeaGvcfVariantContextUtils.noCallAlleles(ploidy); 
+		final List<Allele> noCall = GaeaGvcfVariantContextUtils.noCallAlleles(ploidy);
 
 		final Map<String, AlignmentContext> splitContexts;
 		if (samplesList.numberOfSamples() == 1) {
@@ -508,9 +510,11 @@ public final class HaplotypeCallerEngine {
 			// not.
 			final int activeRegionDetectionHackishSamplePloidy = activeRegionEvaluationGenotyperEngine
 					.getConfiguration().samplePloidy;
-			final double[] genotypeLikelihoods = referenceConfidenceModel.calcGenotypeLikelihoodsOfRefVsAny(
-					activeRegionDetectionHackishSamplePloidy, sample.getValue().getBasePileup(), ref.getGA4GHBaseBytes(interval.getStart()-1)[0],
-					hcArgs.minBaseQualityScore, averageHQSoftClips).getGenotypeLikelihoods();
+			final double[] genotypeLikelihoods = referenceConfidenceModel
+					.calcGenotypeLikelihoodsOfRefVsAny(activeRegionDetectionHackishSamplePloidy,
+							sample.getValue().getBasePileup(), ref.getGA4GHBaseBytes(interval.getStart() - 1)[0],
+							hcArgs.minBaseQualityScore, averageHQSoftClips)
+					.getGenotypeLikelihoods();
 			genotypes.add(new GenotypeBuilder(sample.getKey()).alleles(noCall).PL(genotypeLikelihoods).make());
 		}
 
@@ -532,7 +536,8 @@ public final class HaplotypeCallerEngine {
 		}
 		return new ActivityProfileState(interval, isActiveProb,
 				averageHQSoftClips.mean() > AVERAGE_HQ_SOFTCLIPS_HQ_BASES_THRESHOLD
-						? ActivityProfileState.Type.HIGH_QUALITY_SOFT_CLIPS : ActivityProfileState.Type.NONE,
+						? ActivityProfileState.Type.HIGH_QUALITY_SOFT_CLIPS
+						: ActivityProfileState.Type.NONE,
 				averageHQSoftClips.mean());
 	}
 
@@ -592,7 +597,8 @@ public final class HaplotypeCallerEngine {
 		}
 
 		final AssemblyResultSet assemblyResult = trimmingResult.needsTrimming()
-				? untrimmedAssemblyResult.trimTo(trimmingResult.getCallableRegion()) : untrimmedAssemblyResult;
+				? untrimmedAssemblyResult.trimTo(trimmingResult.getCallableRegion())
+				: untrimmedAssemblyResult;
 
 		final AssemblyRegion regionForGenotyping = assemblyResult.getRegionForGenotyping();
 
@@ -700,17 +706,15 @@ public final class HaplotypeCallerEngine {
 	}
 
 	/**
-	 * Create an ref model result (ref model or no calls depending on mode) for
-	 * an active region without any variation (not is active, or assembled to
-	 * just ref)
+	 * Create an ref model result (ref model or no calls depending on mode) for an
+	 * active region without any variation (not is active, or assembled to just ref)
 	 *
 	 * @param region
 	 *            the region to return a no-variation result
 	 * @param needsToBeFinalized
 	 *            should the region be finalized before computing the ref model
 	 *            (should be false if already done)
-	 * @return a list of variant contexts (can be empty) to emit for this ref
-	 *         region
+	 * @return a list of variant contexts (can be empty) to emit for this ref region
 	 */
 	private List<VariantContext> referenceModelForNoVariation(final AssemblyRegion region,
 			final boolean needsToBeFinalized) {
@@ -737,8 +741,8 @@ public final class HaplotypeCallerEngine {
 	}
 
 	/**
-	 * Create a context that maps each read to the reference haplotype with
-	 * log10 L of 0
+	 * Create a context that maps each read to the reference haplotype with log10 L
+	 * of 0
 	 * 
 	 * @param refHaplotype
 	 *            a non-null reference haplotype
@@ -746,8 +750,8 @@ public final class HaplotypeCallerEngine {
 	 *            a list of all samples
 	 * @param region
 	 *            the assembly region containing reads
-	 * @return a map from sample -> PerReadAlleleLikelihoodMap that maps each
-	 *         read to ref
+	 * @return a map from sample -> PerReadAlleleLikelihoodMap that maps each read
+	 *         to ref
 	 */
 	public ReadLikelihoods<Haplotype> createDummyStratifiedReadMap(final Haplotype refHaplotype,
 			final SampleList samples, final AssemblyRegion region) {
@@ -816,8 +820,8 @@ public final class HaplotypeCallerEngine {
 		}
 		activeRegion.removeAll(readsToRemove);
 	}
-	
-	public void setChromosome(ChromosomeInformationShare chr){
+
+	public void setChromosome(ChromosomeInformationShare chr) {
 		this.referenceReader = chr;
 	}
 }
