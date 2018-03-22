@@ -26,7 +26,10 @@ import org.bgi.flexlab.gaea.tools.haplotypecaller.engine.HaplotypeCallerEngine;
 import org.bgi.flexlab.gaea.tools.haplotypecaller.engine.VariantAnnotatorEngine;
 import org.bgi.flexlab.gaea.tools.haplotypecaller.pileup.AssemblyRegionIterator;
 import org.bgi.flexlab.gaea.tools.haplotypecaller.readfilter.CountingReadFilter;
+import org.bgi.flexlab.gaea.tools.haplotypecaller.readfilter.MappingQualityReadFilter;
 import org.bgi.flexlab.gaea.tools.haplotypecaller.readfilter.ReadFilter;
+import org.bgi.flexlab.gaea.tools.haplotypecaller.readfilter.ReadFilterLibrary;
+import org.bgi.flexlab.gaea.tools.haplotypecaller.readfilter.WellformedReadFilter;
 import org.bgi.flexlab.gaea.tools.haplotypecaller.utils.RefMetaDataTracker;
 import org.bgi.flexlab.gaea.tools.mapreduce.haplotypecaller.HaplotypeCallerOptions;
 import org.bgi.flexlab.gaea.tools.vcfqualitycontrol2.util.GaeaVCFHeaderLines;
@@ -43,6 +46,8 @@ import htsjdk.variant.vcf.VCFHeaderLine;
 import htsjdk.variant.vcf.VCFStandardHeaderLines;
 
 public class HaplotypeCallerTraversal {
+	private static final int READ_QUALITY_FILTER_THRESHOLD = 20;
+	
 	// intervals of windows
 	private List<GenomeLocation> intervals = null;
 
@@ -155,6 +160,7 @@ public class HaplotypeCallerTraversal {
 	}
 
 	public VCFHeader getVCFHeader() {
+		System.err.println(vcfHeader.toString());
 		return this.vcfHeader;
 	}
 
@@ -227,7 +233,7 @@ public class HaplotypeCallerTraversal {
 
 		// now add in any additional filters enabled on the command line (preserving
 		// order)
-		final List<ReadFilter> clFilters = getAllInstances();
+		final List<ReadFilter> clFilters = makeStandardHCReadFilters();//getAllInstances();
 		if (clFilters != null) {
 			clFilters.stream().filter(f -> !finalFilters.contains(f)) // remove redundant filters
 					.forEach(f -> finalFilters.add(f));
@@ -244,6 +250,21 @@ public class HaplotypeCallerTraversal {
 		});
 		return filters;
 	}
+	
+	public List<ReadFilter> makeStandardHCReadFilters() {
+        List<ReadFilter> filters = new ArrayList<>();
+        filters.add(new MappingQualityReadFilter(READ_QUALITY_FILTER_THRESHOLD));
+        filters.add(ReadFilterLibrary.MAPPING_QUALITY_AVAILABLE);
+        filters.add(ReadFilterLibrary.MAPPED);
+        filters.add(ReadFilterLibrary.NOT_SECONDARY_ALIGNMENT);
+        filters.add(ReadFilterLibrary.NOT_DUPLICATE);
+        filters.add(ReadFilterLibrary.PASSES_VENDOR_QUALITY_CHECK);
+        filters.add(ReadFilterLibrary.NON_ZERO_REFERENCE_LENGTH_ALIGNMENT);
+        filters.add(ReadFilterLibrary.GOOD_CIGAR);
+        filters.add(new WellformedReadFilter());
+
+        return filters;
+    }
 
 	public final void traverse(GaeaVariantContextWriter writer) {
 		CountingReadFilter countedFilter = getMergedCountingReadFilter(header);

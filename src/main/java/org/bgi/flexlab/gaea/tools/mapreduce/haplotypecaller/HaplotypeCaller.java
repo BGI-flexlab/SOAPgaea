@@ -32,7 +32,7 @@ public class HaplotypeCaller extends ToolsRunner {
         job.setJobName("Gaea haplotype caller");
         
         job.setJarByClass(HaplotypeCaller.class);
-        job.setWindowsBasicMapperClass(WindowsBasedSamRecordMapper.class, options.getWindowSize(),0);
+        job.setWindowsBasicMapperClass(WindowsBasedSamRecordMapper.class, options.getWindowSize(),300);
         job.setReducerClass(HaplotypeCallerReducer.class);
         
         job.setNumReduceTasks(options.getReducerNumber());
