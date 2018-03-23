@@ -1,4 +1,4 @@
-package org.bgi.flexlab.gaea.tools.jointcalling.util;
+package org.bgi.flexlab.gaea.util;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -6,6 +6,8 @@ import java.util.function.IntConsumer;
 import java.util.function.IntPredicate;
 import java.util.function.IntToDoubleFunction;
 import java.util.function.IntUnaryOperator;
+
+import org.bgi.flexlab.gaea.tools.jointcalling.util.JointCallingUtils;
 
 public final class IndexRange {
 

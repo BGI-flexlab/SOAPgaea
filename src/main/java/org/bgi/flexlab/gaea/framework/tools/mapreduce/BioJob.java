@@ -30,6 +30,7 @@ import org.bgi.flexlab.gaea.data.structure.bam.filter.util.SamRecordFilter;
 import org.seqdoop.hadoop_bam.SAMFormat;
 
 import java.io.IOException;
+import java.util.List;
 
 public class BioJob extends Job {
 
@@ -104,6 +105,14 @@ public class BioJob extends Job {
 	public void setAnySamInputFormat(SAMFormat fmt) {
 		conf.set(GaeaAnySAMInputFormat.SAM_FORMAT_FOR_ALL_PATH, fmt.toString());
 		setInputFormatClass(GaeaAnySAMInputFormat.class);
+	}
+	
+	public SAMFileHeader setHeader(List<Path> inputs , Path output) {
+		try {
+			return SamHdfsFileHeader.loadHeader(inputs, conf, output,false);
+		} catch (IOException e) {
+			throw new RuntimeException(e.toString());
+		}
 	}
 
 	public SAMFileHeader setHeader(Path input, Path output) {

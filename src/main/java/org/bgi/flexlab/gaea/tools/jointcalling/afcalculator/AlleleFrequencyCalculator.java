@@ -10,8 +10,8 @@ import org.bgi.flexlab.gaea.tools.jointcalling.genotypelikelihood.GenotypeLikeli
 import org.bgi.flexlab.gaea.tools.jointcalling.genotypelikelihood.GenotypeLikelihoodCalculators;
 import org.bgi.flexlab.gaea.tools.jointcalling.util.Dirichlet;
 import org.bgi.flexlab.gaea.tools.jointcalling.util.GvcfMathUtils;
-import org.bgi.flexlab.gaea.tools.jointcalling.util.IndexRange;
 import org.bgi.flexlab.gaea.tools.jointcalling.util.JointCallingUtils;
+import org.bgi.flexlab.gaea.util.IndexRange;
 
 import java.util.Arrays;
 import java.util.List;

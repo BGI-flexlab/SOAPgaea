@@ -84,7 +84,7 @@ public class GCContent extends InfoFieldAnnotation implements ExperimentalAnnota
     private static double computeGCContent(ChromosomeInformationShare ref, Mpileup mpileup) {
         int gc = 0, at = 0;
 
-        for ( byte base : ref.getBaseBytes(Math.max(0, mpileup.getPosition() - 50), Math.min(ref.getLength(), mpileup.getPosition() + 50)) ) {
+        for ( byte base : ref.getGA4GHBaseBytes(Math.max(0, mpileup.getPosition() - 50), Math.min(ref.getLength(), mpileup.getPosition() + 50)) ) {
             int baseIndex = BaseUtils.simpleBaseToBaseIndex(base);
             if ( baseIndex == BaseUtils.gIndex || baseIndex == BaseUtils.cIndex )
                 gc++;

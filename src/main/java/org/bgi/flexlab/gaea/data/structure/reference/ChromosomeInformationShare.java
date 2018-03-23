@@ -40,7 +40,7 @@ public class ChromosomeInformationShare extends BioMemoryShare {
 	 * @return base
 	 */
 	public byte getBinaryBase(int pos) {
-		byte curr = getBytes(pos, pos)[0];
+		byte curr = getGA4GHBytes(pos, pos)[0];
 
 		if ((pos & 0x1) == 0)
 			return (byte) (curr & 0x0f);
@@ -66,7 +66,7 @@ public class ChromosomeInformationShare extends BioMemoryShare {
 		if(end >= length)
 			end = length - 1;
 		
-		byte[] bases = getBytes(start, end);
+		byte[] bases = getGA4GHBytes(start, end);
 		return isSNPs(bases, start, end);
 	}
 	
@@ -98,15 +98,15 @@ public class ChromosomeInformationShare extends BioMemoryShare {
 	 * @param end
 	 * @return String 序列
 	 */
-	public String getBaseSequence(int start, int end) {
+	public String getGA4GHBaseSequence(int start, int end) {
 		if(end >= length)
 			end = length -1;
 		
-		byte[] bases = getBytes(start, end);
-		return getBaseSequence(bases, start, end);
+		byte[] bases = getGA4GHBytes(start, end);
+		return getGA4GHBaseSequence(bases, start, end);
 	}
 	
-	public String getBaseSequence(byte[] bases,int start,int end){
+	public String getGA4GHBaseSequence(byte[] bases,int start,int end){
 		if(end >= length)
 			end = length-1;
 		
@@ -129,9 +129,13 @@ public class ChromosomeInformationShare extends BioMemoryShare {
 		
 		return seq.toString();
 	}
+	
+	public byte[] getGA4GHBaseBytes(int start) {
+		return getGA4GHBaseSequence(start, start).getBytes();
+	}
 
-	public byte[] getBaseBytes(int start, int end) {
-		return getBaseSequence(start, end).getBytes();
+	public byte[] getGA4GHBaseBytes(int start, int end) {
+		return getGA4GHBaseSequence(start, end).getBytes();
 	}
 
 	/**

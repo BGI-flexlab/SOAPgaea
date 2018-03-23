@@ -91,7 +91,7 @@ public class ChromosomeDbsnpShare extends BioMemoryShare {
 		if(end >= fcSize)
 			end = (fcSize - 1);
 			
-		byte[] indexs = getBytes(minWinNum * CAPACITY, end);
+		byte[] indexs = getGA4GHBytes(minWinNum * CAPACITY, end);
 
 		long position = 0;
 

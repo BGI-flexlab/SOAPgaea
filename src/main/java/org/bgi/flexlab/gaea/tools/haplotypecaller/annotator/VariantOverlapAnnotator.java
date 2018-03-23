@@ -1,13 +1,12 @@
-package org.bgi.flexlab.gaea.tools.jointcalling.annotator;
+package org.bgi.flexlab.gaea.tools.haplotypecaller.annotator;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocationParser;
-import org.bgi.flexlab.gaea.tools.jointcalling.util.RefMetaDataTracker;
+import org.bgi.flexlab.gaea.tools.haplotypecaller.utils.RefMetaDataTracker;
 
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.VariantContext;
@@ -15,8 +14,8 @@ import htsjdk.variant.variantcontext.VariantContextBuilder;
 import htsjdk.variant.vcf.VCFConstants;
 
 public final class VariantOverlapAnnotator {
-	final ArrayList<VariantContext> dbSNPBinding;
-    final Map<String,ArrayList<VariantContext>> overlapBindings;
+	final List<VariantContext> dbSNPBinding;
+    final Map<String,List<VariantContext>> overlapBindings;
     final GenomeLocationParser genomeLocParser;
     
     /**
@@ -28,7 +27,7 @@ public final class VariantOverlapAnnotator {
      *                        RefMetaDataTracker at each location.  Can be empty but not null
      * @param genomeLocationParser the genome location parser we'll use to create GenomeLocs for VariantContexts
      */
-    public VariantOverlapAnnotator(ArrayList<VariantContext> dbSNPBinding, Map<String, ArrayList<VariantContext>> overlapBindings, GenomeLocationParser genomeLocParser) {
+    public VariantOverlapAnnotator(List<VariantContext> dbSNPBinding, Map<String, List<VariantContext>> overlapBindings, GenomeLocationParser genomeLocParser) {
         if ( genomeLocParser == null ) throw new IllegalArgumentException("genomeLocationParser cannot be null");
         if ( overlapBindings == null ) throw new IllegalArgumentException("overlapBindings cannot be null");
         
@@ -104,12 +103,17 @@ public final class VariantOverlapAnnotator {
         return null;
     }
     
+    public VariantContext annotateOverlaps(List<VariantContext> vcs , final VariantContext vcToAnnotate){
+    	if ( vcs.isEmpty() ) return vcToAnnotate;
+        return annotateOverlap(vcs,VCFConstants.DBSNP_KEY,vcToAnnotate);
+    }
+    
     public VariantContext annotateOverlaps(final VariantContext vcToAnnotate) {
         if ( overlapBindings.isEmpty() ) return vcToAnnotate;
 
         VariantContext annotated = vcToAnnotate;
         final GenomeLocation loc = getLocation(vcToAnnotate);
-        for ( final Map.Entry<String, ArrayList<VariantContext>> overlapBinding : overlapBindings.entrySet() ) {
+        for ( final Map.Entry<String, List<VariantContext>> overlapBinding : overlapBindings.entrySet() ) {
             annotated = annotateOverlap(RefMetaDataTracker.getValues(overlapBinding.getValue(), loc), overlapBinding.getKey(), annotated);
         }
 

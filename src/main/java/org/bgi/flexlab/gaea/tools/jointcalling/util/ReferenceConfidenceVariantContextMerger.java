@@ -13,6 +13,7 @@ import java.util.TreeMap;
 
 import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
+import org.bgi.flexlab.gaea.tools.haplotypecaller.utils.ReducibleAnnotationData;
 import org.bgi.flexlab.gaea.tools.jointcalling.VariantAnnotatorEngine;
 import org.bgi.flexlab.gaea.tools.jointcalling.genotypelikelihood.GenotypeLikelihoodCalculator;
 import org.bgi.flexlab.gaea.tools.jointcalling.genotypelikelihood.GenotypeLikelihoodCalculators;

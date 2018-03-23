@@ -1,10 +1,16 @@
 package org.bgi.flexlab.gaea.tools.jointcalling.util;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Random;
 import java.util.function.DoublePredicate;
 import java.util.function.DoubleUnaryOperator;
 import java.util.function.IntPredicate;
 
+import org.apache.commons.math3.random.RandomDataGenerator;
+import org.apache.commons.math3.random.Well19937c;
 import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.util.MathUtils;
 
@@ -15,14 +21,32 @@ public class GvcfMathUtils extends MathUtils {
 	private static final double LOG1MEXP_THRESHOLD = Math.log(0.5);
 
 	private final static double RAW_MIN_PHRED_SCALED_QUAL = Math.log10(Double.MIN_VALUE);
-	
+
 	private static final long GAEA_RANDOM_SEED = 47382911L;
-    private static Random randomGenerator = new Random(GAEA_RANDOM_SEED);
-	public static Random getRandomGenerator() { return randomGenerator; }
-	public static void resetRandomGenerator() { randomGenerator.setSeed(GAEA_RANDOM_SEED);}
-	public static void resetRandomGenerator(long seed) { randomGenerator.setSeed(seed); }
-	
+	private static Random randomGenerator = new Random(GAEA_RANDOM_SEED);
+
+	public static Random getRandomGenerator() {
+		return randomGenerator;
+	}
+
+	public static void resetRandomGenerator() {
+		randomGenerator.setSeed(GAEA_RANDOM_SEED);
+	}
+
+	public static void resetRandomGenerator(long seed) {
+		randomGenerator.setSeed(seed);
+	}
+
+	private static final RandomDataGenerator randomDataGenerator = new RandomDataGenerator(
+			new Well19937c(GAEA_RANDOM_SEED));
+
+	public static RandomDataGenerator getRandomDataGenerator() {
+		return randomDataGenerator;
+	}
+
 	public static final double LOG10_OF_E = Math.log10(Math.E);
+
+	public static final double LOG10_ONE_THIRD = -Math.log10(3.0);
 
 	/**
 	 * Compute Z=X-Y for two numeric vectors X and Y
@@ -43,10 +67,10 @@ public class GvcfMathUtils extends MathUtils {
 
 		return result;
 	}
-	
+
 	public static double log10SumLog10(final double a, final double b) {
-        return a > b ? a + Math.log10(1 + Math.pow(10.0, b - a)) : b + Math.log10(1 + Math.pow(10.0, a - b));
-    }
+		return a > b ? a + Math.log10(1 + Math.pow(10.0, b - a)) : b + Math.log10(1 + Math.pow(10.0, a - b));
+	}
 
 	public static double log10OneMinusPow10(final double a) {
 		if (a > 0)
@@ -228,52 +252,134 @@ public class GvcfMathUtils extends MathUtils {
 		// doubles
 		return Math.abs(-10.0 * Math.max(errorRateLog10, RAW_MIN_PHRED_SCALED_QUAL));
 	}
-	
+
 	public static double binomialCoefficient(final int n, final int k) {
-	    return Math.pow(10, log10BinomialCoefficient(n, k));
+		return Math.pow(10, log10BinomialCoefficient(n, k));
 	}
-	
-	public static double[] applyToArray(final double[] array, final DoubleUnaryOperator func) {
-		JointCallingUtils.nonNull(func, "function may not be null");
-        JointCallingUtils.nonNull(array, "array may not be null");
-        final double[] result = new double[array.length];
-        for (int m = 0; m < result.length; m++) {
-            result[m] = func.applyAsDouble(array[m]);
-        }
-        return result;
-    }
-	
+
 	public static double[] applyToArrayInPlace(final double[] array, final DoubleUnaryOperator func) {
 		JointCallingUtils.nonNull(array, "array may not be null");
-        JointCallingUtils.nonNull(func, "function may not be null");
-        for (int m = 0; m < array.length; m++) {
-            array[m] = func.applyAsDouble(array[m]);
-        }
-        return array;
-    }
+		JointCallingUtils.nonNull(func, "function may not be null");
+		for (int m = 0; m < array.length; m++) {
+			array[m] = func.applyAsDouble(array[m]);
+		}
+		return array;
+	}
 
-    /**
-     * Test whether all elements of a double[] array satisfy a double -> boolean predicate
-     */
-    public static boolean allMatch(final double[] array, final DoublePredicate pred) {
-    	JointCallingUtils.nonNull(array, "array may not be null");
-        JointCallingUtils.nonNull(pred, "predicate may not be null");
-        for (final double x : array) {
-            if (!pred.test(x)) {
-                return false;
-            }
-        }
-        return true;
-    }
-    
-    public static boolean allMatch(final int[] array, final IntPredicate pred) {
-        JointCallingUtils.nonNull(array, "array may not be null");
-        JointCallingUtils.nonNull(pred, "predicate may not be null");
-        for (final int x : array) {
-            if (!pred.test(x)) {
-                return false;
-            }
-        }
-        return true;
-    }
+	/**
+	 * Test whether all elements of a double[] array satisfy a double -> boolean
+	 * predicate
+	 */
+	public static boolean allMatch(final double[] array, final DoublePredicate pred) {
+		JointCallingUtils.nonNull(array, "array may not be null");
+		JointCallingUtils.nonNull(pred, "predicate may not be null");
+		for (final double x : array) {
+			if (!pred.test(x)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	public static boolean allMatch(final int[] array, final IntPredicate pred) {
+		JointCallingUtils.nonNull(array, "array may not be null");
+		JointCallingUtils.nonNull(pred, "predicate may not be null");
+		for (final int x : array) {
+			if (!pred.test(x)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	public static int[] sampleIndicesWithoutReplacement(final int n, final int k) {
+		// No error checking : RandomDataGenetator.nextPermutation does it
+		return GvcfMathUtils.getRandomDataGenerator().nextPermutation(n, k);
+	}
+
+	public static double log10(int i) {
+		return Log10Cache.get(i);
+	}
+
+	public static double[] scaleLogSpaceArrayForNumericalStability(final double[] array) {
+		final double maxValue = arrayMax(array);
+		return applyToArrayInPlace(array, x -> x - maxValue);
+	}
+
+	public static double log10SumLog10(final double[] log10Values) {
+		return log10SumLog10(log10Values, 0);
+	}
+
+	public static double log10SumLog10(final double[] log10Values, final int start) {
+		return log10SumLog10(log10Values, start, log10Values.length);
+	}
+
+	public static double log10SumLog10(final double[] log10Values, final int start, final int finish) {
+		if (start >= finish) {
+			return Double.NEGATIVE_INFINITY;
+		}
+		final int maxElementIndex = maxElementIndex(log10Values, start, finish);
+		final double maxValue = log10Values[maxElementIndex];
+		if (maxValue == Double.NEGATIVE_INFINITY) {
+			return maxValue;
+		}
+		double sum = 1.0;
+		for (int i = start; i < finish; i++) {
+			final double curVal = log10Values[i];
+			if (i == maxElementIndex || curVal == Double.NEGATIVE_INFINITY) {
+				continue;
+			} else {
+				final double scaled_val = curVal - maxValue;
+				sum += Math.pow(10.0, scaled_val);
+			}
+		}
+		if (Double.isNaN(sum) || sum == Double.POSITIVE_INFINITY) {
+			throw new IllegalArgumentException("log10 p: Values must be non-infinite and non-NAN");
+		}
+		return maxValue + (sum != 1.0 ? Math.log10(sum) : 0.0);
+	}
+
+	public static double logToLog10(final double ln) {
+		return ln * LOG10_OF_E;
+	}
+
+	public static double mean(final double[] in, final int start, final int stop) {
+		return stop <= start ? Double.NaN : Arrays.stream(in, start, stop).average().getAsDouble();
+	}
+
+	public static double[] normalizeFromLog10ToLinearSpace(final double[] array) {
+		return normalizeLog10(array, false, true);
+	}
+
+	public static double[] normalizeLog10(final double[] array, final boolean takeLog10OfOutput,
+			final boolean inPlace) {
+		final double log10Sum = log10SumLog10(array);
+		final double[] result = inPlace ? applyToArrayInPlace(array, x -> x - log10Sum)
+				: applyToArray(array, x -> x - log10Sum);
+		return takeLog10OfOutput ? result : applyToArrayInPlace(result, x -> Math.pow(10.0, x));
+	}
+	public static <T extends Comparable<? super T>> T median(final List<T> array) {
+		if (array == null)
+			throw new IllegalArgumentException("Array must be non-null");
+		final int size = array.size();
+		if (size == 0)
+			throw new IllegalArgumentException("Array cannot have size 0");
+		else if (size == 1)
+			return array.get(0);
+		else {
+			final ArrayList<T> sorted = new ArrayList<>(array);
+			Collections.sort(sorted);
+			return sorted.get(size / 2);
+		}
+	}
+
+	public static int arrayMin(final List<Integer> array) {
+		if (array == null || array.isEmpty())
+			throw new IllegalArgumentException("Array must be non-null and non-empty");
+		int min = array.get(0);
+		for (final int i : array)
+			if (i < min)
+				min = i;
+		return min;
+	}
 }

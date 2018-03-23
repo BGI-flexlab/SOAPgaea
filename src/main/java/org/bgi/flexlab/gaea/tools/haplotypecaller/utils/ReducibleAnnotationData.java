@@ -1,10 +1,12 @@
-package org.bgi.flexlab.gaea.tools.jointcalling.util;
+package org.bgi.flexlab.gaea.tools.haplotypecaller.utils;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.bgi.flexlab.gaea.data.exception.UserException;
 
 import htsjdk.variant.variantcontext.Allele;
 
@@ -78,5 +80,19 @@ public class ReducibleAnnotationData<T> {
      */
     public Map<Allele, T> getAttributeMap() {return Collections.unmodifiableMap(attributeMap);}
 
+    public void validateAllelesList() {
+        boolean foundRef = false;
+        for (final Allele a : this.getAlleles()) {
+            if (a.isReference()) {
+                if (foundRef) {
+                    throw new UserException("ERROR: multiple reference alleles found in annotation data\n");
+                }
+                foundRef = true;
+            }
+        }
+        if (!foundRef) {
+            throw new UserException("ERROR: no reference alleles found in annotation data\n");
+        }
+    }
 }
 

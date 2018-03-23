@@ -2,6 +2,9 @@ package org.bgi.flexlab.gaea.tools.jointcalling.genotypelikelihood;
 
 import java.util.Arrays;
 
+import org.bgi.flexlab.gaea.data.exception.UserException;
+import org.bgi.flexlab.gaea.tools.jointcalling.util.GvcfMathUtils;
+
 public class GenotypeLikelihoodCalculators {
 	 /**
      * Maximum possible number of genotypes that this calculator can handle.
@@ -356,5 +359,31 @@ public class GenotypeLikelihoodCalculators {
         if (ploidy > maximumPloidy || alleleCount > maximumAllele)
             ensureCapacity(alleleCount,ploidy);
         return alleleFirstGenotypeOffsetByPloidy[ploidy][alleleCount];
+    }
+    
+    public static int computeMaxAcceptableAlleleCount(final int ploidy, final int maxGenotypeCount){
+
+        checkPloidyAndMaximumAllele(ploidy, ploidy); // a hack to check ploidy makes sense (could duplicate code but choice must be made)
+
+        final double log10MaxGenotypeCount = Math.log10(maxGenotypeCount);
+
+        // Math explanation: genotype count is determined by ${P+A-1 \choose A-1}$, this leads to constraint
+        // $\log(\frac{(P+A-1)!}{(A-1)!}) \le \log(P!G)$,
+        // where $P$ is ploidy, $A$ is allele count, and $G$ is maxGenotypeCount
+        // The upper and lower bounds of the left hand side of the constraint are $P \log(A-1+P)$ and $P \log(A)$
+        // which require $A$ to be searched in interval $[10^{\log(P!G)/P} - (P-1), 10^{\log(P!G)/P}]$
+        // Denote $[10^{\log(P!G)/P}$ as $x$ in the code.
+
+        final double x = Math.pow(10, (GvcfMathUtils.log10Factorial(ploidy) + log10MaxGenotypeCount)/ploidy );
+        final int lower = (int)Math.floor(x) - ploidy - 1;
+        final int upper = (int)Math.ceil(x);
+        for(int a=upper; a>=lower; --a){// check one by one
+
+            final double log10GTCnt = GvcfMathUtils.log10BinomialCoefficient(ploidy+a-1, a-1);
+            if(log10MaxGenotypeCount >= log10GTCnt) {
+                return a;
+            }
+        }
+        throw new UserException("Code should never reach here.");
     }
 }
