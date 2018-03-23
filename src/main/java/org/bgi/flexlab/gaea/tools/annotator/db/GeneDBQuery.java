@@ -21,35 +21,26 @@ import org.bgi.flexlab.gaea.tools.annotator.AnnotationContext;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.Map.Entry;
 
 public class GeneDBQuery extends DBQuery {
 
-	private static final long serialVersionUID = 805441802476032672L;
-
 	@Override
 	public Results query(Condition condition)throws IOException{
-		HashMap<String, String> fieldMap = condition.getFields();
 		Results results = new Results();
 
 		for (String gene : condition.getGenes()) {
-			HashMap<String,String> result = dbAdapter.getResult(condition.getRefTable().getTable(), gene);
+			HashMap<String,String> result = dbAdapter.getResult(condition.getRefTable().getTable(), gene, condition.getFields());
 			if (result ==null || result.isEmpty()) return null;
-				
-			HashMap<String,String> annoResult = new HashMap<>();
-			for (Entry<String, String> entry : fieldMap.entrySet()) {
-				annoResult.put(entry.getKey(), result.get(entry.getValue()));
-			}
-			results.add(gene, annoResult);
+			System.err.println("Gene:"+gene);
+			System.err.println("Gene:"+String.join("|",result.values()));
+			results.add(gene, result);
 		}
 		return results;
 	}
-	
-	
+
 	@Override
-	LinkedList<HashMap<String, String>> getAcResultList(AnnotationContext ac) {
+	public LinkedList<HashMap<String,String>> getAcResultList(AnnotationContext ac) {
 		return results.get(ac.getGeneName());
 	}
-	
 
 }

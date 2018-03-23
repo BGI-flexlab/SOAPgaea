@@ -29,22 +29,16 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AnnotationSortMapper extends Mapper<LongWritable, Text, PairWritable, Text> {
+public class AnnoSortMapper extends Mapper<LongWritable, Text, PairWritable, Text> {
 
 	private PairWritable resultKey;
 	private Text resultValue;
-	private AnnotatorOptions options;
-	private Config userConfig;
 
 	@Override
 	protected void setup(Context context)
 			throws IOException, InterruptedException {
 		resultKey = new PairWritable();
 		resultValue = new Text();
-		options = new AnnotatorOptions();
-		Configuration conf = context.getConfiguration();
-		options.getOptionsFromHadoopConf(conf);
-		userConfig = new Config(conf);
 	}
 
 	@Override
@@ -53,25 +47,16 @@ public class AnnotationSortMapper extends Mapper<LongWritable, Text, PairWritabl
 		String annoLine = value.toString();
 		if (annoLine.startsWith("#")) return;
 
-		VcfAnnoContext vac = new VcfAnnoContext();
-		vac.parseAnnotationStrings(annoLine, userConfig.getFields());
 		String[] fields = annoLine.split("\t", 4);
 		String secondKey = fields[1] + "-" + String.format("%09d",Integer.parseInt(fields[2]));
 
-		for(SampleAnnotationContext sac: vac.getSampleAnnoContexts().values()){
-			resultKey.set(sac.getSampleName(), secondKey);
-			List<String> anno = new ArrayList<>();
-			for(String field: userConfig.getFields()){
-				String annoValue = sac.getFieldByName(field, sac.getSingleAlt());
-				if (annoValue == null) {
-					annoValue = vac.getAnnoItem(field);
-				}
-				anno.add(annoValue);
-			}
-			resultValue.set(String.join("\t",anno));
-//			resultValue.set(vac.getAnnoStr()+"\t"+sac.toAlleleString(sac.getSingleAlt()));
-			context.write(resultKey, resultValue);
-		}
+		resultKey.set(fields[0], secondKey);
+		List<String> vcfField = new ArrayList<>();
+		vcfField.add(fields[1]);
+		vcfField.add(fields[2]);
+		vcfField.add(fields[3]);
+		resultValue.set(String.join("\t",vcfField));
+		context.write(resultKey, resultValue);
 	}
 	
 	@Override

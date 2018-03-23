@@ -24,16 +24,13 @@ import org.bgi.flexlab.gaea.tools.annotator.config.DatabaseInfo.DbType;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 
 public class DBAnnotator implements Serializable{
 	
 	private static final long serialVersionUID = -3944211982294335404L;
-	private static HashMap<String, DBQuery> DbQueryMap = new HashMap<String, DBQuery>();
+	private static HashMap<String, DBQuery> DbQueryMap = new HashMap<>();
 	
 	private Config config;
 	private HashMap<String, Condition> dbConditionHashMap;
@@ -57,30 +54,56 @@ public class DBAnnotator implements Serializable{
 				LinkedList<HashMap<String,String>> resultList = dbQuery.getAcResultList(annotationContext);
 				HashMap<String,String> result = mergeResult(resultList);
 				if (result == null) continue;
-				for (Entry<String, String> entry : result.entrySet()) {
-					annotationContext.putAnnoItem(entry.getKey(),entry.getValue(),false);
+				for (String field : config.getFieldsByDB(dbName)) {
+					annotationContext.putAnnoItem(field, result.get(field),false);
 				}
 			}
 			
 		}
 	}
 
-	public void annotate(VcfAnnoContext vac, String dbName) throws IOException {
+	public boolean annotate(VcfAnnoContext vac, String dbName) throws IOException {
 		Condition condition = dbConditionHashMap.get(dbName);
+
+		if(!dbConditionHashMap.containsKey(dbName)){
+			System.err.println(dbName + " condition is null!");
+			return false;
+		}
+
 		condition.createConditionMap(vac);
 
 		DBQuery dbQuery = DbQueryMap.get(dbName);
-		if (!dbQuery.executeQuery(condition)) return;
+		if (!dbQuery.executeQuery(condition)) return false;
 
-		for (AnnotationContext annotationContext : vac.getAnnotationContexts()) {
-			LinkedList<HashMap<String,String>> resultList = dbQuery.getAcResultList(annotationContext);
-			HashMap<String,String> result = mergeResult(resultList);
-			if (result == null) continue;
-			for (Entry<String, String> entry : result.entrySet()) {
-				annotationContext.putAnnoItem(entry.getKey(),entry.getValue(),false);
+		List<AnnotationContext> annotationContexts = new ArrayList<>();
+
+		for(String alt: vac.getAlts()){
+			LinkedList<HashMap<String,String>> resultList = dbQuery.getResultList(alt);
+			for(HashMap<String,String> result: resultList){
+				AnnotationContext ac = new AnnotationContext();
+				ac.setGenotype(alt);
+				ac.setAllele(alt);
+				for (Entry<String, String> entry : result.entrySet()) {
+					ac.putAnnoItem(entry.getKey(), entry.getValue(),false);
+				}
+				annotationContexts.add(ac);
 			}
 		}
+
+		vac.setAnnotationContexts(annotationContexts);
+		return true;
 	}
+
+	public boolean insert(VcfAnnoContext vac, String dbName) throws IOException {
+		Condition condition = dbConditionHashMap.get(dbName);
+		condition.createConditionMap(vac);
+		DBQuery dbQuery = DbQueryMap.get(dbName);
+		for (Map<String,String> annos : vac.toAnnotationMaps(config.getFields())) {
+			dbQuery.insert(condition, annos);
+		}
+		return true;
+	}
+
 
 	private HashMap<String, String> mergeResult(
 			LinkedList<HashMap<String, String>> resultList) {
@@ -109,7 +132,12 @@ public class DBAnnotator implements Serializable{
 
 	public void connection() throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException {
 		List<String> dbNameList = config.getDbNameList();
-		for (String dbName : dbNameList) {
+		List<String> dbNames = new ArrayList<>();
+		dbNames.add("ANNO");
+		dbNames.addAll(dbNameList);
+		for (String dbName : dbNames) {
+			if(!config.getDatabaseJson().hasDatabaseInfo(dbName))
+				continue;
 			DatabaseInfo databaseInfo = config.getDatabaseJson().getDatabaseInfo(dbName);
 			String queryClassName = "DBQuery";
 			if (databaseInfo.getQueryClassName() != null) {
@@ -126,6 +154,10 @@ public class DBAnnotator implements Serializable{
 			DbQueryMap.put(dbName, dbQuery);
 			
 			Condition condition = new Condition(dbName,databaseInfo);
+			if(dbName.equals("ANNO")){
+				condition.setFields(config.getFields());
+			}else
+				condition.setFields(config.getFieldsByDB(dbName));
 			dbConditionHashMap.put(dbName, condition);
 		}
 	}

@@ -38,6 +38,7 @@ public class Condition implements Serializable{
 	private String conditionString = null;
 	private String dbName;
 	private DbType dbType;   //数据库类型: Hbase, Mysql
+	private List<String> fields;
 	private List<String> alts;
 	private Set<String> genes;
 	private DatabaseInfo dbInfo;
@@ -197,9 +198,13 @@ public class Condition implements Serializable{
 	public void setDbInfo(DatabaseInfo dbInfo) {
 		this.dbInfo = dbInfo;
 	}
-	
-	public HashMap<String, String> getFields(){
-		return dbInfo.getFields();
+
+	public void setFields(List<String> fields) {
+		this.fields = fields;
+	}
+
+	public List<String> getFields(){
+		return fields;
 	}
 
 	public String getAltField(){

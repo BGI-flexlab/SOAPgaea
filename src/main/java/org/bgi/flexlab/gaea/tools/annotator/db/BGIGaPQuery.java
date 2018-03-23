@@ -16,18 +16,6 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.annotator.db;
 
-import org.apache.hadoop.hbase.Cell;
-import org.apache.hadoop.hbase.CellUtil;
-import org.apache.hadoop.hbase.TableName;
-import org.apache.hadoop.hbase.client.Result;
-import org.apache.hadoop.hbase.client.ResultScanner;
-import org.apache.hadoop.hbase.client.Scan;
-import org.apache.hadoop.hbase.client.Table;
-import org.apache.hadoop.hbase.filter.BinaryPrefixComparator;
-import org.apache.hadoop.hbase.filter.CompareFilter;
-import org.apache.hadoop.hbase.filter.Filter;
-import org.apache.hadoop.hbase.filter.RowFilter;
-import org.apache.hadoop.hbase.util.Bytes;
 import org.bgi.flexlab.gaea.tools.annotator.config.DatabaseInfo;
 
 import java.io.IOException;
@@ -40,25 +28,17 @@ public class BGIGaPQuery extends DBQuery {
 
 	@Override
 	public Results query(Condition condition)throws IOException{
-		HashMap<String, String> fieldMap = condition.getFields();
 		Results results = new Results();
 
 		//	keyValue = alt:conditionString
 		for (Entry<String, String> keyValue : condition.getConditionHash().entrySet()) {
-			HashMap<String,String> result = dbAdapter.getResult(condition.getRefTable().getTable(), keyValue.getValue());
+			HashMap<String,String> result = dbAdapter.getResult(condition.getRefTable().getTable(), keyValue.getValue(), condition.getFields());
 			if (result ==null || result.isEmpty()) return null;
-			HashMap<String,String> annoResult = new HashMap<String, String>();
-			for (Entry<String, String> entry : fieldMap.entrySet()) {
-				annoResult.put(entry.getKey(), result.get(entry.getValue()));
-			}
-
-			results.add(keyValue.getKey(), annoResult);
+			results.add(keyValue.getKey(), result);
 		}
 
 		return results;
 	}
-
-
 
 	public void connection(String dbName, DatabaseInfo.DbType dbType, String connInfo) throws IOException{
 		dbAdapter = DBAdapterFactory.createDbAdapter(dbType, connInfo);

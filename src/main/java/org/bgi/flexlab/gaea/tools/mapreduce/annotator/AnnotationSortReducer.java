@@ -31,7 +31,6 @@ public class AnnotationSortReducer extends Reducer<PairWritable, Text, NullWrita
 
 	private MultipleOutputs<NullWritable,Text> multipleOutputs = null;
 	private Text resultValue;
-	private String newAnnoHeader;
 	private boolean printHeader = true;
 
 	@Override
@@ -40,10 +39,8 @@ public class AnnotationSortReducer extends Reducer<PairWritable, Text, NullWrita
 		multipleOutputs = new MultipleOutputs<>(context);
 		Configuration conf = context.getConfiguration();
 		Config userConfig = new Config(conf);
-		List<String> renameNewHeader = userConfig.getRenameNewHeader();
-		System.err.println(userConfig.getHeader());
-		newAnnoHeader = "#" + String.join("\t", renameNewHeader);
-		resultValue.set(newAnnoHeader);
+		System.err.println(userConfig.getHeaderString());
+		resultValue.set(userConfig.getHeaderString());
 	}
 
 	@Override

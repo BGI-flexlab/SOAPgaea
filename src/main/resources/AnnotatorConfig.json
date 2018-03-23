@@ -8,7 +8,7 @@
   "databaseInfo":{
     "ANNO":{
       "database":"HBASE",
-      "queryClassName":"AnnoDBquery",
+      "queryClassName":"AnnoDBQuery",
       "queryCondition":"CHR_POS_END",
       "dbVersion":{
         "GRCh37":{
@@ -19,7 +19,7 @@
         "GRCh38":{
           "table":"annotation:t_hg38_anno",
           "key":"id",
-          "indexTable":"annotation:t_hg19_anno_index"
+          "indexTable":"annotation:t_hg38_anno_index"
         }
       }
     },

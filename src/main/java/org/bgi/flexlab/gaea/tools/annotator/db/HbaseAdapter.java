@@ -16,7 +16,6 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.annotator.db;
 
-import com.sun.xml.bind.v2.TODO;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.Cell;
@@ -24,15 +23,12 @@ import org.apache.hadoop.hbase.CellUtil;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.*;
-import org.apache.hadoop.hbase.filter.BinaryPrefixComparator;
-import org.apache.hadoop.hbase.filter.CompareFilter;
-import org.apache.hadoop.hbase.filter.Filter;
-import org.apache.hadoop.hbase.filter.RowFilter;
 import org.apache.hadoop.hbase.util.Bytes;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Map.Entry;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author huangzhibo
@@ -81,33 +77,38 @@ public class HbaseAdapter implements DBAdapterInterface{
 	}
 
 	public HashMap<String, String> getResult(String tableName,
-			String rowKey, String[] fields) throws IOException{
-		HashMap<String,String> resultMap = getResult(tableName,rowKey);
+			String rowKey, List<String> fields) throws IOException{
+		HashMap<String,String> resultMap = new HashMap<>();
 		Table table = conn.getTable(TableName.valueOf(tableName));
 		Get get = new Get(Bytes.toBytes(rowKey));
 		get.addFamily(Bytes.toBytes(getColumnFamily()));
+		if (!table.exists(get))
+			return null;
 		Result result = table.get(get);
 		for (String field : fields) {
 			byte[] value = result.getValue(Bytes.toBytes(getColumnFamily()), Bytes.toBytes(field));
-			resultMap.put(field, Bytes.toString(value));
+			if(value == null) continue;
+			String v = Bytes.toString(value);
+			if(v.contains("|"))
+				v = v.replaceAll("\\|","&");
+			resultMap.put(field, v);
 		}
 		return resultMap;
 	}
 	
-	@Override
-	public HashMap<String, String> getResult(String tableName,
-			String rowKey, HashMap<String, String> fieldMap) throws IOException{
-//		HashMap<String,String> resultMap = getResult(tableName,rowKey);
-		HashMap<String,String> resultMap = new HashMap<String,String>();
+	public boolean insert(String tableName, String rowKey, Map<String,String> fields) throws IOException{
 		Table table = conn.getTable(TableName.valueOf(tableName));
-		Get get = new Get(Bytes.toBytes(rowKey));
-		get.addFamily(Bytes.toBytes(getColumnFamily()));
-		Result result = table.get(get);
-		for (Entry<String, String> entry : fieldMap.entrySet()) {
-			byte[] value = result.getValue(Bytes.toBytes(getColumnFamily()), Bytes.toBytes(entry.getValue()));
-			resultMap.put(entry.getKey(), Bytes.toString(value));
+		Put put = new Put(Bytes.toBytes(rowKey));
+		for(String key: fields.keySet()){
+			String value = fields.get(key);
+			if(key == null || value == null)
+				continue;
+			put.addImmutable(Bytes.toBytes(getColumnFamily()), Bytes.toBytes(key), Bytes.toBytes(value));
+
 		}
-		return resultMap;
+		table.put(put);
+		table.close();
+		return true;
 	}
 
 

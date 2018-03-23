@@ -21,10 +21,7 @@ import org.bgi.flexlab.gaea.tools.annotator.AnnotationContext;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.Map.Entry;
 
 public class DBQuery implements Serializable {
@@ -60,7 +57,6 @@ public class DBQuery implements Serializable {
 	 * @throws IOException
 	 */
 	public Results query(Condition condition)throws IOException{
-		HashMap<String, String> fieldMap = condition.getFields();
 		Results results = new Results();
 
 		HashMap<String,String> result = dbAdapter.getResult(condition.getRefTable().getIndexTable(), condition.getConditionString());
@@ -70,12 +66,9 @@ public class DBQuery implements Serializable {
 		String[] keys = keyStr.split(",");
 		for (String key : keys) {
 			result = dbAdapter.getResult(condition.getRefTable().getTable(), key);
-			
-			HashMap<String,String> annoResult = new HashMap<>();
-			for (Entry<String, String> entry : fieldMap.entrySet()) {
-				annoResult.put(entry.getKey(), result.get(entry.getValue()));
-			}
-			
+			System.err.println("Alt:"+key);
+			System.err.println("Alt:"+String.join("|",result.values()));
+
 			if (result ==null || result.isEmpty()){
 				System.err.println("Cann't find value from table:"+condition.getRefTable().getTable()+". Key:"+key);
 				return null;
@@ -85,6 +78,11 @@ public class DBQuery implements Serializable {
 			if (resultAltStr == null) {
 				System.err.println("Alt is null:"+condition.getRefTable().getTable()+". Key:"+key);
 				return null;
+			}
+
+			HashMap<String,String> annoResult = new HashMap<>();
+			for(String field: condition.getFields()){
+				annoResult.put(field, result.get(field));
 			}
 
 			if (!resultAltStr.contains(",")) {
@@ -139,19 +137,24 @@ public class DBQuery implements Serializable {
 		return resultList;
 	}
 	
-	/**
-	 * 从results获取符合annotationContext的结果
-	 * @return
-	 */
-	LinkedList<HashMap<String, String>> getAcResultList(AnnotationContext ac) {
-		return results.get(ac.getAllele());
+	public LinkedList<HashMap<String,String>> getAcResultList(AnnotationContext ac) {
+		return results.get(ac.getAlt());
 	}
-	
+
+	public LinkedList<HashMap<String,String>> getResultList(String tag) {
+		return results.get(tag);
+	}
+
+	public boolean insert(Condition condition,	Map<String,String>
+			fields )throws IOException{
+		return true;
+	}
+
 	/**
 	 * 对查询结果results进行矫正
 	 */
 	//abstract void adjustResult(HashMap<String,String> result);
-	
+
 	Results getResults(){
 		return results;
 	}
@@ -164,5 +167,4 @@ public class DBQuery implements Serializable {
 		dbAdapter = DBAdapterFactory.createDbAdapter(dbType, connInfo);
 		dbAdapter.connection("data");
 	}
-	
 }

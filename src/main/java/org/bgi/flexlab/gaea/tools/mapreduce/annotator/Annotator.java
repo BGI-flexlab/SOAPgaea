@@ -46,16 +46,19 @@ public class Annotator extends ToolsRunner {
     private Configuration conf;
     private AnnotatorOptions options;
     private List<String> sampleNames;
+    private List<String> fileNames;
 
-    public Annotator(){}
+    public Annotator(){
+        sampleNames = new ArrayList<>();
+        fileNames = new ArrayList<>();
+    }
 
     private int runAnnotator(String[] arg0) throws Exception {
 
         conf = new Configuration();
         String[] remainArgs = remainArgs(arg0, conf);
 
-
-                options = new AnnotatorOptions();
+        options = new AnnotatorOptions();
         options.parse(remainArgs);
         options.setHadoopConf(remainArgs, conf);
         conf.set(VCFOutputFormat.OUTPUT_VCF_FORMAT_PROPERTY, "VCF");
@@ -74,9 +77,6 @@ public class Annotator extends ToolsRunner {
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
         job.setInputFormatClass(MNLineInputFormat.class);
-//        job.setOutputFormatClass(MyVCFOutputFormat.class);
-
-        sampleNames = new ArrayList<>();
 
         Path inputPath = new Path(options.getInputFilePath());
         FileSystem fs = inputPath.getFileSystem(conf);
@@ -89,9 +89,7 @@ public class Annotator extends ToolsRunner {
                 singleVcfHeader.readHeaderFrom(file.getPath(), fs);
                 VCFHeader vcfHeader = singleVcfHeader.getHeader();
 
-                VCFHdfsWriter vcfHdfsWriter = new VCFHdfsWriter(options.getOutputPath(), false, false, conf);
-                vcfHdfsWriter.writeHeader(vcfHeader);
-                vcfHdfsWriter.close();
+                fileNames.add(file.getPath().getName());
 
                 for(String sample: vcfHeader.getSampleNamesInOrder()) {
                     if(!sampleNames.contains(sample))
@@ -110,12 +108,61 @@ public class Annotator extends ToolsRunner {
         return job.waitForCompletion(true) ? 0 : 1;
     }
 
+    private int runAnnoSort() throws Exception {
+        if(options.getOutputFormat() == AnnotatorOptions.OutputFormat.VCF){
+            return runVCFSort();
+        }
+        return runTSVSort();
+    }
 
-    private int runAnnotatorSort() throws Exception {
+    private int runVCFSort() throws Exception {
 
         BioJob job = BioJob.getInstance(conf);
 
-        job.setJobName("GaeaAnnotatorSortResult");
+        job.setJobName("GaeaAnnotatorSort");
+        job.setJarByClass(this.getClass());
+        job.setMapperClass(AnnoSortMapper.class);
+        job.setReducerClass(AnnoSortReducer.class);
+        job.setNumReduceTasks(fileNames.size());
+
+        job.setMapOutputKeyClass(PairWritable.class);
+        job.setMapOutputValueClass(Text.class);
+
+        job.setPartitionerClass(FirstPartitioner.class);
+        job.setOutputKeyClass(NullWritable.class);
+        job.setOutputValueClass(Text.class);
+        job.setInputFormatClass(TextInputFormat.class);
+        LazyOutputFormat.setOutputFormatClass(job, TextOutputFormat.class);
+
+        Path inputPath = new Path(options.getTmpPath());
+        Path outputPath = new Path(options.getOutputPath());
+        FileInputFormat.setInputPaths(job, inputPath);
+        FileOutputFormat.setOutputPath(job, outputPath);
+
+        FileSystem fs = outputPath.getFileSystem(conf);
+        if(job.waitForCompletion(true)){
+            int loop = 0;
+            for (String fileName : fileNames){
+                Path outputPart = getSampleOutputPath(fileName);
+                while (outputPart == null && loop < 10){
+                    TimeUnit.MILLISECONDS.sleep(6000);
+                    outputPart = getSampleOutputPath(fileName);
+                    loop ++;
+                }
+                Path outputName = new Path(options.getOutputPath() + "/" + fileName);
+                fs.rename(outputPart, outputName);
+            }
+            return 0;
+        }
+        return 1;
+    }
+
+
+    private int runTSVSort() throws Exception {
+
+        BioJob job = BioJob.getInstance(conf);
+
+        job.setJobName("GaeaAnnotatorSort");
         job.setJarByClass(this.getClass());
         job.setMapperClass(AnnotationSortMapper.class);
         job.setReducerClass(AnnotationSortReducer.class);
@@ -168,14 +215,12 @@ public class Annotator extends ToolsRunner {
         return fileStatuses[0].getPath();
     }
 
-
     @Override
     public int run(String[] args) throws Exception {
         Annotator annotator = new Annotator();
         if(annotator.runAnnotator(args) != 0)
             return 1;
-        return 0;
-//        return annotator.runAnnotatorSort();
+        return annotator.runAnnoSort();
     }
 
 }

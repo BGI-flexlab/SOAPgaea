@@ -32,7 +32,7 @@ import org.bgi.flexlab.gaea.tools.annotator.util.CountByType;
 import org.bgi.flexlab.gaea.tools.annotator.util.Gpr;
 import org.bgi.flexlab.gaea.tools.annotator.util.Timer;
 import org.bgi.flexlab.gaea.tools.mapreduce.annotator.AnnotatorOptions;
-import org.bgi.flexlab.gaea.util.FileIterator;
+import org.bgi.flexlab.gaea.util.OrderedProperties;
 
 import java.io.*;
 import java.util.*;
@@ -45,7 +45,7 @@ public class Config implements Serializable {
 	
 	public static final String KEY_REFERENCE = "ref";
 	public static final String KEY_GENE_INFO = "GeneInfo";
-	public static final String KEY_FIELDS_RENAME = "FieldRenameList";
+	public static final String KEY_TSV_PREFIX = "TSV";
 	public static final String KEY_CODON_PREFIX = "codon.";
 	public static final String KEY_CODONTABLE_SUFIX = ".codonTable";
 	public static final String DB_CONFIG_JSON = "AnnotatorConfig.json";
@@ -54,8 +54,6 @@ public class Config implements Serializable {
 	
 	private String  ref = null;
 	private String  geneInfo = null;
-	private List<String> renameOldHeader;
-	private List<String> renameNewHeader;
 
 	private boolean debug = false; // Debug mode?
 	private boolean verbose = false; // Verbose
@@ -113,7 +111,7 @@ public class Config implements Serializable {
 	 * @return true if success
 	 */
 	boolean loadProperties(String configFileName) {
-		properties = new Properties();
+		properties = new OrderedProperties();
 		try {
 			Path confFilePath = new Path(configFileName);
 			FileSystem fs = confFilePath.getFileSystem(conf);
@@ -209,13 +207,8 @@ public class Config implements Serializable {
 	private boolean parseProperties() throws IOException {
 		
 		// Sorted keys
-		ArrayList<String> keys = new ArrayList<String>();
-		for (Object k : properties.keySet())
-			keys.add(k.toString());
-//		Collections.sort(keys);
+		Set<String> keys = properties.stringPropertyNames();
 		ref = properties.getProperty(KEY_REFERENCE);
-		String renameList = properties.getProperty(KEY_FIELDS_RENAME).trim();
-		setRenameHeader(renameList);
 		setGeneInfo(properties.getProperty(KEY_GENE_INFO));
 		
 		annoFieldsByDB = new HashMap<>();
@@ -223,6 +216,9 @@ public class Config implements Serializable {
 
 		//用户配置文件中注释字段的配置格式： dbName.N.fields = field1:header1,field2,field3
 		for (String key : keys) {
+			if(options.getOutputFormat() != AnnotatorOptions.OutputFormat.TSV && key.startsWith(KEY_TSV_PREFIX))
+				continue;
+
 			if (key.endsWith(ANNO_FIELDS_SUFIX)) {
 				String dbName = key.substring(0, key.length() - ANNO_FIELDS_SUFIX.length());
 				if(dbName.contains(".")){
@@ -240,9 +236,6 @@ public class Config implements Serializable {
 					} else {
 						annoFieldList.add(annoField);
 						fields.add(annoField);
-						if(!key.startsWith(KEY_GENE_INFO) && !annoField.startsWith(dbName)){
-							headerByField.put(annoField, dbName+"_"+annoField);
-						}
 					}
 				}
 
@@ -266,6 +259,13 @@ public class Config implements Serializable {
 
 	public Map<String, String> getHeaderByField() {
 		return headerByField;
+	}
+
+
+	public String getHeaderNameByField(String field) {
+		if(headerByField.containsKey(field))
+			return headerByField.get(field);
+		return field;
 	}
 
 	public ArrayList<String> getFieldsByDB(String dbName){
@@ -392,34 +392,6 @@ public class Config implements Serializable {
 		}
 	}
 
-	public List<String> getRenameOldHeader() {
-		return renameOldHeader;
-	}
-
-	public List<String> getRenameNewHeader() {
-		return renameNewHeader;
-	}
-
-	public void setRenameHeader(String renameList) throws IOException {
-		if (renameList.startsWith("/")) {
-			renameList = "file://" + renameList;
-		}
-		renameOldHeader = new ArrayList<>();
-		renameNewHeader = new ArrayList<>();
-		FileIterator it = new FileIterator(renameList);
-		while (it.hasNext()) {
-			String line = it.next().toString().trim();
-			if(line.isEmpty() || line.startsWith("#"))
-				continue;
-			String[] fields = line.split("\t");
-			fields[0] = fields[0].trim().replaceAll("\"","");
-			fields[1] = fields[1].trim().replaceAll("\"","");
-			renameNewHeader.add(fields[0]);
-			renameOldHeader.add(fields[1]);
-		}
-		it.close();
-	}
-
 	public String getRef() {
 		switch(ref){
 		
@@ -464,8 +436,8 @@ public class Config implements Serializable {
 		List<String> headerList = new ArrayList<>();
 		headerList.add("CHROM");
 		headerList.add("POS");
-		headerList.add("START");
-		headerList.add("END");
+//		headerList.add("START");
+//		headerList.add("END");
 		headerList.add("REF");
 		headerList.add("ALT");
 		ArrayList<String> fields = getFieldsByDB(Config.KEY_GENE_INFO);
@@ -477,9 +449,18 @@ public class Config implements Serializable {
 		}
 		return headerList;
 	}
-	
-	public String getHeader(){
-		return "#"+String.join("\t", getHeaderList());
+
+	public String getHeaderString(){
+		return getHeaderString("#CHROM\tPOS\tREF\tALT", "\t");
+	}
+
+	public String getHeaderString(String prefix, String delimiter){
+		StringBuilder sb = new StringBuilder(prefix);
+		for(String field: getFields()){
+			sb.append(delimiter);
+			sb.append(getHeaderNameByField(field));
+		}
+		return sb.toString();
 	}
 
 	public AnnotatorOptions getOptions() {

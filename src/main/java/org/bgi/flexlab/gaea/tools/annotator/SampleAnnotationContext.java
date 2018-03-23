@@ -111,6 +111,9 @@ public class SampleAnnotationContext{
 
 	public String getFieldByName(String fieldName, String allele) {
 		switch (fieldName) {
+			case "SAMPLE":
+				return getSampleName();
+
 			case "NbGID":
 				if(hasNearVar) return "1";
 				else return "0";

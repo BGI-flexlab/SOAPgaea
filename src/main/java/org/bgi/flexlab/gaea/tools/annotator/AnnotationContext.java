@@ -36,7 +36,7 @@ package org.bgi.flexlab.gaea.tools.annotator;
 
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.vcf.VCFConstants;
-import org.bgi.flexlab.gaea.tools.annotator.config.Config;
+import org.apache.commons.lang3.ArrayUtils;
 import org.bgi.flexlab.gaea.tools.annotator.effect.EffectType;
 import org.bgi.flexlab.gaea.tools.annotator.effect.VariantEffect;
 import org.bgi.flexlab.gaea.tools.annotator.effect.VariantEffect.FunctionalClass;
@@ -111,15 +111,12 @@ public class AnnotationContext implements Serializable{
 
 	private Map<String, Object> annoItems;
 
-	public AnnotationContext() {}
+	public AnnotationContext() {
+		init();
+	}
 
 	public AnnotationContext(VariantEffect variantEffect) {
 		this(variantEffect, true, false);
-	}
-
-	public AnnotationContext(VariantEffect variantEffect, Config config) {
-		this(variantEffect, true, false);
-		config.getDbNameList();
 	}
 
 	public AnnotationContext(VariantEffect variantEffect, boolean useSequenceOntology, boolean useFirstEffect) {
@@ -190,23 +187,24 @@ public class AnnotationContext implements Serializable{
 		annoItems = new HashMap<>();
 	}
 	
-	
-	 public int getNumAnnoItems() {
-	        return annoItems.size();
-	 }
-
     /**
      * @param key    the AnnoItem key
      *
      * @return the AnnoItem value for the given key (or null if not set)
      */
     public Object getAnnoItem(String key) {
-        return annoItems.get(key);
+    	if(hasAnnoItem(key))
+			return annoItems.get(key);
+		if(ArrayUtils.contains(ANN_FIELD_NAMES, key))
+			return getFieldByName(key);
+        return null;
     }
 
     public Object getAnnoItem(String key, Object defaultValue) {
         if ( hasAnnoItem(key) )
             return annoItems.get(key);
+        else if(ArrayUtils.contains(ANN_FIELD_NAMES, key))
+			return getFieldByName(key);
         else
             return defaultValue;
     }
@@ -271,7 +269,7 @@ public class AnnotationContext implements Serializable{
 	}
 
 	public String getAlt() {
-		return variant.getAlt();
+		return getGenotype();
 	}
 
 	public BioType getBioType() {
@@ -549,17 +547,21 @@ public class AnnotationContext implements Serializable{
 	void set(VariantEffect variantEffect) {
 		// Allele
 		variant = variantEffect.getVariant();
-		allele = Allele.create(variant.getAlt(), false);
 		Gene gene = variantEffect.getGene();
 		Marker marker = variantEffect.getMarker();
 		Transcript tr = variantEffect.getTranscript();
 
 		// Genotype
-//		if (variant.getGenotype() != null) genotype = variant.getGenotype();
-//		else if (!variant.isVariant()) genotype = variant.getReference();
-//		else genotype = variant.getAlt();
-		// else if (var.isNonRef()) genotype = var.getGenotype();
+		if (variant.getGenotype() != null) genotype = variant.getGenotype();
+		else if (!variant.isVariant()) genotype = variant.getReference();
+		else genotype = variant.getAlt();
+//		 else if (var.isNonRef()) genotype = var.getGenotype();
 
+//		System.err.println("---2"+variant.getAlt());
+//		//TODO  for del: CT->C
+		// 		variant.getAlt() : del: T->
+//		//      variant.getGenotype() : del: CT->C
+		allele = Allele.create(variant.getGenotype(), false);
 
 		// Effect
 		effectType = variantEffect.getEffectType();
@@ -820,13 +822,21 @@ public class AnnotationContext implements Serializable{
 		this.allele = allele;
 	}
 
+	public void setAllele(String alt) {
+		this.allele = Allele.create(alt, false);
+	}
+
 	public Allele getAllele() {
 		return allele;
 	}
 
-	public String toAnnoString(){
-		return "None";
+	public String toAnnoString(List<String> fields){
+		StringBuilder sb = new StringBuilder(getGenotype());
+		for (String field : fields){
+			sb.append("|");
+			sb.append(getAnnoItemAsString(field, "."));
+		}
+		return sb.toString();
 	}
-
 
 }

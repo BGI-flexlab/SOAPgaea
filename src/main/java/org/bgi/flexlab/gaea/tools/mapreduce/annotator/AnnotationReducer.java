@@ -21,6 +21,7 @@ import htsjdk.variant.vcf.VCFCodec;
 import htsjdk.variant.vcf.VCFEncoder;
 import htsjdk.variant.vcf.VCFHeader;
 import htsjdk.variant.vcf.VCFHeaderVersion;
+import org.apache.commons.lang.ObjectUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
@@ -127,13 +128,14 @@ public class AnnotationReducer extends Reducer<Text, VcfLineWritable, Text, Text
 			String fileName = vcfInput.getFileName();
 			String vcfLine = vcfInput.getVCFLine();
 			VariantContext variantContext =  vcfCodecs.get(fileName).decode(vcfLine);
-			String refStr = variantContext.getReference().getBaseString();
+//			String refStr = variantContext.getReference().getBaseString();
 			int pos = variantContext.getStart();
+			int end = variantContext.getEnd();
 
 
 			if(!positions.contains(pos))
 				positions.add(pos);
-			String posKey = pos + refStr;
+			String posKey = pos + "-" + Integer.toString(end);
 			posToPosKey.put(pos, posKey);
 			if(posVariantInfo.containsKey(posKey)){
 				posVariantInfo.get(posKey).add(variantContext, fileName);
@@ -165,27 +167,38 @@ public class AnnotationReducer extends Reducer<Text, VcfLineWritable, Text, Text
 					}
 				}
 			}
-			if(){
-				dbAnnotator.annotate(vcfAnnoContext, );
-			}else {
+
+			if(options.isUseDatabaseCache() && !dbAnnotator.annotate(vcfAnnoContext, "ANNO")){
 				if (!annoEngine.annotate(vcfAnnoContext)) {
 					continue;
 				}
 				dbAnnotator.annotate(vcfAnnoContext);
+				if(options.isDatabaseCache())
+					dbAnnotator.insert(vcfAnnoContext, "ANNO");
 			}
 
-			Map<String, List<VariantContext>> annos = vcfAnnoContext.toAnnotationVariantContexts();
-			for(String filename: annos.keySet()){
-				resultKey.set(filename);
-				VCFHeader vcfHeader = vcfHeaders.get(filename);
-				List<VariantContext> variantContexts = annos.get(filename);
-				VCFEncoder vcfEncoder = new VCFEncoder(vcfHeader, true, true);
-				for(VariantContext vc: variantContexts){
-					String vcfLine = vcfEncoder.encode(vc);
-//					VariantContextWritable vcw = new VariantContextWritable();
-//					vcw.set(vc, vcfHeader);
-					resultValue.set(vcfLine);
-					context.write(resultKey, resultValue);
+			if(options.getOutputFormat() == AnnotatorOptions.OutputFormat.VCF){
+				Map<String, List<VariantContext>> annos = vcfAnnoContext.toAnnotationVariantContexts(userConfig.getFields());
+				for(String filename: annos.keySet()){
+					resultKey.set(filename);
+					VCFHeader vcfHeader = vcfHeaders.get(filename);
+					List<VariantContext> variantContexts = annos.get(filename);
+					VCFEncoder vcfEncoder = new VCFEncoder(vcfHeader, true, true);
+					for(VariantContext vc: variantContexts){
+						String vcfLine = vcfEncoder.encode(vc);
+						resultValue.set(vcfLine);
+						context.write(resultKey, resultValue);
+					}
+				}
+			}else {
+				List<String> annoLines = vcfAnnoContext.toAnnotationStrings(userConfig.getFields());
+				for(String sampleName: vcfAnnoContext.getSampleAnnoContexts().keySet())
+				{
+					resultKey.set(sampleName);
+					for(String annoLine: annoLines){
+						resultValue.set(annoLine);
+						context.write(resultKey, resultValue);
+					}
 				}
 			}
 		}

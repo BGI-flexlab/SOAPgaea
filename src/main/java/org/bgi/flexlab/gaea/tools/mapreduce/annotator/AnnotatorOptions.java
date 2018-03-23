@@ -18,18 +18,11 @@ package org.bgi.flexlab.gaea.tools.mapreduce.annotator;
 
 import org.apache.commons.cli.ParseException;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
 import org.bgi.flexlab.gaea.data.mapreduce.options.HadoopOptions;
 import org.bgi.flexlab.gaea.data.options.GaeaOptions;
-import org.seqdoop.hadoop_bam.SAMFormat;
-import org.seqdoop.hadoop_bam.VCFOutputFormat;
 
 import java.io.File;
-import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 
 /**
@@ -54,6 +47,8 @@ public class AnnotatorOptions extends GaeaOptions implements HadoopOptions{
     private String referenceSequencePath; //参考序列gaeaindex
 
     private boolean multiOutput = false;
+    private boolean databaseCache = false;
+    private boolean useDatabaseCache = false;
     private boolean verbose = false;
     private boolean debug = false;
 
@@ -66,6 +61,8 @@ public class AnnotatorOptions extends GaeaOptions implements HadoopOptions{
         addOption("r", "reference",  true,  "indexed reference sequence file list [request]", true);
         addOption("O", "outputFormat", true,  "output file foramt (TSV, VCF) [TSV].");
         addOption("M", "MultiOutput", true,  "output to multi file when have more than one sample");
+        addOption("d","doDatabaseCache",    false, "cache annotation database");
+        addOption("u","useDatabaseCache",    false, "use cached annotation database");
         addOption(null,"verbose",    false, "display verbose information.");
         addOption(null,"debug",      false, "for debug.");
         addOption("h", "help",       false, "help information.");
@@ -100,6 +97,8 @@ public class AnnotatorOptions extends GaeaOptions implements HadoopOptions{
         setReferenceSequencePath(cmdLine.getOptionValue("reference",""));
         setMultiOutput(getOptionBooleanValue("multiOutput", false));
         setOutputPath(cmdLine.getOptionValue("output"));
+        setDatabaseCache(getOptionBooleanValue("doDatabaseCache", false));
+        setUseDatabaseCache(getOptionBooleanValue("useDatabaseCache", false));
         setVerbose(getOptionBooleanValue("verbose", false));
         setDebug(getOptionBooleanValue("debug", false));
     }
@@ -206,5 +205,21 @@ public class AnnotatorOptions extends GaeaOptions implements HadoopOptions{
 
     public void setOutputFormat(OutputFormat outputFormat) {
         this.outputFormat = outputFormat;
+    }
+
+    public boolean isDatabaseCache() {
+        return databaseCache;
+    }
+
+    public void setDatabaseCache(boolean databaseCache) {
+        this.databaseCache = databaseCache;
+    }
+
+    public boolean isUseDatabaseCache() {
+        return useDatabaseCache;
+    }
+
+    public void setUseDatabaseCache(boolean useDatabaseCache) {
+        this.useDatabaseCache = useDatabaseCache;
     }
 }
