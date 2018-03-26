@@ -30,30 +30,6 @@ import java.util.List;
 
 public class BamSortUtils {
 
-    public static final String INPUT_PATHS_PROP = "hadoopcram.sort.input.paths";
-
-    public static SamFileHeaderMerger getHeaderMerger(Configuration conf)
-            throws IOException {
-
-        SamFileHeaderMerger headerMerger = null;
-
-        final List<SAMFileHeader> headers = new ArrayList<>();
-
-        for (final String in : conf.getStrings(INPUT_PATHS_PROP)) {
-            final Path p = new Path(in);
-
-            final SAMFileReader r = new SAMFileReader(p.getFileSystem(conf)
-                    .open(p));
-            headers.add(r.getFileHeader());
-            if(headers.size() != 0)
-                break;
-            r.close();
-        }
-
-        return new SamFileHeaderMerger(
-                SAMFileHeader.SortOrder.coordinate, headers, true);
-    }
-
     public static SAMFileHeader replaceSampleName(SAMFileHeader header,HashMap<String,String> replaceList){
         SAMFileHeader newHeader = header.clone();
 

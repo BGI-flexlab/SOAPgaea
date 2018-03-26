@@ -23,7 +23,6 @@ import org.bgi.flexlab.gaea.data.options.GaeaOptions;
 import org.seqdoop.hadoop_bam.SAMFormat;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -52,15 +51,16 @@ public class BamSortOptions extends GaeaOptions implements HadoopOptions {
 
     public BamSortOptions() {
         addOption("i", "input",      true,  "input file list. [request]", true);
-        addOption("I", "inputFormat",      true,  "input format CRAM/SAM/BAM. [BAM]");
+        addOption("I", "inputFormat",      true,  "input format SAM/BAM. [BAM]");
         addOption("o", "outdir",     true,  "output dir [request]", true);
-        addOption("O", "outputFormat", true,  "output file foramt CRAM/SAM/BAM [BAM].");
+        addOption("O", "outputFormat", true,  "output file foramt SAM/BAM [BAM].");
         addOption("m", "multiSample", false,  "have more than one sample in input file list");
         addOption("n", "rename", true,  "replace sample name list [null]");
         addOption("r", "reference", true,  "reference [null]");
         addOption("h", "help",       false, "help information.");
         addOption("R", "reducer", true, "reducer numbers [30]");
         addOption("T","type",    true, "filter mode. unmap/all [all]");
+        addOption(null,"tmpdir",    true, "hdfs tmpdir [default]");
         addOption(null,"verbose",    false, "display verbose information.");
 
         FormatHelpInfo(SOFTWARE_NAME,SOFTWARE_VERSION);
@@ -83,8 +83,12 @@ public class BamSortOptions extends GaeaOptions implements HadoopOptions {
 
         reducerNum = getOptionIntValue("R", 30);
 
-        SimpleDateFormat df = new SimpleDateFormat("yyyyMMddHHmmss");
-        tmpPath = "/user/" + System.getProperty("user.name") + "/annotmp-" + df.format(new Date());
+        if(cmdLine.hasOption("tmpdir")){
+            setTmpPath(cmdLine.getOptionValue("tmpdir"));
+        }else {
+            SimpleDateFormat df = new SimpleDateFormat("yyyyMMddHHmmss");
+            tmpPath = "/user/" + System.getProperty("user.name") + "/bamsort-tmp-" + df.format(new Date());
+        }
 
         try {
             setStrInputs(cmdLine.getOptionValue("input"));
@@ -92,13 +96,14 @@ public class BamSortOptions extends GaeaOptions implements HadoopOptions {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        setOutputFormat(cmdLine.getOptionValue("outputFormat"));
-        setInputFormat(cmdLine.getOptionValue("inputFormat"));
+        setOutputFormat(getOptionValue("outputFormat", "BAM"));
+        setInputFormat(getOptionValue("inputFormat","BAM"));
         setOutdir(cmdLine.getOptionValue("outdir"));
         setMultiSample(getOptionBooleanValue("multiSample", false));
         setVerbose(getOptionBooleanValue("verbose", false));
         setType(getOptionValue("type", "all"));
         setReference(getOptionValue("reference",null));
+        setReducerNum(getOptionIntValue("reducer",30));
     }
 
     @Override
@@ -120,8 +125,21 @@ public class BamSortOptions extends GaeaOptions implements HadoopOptions {
         this.reducerNum = reducerNum;
     }
 
-    public String getInputFormat() {
-        return inputFormat;
+    private SAMFormat getFormat(String f){
+        SAMFormat format = null;
+        switch (f) {
+            case "SAM":
+                format = SAMFormat.SAM;
+                break;
+            case "BAM":
+                format = SAMFormat.BAM;
+                break;
+        }
+        return format;
+    }
+
+    public SAMFormat getInputFormat() {
+        return getFormat(inputFormat);
     }
 
     public void setInputFormat(String inputFormat) {
@@ -158,7 +176,20 @@ public class BamSortOptions extends GaeaOptions implements HadoopOptions {
 
     public void setStrInputs(String inputList) throws IOException {
         List<String> strInputs = new ArrayList<>();
-        File input = new File(inputList);
+
+        FileReader fr = new FileReader(inputList);
+        BufferedReader br = new BufferedReader(fr);
+
+        String line;
+        while ((line = br.readLine()) != null) {
+            line = line.trim();
+            if(line.isEmpty())
+                continue;
+            strInputs.add(line);
+        }
+
+        br.close();
+        fr.close();
         this.strInputs = strInputs;
     }
 
@@ -203,6 +234,8 @@ public class BamSortOptions extends GaeaOptions implements HadoopOptions {
     }
 
     public void setRenames(String renameFile) throws IOException {
+        if(renameFile == null)
+            return;
         HashMap<String,String> replaceList = new HashMap<>();
 
         FileReader fr = new FileReader(renameFile);
@@ -221,6 +254,10 @@ public class BamSortOptions extends GaeaOptions implements HadoopOptions {
 
     public HashMap<String,String> getRenames() {
         return renames;
+    }
+
+    public void setTmpPath(String tmpdir) {
+        tmpPath = tmpdir;
     }
 
     public String getTmpPath() {

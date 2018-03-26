@@ -22,9 +22,12 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.partition.InputSampler;
 import org.apache.hadoop.mapreduce.lib.partition.TotalOrderPartitioner;
+import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamHdfsFileHeader;
+import org.bgi.flexlab.gaea.data.mapreduce.writable.SamRecordWritable;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.BioJob;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.ToolsRunner;
 import org.seqdoop.hadoop_bam.SAMRecordWritable;
@@ -47,7 +50,7 @@ public class BamSort extends ToolsRunner {
     private Map<String, String> formatSampleName;
 
     public BamSort(){
-        this.toolsDescription = "Bam BamSort";
+        this.toolsDescription = "Gaea BamSort";
     }
 
 
@@ -60,23 +63,29 @@ public class BamSort extends ToolsRunner {
 
         Path tmpPath = new Path(options.getTmpPath());
 
-        header = BamSortUtils.getHeaderMerger(conf).getMergedHeader();
-        header.setSortOrder(SAMFileHeader.SortOrder.coordinate);
-
-        if (header.getReadGroups().size() == 1) {
-            options.setMultiSample(false);
-        }
-
         options.setHadoopConf(remainArgs, conf);
 
         if (!options.isMultiSample())
             Utils.configureSampling(tmpPath, intermediateOutName, conf);
 
+        conf.setBoolean(SortOutputFormat.WRITE_HEADER_PROP, options.getOutdir() == null);
+        conf.set(SortOutputFormat.OUTPUT_NAME_PROP, intermediateOutName);
+        conf.set(SortOutputFormat.OUTPUT_SAM_FORMAT_PROPERTY, options.getOutputFormat());
+
         final List<Path> inputs = new ArrayList<>(options.getStrInputs().size());
         for (final String in : options.getStrInputs())
             inputs.add(new Path(in));
 
-//        job.setHeader(new Path(options.getInput()), new Path(options.getOutput()));
+        job.setHeader(inputs, new Path(options.getOutdir()));
+        header = SamHdfsFileHeader.getHeader(conf);
+        if(header == null){
+            System.err.println("Header is null!");
+            System.exit(-1);
+        }
+
+        if (header.getReadGroups().size() == 1) {
+            options.setMultiSample(false);
+        }
 
         job.setJarByClass(BamSort.class);
         job.setMapperClass(SortMapper.class);
@@ -85,10 +94,16 @@ public class BamSort extends ToolsRunner {
 
         job.setMapOutputKeyClass(LongWritable.class);
         job.setOutputKeyClass(NullWritable.class);
-        job.setOutputValueClass(SAMRecordWritable.class);
+        job.setOutputValueClass(SamRecordWritable.class);
+
+        job.setAnySamInputFormat(options.getInputFormat());
+        job.setOutputFormatClass(SortOutputFormat.class);
 
         Timer t = new Timer();
         formatSampleName = new HashMap<>();
+
+        for (final Path in : inputs)
+            FileInputFormat.addInputPath(job, in);
 
         FileOutputFormat.setOutputPath(job, tmpPath);
         if(options.getRenames() != null){
@@ -112,8 +127,7 @@ public class BamSort extends ToolsRunner {
             t.start();
 
             job.setPartitionerClass(TotalOrderPartitioner.class);
-            InputSampler
-                    .<LongWritable, SAMRecordWritable> writePartitionFile(
+            InputSampler.writePartitionFile(
                             job,
                             new InputSampler.RandomSampler<LongWritable, SAMRecordWritable>(
                                     0.01, 10000, Math.max(100, options.getReducerNum())));

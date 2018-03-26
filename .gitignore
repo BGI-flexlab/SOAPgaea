@@ -3,3 +3,7 @@
 /.classpath
 /.idea
 /gaea.iml
+
+.fatjar
+
+*.jar

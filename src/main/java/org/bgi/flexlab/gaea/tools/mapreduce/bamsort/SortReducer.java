@@ -30,28 +30,29 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Reducer;
-import org.seqdoop.hadoop_bam.SAMRecordWritable;
+import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamHdfsFileHeader;
+import org.bgi.flexlab.gaea.data.mapreduce.writable.SamRecordWritable;
 
 public final class SortReducer
 		extends
-		Reducer<LongWritable, SAMRecordWritable, NullWritable, SAMRecordWritable> {
-	private SortMultiOutputs<NullWritable, SAMRecordWritable> mos;
+		Reducer<LongWritable, SamRecordWritable, NullWritable, SamRecordWritable> {
+	private SortMultiOutputs<NullWritable, SamRecordWritable> mos;
 	private SAMFileHeader header;
-	private Map<String, String> formatSampleName = new HashMap<String, String>();
-	private boolean _multiSample = true;
+	private Map<String, String> formatSampleName = new HashMap<>();
 	private String firstSample = null;
+	private BamSortOptions options;
 
 	@Override
 	protected void setup(Context context) throws IOException {
 		Configuration conf = context.getConfiguration();
-		mos = new SortMultiOutputs<NullWritable, SAMRecordWritable>(context);
-		SAMFileHeader _header = BamSortUtils.getHeaderMerger(conf).getMergedHeader();
-		String replaceSampleName = conf.get("replace_sample_name",null);
-		if(replaceSampleName != null)
-			replaceSampleNames(_header.clone(),replaceSampleName);
+		SAMFileHeader _header = SamHdfsFileHeader.getHeader(conf);;
+		options = new BamSortOptions();
+		options.getOptionsFromHadoopConf(conf);
+		if(options.getRenames() != null)
+			header = BamSortUtils.replaceSampleName(_header.clone(), options.getRenames());
 		else
 			header = _header;
-		header.setSortOrder(SAMFileHeader.SortOrder.coordinate);
+//		header.setSortOrder(SAMFileHeader.SortOrder.coordinate);
 		for (SAMReadGroupRecord rg : header.getReadGroups()) {
 			if (!formatSampleName.containsKey(rg.getSample()))
 				formatSampleName.put(rg.getSample(),
@@ -59,7 +60,7 @@ public final class SortReducer
 			if(firstSample == null)
 				firstSample = BamSortUtils.formatSampleName(rg.getSample());
 		}
-		_multiSample = conf.getBoolean("multi.samples", true);
+		mos = new SortMultiOutputs<>(context);
 	}
 
 	public void replaceSampleNames(SAMFileHeader _header,String list) throws IOException{
@@ -81,16 +82,16 @@ public final class SortReducer
 	@Override
 	protected void reduce(
 			LongWritable ignored,
-			Iterable<SAMRecordWritable> records,
+			Iterable<SamRecordWritable> records,
 			Context ctx)
 			throws IOException, InterruptedException {
 
-		for (SAMRecordWritable rec : records) {
+		for (SamRecordWritable rec : records) {
 			SAMRecord sam = rec.get();
 			sam.setHeader(header);
 			String sampleName = sam.getReadGroup().getSample();
 			String fileName = formatSampleName.get(sampleName);
-			if(!_multiSample)
+			if(!options.isMultiSample())
 				fileName = firstSample;
 			mos.write(fileName, NullWritable.get(), rec);
 

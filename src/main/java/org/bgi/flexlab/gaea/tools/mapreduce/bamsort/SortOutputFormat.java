@@ -24,6 +24,7 @@ import org.apache.hadoop.mapreduce.JobContext;
 import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamHdfsFileHeader;
 import org.bgi.flexlab.gaea.data.mapreduce.output.cram.GaeaCramOutputFormat;
 import org.seqdoop.hadoop_bam.KeyIgnoringAnySAMOutputFormat;
 import org.seqdoop.hadoop_bam.SAMRecordWritable;
@@ -63,7 +64,7 @@ public class SortOutputFormat extends
 					getDefaultWorkFile(context, ""));
 
 		if (baseOF.getSAMHeader() == null) {
-			baseOF.setSAMHeader(BamSortUtils.getHeaderMerger(context.getConfiguration()).getMergedHeader());
+			baseOF.setSAMHeader(SamHdfsFileHeader.getHeader(context.getConfiguration()));
 		}
 
 		return baseOF.getRecordWriter(context, getDefaultWorkFile(context, ""));

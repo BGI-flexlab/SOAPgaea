@@ -17,26 +17,23 @@
 package org.bgi.flexlab.gaea.tools.mapreduce.bamsort;
 
 import htsjdk.samtools.SAMRecord;
-
-import java.io.IOException;
-import java.util.HashSet;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.mapreduce.Mapper;
-import org.seqdoop.hadoop_bam.SAMRecordWritable;
+import org.bgi.flexlab.gaea.data.mapreduce.writable.SamRecordWritable;
+
+import java.io.IOException;
 
 public class SortMapper extends
-		Mapper<LongWritable, SAMRecordWritable, LongWritable, SAMRecordWritable> {
+		Mapper<LongWritable, SamRecordWritable, LongWritable, SamRecordWritable> {
 	private String type = "all";
-	private HashSet<String> samples = new HashSet<String>();
 
 	@Override
 	protected void setup(Context context) throws IOException {
 		Configuration conf = context.getConfiguration();
-		type = conf.get("type");
-		if(type.equals("SampleList")){
-		}
+		BamSortOptions options = new BamSortOptions();
+		options.getOptionsFromHadoopConf(conf);
+		type = options.getType();
 	}
 
 	private boolean filter(SAMRecord sam,Context context){
@@ -52,7 +49,7 @@ public class SortMapper extends
 		return result;
 	}
 
-	public void map(LongWritable key, SAMRecordWritable value, Context context)
+	public void map(LongWritable key, SamRecordWritable value, Context context)
 			throws IOException, InterruptedException {
 		SAMRecord sam = value.get();
 		if(filter(sam,context)){
