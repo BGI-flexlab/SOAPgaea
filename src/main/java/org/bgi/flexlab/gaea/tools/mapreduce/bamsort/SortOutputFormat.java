@@ -25,18 +25,18 @@ import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamHdfsFileHeader;
+import org.bgi.flexlab.gaea.data.mapreduce.output.bam.GaeaBamOutputFormat;
 import org.bgi.flexlab.gaea.data.mapreduce.output.cram.GaeaCramOutputFormat;
-import org.seqdoop.hadoop_bam.KeyIgnoringAnySAMOutputFormat;
-import org.seqdoop.hadoop_bam.SAMRecordWritable;
+import org.bgi.flexlab.gaea.data.mapreduce.writable.SamRecordWritable;
 
 public class SortOutputFormat extends
-		FileOutputFormat<NullWritable, SAMRecordWritable> {
+		FileOutputFormat<NullWritable, SamRecordWritable> {
 	public static final String OUTPUT_NAME_PROP = "hadoopbam.sort.output.name",
 			WRITE_HEADER_PROP = "hadoopbam.sort.output.write-header",
 			OUTPUT_SAM_FORMAT_PROPERTY = "hadoopbam.anysam.output-format";
 
 	private GaeaCramOutputFormat<NullWritable> cramOF = null;
-	private KeyIgnoringAnySAMOutputFormat<NullWritable> baseOF = null;
+	private GaeaBamOutputFormat<NullWritable> baseOF = null;
 
 	private void initBaseOF(Configuration conf) {
 		if (baseOF != null || cramOF != null)
@@ -47,25 +47,23 @@ public class SortOutputFormat extends
 			cramOF = new GaeaCramOutputFormat<>();
 			cramOF.setHeader(multiSample);
 		} else {
-			baseOF = new KeyIgnoringAnySAMOutputFormat<>(conf);
-
-			baseOF.setWriteHeader(conf.getBoolean(WRITE_HEADER_PROP,
-					baseOF.getWriteHeader()));
+			baseOF = new GaeaBamOutputFormat<>();
+			baseOF.setHeader(conf.getBoolean(WRITE_HEADER_PROP,true));
 		}
 	}
 
 	@Override
-	public RecordWriter<NullWritable, SAMRecordWritable> getRecordWriter(
+	public RecordWriter<NullWritable, SamRecordWritable> getRecordWriter(
 			TaskAttemptContext context) throws IOException {
 		initBaseOF(context.getConfiguration());
 
-		if (cramOF != null)
-			return cramOF.getRecordWriter(context,
-					getDefaultWorkFile(context, ""));
+//		if (cramOF != null)
+//			return cramOF.getRecordWriter(context,
+//					getDefaultWorkFile(context, ""));
 
-		if (baseOF.getSAMHeader() == null) {
-			baseOF.setSAMHeader(SamHdfsFileHeader.getHeader(context.getConfiguration()));
-		}
+//		if (baseOF.getSAMHeader() == null) {
+//			baseOF.setSAMHeader(SamHdfsFileHeader.getHeader(context.getConfiguration()));
+//		}
 
 		return baseOF.getRecordWriter(context, getDefaultWorkFile(context, ""));
 	}

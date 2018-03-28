@@ -27,7 +27,6 @@ import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.io.WritableComparable;
 import org.apache.hadoop.mapreduce.*;
 import org.apache.hadoop.util.ReflectionUtils;
-import org.seqdoop.hadoop_bam.util.Timer;
 
 import java.io.IOException;
 import java.util.ArrayList;

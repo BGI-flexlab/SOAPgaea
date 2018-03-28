@@ -30,7 +30,6 @@ import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamHdfsFileHeader;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.SamRecordWritable;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.BioJob;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.ToolsRunner;
-import org.seqdoop.hadoop_bam.SAMRecordWritable;
 import org.seqdoop.hadoop_bam.cli.Utils;
 import org.seqdoop.hadoop_bam.util.Timer;
 
@@ -116,7 +115,7 @@ public class BamSort extends ToolsRunner {
                 formatSampleName.put(fsn, rg.getSample());
                 SortMultiOutputs.addNamedOutput(job, fsn,
                         SortOutputFormat.class, NullWritable.class,
-                        SAMRecordWritable.class);
+                        SamRecordWritable.class);
             }
             if (!options.isMultiSample())
                 break;
@@ -129,7 +128,7 @@ public class BamSort extends ToolsRunner {
             job.setPartitionerClass(TotalOrderPartitioner.class);
             InputSampler.writePartitionFile(
                             job,
-                            new InputSampler.RandomSampler<LongWritable, SAMRecordWritable>(
+                            new InputSampler.RandomSampler<LongWritable, SamRecordWritable>(
                                     0.01, 10000, Math.max(100, options.getReducerNum())));
             System.out.printf("sort :: Sampling complete in %d.%03d s.\n",
                     t.stopS(), t.fms());

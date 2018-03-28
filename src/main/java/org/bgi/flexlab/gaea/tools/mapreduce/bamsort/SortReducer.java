@@ -68,7 +68,7 @@ public final class SortReducer
 		BufferedReader br = new BufferedReader(fr);
 
 		String line;
-		HashMap<String,String> replaceList = new HashMap<String,String>();
+		HashMap<String,String> replaceList = new HashMap<>();
 		while ((line = br.readLine()) != null) {
 			String[] sampleNames = line.split("\t");
 			replaceList.put(sampleNames[0], sampleNames[1]);
