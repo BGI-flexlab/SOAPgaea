@@ -31,6 +31,7 @@ import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.bgi.flexlab.gaea.data.structure.header.SingleVCFHeader;
+import org.bgi.flexlab.gaea.util.ChromosomeUtils;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -49,7 +50,10 @@ public class AnnotationMapper extends Mapper<LongWritable, Text, Text, VcfLineWr
 		conf = context.getConfiguration();
 		vcfCodecs = new HashMap<>();
 
-		Path inputPath = new Path(conf.get("inputFilePath"));
+		AnnotatorOptions options = new AnnotatorOptions();
+		options.getOptionsFromHadoopConf(conf);
+
+		Path inputPath = new Path(options.getInputFilePath());
 		FileSystem fs = inputPath.getFileSystem(conf);
 		FileStatus[] files = fs.listStatus(inputPath);
 		for(FileStatus file : files) {
@@ -74,9 +78,6 @@ public class AnnotationMapper extends Mapper<LongWritable, Text, Text, VcfLineWr
 	@Override
 	protected void map(LongWritable key, Text value, Context context)
 			throws IOException, InterruptedException {
-
-
-
 		InputSplit inputSplit = context.getInputSplit();
 		String fileName = ((FileSplit) inputSplit).getPath().getName();
 		VCFCodec vcfcodec = vcfCodecs.get(fileName);
@@ -84,14 +85,7 @@ public class AnnotationMapper extends Mapper<LongWritable, Text, Text, VcfLineWr
 		if (vcfLine.startsWith("#")) return;
 		VariantContext variantContext = vcfcodec.decode(vcfLine);
 
-		String chr = null;
-
-		if(variantContext.getContig().startsWith("chr")){
-			chr = variantContext.getContig().substring(3);
-		}
-		else
-			chr = variantContext.getContig();
-
+		String chr = ChromosomeUtils.getNoChrName(variantContext.getContig());
 
 		resultValue.set(fileName, vcfLine);
 

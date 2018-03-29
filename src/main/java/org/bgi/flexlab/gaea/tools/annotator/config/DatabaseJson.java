@@ -41,4 +41,7 @@ public class DatabaseJson implements Serializable{
 		return databaseInfo.get(dbName);
 	}
 
+	public boolean hasDatabaseInfo(String dbName) {
+		return databaseInfo.containsKey(dbName);
+	}
 }

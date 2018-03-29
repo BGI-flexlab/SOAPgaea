@@ -19,7 +19,8 @@ package org.bgi.flexlab.gaea.tools.annotator;
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.VariantContext;
-import org.bgi.flexlab.gaea.tools.annotator.config.Config;
+import htsjdk.variant.variantcontext.VariantContextBuilder;
+import org.bgi.flexlab.gaea.tools.annotator.db.AnnoDBQuery;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Chromosome;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Genome;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Variant;
@@ -28,13 +29,15 @@ import org.bgi.flexlab.gaea.tools.annotator.realignment.VcfRefAltAlign;
 import java.util.*;
 
 public class VcfAnnoContext {
+
     private String contig;
     private String refStr;
     private int start;
     private int end;
     private List<String> alts;
+    private Map<String, List<VariantContext>> variantContextMap;
     protected LinkedList<Variant> variants;
-    private List<AnnotationContext> annotationContexts;
+    private List<AnnotationContext> annotationContexts = null;
     private Map<String, SampleAnnotationContext> sampleAnnoContexts;
     private Map<String, String> annoItems;
     private String annoStr;
@@ -47,6 +50,17 @@ public class VcfAnnoContext {
     public VcfAnnoContext(VariantContext variantContext){
         variants = new LinkedList<>();
         sampleAnnoContexts = new HashMap<>();
+        variantContextMap = new HashMap<>();
+        init(variantContext);
+    }
+
+    public VcfAnnoContext(VariantContext variantContext, String filename){
+        variants = new LinkedList<>();
+        sampleAnnoContexts = new HashMap<>();
+        variantContextMap = new HashMap<>();
+        List<VariantContext> variantContexts = new ArrayList<>();
+        variantContexts.add(variantContext);
+        variantContextMap.put(filename, variantContexts);
         init(variantContext);
     }
 
@@ -60,10 +74,16 @@ public class VcfAnnoContext {
             alts.add(allele.toString());
         }
         addSampleContext(variantContext);
-
     }
 
-    public void add(VariantContext variantContext){
+    public void add(VariantContext variantContext, String filename){
+        if(variantContextMap.containsKey(filename))
+            variantContextMap.get(filename).add(variantContext);
+        else {
+            List<VariantContext> variantContexts = new ArrayList<>();
+            variantContexts.add(variantContext);
+            variantContextMap.put(filename, variantContexts);
+        }
         for(Allele allele: variantContext.getAlternateAlleles()){
             if(alts.contains(allele.getBaseString()))
                 continue;
@@ -77,55 +97,18 @@ public class VcfAnnoContext {
         for(String sampleName : variantContext.getSampleNamesOrderedByName())
         {
             Genotype gt = variantContext.getGenotype(sampleName);
-            if(isVar(gt)){
-                if(hasSample(sampleName)){
-                    SampleAnnotationContext sampleAnnoContext = sampleAnnoContexts.get(sampleName);
-                    List<String> alts = sampleAnnoContext.getAlts();
-                    Map<String, Integer> alleleDepths = sampleAnnoContext.getAlleleDepths();
-                    Map<String, String> zygosity = sampleAnnoContext.getZygosity();
-                    int[] AD = gt.getAD();
-                    int i = 0;
-                    for(Allele allele: variantContext.getAlternateAlleles()){
-                        i++;
-                        if(alts.contains(allele.getBaseString()))
-                            continue;
-                        alts.add(allele.getBaseString());
-                        alleleDepths.put(allele.getBaseString(), AD[i]);
-                        zygosity.put(allele.getBaseString(), getZygosityType(gt));
-                    }
-                }else {
-                    SampleAnnotationContext sampleAnnoContext = new SampleAnnotationContext(sampleName);
-                    Map<String, Integer> alleleDepths = new HashMap<>();
-                    Map<String, String> zygosity = new HashMap<>();
-    //               判断 gt.hasAD()
-                    int[] AD = gt.getAD();
-                    int i = 0;
-                    List<String> alts = new ArrayList<>();
-                    for(Allele allele: variantContext.getAlleles()){
-                        alleleDepths.put(allele.getBaseString(), AD[i]);
-                        zygosity.put(allele.getBaseString(), getZygosityType(gt));
-                        if(i > 0 && AD[i] > 0)
-                            alts.add(allele.getBaseString());
-                        i++;
-                    }
-                    sampleAnnoContext.setAlleleDepths(alleleDepths);
-                    sampleAnnoContext.setDepth(gt.getDP());
-                    sampleAnnoContext.setAlts(alts);
-                    sampleAnnoContext.setZygosity(zygosity);
-                    sampleAnnoContexts.put(sampleName, sampleAnnoContext);
-                }
+
+            if(!isVar(gt))
+                continue;
+
+            if(hasSample(sampleName)){
+                SampleAnnotationContext sampleAnnoContext = sampleAnnoContexts.get(sampleName);
+                sampleAnnoContext.add(variantContext);
+            }else {
+                SampleAnnotationContext sampleAnnoContext = new SampleAnnotationContext(sampleName, variantContext);
+                sampleAnnoContexts.put(sampleName, sampleAnnoContext);
             }
         }
-    }
-
-    private String getZygosityType(Genotype gt){
-        if(gt.isHet())
-            return "het-ref";
-        else if(gt.isHomVar())
-            return "hom-alt";
-        else if(gt.isHetNonRef())
-            return  "het-alt";
-        return ".";
     }
 
     public boolean hasSample(String sampleName){
@@ -136,7 +119,7 @@ public class VcfAnnoContext {
      * Create a list of variants from this variantContext
      */
     public List<Variant> variants(Genome genome) {
-        if (!variants.isEmpty()) return variants;
+//        if (!variants.isEmpty()) return variants;
         Chromosome chr = genome.getChromosome(contig);
 
         // interval 使用 0-base 方式建立，应使用start - 1创建variant对象
@@ -246,6 +229,8 @@ public class VcfAnnoContext {
 
     public Set<String> getGenes() {
         Set<String> genes = new HashSet<>();
+        if(annotationContexts == null || annotationContexts.isEmpty())
+            return null;
         for (AnnotationContext ac : annotationContexts) {
             if (!ac.getGeneName().equals("")) {
                 genes.add(ac.getGeneName());
@@ -345,7 +330,7 @@ public class VcfAnnoContext {
             i ++;
         }
 
-        if(!fields[1].equals("")){
+        if(fields.length > 1 && !fields[1].equals("")){
             for(String sampleInfo: fields[1].split(";")){
                 SampleAnnotationContext sac = new SampleAnnotationContext();
                 sac.parseAlleleString(sampleInfo);
@@ -354,50 +339,97 @@ public class VcfAnnoContext {
         }
     }
 
-    public List<String> toAnnotationStrings(Config config) {
+    public String getFieldByName(String field, String allele) {
+        switch (field) {
+            case "CHROM":
+                return contig;
+
+            case "REF":
+                return getRefStr();
+
+            case "START":
+                return Integer.toString(getStart());
+
+            case "END":
+                return Integer.toString(getEnd());
+
+            default:
+                return null;
+        }
+    }
+
+    public List<String> toAnnotationStrings(List<String> fields) {
         List<String> annoStrings = new ArrayList<>();
         for(AnnotationContext ac : annotationContexts){
             StringBuilder sb = new StringBuilder();
             sb.append(getContig());
             sb.append("\t");
             sb.append(start);
-            sb.append("\t");
-            sb.append(start-1);
-            sb.append("\t");
-            sb.append(end);
+//            sb.append("\t");
+//            sb.append(start-1);
+//            sb.append("\t");
+//            sb.append(end);
             sb.append("\t");
             sb.append(refStr);
             sb.append("\t");
-            sb.append(ac.getAllele());
-            ArrayList<String> fields = config.getFieldsByDB(Config.KEY_GENE_INFO);
+            sb.append(ac.getGenotype());
             for (String field : fields) {
                 sb.append("\t");
-                if(!ac.getFieldByName(field).isEmpty()){
-                    sb.append(ac.getFieldByName(field));
-                }else {
-                    sb.append(".");
-                }
-            }
-
-            List<String> dbNameList = config.getDbNameList();
-            for (String dbName : dbNameList) {
-                fields = config.getFieldsByDB(dbName);
-                for (String field : fields) {
-                    sb.append("\t");
-//						System.err.println("getNumAnnoItems:"+annoContext.getNumAnnoItems());
-                    sb.append(ac.getAnnoItemAsString(field, "."));
-                }
+                sb.append(ac.getAnnoItemAsString(field, "."));
             }
 
             sb.append("\tSI:");
             for(SampleAnnotationContext sac: sampleAnnoContexts.values()){
-                if(sac.hasAlt(ac.getAllele())){
+                if(sac.hasAlt(ac.getAlt()) || !sac.isCalled()){
                     sb.append(";");
-                    sb.append(sac.toAlleleString(ac.getAllele()));
+                    sb.append(sac.toAlleleString(ac.getAlt()));
                 };
             }
             annoStrings.add(sb.toString());
         }
         return annoStrings;
+    }
+
+    public List<Map<String, String>> toAnnotationMaps(List<String> fields) {
+        List<Map<String, String>> annoResults = new ArrayList<>();
+        for(AnnotationContext ac : annotationContexts){
+            Map<String, String> annoResult = new HashMap<>();
+            for (String field : fields){
+                String value = ac.getAnnoItemAsString(field, ".");
+                annoResult.put(field, value);
+            }
+            annoResult.put(AnnoDBQuery.INDEX_ALT_COLUMN_NAME,ac.getGenotype());
+            annoResults.add(annoResult);
+        }
+        return annoResults;
+    }
+
+    public Map<String, List<VariantContext>> toAnnotationVariantContexts(List<String> fields) {
+        Map<String, List<VariantContext>> annotationVariantContextMap = new HashMap<>();
+        for (Map.Entry<String, List<VariantContext>> entry: variantContextMap.entrySet()){
+            String filename = entry.getKey();
+            List<VariantContext>  variantContextList = entry.getValue();
+            List<VariantContext> annotationVariantContextList = new ArrayList<>();
+            for(VariantContext vc : variantContextList){
+                VariantContextBuilder variantContextBuilder = new VariantContextBuilder(vc);
+                List<String> annoList = new ArrayList<>();
+                for(AnnotationContext ac : annotationContexts){
+                    Allele allele = ac.getAllele();
+                    if(vc.hasAlternateAllele(allele)) {
+                        annoList.add(ac.toAnnoString(fields));
+                    }
+                }
+                variantContextBuilder.attribute("ANNO", String.join(",", annoList));
+                annotationVariantContextList.add(variantContextBuilder.make());
+            }
+            annotationVariantContextMap.put(filename, annotationVariantContextList);
+        }
+        return annotationVariantContextMap;
+    }
+
+    public String toString() {
+        return getContig() +
+                "\t" +  start +
+                "\t" +  refStr;
     }
 }

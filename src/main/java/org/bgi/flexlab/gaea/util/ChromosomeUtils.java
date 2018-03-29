@@ -25,4 +25,11 @@ public class ChromosomeUtils {
 		}
 		return chrName;
 	}
+
+	public static String getNoChrName(String chrName) {
+		if(chrName.startsWith("chr"))
+			return chrName.substring(3);
+		else
+			return chrName;
+	}
 }

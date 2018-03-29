@@ -400,6 +400,8 @@ public abstract class SnpEffPredictorFactory {
 								exon.setSequence(seq);
 								seqsAdded++;
 
+							}else {
+								System.err.println("Exon Seq is null!" + exon.toStr());
 							}
 						}
 					}

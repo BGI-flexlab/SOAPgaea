@@ -66,7 +66,7 @@ public class GaeaBamOutputFormat<K> extends FileOutputFormat<K,SamRecordWritable
 			TaskAttemptContext context, Path outputPath) throws IOException {
 		Log.setGlobalLogLevel(LogLevel.ERROR);
 		return new GaeaKeyIgnoringBamRecordWriter(outputPath,
-				Boolean.valueOf(this.writeHeader), context);
+				this.writeHeader, context);
 	}
 
 	public void setHeader(boolean isWriterHeader){

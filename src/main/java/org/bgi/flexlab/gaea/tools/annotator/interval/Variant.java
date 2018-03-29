@@ -34,7 +34,9 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.annotator.interval;
 
+import org.bgi.flexlab.gaea.tools.annotator.config.Config;
 import org.bgi.flexlab.gaea.tools.annotator.effect.EffectType;
+import org.bgi.flexlab.gaea.tools.annotator.realignment.VariantRealign;
 import org.bgi.flexlab.gaea.tools.annotator.util.GprSeq;
 import org.bgi.flexlab.gaea.tools.annotator.util.IubString;
 
@@ -302,6 +304,8 @@ public class Variant extends Marker {
 			alt = altStr.substring(1);
 		}
 
+//		TODO  考虑alt中不以ref开始的表示形式
+
 		//---
 		// Calculate variant type
 		//---
@@ -483,6 +487,17 @@ public class Variant extends Marker {
 //		if (!vr.realign()) return this;
 //		return vr.getVariantRealigned();
 	}
+
+//	public Variant realignLeft() {
+//		String gs = getGenome().querySequence(this);
+//		if (gs == null) return this;
+//
+//		VariantRealign vr = new VariantRealign(this);
+//		vr.setDebug(Config.get().isDebug());
+//		if (!vr.realign()) return this;
+//		System.out.println(vr.toString());
+//		return vr.getVariantRealigned();
+//	}
 
 	public void setGenotype(String genotype) {
 		this.genotype = genotype;

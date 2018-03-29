@@ -23,15 +23,18 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapred.lib.MultipleTextOutputFormat;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.LazyOutputFormat;
+import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
+import org.bgi.flexlab.gaea.data.mapreduce.output.vcf.VCFHdfsWriter;
 import org.bgi.flexlab.gaea.data.structure.header.SingleVCFHeader;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.BioJob;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.ToolsRunner;
+import org.seqdoop.hadoop_bam.VCFOutputFormat;
+import org.seqdoop.hadoop_bam.VariantContextWritable;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -43,8 +46,12 @@ public class Annotator extends ToolsRunner {
     private Configuration conf;
     private AnnotatorOptions options;
     private List<String> sampleNames;
+    private List<String> fileNames;
 
-    public Annotator(){}
+    public Annotator(){
+        sampleNames = new ArrayList<>();
+        fileNames = new ArrayList<>();
+    }
 
     private int runAnnotator(String[] arg0) throws Exception {
 
@@ -54,6 +61,7 @@ public class Annotator extends ToolsRunner {
         options = new AnnotatorOptions();
         options.parse(remainArgs);
         options.setHadoopConf(remainArgs, conf);
+        conf.set(VCFOutputFormat.OUTPUT_VCF_FORMAT_PROPERTY, "VCF");
         BioJob job = BioJob.getInstance(conf);
 
         job.setJobName("GaeaAnnotator");
@@ -66,13 +74,11 @@ public class Annotator extends ToolsRunner {
         job.setMapOutputValueClass(VcfLineWritable.class);
 
 
-        job.setOutputKeyClass(NullWritable.class);
+        job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
         job.setInputFormatClass(MNLineInputFormat.class);
 
-        sampleNames = new ArrayList<>();
-
-        Path inputPath = new Path(conf.get("inputFilePath"));
+        Path inputPath = new Path(options.getInputFilePath());
         FileSystem fs = inputPath.getFileSystem(conf);
         FileStatus[] files = fs.listStatus(inputPath);
 
@@ -82,6 +88,9 @@ public class Annotator extends ToolsRunner {
                 SingleVCFHeader singleVcfHeader = new SingleVCFHeader();
                 singleVcfHeader.readHeaderFrom(file.getPath(), fs);
                 VCFHeader vcfHeader = singleVcfHeader.getHeader();
+
+                fileNames.add(file.getPath().getName());
+
                 for(String sample: vcfHeader.getSampleNamesInOrder()) {
                     if(!sampleNames.contains(sample))
                         sampleNames.add(sample);
@@ -99,12 +108,61 @@ public class Annotator extends ToolsRunner {
         return job.waitForCompletion(true) ? 0 : 1;
     }
 
+    private int runAnnoSort() throws Exception {
+        if(options.getOutputFormat() == AnnotatorOptions.OutputFormat.VCF){
+            return runVCFSort();
+        }
+        return runTSVSort();
+    }
 
-    private int runAnnotatorSort() throws Exception {
+    private int runVCFSort() throws Exception {
 
         BioJob job = BioJob.getInstance(conf);
 
-        job.setJobName("GaeaAnnotatorSortResult");
+        job.setJobName("GaeaAnnotatorSort");
+        job.setJarByClass(this.getClass());
+        job.setMapperClass(AnnoSortMapper.class);
+        job.setReducerClass(AnnoSortReducer.class);
+        job.setNumReduceTasks(fileNames.size());
+
+        job.setMapOutputKeyClass(PairWritable.class);
+        job.setMapOutputValueClass(Text.class);
+
+        job.setPartitionerClass(FirstPartitioner.class);
+        job.setOutputKeyClass(NullWritable.class);
+        job.setOutputValueClass(Text.class);
+        job.setInputFormatClass(TextInputFormat.class);
+        LazyOutputFormat.setOutputFormatClass(job, TextOutputFormat.class);
+
+        Path inputPath = new Path(options.getTmpPath());
+        Path outputPath = new Path(options.getOutputPath());
+        FileInputFormat.setInputPaths(job, inputPath);
+        FileOutputFormat.setOutputPath(job, outputPath);
+
+        FileSystem fs = outputPath.getFileSystem(conf);
+        if(job.waitForCompletion(true)){
+            int loop = 0;
+            for (String fileName : fileNames){
+                Path outputPart = getSampleOutputPath(fileName);
+                while (outputPart == null && loop < 10){
+                    TimeUnit.MILLISECONDS.sleep(6000);
+                    outputPart = getSampleOutputPath(fileName);
+                    loop ++;
+                }
+                Path outputName = new Path(options.getOutputPath() + "/" + fileName);
+                fs.rename(outputPart, outputName);
+            }
+            return 0;
+        }
+        return 1;
+    }
+
+
+    private int runTSVSort() throws Exception {
+
+        BioJob job = BioJob.getInstance(conf);
+
+        job.setJobName("GaeaAnnotatorSort");
         job.setJarByClass(this.getClass());
         job.setMapperClass(AnnotationSortMapper.class);
         job.setReducerClass(AnnotationSortReducer.class);
@@ -113,6 +171,7 @@ public class Annotator extends ToolsRunner {
         job.setMapOutputKeyClass(PairWritable.class);
         job.setMapOutputValueClass(Text.class);
 
+        job.setPartitionerClass(FirstPartitioner.class);
         job.setOutputKeyClass(NullWritable.class);
         job.setOutputValueClass(Text.class);
         job.setInputFormatClass(TextInputFormat.class);
@@ -156,13 +215,12 @@ public class Annotator extends ToolsRunner {
         return fileStatuses[0].getPath();
     }
 
-
     @Override
     public int run(String[] args) throws Exception {
         Annotator annotator = new Annotator();
         if(annotator.runAnnotator(args) != 0)
             return 1;
-        return annotator.runAnnotatorSort();
+        return annotator.runAnnoSort();
     }
 
 }

@@ -14,33 +14,20 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  *******************************************************************************/
-package org.bgi.flexlab.gaea.tools.annotator.db;
+package org.bgi.flexlab.gaea.tools.mapreduce.bamsort;
 
-import org.bgi.flexlab.gaea.tools.annotator.AnnotationContext;
+import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.mapreduce.Partitioner;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.LinkedList;
-
-public class GeneDBQuery extends DBQuery {
+public class SamSortPartition<T> extends Partitioner<LongWritable, T> {
 
 	@Override
-	public Results query(Condition condition)throws IOException{
-		Results results = new Results();
-
-		for (String gene : condition.getGenes()) {
-			HashMap<String,String> result = dbAdapter.getResult(condition.getRefTable().getTable(), gene, condition.getFields());
-			if (result ==null || result.isEmpty()) return null;
-			System.err.println("Gene:"+gene);
-			System.err.println("Gene:"+String.join("|",result.values()));
-			results.add(gene, result);
-		}
-		return results;
+	public int getPartition(LongWritable i1, T arg1, int numPartitioner) {
+		// TODO Auto-generated method stub
+		long fir = i1.get();
+		
+		int sampleID = (int)((fir>>48) & 0xffff);
+		
+		return sampleID%numPartitioner;
 	}
-
-	@Override
-	public LinkedList<HashMap<String,String>> getAcResultList(AnnotationContext ac) {
-		return results.get(ac.getGeneName());
-	}
-
 }

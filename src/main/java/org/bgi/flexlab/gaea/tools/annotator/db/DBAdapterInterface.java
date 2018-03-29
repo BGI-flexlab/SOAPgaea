@@ -18,6 +18,8 @@ package org.bgi.flexlab.gaea.tools.annotator.db;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public interface DBAdapterInterface {
 	
@@ -30,11 +32,11 @@ public interface DBAdapterInterface {
 	 * 
 	 * @param tableName
 	 * @param condition
-	 * @param fieldMap  
+	 * @param fields
 	 * @return
 	 * @throws IOException
 	 */
-	public HashMap<String, String> getResult(String tableName, String condition, HashMap<String, String> fieldMap) throws IOException;
+	public HashMap<String, String> getResult(String tableName, String condition, List<String> fields) throws IOException;
 
 	 /**
      * 根据查询条件查询所有相关信息，返回的HashMap包含该行所有字段
@@ -45,5 +47,7 @@ public interface DBAdapterInterface {
      */
 	public HashMap<String, String> getResult(String tableName,
 			String conditionString) throws IOException;
+
+	public boolean insert(String tableName, String rowKey, Map<String, String> fields) throws IOException;
 
 }

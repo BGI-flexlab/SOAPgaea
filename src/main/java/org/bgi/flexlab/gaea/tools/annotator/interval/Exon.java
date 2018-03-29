@@ -85,6 +85,7 @@ public class Exon extends Marker implements MarkerWithFrame {
 		rank = 0;
 		type = EffectType.EXON;
 		spliceSites = new ArrayList<SpliceSite>();
+		sequence = "";
 	}
 
 	public Exon(Transcript parent, int start, int end, boolean strandMinus, String id, int rank) {
@@ -93,6 +94,7 @@ public class Exon extends Marker implements MarkerWithFrame {
 		this.rank = rank;
 		type = EffectType.EXON;
 		spliceSites = new ArrayList<SpliceSite>();
+		sequence = "";
 	}
 
 	/**
