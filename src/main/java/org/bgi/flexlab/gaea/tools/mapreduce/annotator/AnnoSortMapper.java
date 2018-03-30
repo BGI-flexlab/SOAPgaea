@@ -17,13 +17,10 @@
 package org.bgi.flexlab.gaea.tools.mapreduce.annotator;
 
 
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
-import org.bgi.flexlab.gaea.tools.annotator.SampleAnnotationContext;
-import org.bgi.flexlab.gaea.tools.annotator.VcfAnnoContext;
-import org.bgi.flexlab.gaea.tools.annotator.config.Config;
+import org.bgi.flexlab.gaea.data.mapreduce.writable.PairWritable;
 
 import java.io.IOException;
 import java.util.ArrayList;

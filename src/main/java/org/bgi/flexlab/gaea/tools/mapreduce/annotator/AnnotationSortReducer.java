@@ -19,13 +19,13 @@ package org.bgi.flexlab.gaea.tools.mapreduce.annotator;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
+import org.bgi.flexlab.gaea.data.mapreduce.writable.PairWritable;
 import org.bgi.flexlab.gaea.tools.annotator.config.Config;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Iterator;
 
 public class AnnotationSortReducer extends Reducer<PairWritable, Text, NullWritable, Text> {
 

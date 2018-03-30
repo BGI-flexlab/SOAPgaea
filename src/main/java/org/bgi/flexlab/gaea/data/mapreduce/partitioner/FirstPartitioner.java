@@ -14,10 +14,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  *******************************************************************************/
-package org.bgi.flexlab.gaea.tools.mapreduce.bamsort;
+package org.bgi.flexlab.gaea.data.mapreduce.partitioner;
 
 
 import org.apache.hadoop.mapreduce.Partitioner;
+import org.bgi.flexlab.gaea.data.mapreduce.writable.PairWritable;
 
 public class FirstPartitioner<T> extends Partitioner<PairWritable, T> {
 

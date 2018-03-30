@@ -25,6 +25,7 @@ import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
+import org.bgi.flexlab.gaea.data.mapreduce.writable.PairWritable;
 import org.bgi.flexlab.gaea.data.structure.header.SingleVCFHeader;
 import org.bgi.flexlab.gaea.tools.annotator.config.Config;
 

@@ -23,6 +23,7 @@ import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
 import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamHdfsFileHeader;
+import org.bgi.flexlab.gaea.data.mapreduce.writable.PairWritable;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.SamRecordWritable;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 

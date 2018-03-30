@@ -17,11 +17,11 @@
 package org.bgi.flexlab.gaea.tools.mapreduce.bamsort;
 
 import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SAMRecord;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamHdfsFileHeader;
+import org.bgi.flexlab.gaea.data.mapreduce.writable.PairWritable;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.SamRecordWritable;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 
