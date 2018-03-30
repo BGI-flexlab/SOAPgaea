@@ -65,8 +65,13 @@ public class MultiSortMapper extends
 	public void map(LongWritable key, SamRecordWritable value, Context context)
 			throws IOException, InterruptedException {
 		GaeaSamRecord sam = new GaeaSamRecord(header, value.get());
+		String ref;
+		if(sam.getReferenceIndex() == -1)
+			ref = "999";
+		else
+			ref = String.format("%09d",sam.getReferenceIndex());
 		String sampleName = sam.getReadGroup().getSample();
-		String secondKey = String.format("%03d",sam.getReferenceIndex())
+		String secondKey = ref
 				+ "-" + String.format("%09d",sam.getAlignmentStart())
 				+ "-" + String.format("%09d",sam.getAlignmentEnd());
 		resultKey.set(sampleName, secondKey);

@@ -22,6 +22,7 @@ import htsjdk.samtools.SAMReadGroupRecord;
 import htsjdk.samtools.SamFileHeaderMerger;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
+import org.seqdoop.hadoop_bam.SAMFormat;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -48,11 +49,34 @@ public class BamSortUtils {
         return newHeader;
     }
 
+    public static SAMFileHeader deleteSampleFromHeader(SAMFileHeader header, String sampleName) {
+        SAMFileHeader newHeader = header.clone();
+        List<SAMReadGroupRecord> newReadGroups = new ArrayList<>();
+
+        for (SAMReadGroupRecord g : header.getReadGroups()) {
+            if (g.getSample().equals(sampleName))
+                newReadGroups.add(g);
+        }
+        newHeader.setReadGroups(newReadGroups);
+        return newHeader;
+    }
+
     public static String formatSampleName(String sampleName) {
         String formatSampleName;
         formatSampleName = sampleName.replaceAll("-", "");
         formatSampleName = formatSampleName.replaceAll("_", "");
         formatSampleName = formatSampleName.replaceAll("[*]", "x");
         return formatSampleName;
+    }
+
+    public static String getFileSuffix(SAMFormat format) {
+        String fileSuffix = ".sorted.";
+        if (format == null)
+            fileSuffix += "cram";
+        else if (format == SAMFormat.BAM)
+            fileSuffix += "bam";
+        else
+            fileSuffix += "sam";
+        return fileSuffix;
     }
 }

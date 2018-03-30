@@ -18,10 +18,13 @@ package org.bgi.flexlab.gaea.tools.mapreduce.bamsort;
 
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMReadGroupRecord;
+import htsjdk.samtools.util.BlockCompressedStreamConstants;
+import htsjdk.samtools.util.Log;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
@@ -36,10 +39,14 @@ import org.bgi.flexlab.gaea.data.mapreduce.writable.PairWritable;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.SamRecordWritable;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.BioJob;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.ToolsRunner;
+import org.seqdoop.hadoop_bam.SAMFormat;
 import org.seqdoop.hadoop_bam.cli.Utils;
+import org.seqdoop.hadoop_bam.util.SAMOutputPreparer;
 import org.seqdoop.hadoop_bam.util.Timer;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -81,16 +88,12 @@ public class BamSort extends ToolsRunner {
         for (String in : options.getStrInputs())
             inputs.add(new Path(in));
         job.setHeader(inputs, outputPath);
+        job.setJarByClass(BamSort.class);
 
         header = SamHdfsFileHeader.getHeader(conf);
         if(header == null){
             System.err.println("Header is null!");
             System.exit(-1);
-        }
-
-        for (SAMReadGroupRecord rg : header.getReadGroups()) {
-            if(!sampleNames.contains(rg.getSample()))
-                sampleNames.add(rg.getSample());
         }
 
         if(options.isMultiSample())
@@ -100,17 +103,12 @@ public class BamSort extends ToolsRunner {
     }
 
     public int runSingleSort() throws IOException, ClassNotFoundException, InterruptedException, URISyntaxException {
-        if (!options.isMultiSample())
-            Utils.configureSampling(tmpPath, intermediateOutName, conf);
+        Utils.configureSampling(tmpPath, intermediateOutName, conf);
 
         conf.setBoolean(SortOutputFormat.WRITE_HEADER_PROP, options.getOutdir() == null);
         conf.set(SortOutputFormat.OUTPUT_NAME_PROP, intermediateOutName);
         conf.set(SortOutputFormat.OUTPUT_SAM_FORMAT_PROPERTY, options.getOutputFormat());
 
-        if (header.getReadGroups().size() == 1) {
-            options.setMultiSample(false);
-        }
-        job.setJarByClass(BamSort.class);
         job.setMapperClass(SortMapper.class);
         job.setReducerClass(SortReducer.class);
         job.setJobName("bamsort");
@@ -141,34 +139,97 @@ public class BamSort extends ToolsRunner {
                         SortOutputFormat.class, NullWritable.class,
                         SamRecordWritable.class);
             }
-            if (!options.isMultiSample())
-                break;
+            break;
         }
 
-        if (!options.isMultiSample()) {
-            System.out.println("sort :: Sampling...");
-            t.start();
+        System.out.println("sort :: Sampling...");
+        t.start();
 
-            job.setPartitionerClass(TotalOrderPartitioner.class);
-            InputSampler.writePartitionFile(
-                    job,
-                    new InputSampler.RandomSampler<LongWritable, SamRecordWritable>(
-                            0.01, 10000, Math.max(100, options.getReducerNum())));
-            System.out.printf("sort :: Sampling complete in %d.%03d s.\n",
-                    t.stopS(), t.fms());
-            String partitionFile = TotalOrderPartitioner.getPartitionFile(job.getConfiguration());
-            URI partitionUri = new URI(partitionFile + "#" + TotalOrderPartitioner.DEFAULT_PATH);
-            job.addCacheFile(partitionUri);
-        } else {
-            job.setPartitionerClass(SamSortPartition.class);
+        job.setPartitionerClass(TotalOrderPartitioner.class);
+        InputSampler.writePartitionFile(
+                job,
+                new InputSampler.RandomSampler<LongWritable, SamRecordWritable>(
+                        0.01, 10000, Math.max(100, options.getReducerNum())));
+        System.out.printf("sort :: Sampling complete in %d.%03d s.\n",
+                t.stopS(), t.fms());
+        String partitionFile = TotalOrderPartitioner.getPartitionFile(job.getConfiguration());
+        URI partitionUri = new URI(partitionFile + "#" + TotalOrderPartitioner.DEFAULT_PATH);
+        job.addCacheFile(partitionUri);
+
+        System.out.println("sort :: Waiting for job completion...");
+        t.start();
+
+        if (!job.waitForCompletion(true)) {
+            System.err.println("sort :: Job failed.");
+            return 4;
         }
 
-        boolean success = job.waitForCompletion(true);
-        return success ? 0 : 1;
+        System.out.printf("sort :: Job complete in %d.%03d s.\n",
+                t.stopS(), t.fms());
+
+        return mergeBAM(conf, options.getOutputFormat(conf));
+    }
+
+    public int runMultiSort2() throws IOException, ClassNotFoundException, InterruptedException, URISyntaxException {
+
+        conf.setBoolean(SortOutputFormat.WRITE_HEADER_PROP, options.getOutdir() == null);
+        conf.set(SortOutputFormat.OUTPUT_NAME_PROP, intermediateOutName);
+        conf.set(SortOutputFormat.OUTPUT_SAM_FORMAT_PROPERTY, options.getOutputFormat());
+
+        job.setMapperClass(SortMapper.class);
+        job.setReducerClass(SortReducer.class);
+        job.setJobName("multi bamsort2");
+
+        job.setMapOutputKeyClass(LongWritable.class);
+        job.setOutputKeyClass(NullWritable.class);
+        job.setOutputValueClass(SamRecordWritable.class);
+
+        job.setAnySamInputFormat(options.getInputFormat());
+        job.setOutputFormatClass(SortOutputFormat.class);
+
+        Timer t = new Timer();
+        formatSampleName = new HashMap<>();
+
+        for (final Path in : inputs)
+            FileInputFormat.addInputPath(job, in);
+
+        FileOutputFormat.setOutputPath(job, tmpPath);
+        if(options.getRenames() != null){
+            header = BamSortUtils.replaceSampleName(header.clone(), options.getRenames());
+        }
+
+        for (SAMReadGroupRecord rg : header.getReadGroups()) {
+            String fsn = BamSortUtils.formatSampleName(rg.getSample());
+            if (!formatSampleName.containsKey(fsn)) {
+                formatSampleName.put(fsn, rg.getSample());
+                SortMultiOutputs.addNamedOutput(job, fsn,
+                        SortOutputFormat.class, NullWritable.class,
+                        SamRecordWritable.class);
+            }
+        }
+
+        job.setPartitionerClass(SamSortPartition.class);
+
+        t.start();
+
+        if (!job.waitForCompletion(true)) {
+            System.err.println("sort :: Job failed.");
+            return 4;
+        }
+
+        System.out.printf("sort :: Job complete in %d.%03d s.\n",
+                t.stopS(), t.fms());
+
+        return 0;
     }
 
     public int runMultiSort() throws IOException, ClassNotFoundException, InterruptedException {
-        job.setJarByClass(BamSort.class);
+
+        for (SAMReadGroupRecord rg : header.getReadGroups()) {
+            if(!sampleNames.contains(rg.getSample()))
+                sampleNames.add(rg.getSample());
+        }
+
         job.setMapperClass(MultiSortMapper.class);
         job.setReducerClass(MultiSortReducer.class);
         job.setJobName("multi bamsort");
@@ -206,6 +267,63 @@ public class BamSort extends ToolsRunner {
         }
         return 1;
     }
+
+    public int mergeBAM(Configuration conf, SAMFormat format) {
+        Timer t = new Timer();
+        try {
+            Log.setGlobalLogLevel(Log.LogLevel.ERROR);
+            System.out.println("sort :: Merging output...");
+
+
+            final FileSystem srcFS = tmpPath.getFileSystem(conf);
+            FileSystem dstFS = outputPath.getFileSystem(conf);
+
+            // create output stream foreach sample
+            Map<String, OutputStream> outs = new HashMap<>();
+            String fileSuffix = BamSortUtils.getFileSuffix(format);
+            for (String sampleName : sampleNames) {
+                Path sPath = new Path(options.getOutdir() + "/" + sampleName + fileSuffix);
+                OutputStream os = dstFS.create(sPath);
+                outs.put(sampleName, os);
+            }
+
+            // Then, the actual SAM or BAM contents.
+            for (String fsn : formatSampleName.keySet()) {
+                t.start();
+                SAMFileHeader newHeader = BamSortUtils.deleteSampleFromHeader(header,formatSampleName
+                        .get(fsn));
+                new SAMOutputPreparer().prepareForRecords(
+                        outs.get(formatSampleName.get(fsn)), format,
+                        newHeader);
+                final FileStatus[] parts = srcFS.globStatus(new Path(
+                        options.getTmpPath(), fsn + "-*-[0-9][0-9][0-9][0-9][0-9]*"));
+
+                for (final FileStatus part : parts) {
+                    System.out.flush();
+
+                    final InputStream ins = srcFS.open(part.getPath());
+                    IOUtils.copyBytes(ins,
+                            outs.get(formatSampleName.get(fsn)), conf,
+                            false);
+                    ins.close();
+                }
+
+                if (format == SAMFormat.BAM)
+                    outs.get(formatSampleName.get(fsn))
+                            .write(BlockCompressedStreamConstants.EMPTY_GZIP_BLOCK);
+                outs.get(formatSampleName.get(fsn)).close();
+                System.out.printf(
+                        "sort :: Merging " + formatSampleName.get(fsn)
+                                + " complete in %d.%03d s.\n", t.stopS(),
+                        t.fms());
+            }
+        } catch (IOException e) {
+            System.err.printf("sort :: Output merging failed: %s\n", e);
+            return 5;
+        }
+        return 0;
+    }
+
 
     private Path getSampleOutputPath(String sample) throws IOException {
         FileSystem fs = tmpPath.getFileSystem(conf);

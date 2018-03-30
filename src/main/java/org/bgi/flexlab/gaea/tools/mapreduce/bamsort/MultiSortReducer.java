@@ -37,12 +37,11 @@ import java.util.Map;
 public final class MultiSortReducer
 		extends
 		Reducer<PairWritable, SamRecordWritable, NullWritable, SamRecordWritable> {
-//	private SortMultiOutputs<NullWritable, SamRecordWritable> mos;
 	private MultipleOutputs<NullWritable,SamRecordWritable> mos;
 	private SAMFileHeader header;
 	private Map<String, String> formatSampleName = new HashMap<>();
-	private String firstSample = null;
 	private BamSortOptions options;
+	private boolean isSampleHeader = false;
 
 	@Override
 	protected void setup(Context context) throws IOException {
@@ -55,31 +54,12 @@ public final class MultiSortReducer
 		else
 			header = _header;
 //		header.setSortOrder(SAMFileHeader.SortOrder.coordinate);
-		for (SAMReadGroupRecord rg : header.getReadGroups()) {
-			if (!formatSampleName.containsKey(rg.getSample()))
-				formatSampleName.put(rg.getSample(),
-						BamSortUtils.formatSampleName(rg.getSample()));
-			if(firstSample == null)
-				firstSample = BamSortUtils.formatSampleName(rg.getSample());
-		}
-//		mos = new SortMultiOutputs<>(context);
+//		for (SAMReadGroupRecord rg : header.getReadGroups()) {
+//			if (!formatSampleName.containsKey(rg.getSample()))
+//				formatSampleName.put(rg.getSample(),
+//						BamSortUtils.formatSampleName(rg.getSample()));
+//		}
 		mos = new MultipleOutputs<>(context);
-	}
-
-	public void replaceSampleNames(SAMFileHeader _header,String list) throws IOException{
-		FileReader fr = new FileReader(list);
-		BufferedReader br = new BufferedReader(fr);
-
-		String line;
-		HashMap<String,String> replaceList = new HashMap<>();
-		while ((line = br.readLine()) != null) {
-			String[] sampleNames = line.split("\t");
-			replaceList.put(sampleNames[0], sampleNames[1]);
-		}
-
-		br.close();
-		fr.close();
-		header = BamSortUtils.replaceSampleName(_header.clone(), replaceList);
 	}
 
 	@Override
@@ -88,6 +68,11 @@ public final class MultiSortReducer
 			Iterable<SamRecordWritable> records,
 			Context ctx)
 			throws IOException, InterruptedException {
+
+		if(!isSampleHeader) {
+			header = BamSortUtils.deleteSampleFromHeader(header, key.getFirst());
+			isSampleHeader = true;
+		}
 
 		for (SamRecordWritable rec : records) {
 			GaeaSamRecord sam = new GaeaSamRecord(header, rec.get());
