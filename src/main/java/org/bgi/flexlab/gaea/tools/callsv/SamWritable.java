@@ -8,15 +8,8 @@ import org.apache.hadoop.io.Writable;
 
 import htsjdk.samtools.SAMRecord;
 
-/**
- * Format类<br>
- * 保存reads的一些必要的简短的比对信息，包括：<br>
- * lib, readsName, flag, chr, start, end, insert, strand, type, readLen
- * @author Huifang Lu
- *
- */
-public class Format implements Writable{
-
+public class SamWritable implements Writable{
+	
 	private String lib;
 	private String readName;
 	private int flag;
@@ -31,13 +24,13 @@ public class Format implements Writable{
 	/**
 	 * 空构造函数
 	 */
-	public Format(){}
+	public SamWritable(){}
 	
 	/**
 	 * 带有String类型参的数构造函数
 	 * @param line String类，包含了必要的比对信息，用制表符分开，并且顺序一致
 	 */
-	public Format(String line){
+	public SamWritable(String line){
 		String[] tmp = line.split("\\s+");
 		this.lib = tmp[0];
 		this.readName = tmp[1];
@@ -57,7 +50,7 @@ public class Format implements Writable{
 	 * @param r SAMRecord类，包含reads完整的比对信息
 	 * @param type 可能的APRs类型
 	 */
-	public Format(SAMRecord r, String type) {
+	public SamWritable(SAMRecord r, String type) {
 		this.lib = r.getReadGroup().getLibrary();
 		this.readName = r.getReadName();
 		this.flag = r.getFlags();
@@ -85,7 +78,7 @@ public class Format implements Writable{
 	 * @param readLen int类型，read的长度
 	 */
 	
-	public Format(String lib, String readName, int flag, String chr, int start, int end, int insert, String strand, String type, int readLen){
+	public SamWritable(String lib, String readName, int flag, String chr, int start, int end, int insert, String strand, String type, int readLen){
 		this.lib = lib;
 		this.readName = readName;
 		this.flag = flag;
@@ -287,5 +280,6 @@ public class Format implements Writable{
 	public String toString() {
 		return lib + "\t" + readName + "\t" + flag + "\t" + chr + "\t" + start + "\t" + end + "\t" + insert + "\t" + strand + "\t" + type + "\t" + readLen;
 	}
+
 
 }

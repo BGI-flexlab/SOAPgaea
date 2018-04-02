@@ -96,7 +96,7 @@ public class Region {
 	 * 使用参数初始化Region对象，chr，regEnd, regStart由参数f指定，其它为默认值
 	 * @param f 一条reads比对信息
 	 */
-	public Region(Format f){
+	public Region(SamWritable f){
 		this.regId = 0;
 		this.chr = f.getChr();
 		this.regEnd = f.getEnd();
@@ -225,7 +225,7 @@ public class Region {
 	 * 根据reads的比对信息更新Region对象的成员变量值
 	 * @param r 一条reads的比对信息
 	 */
-	public void updateReg(Format r) {
+	public void updateReg(SamWritable r) {
 		int start = Math.min(this.regStart, r.getStart());
 		this.setRegStart(start);
 		

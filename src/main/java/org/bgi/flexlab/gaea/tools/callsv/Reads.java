@@ -26,7 +26,7 @@ public class Reads {
 		this.reg = reg;
 	}
 	
-	public Reads(Format r) {
+	public Reads(SamWritable r) {
 		this.name = r.getReadName();
 		this.chr = r.getChr();
 		this.type = r.getType();

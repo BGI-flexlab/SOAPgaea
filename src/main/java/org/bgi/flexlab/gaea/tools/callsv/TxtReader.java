@@ -36,14 +36,15 @@ public class TxtReader {
 	 * readFile方法，用于读取中间文件
 	 * @param libconftxt 输入的参数是一个HFDFS地址，一般是此程序的中间文件，保存了insert size或者dist
 	 * @return 一个Map类型的集合，保存了每一个文库或者染色体相对应的insert size或者dist值
+	 * @throws IOException 
 	 */
 	
-	public Map<String, List<Integer>> readFile(String libconftxt){
+	public Map<String, List<Integer>> readFile(String libconftxt) throws IOException{
 		
 		Map<String, List<Integer>> map = new TreeMap<String, List<Integer>>();
 		
 		BufferedReader br = null;
-		FileSystem fs;
+		FileSystem fs = null;
 		
 		try {
 			fs = FileSystem.get(this.conf);
@@ -74,6 +75,15 @@ public class TxtReader {
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
+		}finally {
+			if(br != null || fs != null) {
+				try {
+					br.close();
+					fs.close();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
 		}
 		
 		
@@ -86,7 +96,7 @@ public class TxtReader {
 		Map<Integer, Integer> map = new TreeMap<Integer, Integer>();
 		
 		BufferedReader br = null;
-		FileSystem fs;
+		FileSystem fs = null;
 		
 		try {
 			fs = FileSystem.get(this.conf);
@@ -113,7 +123,16 @@ public class TxtReader {
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
-		}		
+		}finally {
+			if(br != null || fs != null) {
+				try {
+					br.close();
+					fs.close();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		}	
 		return map;
 	}
 	
@@ -122,7 +141,7 @@ public class TxtReader {
 		Map<String, List<Integer>> map = new TreeMap<String, List<Integer>>();
 		
 		BufferedReader br = null;
-		FileSystem fs;
+		FileSystem fs = null;
 		
 		try {
 			fs = FileSystem.get(this.conf);
@@ -156,6 +175,15 @@ public class TxtReader {
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
+		}finally {
+			if(br != null || fs != null) {
+				try {
+					br.close();
+					fs.close();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
 		}
 		
 		

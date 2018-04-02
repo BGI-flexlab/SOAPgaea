@@ -11,11 +11,19 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.bgi.flexlab.gaea.data.mapreduce.input.bam.GaeaAnySAMInputFormat;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.BioJob;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.ToolsRunner;
-import org.bgi.flexlab.gaea.tools.callsv.Format;
 import org.bgi.flexlab.gaea.tools.callsv.NewMapKey;
 import org.bgi.flexlab.gaea.tools.callsv.ReduceGroupingComparator;
+import org.bgi.flexlab.gaea.tools.callsv.SamWritable;
 
 public class CallStructuralVariation extends ToolsRunner{
+	
+	/*
+	public static void main(String[] args) throws ClassNotFoundException, IOException, InterruptedException {
+		CallStructuralVariation sv = new CallStructuralVariation();
+		int res = sv.runCallStructuralVariation(args);
+		System.exit(res);
+	}
+	*/
 	
 	public CallStructuralVariation() {
 		this.toolsDescription = "Gaea structural variantion calling";
@@ -41,14 +49,14 @@ public class CallStructuralVariation extends ToolsRunner{
 		options.parse(remainArgs1);
 		options.setHadoopConf(remainArgs1, conf);
 		
-		job.setJobName("CallSV Sort");
+		job.setJobName("CallSV");
 		job.setJarByClass(CallStructuralVariation.class);
 		job.setMapperClass(CallStructuralVariationMapper.class);
 		job.setReducerClass(CallStructuralVariationReducer.class);
 		job.setNumReduceTasks(options.getReducenum());
 		job.setInputFormatClass(GaeaAnySAMInputFormat.class);
 		job.setMapOutputKeyClass(NewMapKey.class);
-		job.setMapOutputValueClass(Format.class);
+		job.setMapOutputValueClass(SamWritable.class);
 		job.setOutputKeyClass(NullWritable.class);
 		job.setOutputValueClass(Text.class);
 		//job1.setPartitionerClass(ChrPartitionar.class);
