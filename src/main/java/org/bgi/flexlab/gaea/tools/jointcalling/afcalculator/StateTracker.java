@@ -8,9 +8,6 @@ import java.util.Map;
 import org.bgi.flexlab.gaea.tools.genotyer.genotypecaller.ExactACcounts;
 import org.bgi.flexlab.gaea.util.MathUtils;
 
-import com.google.java.contract.Ensures;
-import com.google.java.contract.Requires;
-
 import htsjdk.variant.variantcontext.Allele;
 
 final class StateTracker {
@@ -117,12 +114,10 @@ final class StateTracker {
         return tooLowLikelihood(log10LofK) && (!enforceLowerACs || isLowerAC(ACs,exactACcountsContainReference));
     }
 
-    @Ensures("result != null")
     protected int[] getAlleleCountsOfMAP() {
         return alleleCountsOfMAP;
     }
 
-    @Ensures("result >= 0")
     protected int getNEvaluations() {
         return nEvaluations;
     }
@@ -158,7 +153,6 @@ final class StateTracker {
      *
      * @return an AFCalcResult summarizing the final results of this calculation
      */
-    @Requires("allelesUsedInGenotyping != null")
     protected AFCalculationResult toAFCalculationResult(final double[] log10PriorsByAC) {
         final int [] subACOfMLE = Arrays.copyOf(alleleCountsOfMLE, allelesUsedInGenotyping.size() - 1);
         //TODO bad calculation of normalized log10 ACeq0 and ACgt0 likelihoods, priors and consequently posteriors calculated in AFCalculationResult constructor.
@@ -236,8 +230,6 @@ final class StateTracker {
      * @param log10LofK the likelihood of our current configuration state, cannot be the 0 state
      * @param alleleCountsForK the allele counts for this state
      */
-    @Requires({"alleleCountsForK != null", "MathUtils.sum(alleleCountsForK) >= 0"})
-    @Ensures("log10MLE == Math.max(log10LofK, log10MLE)")
     protected void updateMLEifNeeded(final double log10LofK, final int[] alleleCountsForK) {
         addToLikelihoodsCache(log10LofK);
 
@@ -253,8 +245,6 @@ final class StateTracker {
      * @param log10PofK the posterior of our current configuration state
      * @param alleleCountsForK the allele counts for this state
      */
-    @Requires({"alleleCountsForK != null", "MathUtils.sum(alleleCountsForK) >= 0"})
-    @Ensures("log10MAP == Math.max(log10PofK, log10MAP)")
     protected void updateMAPifNeeded(final double log10PofK, final int[] alleleCountsForK) {
         if ( log10PofK > log10MAP ) {
             log10MAP = log10PofK;
@@ -283,7 +273,6 @@ final class StateTracker {
         }
     }
 
-    @Requires({"MathUtils.goodLog10Probability(log10PosteriorOfAFzero)"})
     protected void setLog10PosteriorOfAFzero(final double log10PosteriorOfAFzero) {
         if ( log10PosteriorOfAFzero > log10MAP ) {
             log10MAP = log10PosteriorOfAFzero;
@@ -296,7 +285,6 @@ final class StateTracker {
      *
      * @param allelesUsedInGenotyping the list of alleles, where the first allele is reference
      */
-    @Requires({"allelesUsedInGenotyping != null", "allelesUsedInGenotyping.size() > 1"})
     protected void setAllelesUsedInGenotyping(List<Allele> allelesUsedInGenotyping) {
         if ( allelesUsedInGenotyping == null || allelesUsedInGenotyping.isEmpty() )
             throw new IllegalArgumentException("allelesUsedInGenotyping cannot be null or empty");

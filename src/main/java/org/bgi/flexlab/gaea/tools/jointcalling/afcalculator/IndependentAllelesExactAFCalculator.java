@@ -15,9 +15,7 @@ import org.bgi.flexlab.gaea.tools.jointcalling.genotypelikelihood.GenotypeLikeli
 import org.bgi.flexlab.gaea.tools.jointcalling.util.GaeaGvcfVariantContextUtils;
 import org.bgi.flexlab.gaea.tools.jointcalling.util.GvcfMathUtils;
 import org.bgi.flexlab.gaea.util.GaeaVCFConstants;
-
-import com.google.java.contract.Ensures;
-import com.google.java.contract.Requires;
+import org.bgi.flexlab.gaea.util.Utils;
 
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.Genotype;
@@ -60,7 +58,6 @@ public class IndependentAllelesExactAFCalculator extends ExactAFCalculator {
 
     private static final Comparator<AFCalculationResult> AFCALC_RESULT_BY_PNONREF_COMPARATOR = new Comparator<AFCalculationResult>() {
         @Override
-        @Requires("o1 != null && o1 != null")
         public int compare(final AFCalculationResult o1, final AFCalculationResult o2) {
             return -1 * Double.compare(o1.getLog10PosteriorOfAFGT0(), o2.getLog10PosteriorOfAFGT0());
         }
@@ -88,7 +85,6 @@ public class IndependentAllelesExactAFCalculator extends ExactAFCalculator {
     }
 
     @Override
-    @Requires("vc != null && likelihoodSums != null")
     protected void reduceScopeCalculateLikelihoodSums(final VariantContext vc, final int defaultPloidy, final LikelihoodSum[] likelihoodSums) {
         final int numOriginalAltAlleles = likelihoodSums.length;
         final GenotypesContext genotypes = vc.getGenotypes();
@@ -119,7 +115,6 @@ public class IndependentAllelesExactAFCalculator extends ExactAFCalculator {
     }
 
     @Override
-    @Requires("vc != null && log10AlleleFrequencyPriors != null && stateTracker != null")
     protected AFCalculationResult computeLog10PNonRef(final VariantContext vc, final int defaultPloidy, final double[] log10AlleleFrequencyPriors, final StateTracker stateTracker) {
     	    final List<AFCalculationResult> independentResultTrackers = computeAlleleIndependentExact(vc, defaultPloidy, 
     		log10AlleleFrequencyPriors);
@@ -140,7 +135,6 @@ public class IndependentAllelesExactAFCalculator extends ExactAFCalculator {
         }
     }
 
-    @Requires("conditionalPNonRefResults != null and !conditionalPNonRefResults.empty()")
     protected final List<AFCalculationResult> applyMultiAllelicPriors(final List<AFCalculationResult> conditionalPNonRefResults) {
         final ArrayList<AFCalculationResult> sorted = new ArrayList<AFCalculationResult>(conditionalPNonRefResults);
 
@@ -178,7 +172,6 @@ public class IndependentAllelesExactAFCalculator extends ExactAFCalculator {
      *
      * @param sortedResultsWithThetaNPriors the pNonRef result for each allele independently
      */
-    @Requires("vc != null && sortedResultsWithThetaNPriors != null && combinedAltAllelesResult != null")
     protected AFCalculationResult combineIndependentPNonRefs(final VariantContext vc,
                                                              final List<AFCalculationResult> sortedResultsWithThetaNPriors,
                                                              final AFCalculationResult combinedAltAllelesResult) {
@@ -221,8 +214,6 @@ public class IndependentAllelesExactAFCalculator extends ExactAFCalculator {
      * @param log10AlleleFrequencyPriors the priors
      * @return a list of the AFCalcResults for each bi-allelic sub context of vc
      */
-    @Requires({"vc != null", "log10AlleleFrequencyPriors != null"})
-    @Ensures("goodIndependentResult(vc, result)")
     protected final List<AFCalculationResult> computeAlleleIndependentExact(final VariantContext vc, final int defaultPloidy,
                                                                             final double[] log10AlleleFrequencyPriors) {
         final List<AFCalculationResult> results = new LinkedList<>();
@@ -241,8 +232,6 @@ public class IndependentAllelesExactAFCalculator extends ExactAFCalculator {
      * @param vc the variant context to split.  Must have n.alt.alleles > 1
      * @return a bi-allelic variant context for each alt allele in vc
      */
-    @Requires({"vc != null", "vc.getNAlleles() > 1"})
-    @Ensures("result.size() == vc.getNAlleles() - 1")
     protected final List<VariantContext> makeAlleleConditionalContexts(final VariantContext vc, final int defaultPloidy) {
         final int nAlleles = vc.getNAlleles();
 
@@ -262,8 +251,6 @@ public class IndependentAllelesExactAFCalculator extends ExactAFCalculator {
      * @param alleleIndex index of the alt allele, from 0 == reference
      * @return a bi-allelic variant context based on rootVC
      */
-    @Requires({"rootVC.getNAlleles() > 1", "altAlleleIndex < rootVC.getNAlleles()"})
-    @Ensures({"result.isBiallelic()"})
     protected final VariantContext biallelicCombinedGLs(final VariantContext rootVC, final int defaultPloidy, final int alleleIndex) {
         if ( rootVC.isBiallelic() ) {
             return rootVC;
@@ -307,8 +294,6 @@ public class IndependentAllelesExactAFCalculator extends ExactAFCalculator {
      * @param numberOfAlleles the total number of alleles (alternatives + the reference).
      * @return a new biallelic genotype with appropriate PLs
      */
-    @Requires({"original.hasLikelihoods() && alleleIndex >= 0"})
-    @Ensures({"result.hasLikelihoods()"})
     private Genotype combineGLs(final Genotype original, final int defaultPloidy, final int alleleIndex, final int numberOfAlleles ) {
 
         final int declaredPloidy = original.getPloidy();
@@ -354,7 +339,6 @@ public class IndependentAllelesExactAFCalculator extends ExactAFCalculator {
      * @param ploidy the required ploidy.
      * @return never {@code null}.
      */
-    @Requires("ploidy >= 0")
     private static int[] biallelicNonInformativePls (final int ploidy) {
         if (ploidy >= BIALLELIC_NON_INFORMATIVE_PLS_BY_PLOIDY.length) {
             return enlargeIfNecessaryBiallelicNonInformativePlsByPloidyAndGet(ploidy);
@@ -410,8 +394,9 @@ public class IndependentAllelesExactAFCalculator extends ExactAFCalculator {
     }
 
     @Override
-    @Requires("vc != null && allelesToUse != null")
     public GenotypesContext subsetAlleles(VariantContext vc, int defaultPloidy, List<Allele> allelesToUse, boolean assignGenotypes) {
+    	Utils.nonNull(vc, "vc cann't be null!");
+    	Utils.nonNull(allelesToUse, "alleleToUse cann't be null!");
         // the genotypes with PLs
         final GenotypesContext oldGTs = vc.getGenotypes();
 

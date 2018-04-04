@@ -21,7 +21,6 @@ import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.VariantContext;
 
 public abstract class AS_RankSumTest extends RankSumTest implements ReducibleAnnotation {
-    private static final Logger logger = Logger.getLogger(AS_RankSumTest.class);
     public static final String SPLIT_DELIM = "\\|"; //String.split takes a regex, so we need to escape the pipe
     public static final String PRINT_DELIM = "|";
     public static final String RAW_DELIM = ",";
@@ -258,7 +257,6 @@ public abstract class AS_RankSumTest extends RankSumTest implements ReducibleAnn
                 annotationString += REDUCED_DELIM;
             }
             if (!perAltRankSumResults.containsKey(a)) {
-                logger.warn("ERROR: VC allele not found in annotation alleles -- maybe there was trimming?");
             } else {
                 annotationString += String.format("%.3f", perAltRankSumResults.get(a));
             }

@@ -3,8 +3,7 @@ package org.bgi.flexlab.gaea.tools.jointcalling.util;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.google.java.contract.Ensures;
-import com.google.java.contract.Requires;
+import org.bgi.flexlab.gaea.util.Utils;
 
 import htsjdk.tribble.Feature;
 
@@ -27,7 +26,6 @@ public final class RodBinding<T extends Feature> {
      * @param <T> any class extending Tribble Feature
      * @return the UNBOUND RodBinding producing objects of type T
      */
-    @Requires("type != null")
     protected final static <T extends Feature> RodBinding<T> makeUnbound(Class<T> type) {
         return new RodBinding<T>(type);
     }
@@ -58,9 +56,8 @@ public final class RodBinding<T extends Feature> {
         nameCounter.clear();
     }
 
-    @Requires("rawName != null")
-    @Ensures("result != null")
     final private static synchronized String countedVariableName(final String rawName) {
+    	Utils.nonNull(rawName, "raw name cann't be null!");
         Integer count = nameCounter.get(rawName);
         if ( count == null ) {
             nameCounter.put(rawName, 1);
@@ -71,8 +68,12 @@ public final class RodBinding<T extends Feature> {
         }
     }
 
-    @Requires({"type != null", "rawName != null", "source != null", "tribbleType != null", "tags != null"})
     public RodBinding(Class<T> type, final String rawName, final String source, final String tribbleType, final Tags tags) {
+    	Utils.nonNull(type, "type cann't be null!");
+    	Utils.nonNull(rawName, "raw name cann't be null!");
+    	Utils.nonNull(source, "source cann't be null!");
+    	Utils.nonNull(tribbleType, "tribbleType cann't be null!");
+    	Utils.nonNull(tags, "tags cann't be null!");
         this.type = type;
         this.name = countedVariableName(rawName);
         this.source = source;
@@ -94,8 +95,8 @@ public final class RodBinding<T extends Feature> {
      * Make an unbound RodBinding<T>.  Only available for creating the globally unique UNBOUND object
      * @param type class this unbound RodBinding creates
      */
-    @Requires({"type != null"})
     private RodBinding(Class<T> type) {
+    	Utils.nonNull(type, "type cann't be null!");
         this.type = type;
         this.name = UNBOUND_VARIABLE_NAME;  // special value can never be found in RefMetaDataTracker
         this.source = UNBOUND_SOURCE;
@@ -115,7 +116,6 @@ public final class RodBinding<T extends Feature> {
     /**
      * @return The name of this binding.  Often the name of the field itself, but can be overridden on cmdline
      */
-    @Ensures({"result != null"})
     final public String getName() {
         return name;
     }
@@ -123,7 +123,6 @@ public final class RodBinding<T extends Feature> {
     /**
      * @return the string name of the tribble type, such as vcf, bed, etc.
      */
-    @Ensures({"result != null"})
     final public Class<T> getType() {
         return type;
     }
@@ -131,7 +130,6 @@ public final class RodBinding<T extends Feature> {
     /**
      * @return where the data for this ROD is coming from.  A file or special value if coming from stdin
      */
-    @Ensures({"result != null"})
     final public String getSource() {
         return source;
     }
@@ -140,7 +138,6 @@ public final class RodBinding<T extends Feature> {
      * @return The command line tags associated with this RodBinding.  Will include the tags used to
      * determine the name and type of this RodBinding
      */
-    @Ensures({"result != null"})
     final public Tags getTags() {
         return tags;
     }
@@ -148,7 +145,6 @@ public final class RodBinding<T extends Feature> {
     /**
      * @return The Java class expected for this RodBinding.  Must correspond to the type emited by Tribble
      */
-    @Ensures({"result != null"})
     final public String getTribbleType() {
         return tribbleType;
     }

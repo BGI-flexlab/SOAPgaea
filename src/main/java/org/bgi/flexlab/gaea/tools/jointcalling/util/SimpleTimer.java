@@ -3,9 +3,6 @@ package org.bgi.flexlab.gaea.tools.jointcalling.util;
 import java.text.NumberFormat;
 import java.util.concurrent.TimeUnit;
 
-import com.google.java.contract.Ensures;
-import com.google.java.contract.Requires;
-
 public class SimpleTimer {
     protected static final double NANO_TO_SECOND_DOUBLE = 1.0 / TimeUnit.SECONDS.toNanos(1);
     private static final long MILLI_TO_NANO= TimeUnit.MILLISECONDS.toNanos(1);
@@ -76,7 +73,6 @@ public class SimpleTimer {
      *
      * @return this object, for programming convenience
      */
-    @Ensures("elapsedTimeNano == 0l")
     public synchronized SimpleTimer start() {
         elapsedTimeNano = 0l;
         return restart();
@@ -127,7 +123,6 @@ public class SimpleTimer {
      *
      * @return this object, for programming convenience
      */
-    @Requires("startTimeNano != 0l")
     public synchronized SimpleTimer stop() {
         if ( running ) {
             running = false;

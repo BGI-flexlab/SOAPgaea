@@ -22,8 +22,6 @@ import org.bgi.flexlab.gaea.tools.jointcalling.util.AutoFormattingTime;
 import org.bgi.flexlab.gaea.util.MathUtils;
 import org.bgi.flexlab.gaea.util.Utils;
 
-import com.google.java.contract.Requires;
-
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.GenotypeBuilder;
@@ -101,11 +99,15 @@ public class ExactCallLogger implements Cloneable {
         callReport.flush();
     }
 
-    @Requires({"vc != null", "variable != null", "key != null", "value != null", "callReport != null"})
     private void printCallElement(final VariantContext vc,
                                   final Object variable,
                                   final Object key,
                                   final Object value) {
+    	Utils.nonNull(vc, "VariantContext cann't be null!");
+    	Utils.nonNull(variable, "variable cann't be null!");
+    	Utils.nonNull(key, "key cann't be null!");
+    	Utils.nonNull(value, "value cann't be null!");
+    	Utils.nonNull(callReport, "callReport cann't be null!");
         final String loc = String.format("%s:%d", vc.getChr(), vc.getStart());
         callReport.println(Utils.join("\t", Arrays.asList(loc, variable, key, value)));
     }

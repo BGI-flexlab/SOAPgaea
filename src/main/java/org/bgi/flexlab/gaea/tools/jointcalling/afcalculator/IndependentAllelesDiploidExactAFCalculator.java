@@ -12,9 +12,7 @@ import java.util.Map;
 import org.bgi.flexlab.gaea.tools.jointcalling.genotypelikelihood.GenotypeLikelihoodCalculators;
 import org.bgi.flexlab.gaea.tools.jointcalling.util.GvcfMathUtils;
 import org.bgi.flexlab.gaea.util.GaeaVCFConstants;
-
-import com.google.java.contract.Ensures;
-import com.google.java.contract.Requires;
+import org.bgi.flexlab.gaea.util.Utils;
 
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.Genotype;
@@ -122,10 +120,10 @@ public class IndependentAllelesDiploidExactAFCalculator extends DiploidExactAFCa
      * @param log10AlleleFrequencyPriors the priors
      * @return a list of the AFCalcResults for each bi-allelic sub context of vc
      */
-    @Requires({"vc != null", "log10AlleleFrequencyPriors != null"})
-    @Ensures("goodIndependentResult(vc, result)")
     protected final List<AFCalculationResult> computeAlleleIndependentExact(final VariantContext vc, final int defaultPloidy,
                                                                      final double[] log10AlleleFrequencyPriors) {
+    	Utils.nonNull(vc, "vc cann't be null!");
+    	Utils.nonNull(log10AlleleFrequencyPriors, "array cann't be null!");
         final List<AFCalculationResult> results = new LinkedList<AFCalculationResult>();
 
         for ( final VariantContext subvc : makeAlleleConditionalContexts(vc) ) {
@@ -142,9 +140,8 @@ public class IndependentAllelesDiploidExactAFCalculator extends DiploidExactAFCa
      * @param vc the variant context to split.  Must have n.alt.alleles > 1
      * @return a bi-allelic variant context for each alt allele in vc
      */
-    @Requires({"vc != null", "vc.getNAlleles() > 1"})
-    @Ensures("result.size() == vc.getNAlleles() - 1")
     protected final List<VariantContext> makeAlleleConditionalContexts(final VariantContext vc) {
+    	Utils.nonNull(vc, "vc cann't be null!");
         final int nAltAlleles = vc.getNAlleles() - 1;
 
         if ( nAltAlleles == 1 ) {
@@ -169,8 +166,6 @@ public class IndependentAllelesDiploidExactAFCalculator extends DiploidExactAFCa
      * @param altAlleleIndex index of the alt allele, from 0 == first alt allele
      * @return a bi-allelic variant context based on rootVC
      */
-    @Requires({"rootVC.getNAlleles() > 1", "altAlleleIndex < rootVC.getNAlleles()"})
-    @Ensures({"result.isBiallelic()"})
     protected final VariantContext biallelicCombinedGLs(final VariantContext rootVC, final int altAlleleIndex) {
         if ( rootVC.isBiallelic() ) {
             return rootVC;
@@ -216,8 +211,6 @@ public class IndependentAllelesDiploidExactAFCalculator extends DiploidExactAFCa
      * @param nAlts the total number of alt alleles
      * @return a new biallelic genotype with appropriate PLs
      */
-    @Requires({"original.hasLikelihoods()"})
-    @Ensures({"result.hasLikelihoods()", "result.getPL().length == 3"})
     protected Genotype combineGLsPrecise(final Genotype original, final int altIndex, final int nAlts ) {
 
         if ( original.isNonInformative() )

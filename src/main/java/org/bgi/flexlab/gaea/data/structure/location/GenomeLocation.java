@@ -162,11 +162,24 @@ public class GenomeLocation implements Comparable<GenomeLocation>, Comparator<Ge
 	}
 
 	public final boolean overlaps(Locatable that) {
-		return !disjoint(that);
+		return overlapsWithMargin(that,0);
 	}
+	
+	public boolean overlapsWithMargin(final Locatable other, final int margin) {
+        if ( margin < 0 ) {
+            throw new IllegalArgumentException("given margin is negative: " + margin +
+                    "\tfor this: " + toString() + "\tand that: " + (other == null ? "other is null" : other.toString()));
+        }
+        if ( other == null || other.getContig() == null ) {
+            return false;
+        }
+
+        return this.contigName.equals(other.getContig()) && this.contigStart <= other.getEnd() + margin && other.getStart() - margin <= this.contigEnd;
+    }
 
 	public final boolean contiguous(Locatable that) {
-		return !discontinuous(that);
+		Utils.nonNull(that);
+	    return this.getContig().equals(that.getContig()) && this.getStart() <= that.getEnd() + 1 && that.getStart() <= this.getEnd() + 1;
 	}
 
 	/**

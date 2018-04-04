@@ -70,6 +70,7 @@ public class GaeaSamRecord extends SAMRecord implements Locatable {
 	private static final int DUPLICATE_READ_FLAG = 0x400;
 	public static final String NO_ALIGNMENT_REFERENCE_NAME = "*";
 	public static final int NO_ALIGNMENT_REFERENCE_INDEX = -1;
+	public static final int UNSET_POSITION = 0;
 
 	private int softStart = -1;
 	private int softEnd = -1;
@@ -702,7 +703,7 @@ public class GaeaSamRecord extends SAMRecord implements Locatable {
 		if (index < 0 || index >= getReadLength())
 			throw new IllegalArgumentException(
 					"index " + index + " must more than zero and less than " + getReadLength());
-		return this.getReadBases()[index];
+		return this.getBaseQualities()[index];
 	}
 
 	public boolean mateIsUnmapped() {
@@ -736,5 +737,18 @@ public class GaeaSamRecord extends SAMRecord implements Locatable {
 	    return this.getReferenceName() == null ||
 	           this.getReferenceName().equals(SAMRecord.NO_ALIGNMENT_REFERENCE_NAME) ||
 	           this.getAlignmentStart() == SAMRecord.NO_ALIGNMENT_START;
+	}
+	
+	@Override
+	public int getEnd() {
+		if ( isUnmapped() ) {
+            return UNSET_POSITION;
+        }
+		
+        return getAlignmentEnd();
+    }
+	
+	public boolean isFirstOfPair() {
+		return getFirstOfPairFlag();
 	}
 }
