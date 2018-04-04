@@ -12,7 +12,6 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<commons-math3.version>3.6.1</commons-math3.version>
 	</properties>
 
 	<dependencies>
@@ -22,11 +21,6 @@
 			<version>4.12</version>
 			<scope>test</scope>
 		</dependency>
-		<!--dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-math3</artifactId>
-			<version>${commons-math3.version}</version>
-		</dependency-->
 		<dependency>
 			<groupId>com.github.samtools</groupId>
 			<artifactId>htsjdk</artifactId>
@@ -68,10 +62,6 @@
 					<artifactId>commons-cli</artifactId>
 					<groupId>commons-cli</groupId>
 				</exclusion>
-				<!--exclusion>
-					<groupId>org.apache.commons</groupId>
-					<artifactId>commons-math3</artifactId>
-				</exclusion-->
 				<exclusion>
 					<groupId>org.xerial.snappy</groupId>
 					<artifactId>snappy-java</artifactId>
