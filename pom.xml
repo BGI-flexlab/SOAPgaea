@@ -33,10 +33,6 @@
 			<version>2.5.0</version>
 			<exclusions>
 				<exclusion>
-					<groupId>org.tukaani</groupId>
-					<artifactId>xz</artifactId>
-				</exclusion>
-				<exclusion>
 					<groupId>org.xerial.snappy</groupId>
 					<artifactId>snappy-java</artifactId>
 				</exclusion>
