@@ -1,7 +1,7 @@
 package org.bgi.flexlab.gaea.tools.haplotypecaller.utils;
 
-import org.apache.commons.math3.analysis.integration.gauss.GaussIntegrator;
-import org.apache.commons.math3.analysis.integration.gauss.GaussIntegratorFactory;
+import org.bgi.flexlab.gaea.tools.haplotypecaller.math.GaussIntegrator;
+import org.bgi.flexlab.gaea.tools.haplotypecaller.math.GaussIntegratorFactory;
 import org.bgi.flexlab.gaea.tools.jointcalling.util.GvcfMathUtils;
 import org.bgi.flexlab.gaea.util.IndexRange;
 
