@@ -43,6 +43,7 @@ public class VariantContextHadoopWriter implements GaeaVariantContextWriter{
 		}
 	}
 	
+	@Override
 	public void close() {
 	}
 	

@@ -34,6 +34,7 @@ import org.bgi.flexlab.gaea.tools.haplotypecaller.utils.RefMetaDataTracker;
 import org.bgi.flexlab.gaea.tools.mapreduce.haplotypecaller.HaplotypeCallerOptions;
 import org.bgi.flexlab.gaea.tools.vcfqualitycontrol2.util.GaeaVCFHeaderLines;
 import org.bgi.flexlab.gaea.util.GaeaVCFConstants;
+import org.bgi.flexlab.gaea.util.ReadUtils;
 import org.bgi.flexlab.gaea.util.Utils;
 import org.bgi.flexlab.gaea.util.Window;
 
@@ -149,9 +150,12 @@ public class HaplotypeCallerTraversal {
 		if(options.getDBSnp() != null)
 			VCFStandardHeaderLines.addStandardInfoLines(headerInfo, true, VCFConstants.DBSNP_KEY);
 
-		//getReferenceConfidenceModelHeaderLine(headerInfo);
+		Set<String> sampleSet = ReadUtils.getSamplesFromHeader(header);
+		SampleList samplesList = new IndexedSampleList(sampleSet);
+		getReferenceConfidenceModelHeaderLine(samplesList,headerInfo);
 
-		vcfHeader = new VCFHeader(headerInfo);
+		vcfHeader = new VCFHeader(headerInfo,sampleSet);
+		vcfHeader.setSequenceDictionary(header.getSequenceDictionary());
 	}
 
 	private void getReferenceConfidenceModelHeaderLine( SampleList samples,final Set<VCFHeaderLine> headerInfo) {
@@ -298,7 +302,7 @@ public class HaplotypeCallerTraversal {
 			final AssemblyRegion assemblyRegion = assemblyRegionIter.next();
 			writeAssemblyRegion(assemblyRegion);
 			List<VariantContext> results = apply(assemblyRegion, features);
-
+			
 			for (VariantContext context : results)
 				writer.write(context);
 		}
