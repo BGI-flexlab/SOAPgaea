@@ -216,10 +216,12 @@ public final class HaplotypeCallerEngine {
 				hcArgs.genotypingOutputMode == GenotypingOutputMode.GENOTYPE_GIVEN_ALLELES, emitReferenceConfidence());
 	}
 
-	public void initializeAnnotationEngine(HaplotypeCallerArgumentCollection hcArgs) {
+	public void initializeAnnotationEngine(HaplotypeCallerArgumentCollection hcArgs,ChromosomeInformationShare ref) {
 		this.hcArgs.dbsnp = hcArgs.dbsnp;
 		this.hcArgs.comps = hcArgs.comps;
+		this.referenceReader = ref;
 		annotationEngine.initializeOverlapAnnotator(hcArgs.dbsnp, hcArgs.comps);
+		annotationEngine.setFeatures(hcArgs.dbsnp);
 		// Allele-specific annotations are not yet supported in the VCF mode
 		if (isAlleleSpecificMode(annotationEngine) && isVCFMode()) {
 			throw new UserException("Allele-specific annotations are not yet supported in the VCF mode");

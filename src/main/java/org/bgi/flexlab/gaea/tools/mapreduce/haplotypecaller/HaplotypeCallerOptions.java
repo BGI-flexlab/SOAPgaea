@@ -88,6 +88,10 @@ public class HaplotypeCallerOptions  extends GaeaOptions implements HadoopOption
 		FormatHelpInfo(SOFTWARE_NAME,SOFTWARE_VERSION);
 	}
 	
+	private void initializeReadFilter() {
+		
+	}
+	
 	@Override
 	public void setHadoopConf(String[] args, Configuration conf) {
 		conf.setStrings("args", args);
@@ -202,7 +206,7 @@ public class HaplotypeCallerOptions  extends GaeaOptions implements HadoopOption
 	}
 	
 	public String getVCFOutput() {
-		if(output.endsWith("/"))
+		if(!output.endsWith("/"))
 			output += "/";
 		return output+"vcf";
 	}

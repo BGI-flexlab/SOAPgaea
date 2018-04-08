@@ -109,14 +109,13 @@ public class ReadUtils {
 	 *
 	 * There are two cases to treat here:
 	 *
-	 * 1) Read is in the negative strand => Adaptor boundary is on the left tail
-	 * 2) Read is in the positive strand => Adaptor boundary is on the right
-	 * tail
+	 * 1) Read is in the negative strand => Adaptor boundary is on the left tail 2)
+	 * Read is in the positive strand => Adaptor boundary is on the right tail
 	 *
 	 * Note: We return false to all reads that are UNMAPPED or have an weird big
 	 * insert size (probably due to mismapping or bigger event)
 	 */
-	public static boolean isBaseInsideAdaptor(final SAMRecord read, long basePos) {
+	public static boolean isBaseInsideAdaptor(final GaeaSamRecord read, long basePos) {
 		Integer adaptorBoundary = getAdaptorBoundary(read);
 		if (adaptorBoundary == null || read.getInferredInsertSize() > DEFAULT_ADAPTOR_SIZE)
 			return false;
@@ -125,11 +124,11 @@ public class ReadUtils {
 	}
 
 	/**
-	 * Finds the adaptor boundary around the read and returns the first base
-	 * inside the adaptor that is closest to the read boundary. If the read is
-	 * in the positive strand, this is the first base after the end of the
-	 * fragment (Picard calls it 'insert'), if the read is in the negative
-	 * strand, this is the first base before the beginning of the fragment.
+	 * Finds the adaptor boundary around the read and returns the first base inside
+	 * the adaptor that is closest to the read boundary. If the read is in the
+	 * positive strand, this is the first base after the end of the fragment (Picard
+	 * calls it 'insert'), if the read is in the negative strand, this is the first
+	 * base before the beginning of the fragment.
 	 *
 	 * There are two cases we need to treat here:
 	 *
@@ -144,28 +143,36 @@ public class ReadUtils {
 	 * in these cases the adaptor boundary is at the start of the read plus the
 	 * inferred insert size (plus one)
 	 */
-	public static Integer getAdaptorBoundary(final SAMRecord read) {
-		final int MAXIMUM_ADAPTOR_LENGTH = 8;
-		final int insertSize = Math.abs(read.getInferredInsertSize());
-		// mates reads in another chromosome or unmapped pairs
-		if (insertSize == 0 || read.getReadUnmappedFlag())
-			return null;
-
-		Integer adaptorBoundary;
-		if (read.getReadNegativeStrandFlag()) {
-			// case 1
-			adaptorBoundary = read.getMateAlignmentStart() - 1;
-		} else {
-			// case 2
-			adaptorBoundary = read.getAlignmentStart() + insertSize + 1;
-		}
-
-		if ((adaptorBoundary < read.getAlignmentStart() - MAXIMUM_ADAPTOR_LENGTH)
-				|| (adaptorBoundary > read.getAlignmentEnd() + MAXIMUM_ADAPTOR_LENGTH))
-			adaptorBoundary = null;
-
-		return adaptorBoundary;
+	/*
+	 * public static Integer getAdaptorBoundary(final SAMRecord read) { final int
+	 * MAXIMUM_ADAPTOR_LENGTH = 8; final int insertSize =
+	 * Math.abs(read.getInferredInsertSize()); // mates reads in another chromosome
+	 * or unmapped pairs if (insertSize == 0 || read.getReadUnmappedFlag()) { return
+	 * null; }
+	 * 
+	 * Integer adaptorBoundary; if (read.getReadNegativeStrandFlag()) { // case 1
+	 * adaptorBoundary = read.getMateAlignmentStart() - 1; } else { // case 2
+	 * adaptorBoundary = read.getAlignmentStart() + insertSize + 1; }
+	 * 
+	 * if ((adaptorBoundary < read.getAlignmentStart() - MAXIMUM_ADAPTOR_LENGTH) ||
+	 * (adaptorBoundary > read.getAlignmentEnd() + MAXIMUM_ADAPTOR_LENGTH)) {
+	 * adaptorBoundary = null; throw new
+	 * RuntimeException("adaptorBoundary is null"); }
+	 * 
+	 * return adaptorBoundary; }
+	 */
+	public static int getAdaptorBoundary(final GaeaSamRecord read) {
+		if ( ! hasWellDefinedFragmentSize(read) ) {
+            return CANNOT_COMPUTE_ADAPTOR_BOUNDARY;
+        } else if ( read.getReadNegativeStrandFlag() ) {
+            return read.getMateStart() - 1;           // case 1 (see header)
+        } else {
+            final int insertSize = Math.abs(read.getInferredInsertSize());    // the inferred insert size can be negative if the mate is mapped before the read (so we take the absolute value)
+            return read.getStart() + insertSize;  // case 2 (see header)
+        }
 	}
+
+	public static int CANNOT_COMPUTE_ADAPTOR_BOUNDARY = Integer.MIN_VALUE;
 
 	/**
 	 * is the read a 454 read?
@@ -214,8 +221,8 @@ public class ReadUtils {
 	}
 
 	/**
-	 * Returns the collections of reads sorted in coordinate order, according to
-	 * the order defined in the reads themselves
+	 * Returns the collections of reads sorted in coordinate order, according to the
+	 * order defined in the reads themselves
 	 *
 	 * @param reads
 	 * @return
@@ -253,8 +260,8 @@ public class ReadUtils {
 	/**
 	 * If a read ends in INSERTION, returns the last element length.
 	 *
-	 * Warning: If the read has Hard or Soft clips after the insertion this
-	 * function will return 0.
+	 * Warning: If the read has Hard or Soft clips after the insertion this function
+	 * will return 0.
 	 */
 	public final static int getLastInsertionOffset(SAMRecord read) {
 		CigarElement e = read.getCigar().getCigarElement(read.getCigarLength() - 1);
@@ -276,8 +283,7 @@ public class ReadUtils {
 
 	/**
 	 * Determines what is the position of the read in relation to the interval.
-	 * Note: This function uses the UNCLIPPED ENDS of the reads for the
-	 * comparison.
+	 * Note: This function uses the UNCLIPPED ENDS of the reads for the comparison.
 	 */
 	public static ReadAndIntervalOverlap getReadAndIntervalOverlapType(GaeaSamRecord read, GenomeLocation interval) {
 
@@ -316,20 +322,19 @@ public class ReadUtils {
 
 	/**
 	 * Pre-processes the results of
-	 * getReadCoordinateForReferenceCoordinate(GATKSAMRecord, int) to take care
-	 * of two corner cases:
+	 * getReadCoordinateForReferenceCoordinate(GATKSAMRecord, int) to take care of
+	 * two corner cases:
 	 * 
 	 * 1. If clipping the right tail (end of the read)
-	 * getReadCoordinateForReferenceCoordinate and fall inside a deletion return
-	 * the base after the deletion. If clipping the left tail (beginning of the
-	 * read) it doesn't matter because it already returns the previous base by
-	 * default.
+	 * getReadCoordinateForReferenceCoordinate and fall inside a deletion return the
+	 * base after the deletion. If clipping the left tail (beginning of the read) it
+	 * doesn't matter because it already returns the previous base by default.
 	 * 
 	 * 2. If clipping the left tail (beginning of the read)
 	 * getReadCoordinateForReferenceCoordinate and the read starts with an
 	 * insertion, and you're requesting the first read based coordinate, it will
-	 * skip the leading insertion (because it has the same reference coordinate
-	 * as the following base).
+	 * skip the leading insertion (because it has the same reference coordinate as
+	 * the following base).
 	 */
 	public static int getReadCoordinateForReferenceCoordinate(SAMRecord read, int refCoord, ClippingTail tail) {
 		return getReadCoordinateForReferenceCoordinate(SamRecordUtils.getSoftStart(read), read.getCigar(), refCoord,
@@ -351,24 +356,162 @@ public class ReadUtils {
 
 		return readCoord;
 	}
+	
+	public static int getReadCoordinateForReferenceCoordinate(final GaeaSamRecord read, final Cigar cigar,
+			final int refCoord, final ClippingTail tail, final boolean allowGoalNotReached) {
+		Pair<Integer, Boolean> result = getReadCoordinateForReferenceCoordinate(read, cigar, refCoord,
+				allowGoalNotReached);
+		int readCoord = result.getFirst();
+
+		if (result.getSecond() && tail == ClippingTail.RIGHT_TAIL)
+			readCoord++;
+
+		Pair<Boolean, CigarElement> firstElementIsInsertion = readStartsWithInsertion(cigar);
+		if (readCoord == 0 && tail == ClippingTail.LEFT_TAIL && firstElementIsInsertion.getFirst())
+			readCoord = Math.min(firstElementIsInsertion.getSecond().getLength(), cigar.getReadLength() - 1);
+
+		return readCoord;
+	}
 
 	/**
 	 * Returns the read coordinate corresponding to the requested reference
 	 * coordinate.
 	 *
 	 * WARNING: if the requested reference coordinate happens to fall inside a
-	 * deletion in the read, this function will return the last read base before
-	 * the deletion. This function returns a Pair(int readCoord, boolean
-	 * fallsInsideDeletion) so you can choose which readCoordinate to use when
-	 * faced with a deletion.
+	 * deletion in the read, this function will return the last read base before the
+	 * deletion. This function returns a Pair(int readCoord, boolean
+	 * fallsInsideDeletion) so you can choose which readCoordinate to use when faced
+	 * with a deletion.
 	 *
-	 * SUGGESTION: Use getReadCoordinateForReferenceCoordinate(GATKSAMRecord,
-	 * int, ClippingTail) instead to get a pre-processed result according to
-	 * normal clipping needs. Or you can use this function and tailor the
-	 * behavior to your needs.
+	 * SUGGESTION: Use getReadCoordinateForReferenceCoordinate(GATKSAMRecord, int,
+	 * ClippingTail) instead to get a pre-processed result according to normal
+	 * clipping needs. Or you can use this function and tailor the behavior to your
+	 * needs.
 	 */
 	public static Pair<Integer, Boolean> getReadCoordinateForReferenceCoordinate(GaeaSamRecord read, int refCoord) {
-		return getReadCoordinateForReferenceCoordinate(read.getSoftStart(), read.getCigar(), refCoord, false);
+		//return getReadCoordinateForReferenceCoordinate(read.getSoftStart(), read.getCigar(), refCoord, false);
+		return getReadCoordinateForReferenceCoordinate(read, read.getCigar(), refCoord, false);
+	}
+	
+	public static Pair<Integer, Boolean> getReadCoordinateForReferenceCoordinate(final GaeaSamRecord read,
+			final Cigar cigar, final int refCoord, final boolean allowGoalNotReached) {
+		final int alignmentStart = getSoftStart(read);
+		
+		int readBases = 0;
+		int refBases = 0;
+		boolean fallsInsideDeletion = false;
+
+		int goal = refCoord - alignmentStart; // The goal is to move this many
+												// reference bases
+		if (goal < 0) {
+			if (allowGoalNotReached) {
+				return new Pair<Integer, Boolean>(CLIPPING_GOAL_NOT_REACHED, false);
+			} else {
+				throw new UserException(
+						"Somehow the requested coordinate is not covered by the read. Too many deletions?");
+			}
+		}
+		boolean goalReached = refBases == goal;
+
+		Iterator<CigarElement> cigarElementIterator = cigar.getCigarElements().iterator();
+		while (!goalReached && cigarElementIterator.hasNext()) {
+			CigarElement cigarElement = cigarElementIterator.next();
+			int shift = 0;
+
+			if (cigarElement.getOperator().consumesReferenceBases()
+					|| cigarElement.getOperator() == CigarOperator.SOFT_CLIP) {
+				if (refBases + cigarElement.getLength() < goal)
+					shift = cigarElement.getLength();
+				else
+					shift = goal - refBases;
+
+				refBases += shift;
+			}
+			goalReached = refBases == goal;
+
+			if (!goalReached && cigarElement.getOperator().consumesReadBases())
+				readBases += cigarElement.getLength();
+
+			if (goalReached) {
+				// Is this base's reference position within this cigar element?
+				// Or did we use it all?
+				boolean endsWithinCigar = shift < cigarElement.getLength();
+
+				// If it isn't, we need to check the next one. There should
+				// *ALWAYS* be a next one
+				// since we checked if the goal coordinate is within the read
+				// length, so this is just a sanity check.
+				if (!endsWithinCigar && !cigarElementIterator.hasNext()) {
+					if (allowGoalNotReached) {
+						return new Pair<Integer, Boolean>(CLIPPING_GOAL_NOT_REACHED, false);
+					} else {
+						throw new UserException(
+								"Reference coordinate corresponds to a non-existent base in the read. This should never happen -- call Mauricio");
+					}
+				}
+
+				CigarElement nextCigarElement;
+
+				// if we end inside the current cigar element, we just have to
+				// check if it is a deletion
+				if (endsWithinCigar)
+					fallsInsideDeletion = cigarElement.getOperator() == CigarOperator.DELETION;
+
+				// if we end outside the current cigar element, we need to check
+				// if the next element is an insertion or deletion.
+				else {
+					nextCigarElement = cigarElementIterator.next();
+
+					// if it's an insertion, we need to clip the whole insertion
+					// before looking at the next element
+					if (nextCigarElement.getOperator() == CigarOperator.INSERTION) {
+						readBases += nextCigarElement.getLength();
+						if (!cigarElementIterator.hasNext()) {
+							if (allowGoalNotReached) {
+								return new Pair<Integer, Boolean>(CLIPPING_GOAL_NOT_REACHED, false);
+							} else {
+								throw new UserException(
+										"Reference coordinate corresponds to a non-existent base in the read. This should never happen -- call Mauricio");
+							}
+						}
+
+						nextCigarElement = cigarElementIterator.next();
+					}
+
+					// if it's a deletion, we will pass the information on to be
+					// handled downstream.
+					fallsInsideDeletion = nextCigarElement.getOperator() == CigarOperator.DELETION;
+				}
+
+				// If we reached our goal outside a deletion, add the shift
+				if (!fallsInsideDeletion && cigarElement.getOperator().consumesReadBases())
+					readBases += shift;
+
+				// If we reached our goal inside a deletion, but the deletion is
+				// the next cigar element then we need
+				// to add the shift of the current cigar element but go back to
+				// it's last element to return the last
+				// base before the deletion (see warning in function contracts)
+				else if (fallsInsideDeletion && !endsWithinCigar)
+					readBases += shift - 1;
+
+				// If we reached our goal inside a deletion then we must
+				// backtrack to the last base before the deletion
+				else if (fallsInsideDeletion && endsWithinCigar)
+					readBases--;
+			}
+		}
+
+		if (!goalReached) {
+			if (allowGoalNotReached) {
+				return new Pair<Integer, Boolean>(CLIPPING_GOAL_NOT_REACHED, false);
+			} else {
+				throw new UserException("Somehow the requested coordinate is not covered by the read. Alignment "
+						+ alignmentStart + " | " + cigar+" | "+refCoord+"\t"+read.getReadName()+"\t"+read.getFlags());
+			}
+		}
+
+		return new Pair<Integer, Boolean>(readBases, fallsInsideDeletion);
 	}
 
 	public static Pair<Integer, Boolean> getReadCoordinateForReferenceCoordinate(final int alignmentStart,
@@ -483,17 +626,33 @@ public class ReadUtils {
 				return new Pair<Integer, Boolean>(CLIPPING_GOAL_NOT_REACHED, false);
 			} else {
 				throw new UserException("Somehow the requested coordinate is not covered by the read. Alignment "
-						+ alignmentStart + " | " + cigar);
+						+ alignmentStart + " | " + cigar+" | "+refCoord);
 			}
 		}
 
 		return new Pair<Integer, Boolean>(readBases, fallsInsideDeletion);
 	}
+	
+	public static int getSoftStart(final GaeaSamRecord read) {
+        Utils.nonNull(read, "read");
+
+        int softStart = read.getStart();
+        for (final CigarElement cig : read.getCigar().getCigarElements()) {
+            final CigarOperator op = cig.getOperator();
+
+            if (op == CigarOperator.SOFT_CLIP) {
+                softStart -= cig.getLength();
+            } else if (op != CigarOperator.HARD_CLIP) {
+                break;
+            }
+        }
+        return softStart;
+    }
 
 	/**
 	 * Compares two SAMRecords only the basis on alignment start. Note that
-	 * comparisons are performed ONLY on the basis of alignment start; any two
-	 * SAM records with the same alignment start will be considered equal.
+	 * comparisons are performed ONLY on the basis of alignment start; any two SAM
+	 * records with the same alignment start will be considered equal.
 	 *
 	 * Unmapped alignments will all be considered equal.
 	 */
@@ -561,12 +720,10 @@ public class ReadUtils {
 	}
 
 	/**
-	 * Returns the coverage distribution of a single read within the desired
-	 * region.
+	 * Returns the coverage distribution of a single read within the desired region.
 	 *
-	 * Note: This function counts DELETIONS as coverage (since the main purpose
-	 * is to downsample reads for variant regions, and deletions count as
-	 * variants)
+	 * Note: This function counts DELETIONS as coverage (since the main purpose is
+	 * to downsample reads for variant regions, and deletions count as variants)
 	 */
 	public static int[] getCoverageDistributionOfRead(GaeaSamRecord read, int startLocation, int stopLocation) {
 		int[] coverage = new int[stopLocation - startLocation + 1];
@@ -604,18 +761,16 @@ public class ReadUtils {
 	}
 
 	/**
-	 * Makes association maps for the reads and loci coverage as described below
-	 * :
+	 * Makes association maps for the reads and loci coverage as described below :
 	 *
 	 * - First: locusToReadMap -- a HashMap that describes for each locus, which
-	 * reads contribute to its coverage. Note: Locus is in reference
-	 * coordinates. Example: Locus => {read1, read2, ..., readN}
+	 * reads contribute to its coverage. Note: Locus is in reference coordinates.
+	 * Example: Locus => {read1, read2, ..., readN}
 	 *
-	 * - Second: readToLocusMap -- a HashMap that describes for each read what
-	 * loci it contributes to the coverage. Note: Locus is a boolean array,
-	 * indexed from 0 (= startLocation) to N (= stopLocation), with value==true
-	 * meaning it contributes to the coverage. Example: Read => {true, true,
-	 * false, ... false}
+	 * - Second: readToLocusMap -- a HashMap that describes for each read what loci
+	 * it contributes to the coverage. Note: Locus is a boolean array, indexed from
+	 * 0 (= startLocation) to N (= stopLocation), with value==true meaning it
+	 * contributes to the coverage. Example: Read => {true, true, false, ... false}
 	 */
 	public static Pair<HashMap<Integer, HashSet<GaeaSamRecord>>, HashMap<GaeaSamRecord, Boolean[]>> getBothReadToLociMappings(
 			List<GaeaSamRecord> readList, int startLocation, int stopLocation) {
@@ -749,7 +904,7 @@ public class ReadUtils {
 			throw new RuntimeException(e.toString());
 		}
 
-		emptyRead.setCigar(null);
+		emptyRead.setCigarString("");
 		emptyRead.setReadBases(new byte[0]);
 		emptyRead.setBaseQualities(new byte[0]);
 
@@ -827,8 +982,8 @@ public class ReadUtils {
 
 	public static int getReadCoordinateForReferenceCoordinateUpToEndOfRead(final GaeaSamRecord read, final int refCoord,
 			final ClippingTail tail) {
-		final int leftmostSafeVariantPosition = Math.max(read.getSoftStart(), refCoord);
-		return getReadCoordinateForReferenceCoordinate(read.getSoftStart(), read.getCigar(),
+		final int leftmostSafeVariantPosition = Math.max(getSoftStart(read), refCoord);
+		return getReadCoordinateForReferenceCoordinate(getSoftStart(read), read.getCigar(),
 				leftmostSafeVariantPosition, tail, false);
 	}
 
@@ -856,41 +1011,32 @@ public class ReadUtils {
 			return read.getStart() <= read.getMateStart() + read.getInferredInsertSize();
 		}
 	}
-	
-	public static SAMFileWriter createCommonSAMWriter(
-	        final File outputPath,
-	        final File referenceFile,
-	        final SAMFileHeader header,
-	        final boolean preSorted,
-	        boolean createOutputBamIndex,
-	        final boolean createMD5)
-	    {
-	        Utils.nonNull(outputPath);
-	        Utils.nonNull(header);
 
-	        if (createOutputBamIndex && header.getSortOrder() != SAMFileHeader.SortOrder.coordinate) {
-	            createOutputBamIndex = false;
-	        }
+	public static SAMFileWriter createCommonSAMWriter(final File outputPath, final File referenceFile,
+			final SAMFileHeader header, final boolean preSorted, boolean createOutputBamIndex,
+			final boolean createMD5) {
+		Utils.nonNull(outputPath);
+		Utils.nonNull(header);
 
-	        final SAMFileWriterFactory factory = new SAMFileWriterFactory().setCreateIndex(createOutputBamIndex).setCreateMd5File(createMD5);
-	        return ReadUtils.createCommonSAMWriterFromFactory(factory, outputPath, referenceFile, header, preSorted);
-	    }
-	
-	public static SAMFileWriter createCommonSAMWriterFromFactory(
-		    final SAMFileWriterFactory factory,
-		    final File outputPath,
-		    final File referenceFile,
-		    final SAMFileHeader header,
-		    final boolean preSorted,
-		    OpenOption... openOptions)
-		{
-		    Utils.nonNull(outputPath);
-		    Utils.nonNull(header);
-
-		    if (null == referenceFile && outputPath.toString().endsWith(CramIO.CRAM_FILE_EXTENSION)) {
-		        throw new UserException("A reference file is required for writing CRAM files");
-		    }
-
-		    return factory.makeWriter(header.clone(), preSorted, outputPath, referenceFile);
+		if (createOutputBamIndex && header.getSortOrder() != SAMFileHeader.SortOrder.coordinate) {
+			createOutputBamIndex = false;
 		}
+
+		final SAMFileWriterFactory factory = new SAMFileWriterFactory().setCreateIndex(createOutputBamIndex)
+				.setCreateMd5File(createMD5);
+		return ReadUtils.createCommonSAMWriterFromFactory(factory, outputPath, referenceFile, header, preSorted);
+	}
+
+	public static SAMFileWriter createCommonSAMWriterFromFactory(final SAMFileWriterFactory factory,
+			final File outputPath, final File referenceFile, final SAMFileHeader header, final boolean preSorted,
+			OpenOption... openOptions) {
+		Utils.nonNull(outputPath);
+		Utils.nonNull(header);
+
+		if (null == referenceFile && outputPath.toString().endsWith(CramIO.CRAM_FILE_EXTENSION)) {
+			throw new UserException("A reference file is required for writing CRAM files");
+		}
+
+		return factory.makeWriter(header.clone(), preSorted, outputPath, referenceFile);
+	}
 }

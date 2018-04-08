@@ -145,6 +145,9 @@ public class HaplotypeCallerTraversal {
 		// where the filters are used. For example, in emitting all sites the lowQual
 		// field is used
 		headerInfo.add(GaeaVCFHeaderLines.getFilterLine(GaeaVCFConstants.LOW_QUAL_FILTER_NAME));
+		
+		if(options.getDBSnp() != null)
+			VCFStandardHeaderLines.addStandardInfoLines(headerInfo, true, VCFConstants.DBSNP_KEY);
 
 		//getReferenceConfidenceModelHeaderLine(headerInfo);
 
@@ -174,7 +177,7 @@ public class HaplotypeCallerTraversal {
 		this.features = features;
 		initializeIntervals(win);
 		hcArgs.dbsnp = features.getValues("DB");
-		hcEngine.initializeAnnotationEngine(hcArgs);
+		hcEngine.initializeAnnotationEngine(hcArgs,ref);
 		makeReadsShard(options.getReadShardSize(), options.getReadShardPadding());
 	}
 
