@@ -1,9 +1,14 @@
 /target/
 /.settings/
+# only ignore the .classpath file in the current directory, not subdir/.classpath
 /.classpath
 /.idea
 /gaea.iml
 
+<<<<<<< HEAD
+.*
+=======
 .fatjar
 
 *.jar
+>>>>>>> master
