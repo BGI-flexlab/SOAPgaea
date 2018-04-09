@@ -35,6 +35,7 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.bgi.flexlab.gaea.data.mapreduce.input.vcf.VCFMultipleInputFormat;
+import org.bgi.flexlab.gaea.data.mapreduce.output.vcf.GaeaVCFOutputFormat;
 import org.bgi.flexlab.gaea.data.mapreduce.output.vcf.VCFHdfsWriter;
 import org.bgi.flexlab.gaea.data.mapreduce.util.HdfsFileManager;
 import org.bgi.flexlab.gaea.data.structure.header.MultipleVCFHeader;
@@ -73,10 +74,13 @@ public class VCFQualityControl extends ToolsRunner{
 	public int run(String[] args) throws Exception {
 		BioJob job = BioJob.getInstance();
 		Configuration conf = job.getConfiguration();
+		conf.setBoolean(GaeaVCFOutputFormat.HEADER_MODIFY, true);
+		
+		String[] remainArgs = remainArgs(args, conf);
 		
 		options = new VCFQualityControlOptions();
-		options.parse(args);
-		options.setHadoopConf(args, conf);
+		options.parse(remainArgs);
+		options.setHadoopConf(remainArgs, conf);
 		
 		//merge header
 		vcfHeaders = new MultipleVCFHeader();
@@ -84,6 +88,7 @@ public class VCFQualityControl extends ToolsRunner{
 				
 		if(options.isRecal()) {
 //			vqsr
+			job.setJobName("Gaea variant quality score recalibration");
 			job.setJarByClass(VCFQualityControl.class);
 			job.setMapperClass(VariantRecalibrationMapper.class);
 			job.setReducerClass(VariantRecalibrationReducer.class);
@@ -95,7 +100,8 @@ public class VCFQualityControl extends ToolsRunner{
 			job.setInputFormatClass(VCFMultipleInputFormat.class);
 	
 			Path statistics = new Path(options.getOutputPath() + "/tmp");
-			job.setOutputFormatClass(VariantRecalibrationOutputFormat.class);
+			//job.setOutputFormatClass(VariantRecalibrationOutputFormat.class);
+			job.setOutputFormatClass(GaeaVCFOutputFormat.class);
 			FileOutputFormat.setOutputPath(job, statistics);
 			
 			return job.waitForCompletion(true) ? 0 : 1;

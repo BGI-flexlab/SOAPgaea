@@ -27,16 +27,17 @@ import org.apache.hadoop.hbase.util.Bytes;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Map.Entry;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author huangzhibo
  *
  */
 public class HbaseAdapter implements DBAdapterInterface{
-	
-	public static final String DEFAULT_COLUMN_FAMILY = "data";
-	
+
+	private String columnFamily = "data";
+
 	static Configuration conf = null;
     static Connection conn; 
     
@@ -47,7 +48,8 @@ public class HbaseAdapter implements DBAdapterInterface{
     }
     
     @Override
-	public void connection(String dbName) throws IOException {
+	public void connection(String cf) throws IOException {
+		setColumnFamily(cf);
 		conn = ConnectionFactory.createConnection(conf);
 	}
 	
@@ -58,49 +60,63 @@ public class HbaseAdapter implements DBAdapterInterface{
 
     @Override
 	public HashMap<String, String> getResult(String tableName, String rowKey) throws IOException {
-		HashMap<String,String> resultMap = new HashMap<String,String>();
 		Get get = new Get(Bytes.toBytes(rowKey));
-		get.addFamily(Bytes.toBytes(DEFAULT_COLUMN_FAMILY));
+		get.addFamily(Bytes.toBytes(getColumnFamily()));
 		Table table = conn.getTable(TableName.valueOf(tableName));
+		if (!table.exists(get))
+			return null;
 		Result result = table.get(get);
-		
+
+		HashMap<String,String> resultMap = new HashMap<>();
 		for  (Cell cell : result.rawCells()) {
-			String key = Bytes.toString(CellUtil.cloneQualifier (cell));
+			String key = Bytes.toString(CellUtil.cloneQualifier(cell));
 			String value = Bytes.toString(CellUtil.cloneValue(cell));
 			resultMap.put(key, value);
 		}
 		return resultMap;
 	}
-    
+
 	public HashMap<String, String> getResult(String tableName,
-			String rowKey, String[] fields) throws IOException{
-		HashMap<String,String> resultMap = getResult(tableName,rowKey);
+			String rowKey, List<String> fields) throws IOException{
+		HashMap<String,String> resultMap = new HashMap<>();
 		Table table = conn.getTable(TableName.valueOf(tableName));
 		Get get = new Get(Bytes.toBytes(rowKey));
-		get.addFamily(Bytes.toBytes(DEFAULT_COLUMN_FAMILY));
+		get.addFamily(Bytes.toBytes(getColumnFamily()));
+		if (!table.exists(get))
+			return null;
 		Result result = table.get(get);
 		for (String field : fields) {
-			byte[] value = result.getValue(Bytes.toBytes(DEFAULT_COLUMN_FAMILY), Bytes.toBytes(field));
-			resultMap.put(field, Bytes.toString(value));
+			byte[] value = result.getValue(Bytes.toBytes(getColumnFamily()), Bytes.toBytes(field));
+			if(value == null) continue;
+			String v = Bytes.toString(value);
+			if(v.contains("|"))
+				v = v.replaceAll("\\|","&");
+			resultMap.put(field, v);
 		}
 		return resultMap;
 	}
 	
-	@Override
-	public HashMap<String, String> getResult(String tableName,
-			String rowKey, HashMap<String, String> fieldMap) throws IOException{
-//		HashMap<String,String> resultMap = getResult(tableName,rowKey);
-		HashMap<String,String> resultMap = new HashMap<String,String>();
+	public boolean insert(String tableName, String rowKey, Map<String,String> fields) throws IOException{
 		Table table = conn.getTable(TableName.valueOf(tableName));
-		Get get = new Get(Bytes.toBytes(rowKey));
-		get.addFamily(Bytes.toBytes(DEFAULT_COLUMN_FAMILY));
-		Result result = table.get(get);
-		for (Entry<String, String> entry : fieldMap.entrySet()) {
-			byte[] value = result.getValue(Bytes.toBytes(DEFAULT_COLUMN_FAMILY), Bytes.toBytes(entry.getValue()));
-			resultMap.put(entry.getKey(), Bytes.toString(value));
+		Put put = new Put(Bytes.toBytes(rowKey));
+		for(String key: fields.keySet()){
+			String value = fields.get(key);
+			if(key == null || value == null)
+				continue;
+			put.addImmutable(Bytes.toBytes(getColumnFamily()), Bytes.toBytes(key), Bytes.toBytes(value));
+
 		}
-		return resultMap;
+		table.put(put);
+		table.close();
+		return true;
 	}
 
 
+	public String getColumnFamily() {
+		return columnFamily;
+	}
+
+	public void setColumnFamily(String columnFamily) {
+		this.columnFamily = columnFamily;
+	}
 }

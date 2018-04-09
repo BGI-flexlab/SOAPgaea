@@ -44,21 +44,22 @@ public class SingleRegion {
 //		AsciiLineReaderIterator it = new AsciiLineReaderIterator(new AsciiLineReader(is));
 		while(it.hasNext()) {
 			String line=it.next().toString().trim();
-			if(line.equals("") || line == null || line.startsWith("#")) {
+			if(line.equals("") || line.startsWith("#")) {
 				continue;
 			}
-			Regiondata regionData = new Regiondata(line, normalBed);
+//			Regiondata regionData = new Regiondata(line, normalBed);
+			Regiondata regionData = new Regiondata(line);
 			if(lastRegionData != null) {
 				boolean nextRegion = updateRegion(regionData, lastRegionData, extendSize);
 				if(nextRegion) {
 					continue;
 				}
 			} else  {
-				lastRegionData = initLastRegion(regionData, lastRegionData, extendSize);
+				lastRegionData = initLastRegion(regionData, extendSize);
 			}
 			
 			chrInterval = updateChrInterval(lastRegionData, regionData, chrInterval);
-			lastRegionData = initLastRegion(regionData, lastRegionData, extendSize);
+			lastRegionData = initLastRegion(regionData, extendSize);
 		}
 		regions.add(lastRegionData);
 		chrNameInterval.put(lastRegionData.getChrName(), chrInterval);
@@ -67,7 +68,7 @@ public class SingleRegion {
 	
 	private boolean canCombineRegion(Regiondata regionData, Regiondata lastRegionData, int extendSize) {
 		return regionData.getStart() - lastRegionData.getEnd() < extendSize 
-		&& lastRegionData.getChrName() == regionData.getChrName();
+		&& lastRegionData.getChrName().equals(regionData.getChrName());
 	}
 	
 	private Regiondata combineRegion(Regiondata regionData, Regiondata lastRegionData, int extendSize) {
@@ -101,7 +102,8 @@ public class SingleRegion {
 		return nextRegion;
 	}
 	
-	private Regiondata initLastRegion(Regiondata regionData, Regiondata lastRegionData, int extendSize) {
+	private Regiondata initLastRegion(Regiondata regionData, int extendSize) {
+		Regiondata lastRegionData;
 		if(extendSize > 0) {
 			lastRegionData = new Regiondata(regionData.getChrName(), regionData.getStart() - extendSize > 0 ? regionData.getStart() - extendSize : 0, regionData.getEnd() + extendSize);
 		} else {
@@ -158,7 +160,7 @@ public class SingleRegion {
 		for(int i = index; i >= 0; i--) {
 			Regiondata regionData = regions.get(i);
 			if(pos < regionData.start || pos > regionData.end) {
-				if(chrName != "" && chrName != regionData.getChrName()) {
+				if(!chrName.equals("") && !chrName.equals(regionData.getChrName())) {
 					break;
 				}
 				finalIndex = i + 1;
@@ -211,7 +213,13 @@ public class SingleRegion {
 				this.Name2 = lineSplits[index++];
 			}
 			init(lineSplits[index++], Integer.parseInt(lineSplits[index++]),
-					Integer.parseInt(lineSplits[index++]) - 1);
+					Integer.parseInt(lineSplits[index]) - 1);
+		}
+
+		public Regiondata(String regionLine) {
+			String[] lineSplits = regionLine.split("\t");
+			init(lineSplits[0], Integer.parseInt(lineSplits[1]),
+					Integer.parseInt(lineSplits[2]) - 1);
 		}
 		
 		public void init(String chrName, int start, int end) {

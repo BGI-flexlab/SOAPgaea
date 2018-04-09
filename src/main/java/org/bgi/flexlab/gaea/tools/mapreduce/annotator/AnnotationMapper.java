@@ -31,6 +31,7 @@ import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.bgi.flexlab.gaea.data.structure.header.SingleVCFHeader;
+import org.bgi.flexlab.gaea.util.ChromosomeUtils;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -49,7 +50,10 @@ public class AnnotationMapper extends Mapper<LongWritable, Text, Text, VcfLineWr
 		conf = context.getConfiguration();
 		vcfCodecs = new HashMap<>();
 
-		Path inputPath = new Path(conf.get("inputFilePath"));
+		AnnotatorOptions options = new AnnotatorOptions();
+		options.getOptionsFromHadoopConf(conf);
+
+		Path inputPath = new Path(options.getInputFilePath());
 		FileSystem fs = inputPath.getFileSystem(conf);
 		FileStatus[] files = fs.listStatus(inputPath);
 		for(FileStatus file : files) {
@@ -66,7 +70,7 @@ public class AnnotationMapper extends Mapper<LongWritable, Text, Text, VcfLineWr
 			}
 		}
 
-
+//		TODO split vcfLine
 
 
 	}
@@ -74,27 +78,31 @@ public class AnnotationMapper extends Mapper<LongWritable, Text, Text, VcfLineWr
 	@Override
 	protected void map(LongWritable key, Text value, Context context)
 			throws IOException, InterruptedException {
-
-
-
 		InputSplit inputSplit = context.getInputSplit();
 		String fileName = ((FileSplit) inputSplit).getPath().getName();
 		VCFCodec vcfcodec = vcfCodecs.get(fileName);
 		String vcfLine = value.toString();
 		if (vcfLine.startsWith("#")) return;
 		VariantContext variantContext = vcfcodec.decode(vcfLine);
-		String chr = null;
 
-		if(variantContext.getContig().startsWith("chr")){
-			chr = variantContext.getContig().substring(3);
-		}
-		else
-			chr = variantContext.getContig();
-
+		String chr = ChromosomeUtils.getNoChrName(variantContext.getContig());
 
 		resultValue.set(fileName, vcfLine);
-		resultKey.set(chr+"-"+variantContext.getStart() + "-" + variantContext.getEnd());
-		System.out.println("mapper: " + resultKey.toString() + " " + vcfLine);
+
+		int startPrefix = variantContext.getStart()/1000;
+		int startRemainder = variantContext.getStart()%1000;
+		if(startRemainder <= 5 && startPrefix > 0){
+			resultKey.set(chr+"-"+(startPrefix-1));
+			context.write(resultKey, resultValue);
+		}
+
+		if(startRemainder >= 995 && startPrefix > 0){
+			resultKey.set(chr+"-"+(startPrefix+1));
+			context.write(resultKey, resultValue);
+		}
+
+		resultKey.set(chr+"-"+startPrefix);
+//		System.out.println("mapper: " + resultKey.toString() + " " + vcfLine);
 		/*根据chr-start-end*/
 		context.write(resultKey, resultValue);
 

@@ -49,6 +49,7 @@ public class CreateDuplicationKey {
 			chrIndex = -1;
 			position = RandomUtils.getRandomGenerator().nextInt()%100;
 			key.set(LB, chrIndex, position, forward);
+			return;
 		}
 			
 		//SE && single-mapped

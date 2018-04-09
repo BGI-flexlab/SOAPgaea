@@ -40,6 +40,7 @@ public class BamQualityControlOptions extends GaeaOptions implements HadoopOptio
 		addOption("B", "bedFile", true, "bed format file");
 		addBooleanOption("D", "distributeCache", "distribute cache the reference");
 		addOption("a", "anRegion", true, "annotation regions");
+//		addOption("s", "statRegion", true, "output detail infomation for this bedfile(WGS mode)");
 		addOption("c", "cnvRegion", true, "cnv regions in bed format");
 		addOption("n", "minDepth", true, "minimum depth for single region statistics");
 		addOption("I", "insertSize", true, "insert size");
@@ -96,7 +97,7 @@ public class BamQualityControlOptions extends GaeaOptions implements HadoopOptio
 	 * single region
 	 */
 	private String singleRegion;
-	
+
 	/**
 	 * minimum depth for singleRegion
 	 */

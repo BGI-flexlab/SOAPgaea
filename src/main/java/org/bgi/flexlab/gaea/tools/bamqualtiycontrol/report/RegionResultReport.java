@@ -32,8 +32,9 @@ import org.bgi.flexlab.gaea.data.structure.reference.ReferenceShare;
 import org.bgi.flexlab.gaea.data.structure.region.RegionChromosomeInformation;
 import org.bgi.flexlab.gaea.data.structure.region.SingleRegion;
 import org.bgi.flexlab.gaea.data.structure.region.SingleRegion.Regiondata;
+import org.bgi.flexlab.gaea.data.structure.region.SingleRegionStatistic;
 import org.bgi.flexlab.gaea.data.structure.region.TargetRegion;
-import org.bgi.flexlab.gaea.data.structure.region.statistic.BedSingleRegionStatistic;
+import org.bgi.flexlab.gaea.data.structure.region.SingleRegionStatistic;
 import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report.RegionReport.Sex;
 import org.bgi.flexlab.gaea.tools.mapreduce.bamqualitycontrol.BamQualityControlOptions;
 import org.bgi.flexlab.gaea.util.SamRecordDatum;
@@ -56,9 +57,9 @@ public class RegionResultReport extends ResultReport{
 	
 	private RegionReport regionReport;
 	
-	private BedSingleRegionReport bedSingleRegionReport;
+	private SingleRegionReport SingleRegionReport;
 	
-	private BedSingleRegionReport genderSingleRegionReport;
+	private SingleRegionReport genderSingleRegionReport;
 	
 	private CNVDepthReport cnvDepthReport;
 	
@@ -69,7 +70,7 @@ public class RegionResultReport extends ResultReport{
 	public RegionResultReport(BamQualityControlOptions options, Configuration conf) throws IOException {
 		super(options);
 		region = new TargetRegion();
-		cnvRegion = new SingleRegion();
+//		cnvRegion = new SingleRegion();
 		if (options.getRegion() != null) {
 			region.parseRegion(options.getRegion(), true);
 		}
@@ -94,8 +95,10 @@ public class RegionResultReport extends ResultReport{
 		super.initReports();
 		regionReport = new RegionReport(region);
 		if(options.getBedfile() != null){
-			bedSingleRegionReport = new BedSingleRegionReport(bedRegion);
-			genderSingleRegionReport = new BedSingleRegionReport(genderRegion);
+			SingleRegionReport = new SingleRegionReport(bedRegion);
+			SingleRegionReport.setStatPosDepth(false);
+			genderSingleRegionReport = new SingleRegionReport(genderRegion);
+			genderSingleRegionReport.setStatPosDepth(false);
 		}
 			
 		if(options.isCnvDepth() && options.getCnvRegion() != null) {
@@ -142,8 +145,8 @@ public class RegionResultReport extends ResultReport{
 	public void singleRegionReports(String chrName, long winStart, int winSize , PositionDepth pd) {
 		super.singleRegionReports(chrName, winStart, winSize, pd);
 		if(options.getBedfile() != null) {
-			bedSingleRegionReport.getStatisticString(chrName, (int)winStart, winSize, pd.getNormalPosDepth(), "bed");
-			genderSingleRegionReport.getStatisticString(chrName,(int) winStart, winSize, pd.getGenderPosDepth(), "gender");
+			SingleRegionReport.getStatisticString(chrName, (int)winStart, winSize, pd, "bed");
+			genderSingleRegionReport.getStatisticString(chrName,(int) winStart, winSize, pd, "gender");
 		}
 	}
 	
@@ -151,7 +154,7 @@ public class RegionResultReport extends ResultReport{
 	public String toReducerString(String sample, String chrName, boolean unmappedRegion) {
 		StringBuffer info = new StringBuffer();
 		
-		if(chrName == "-1") {
+		if(chrName.equals("-1")) {
 			info.append("sample:");
 			info.append(sample);
 			info.append("\n");
@@ -186,8 +189,8 @@ public class RegionResultReport extends ResultReport{
 			info.append("unmapped site information\n");
 			if(cnvSingleRegionReport != null)
 				info.append(cnvSingleRegionReport.toReducerString());
-			if(bedSingleRegionReport != null) 
-				info.append(bedSingleRegionReport.toReducerString());
+			if(SingleRegionReport != null) 
+				info.append(SingleRegionReport.toReducerString());
 			if(genderSingleRegionReport != null) 
 				info.append(genderSingleRegionReport.toReducerString());
 		}
@@ -205,12 +208,12 @@ public class RegionResultReport extends ResultReport{
 		}
 		if(lineString.startsWith("bed single Region Statistic")) {
 			if(lineReader.readLine(line) > 0 && line.getLength() != 0) {
-				bedSingleRegionReport.parseReducerOutput(line.toString(), false);
+				SingleRegionReport.parseReducerOutput(line.toString(), false);
 			}
 		}
 		if(lineString.startsWith("bed part single Region Statistic")) {
 			if(lineReader.readLine(line) > 0 && line.getLength() != 0) {
-				bedSingleRegionReport.parseReducerOutput(line.toString(), true);
+				SingleRegionReport.parseReducerOutput(line.toString(), true);
 			}
 		}
 		if(lineString.startsWith("gender single Region Statistic")) {
@@ -236,9 +239,9 @@ public class RegionResultReport extends ResultReport{
 	@Override
 	public void write(FileSystem fs, String sampleName) throws IOException {
 		super.write(fs, sampleName);
-		if(bedSingleRegionReport != null) {
+		if(SingleRegionReport != null) {
 			//chromosome info
-			Map<Regiondata, BedSingleRegionStatistic> result = bedSingleRegionReport.getResult();
+			Map<Regiondata, SingleRegionStatistic> result = SingleRegionReport.getResult();
 			Map<String, RegionChromosomeInformation> chrsInfo = new HashMap<String, RegionChromosomeInformation>();
 			
 			for(Regiondata regionData : result.keySet()) {
@@ -257,6 +260,7 @@ public class RegionResultReport extends ResultReport{
 			regionChromosomeFilePath.append(".chromosome.txt");
 			Path singleRegionPath = new Path(regionChromosomeFilePath.toString());
 			FSDataOutputStream regionChromosomeWriter = fs.create(singleRegionPath);
+			regionChromosomeWriter.write(RegionChromosomeInformation.toTitleString().getBytes());
 			for(String chrName : chrsInfo.keySet()) {
 				regionChromosomeWriter.write(chrsInfo.get(chrName).toString(chrName).getBytes());
 			}
@@ -264,7 +268,7 @@ public class RegionResultReport extends ResultReport{
 		}
 		
 		if(genderSingleRegionReport != null) {
-			Map<Regiondata, BedSingleRegionStatistic> result = genderSingleRegionReport.getResult();
+			Map<Regiondata, SingleRegionStatistic> result = genderSingleRegionReport.getResult();
 			ArrayList<Double> depth = new ArrayList<Double>();
 			
 			for(Regiondata regionData : result.keySet()) {
@@ -305,14 +309,16 @@ public class RegionResultReport extends ResultReport{
 	}
 	
 	public int getSampleLaneSize(String sample) {
+		if (!sampleLaneSize.containsKey(sample))
+			return -1;
 		return sampleLaneSize.get(sample);
 	}
 	
-	public BedSingleRegionReport getBedSingleRegionReport() {
-		return bedSingleRegionReport;
+	public SingleRegionReport getSingleRegionReport() {
+		return SingleRegionReport;
 	}
 	
-	public BedSingleRegionReport getGenderSingleRegionReport() {
+	public SingleRegionReport getGenderSingleRegionReport() {
 		return genderSingleRegionReport;
 	}
 }

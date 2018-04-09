@@ -67,7 +67,7 @@ public class DatabaseInfo implements Serializable {
 
 	public HashMap<String, String> getFields() {
 		if (fields == null) {
-			return new HashMap<String, String>();
+			fields = new HashMap<>();
 		}
 		return fields;
 	}

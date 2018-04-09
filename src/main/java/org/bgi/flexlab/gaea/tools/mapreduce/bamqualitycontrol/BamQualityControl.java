@@ -55,7 +55,8 @@ public class BamQualityControl extends ToolsRunner{
 			ReferenceShare.distributeCache(options.getReferenceSequencePath(), job);
 		}
 		SamHdfsFileHeader.loadHeader(new Path(options.getAlignmentFilePath()), conf, new Path(options.getOutputPath()));
-		
+
+		job.setJobName("BamQualityControl");
 		job.setJarByClass(BamQualityControl.class);
 		job.setMapperClass(BamQualityControlMapper.class);
 		job.setReducerClass(BamQualityControlReducer.class);

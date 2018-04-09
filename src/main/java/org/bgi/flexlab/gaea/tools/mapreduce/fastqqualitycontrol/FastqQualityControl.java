@@ -51,7 +51,7 @@ public class FastqQualityControl extends ToolsRunner {
 		FastqQualityControlOptions option = new FastqQualityControlOptions();
 		option.parse(remainArgs);
 		conf.setInt(FastqRecordReader.READ_NAME_TYPE, option.getReadType());
-		option.setHadoopConf(args, conf);
+		option.setHadoopConf(remainArgs, conf);
 
 		job.setJobName("GaeaFastqQC");
 		job.setJarByClass(FastqQualityControl.class);

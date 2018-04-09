@@ -132,6 +132,8 @@ public class Utr5prime extends Utr {
 
 		// Change base at SNP position
 		String sequence = getSequence();
+		if(sequence.isEmpty())
+			return "";  //TODO
 		char[] chars = sequence.toCharArray();
 		char snpBase = seqChange.netChange(this).charAt(0);
 		if (isStrandMinus()) snpBase = GprSeq.wc(snpBase);

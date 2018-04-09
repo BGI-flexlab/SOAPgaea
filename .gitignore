@@ -5,4 +5,10 @@
 /.idea
 /gaea.iml
 
+<<<<<<< HEAD
 .*
+=======
+.fatjar
+
+*.jar
+>>>>>>> master

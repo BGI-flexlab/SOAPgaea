@@ -74,7 +74,7 @@ public class BaseCounter {
 				} else if(this.dType == DepthType.WITHOUT_PCR && noPCRdepth.getDepth() >= this.depth.getDepth()) {
 					baseWithoutPCRdupCount++;
 				}
-			} else if(this.depth == Depth.TOTALDEPTH) {
+			} else {
 				switch (this.dType) {
 				case NORMAL:
 					totalDepth += depth.getDepth();

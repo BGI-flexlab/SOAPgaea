@@ -87,7 +87,7 @@ public class BioMemoryShare {
 		return length;
 	}
 
-	public byte[] getBytes(int start, int end) {
+	public byte[] getGA4GHBytes(int start, int end) {
 		if (start >= length)
 			throw new OutOfBoundException(length, start);
 

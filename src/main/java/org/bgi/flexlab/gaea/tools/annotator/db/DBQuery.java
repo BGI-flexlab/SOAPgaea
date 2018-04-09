@@ -17,19 +17,13 @@
 package org.bgi.flexlab.gaea.tools.annotator.db;
 
 import org.bgi.flexlab.gaea.tools.annotator.config.DatabaseInfo.DbType;
-import org.bgi.flexlab.gaea.tools.annotator.effect.AnnotationContext;
+import org.bgi.flexlab.gaea.tools.annotator.AnnotationContext;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.Map.Entry;
 
-/**
- * @author huangzhibo
- *
- */
 public class DBQuery implements Serializable {
 
 	private static final long serialVersionUID = -897843908487603204L;
@@ -63,7 +57,6 @@ public class DBQuery implements Serializable {
 	 * @throws IOException
 	 */
 	public Results query(Condition condition)throws IOException{
-		HashMap<String, String> fieldMap = condition.getFields();
 		Results results = new Results();
 
 		HashMap<String,String> result = dbAdapter.getResult(condition.getRefTable().getIndexTable(), condition.getConditionString());
@@ -73,35 +66,37 @@ public class DBQuery implements Serializable {
 		String[] keys = keyStr.split(",");
 		for (String key : keys) {
 			result = dbAdapter.getResult(condition.getRefTable().getTable(), key);
-			
-			HashMap<String,String> annoResult = new HashMap<String, String>();
-			for (Entry<String, String> entry : fieldMap.entrySet()) {
-				annoResult.put(entry.getKey(), result.get(entry.getValue()));
-			}
-			
+			System.err.println("Alt:"+key);
+			System.err.println("Alt:"+String.join("|",result.values()));
+
 			if (result ==null || result.isEmpty()){
 				System.err.println("Cann't find value from table:"+condition.getRefTable().getTable()+". Key:"+key);
 				return null;
 			}
-//			result.put(condition.getRefTable().getKey(), key);
-			String altStr = result.get("ALT");
-			if (altStr == null) {
+
+			String resultAltStr = result.get("ALT");
+			if (resultAltStr == null) {
 				System.err.println("Alt is null:"+condition.getRefTable().getTable()+". Key:"+key);
 				return null;
 			}
-			
-			if (altStr.indexOf(",") == -1) {
-				altStr = altStr.toUpperCase();
-				if(alts.contains(altStr)){
-					results.add(altStr, annoResult);
+
+			HashMap<String,String> annoResult = new HashMap<>();
+			for(String field: condition.getFields()){
+				annoResult.put(field, result.get(field));
+			}
+
+			if (!resultAltStr.contains(",")) {
+				resultAltStr = resultAltStr.toUpperCase();
+				if(alts.contains(resultAltStr)){
+					results.add(resultAltStr, annoResult);
 				}
 			}else {
-				String[] alt_list = altStr.split(",");
-//				splitResult();
-				for (String alt : alt_list) {
-					alt = alt.toUpperCase();
+				String[] resultAlts = resultAltStr.split(",");
+				List<HashMap<String, String>> annoResults = splitResult(annoResult, resultAlts.length);
+				for (int i = 0; i < resultAlts.length; i++) {
+					String alt = resultAlts[i].toUpperCase();
 					if(alts.contains(alt)){
-						results.add(alt, annoResult);
+						results.add(alt, annoResults.get(i));
 					}
 				}
 			}
@@ -112,37 +107,54 @@ public class DBQuery implements Serializable {
 	
 	/**
 	 * 对含多个变异的结果进行分割
-	 * @param result
-	 * @return LinkedList<HashMap<String, String>>
 	 */
-	private LinkedList<HashMap<String, String>> splitResult(HashMap<String, String> result, String altStr) {
-		LinkedList<HashMap<String, String>> resultList = new LinkedList<HashMap<String, String>>();
-	    //String[] alt_list = altStr.split(",");
-		//HashMap<String, String> r = (HashMap<String, String>) result.clone();
+	protected List<HashMap<String, String>> splitResult(HashMap<String, String> result, int altNum) {
+		List<HashMap<String, String>> resultList = new ArrayList<>();
+		for (int i = 0; i < altNum; i++) {
+			resultList.add(new HashMap<>());
+		}
+
 		for (Entry<String, String> entry : result.entrySet()) {
-			if (entry.getValue().indexOf(",")!=-1) {
-				entry.getValue().split(",");
+			if(entry.getValue() == null)
+				continue;
+			if (entry.getValue().contains(",")) {
+				String[] values = entry.getValue().split(",");
+				if(altNum == values.length){
+					for (int i = 0; i < altNum; i++) {
+						resultList.get(i).put(entry.getKey(), values[i]);
+					}
+				}else {
+					for (int i = 0; i < altNum; i++) {
+						resultList.get(i).put(entry.getKey(), entry.getValue());
+					}
+				}
+			}else {
+				for (int i = 0; i < altNum; i++) {
+					resultList.get(i).put(entry.getKey(), entry.getValue());
+				}
 			}
 		}
 		return resultList;
 	}
 	
-	/**
-	 * 从results获取符合annotationContext的结果
-	 * @param annotationContext
-	 * @return
-	 */
-	LinkedList<HashMap<String, String>> getAcResultList(AnnotationContext ac) {
-		LinkedList<HashMap<String, String>> resultList = results.get(ac.getAllele());
-		return resultList;
+	public LinkedList<HashMap<String,String>> getAcResultList(AnnotationContext ac) {
+		return results.get(ac.getAlt());
 	}
-	
+
+	public LinkedList<HashMap<String,String>> getResultList(String tag) {
+		return results.get(tag);
+	}
+
+	public boolean insert(Condition condition,	Map<String,String>
+			fields )throws IOException{
+		return true;
+	}
+
 	/**
 	 * 对查询结果results进行矫正
-	 * @param results
 	 */
 	//abstract void adjustResult(HashMap<String,String> result);
-	
+
 	Results getResults(){
 		return results;
 	}
@@ -153,7 +165,6 @@ public class DBQuery implements Serializable {
 
 	public void connection(String dbName, DbType dbType, String connInfo) throws IOException{
 		dbAdapter = DBAdapterFactory.createDbAdapter(dbType, connInfo);
-		dbAdapter.connection(dbName);
+		dbAdapter.connection("data");
 	}
-	
 }

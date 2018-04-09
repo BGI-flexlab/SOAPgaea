@@ -243,11 +243,11 @@ public class Haplotype {
         //byte[] refBases = ref.getBases();
 
         final int startIdxInReference = 1 + startPos - numPrefBases;
-        final String basesBeforeVariant = ref.getBaseSequence(startIdxInReference, startIdxInReference + numPrefBases - 1);//new String(Arrays.copyOfRange(refBases, startIdxInReference, startIdxInReference + numPrefBases));
+        final String basesBeforeVariant = ref.getGA4GHBaseSequence(startIdxInReference, startIdxInReference + numPrefBases - 1);//new String(Arrays.copyOfRange(refBases, startIdxInReference, startIdxInReference + numPrefBases));
 
         // protect against long events that overrun available reference context
         final int startAfter = Math.min(startIdxInReference + numPrefBases + refAllele.getBases().length - 1, refWindows.getStop());
-        final String basesAfterVariant = ref.getBaseSequence(startAfter, refWindows.getStop());//new String(Arrays.copyOfRange(refBases, startAfter, refBases.length));
+        final String basesAfterVariant = ref.getGA4GHBaseSequence(startAfter, refWindows.getStop());//new String(Arrays.copyOfRange(refBases, startAfter, refBases.length));
 
         //System.err.println("start index in reference:" + startIdxInReference + "\tstart after:" + startAfter);
         //System.err.println("before bases:" + basesBeforeVariant);
@@ -263,6 +263,8 @@ public class Haplotype {
             //System.err.println("mk hp allele:" + a.getBaseString());
 
             final byte[] alleleBases = a.getBases();
+            if(alleleBases.length <= 0)
+                continue;
             // use string concatenation
             String haplotypeString = basesBeforeVariant + new String(Arrays.copyOfRange(alleleBases, 1, alleleBases.length)) + basesAfterVariant;
             haplotypeString = haplotypeString.substring(0,haplotypeSize);

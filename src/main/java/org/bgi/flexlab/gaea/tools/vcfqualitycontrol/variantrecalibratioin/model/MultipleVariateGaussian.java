@@ -172,13 +172,27 @@ public class MultipleVariateGaussian {
         
         return (( -0.5 * sumKernel ) / Math.log(10.0)) + cachedDenomLog10; // This is the definition of a Gaussian PDF Log10
     }
+    
+    public void fills(int size){
+    	for(int i = 0 ; i < size ; i++){
+    		pVarInGaussian.add(Double.valueOf(0));
+    	}
+    }
 
     public void assignPVarInGaussian( final double pVar ) {
         pVarInGaussian.add( pVar );
     }
+    
+    public void assignPVarInGaussian(final int index,final double pVar){
+    	pVarInGaussian.set(index, pVar);
+    }
 
     public void resetPVarInGaussian() {
         pVarInGaussian.clear();
+    }
+    
+    public void printPVar(int i , int j){
+    	System.err.println(i+"\t"+j+"\t"+pVarInGaussian.size());
     }
 
     public void maximizeGaussian( final List<VariantDatum> data, final double[] empiricalMu, final Matrix empiricalSigma,
@@ -198,8 +212,9 @@ public class MultipleVariateGaussian {
 
         final double shrinkageFactor = (SHRINKAGE * sumProb) / (SHRINKAGE + sumProb);
         for( int iii = 0; iii < mu.length; iii++ ) {
+        	double factor = shrinkageFactor * (mu[iii] - empiricalMu[iii]);
             for( int jjj = 0; jjj < mu.length; jjj++ ) {
-                wishart.set(iii, jjj, shrinkageFactor * (mu[iii] - empiricalMu[iii]) * (mu[jjj] - empiricalMu[jjj]));
+                wishart.set(iii, jjj, factor * (mu[jjj] - empiricalMu[jjj]));
             }
         }
 
@@ -208,8 +223,9 @@ public class MultipleVariateGaussian {
         for( final VariantDatum datum : data ) {
             final double prob = pVarInGaussian.get(datumIndex++);
             for( int iii = 0; iii < mu.length; iii++ ) {
+            	double factor = prob * (datum.annotations[iii]-mu[iii]);
                 for( int jjj = 0; jjj < mu.length; jjj++ ) {
-                    pVarSigma.set(iii, jjj, prob * (datum.annotations[iii]-mu[iii]) * (datum.annotations[jjj]-mu[jjj]));
+                    pVarSigma.set(iii, jjj, factor * (datum.annotations[jjj]-mu[jjj]));
                 }
             }
             sigma.plusEquals( pVarSigma );

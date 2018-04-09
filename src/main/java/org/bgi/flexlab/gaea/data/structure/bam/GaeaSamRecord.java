@@ -43,13 +43,15 @@
 package org.bgi.flexlab.gaea.data.structure.bam;
 
 import htsjdk.samtools.*;
+import htsjdk.samtools.util.Locatable;
+
 import org.bgi.flexlab.gaea.data.structure.sequenceplatform.NGSPlatform;
 import org.bgi.flexlab.gaea.util.EventType;
 import org.bgi.flexlab.gaea.util.ReadUtils;
 
 import java.util.*;
 
-public class GaeaSamRecord extends SAMRecord {
+public class GaeaSamRecord extends SAMRecord implements Locatable {
 	/**
 	 * 
 	 */
@@ -68,6 +70,7 @@ public class GaeaSamRecord extends SAMRecord {
 	private static final int DUPLICATE_READ_FLAG = 0x400;
 	public static final String NO_ALIGNMENT_REFERENCE_NAME = "*";
 	public static final int NO_ALIGNMENT_REFERENCE_INDEX = -1;
+	public static final int UNSET_POSITION = 0;
 
 	private int softStart = -1;
 	private int softEnd = -1;
@@ -89,8 +92,7 @@ public class GaeaSamRecord extends SAMRecord {
 		set(sam);
 	}
 
-	public GaeaSamRecord(SAMFileHeader header, SAMRecord sam,
-			boolean setOrignalPos) {
+	public GaeaSamRecord(SAMFileHeader header, SAMRecord sam, boolean setOrignalPos) {
 		this(header, sam);
 		mustBeOut = setOrignalPos;
 	}
@@ -99,10 +101,8 @@ public class GaeaSamRecord extends SAMRecord {
 		return mustBeOut;
 	}
 
-	public GaeaSamRecord(SAMFileHeader header, int referenceSequenceIndex,
-			int alignmentStart, short mappingQuality, int flags,
-			int mateReferenceSequenceIndex, int mateAlignmentStart,
-			int insertSize) {
+	public GaeaSamRecord(SAMFileHeader header, int referenceSequenceIndex, int alignmentStart, short mappingQuality,
+			int flags, int mateReferenceSequenceIndex, int mateAlignmentStart, int insertSize) {
 		super(header);
 		this.setHeader(header);
 		this.setReferenceIndex(referenceSequenceIndex);
@@ -113,11 +113,11 @@ public class GaeaSamRecord extends SAMRecord {
 		this.setMateAlignmentStart(mateAlignmentStart);
 		this.setInferredInsertSize(insertSize);
 	}
-	
+
 	private static boolean hasReferenceName(final Integer referenceIndex, final String referenceName) {
-        return (referenceIndex != null && referenceIndex != NO_ALIGNMENT_REFERENCE_INDEX) ||
-                !NO_ALIGNMENT_REFERENCE_NAME.equals(referenceName);
-    }
+		return (referenceIndex != null && referenceIndex != NO_ALIGNMENT_REFERENCE_INDEX)
+				|| !NO_ALIGNMENT_REFERENCE_NAME.equals(referenceName);
+	}
 
 	/**
 	 * @return true if this SAMRecord has a reference, either as a String or
@@ -137,8 +137,7 @@ public class GaeaSamRecord extends SAMRecord {
 
 	public void requireReadPaired() {
 		if (!getReadPairedFlag()) {
-			throw new IllegalStateException(
-					"Inappropriate call if not paired read");
+			throw new IllegalStateException("Inappropriate call if not paired read");
 		}
 	}
 
@@ -182,60 +181,45 @@ public class GaeaSamRecord extends SAMRecord {
 		}
 	}
 
-	public List<SAMValidationError> isValidReferenceIndexAndPosition(
-			final Integer referenceIndex, final String referenceName,
-			final int alignmentStart, final boolean isMate) {
-		final boolean hasReference = hasReferenceName(referenceIndex,
-				referenceName);
-		
+	public List<SAMValidationError> isValidReferenceIndexAndPosition(final Integer referenceIndex,
+			final String referenceName, final int alignmentStart, final boolean isMate) {
+		final boolean hasReference = hasReferenceName(referenceIndex, referenceName);
+
 		ArrayList<SAMValidationError> ret = null;
 		if (!hasReference) {
 			if (alignmentStart != 0) {
 				if (ret == null)
 					ret = new ArrayList<SAMValidationError>();
-				ret.add(new SAMValidationError(
-						SAMValidationError.Type.INVALID_ALIGNMENT_START,
-						buildMessage(
-								"Alignment start should be 0 because reference name = *.",
-								isMate), getReadName()));
+				ret.add(new SAMValidationError(SAMValidationError.Type.INVALID_ALIGNMENT_START,
+						buildMessage("Alignment start should be 0 because reference name = *.", isMate),
+						getReadName()));
 			}
 		} else {
 			if (alignmentStart == 0) {
 				if (ret == null)
 					ret = new ArrayList<SAMValidationError>();
-				ret.add(new SAMValidationError(
-						SAMValidationError.Type.INVALID_ALIGNMENT_START,
-						buildMessage(
-								"Alignment start should != 0 because reference name != *.",
-								isMate), getReadName()));
+				ret.add(new SAMValidationError(SAMValidationError.Type.INVALID_ALIGNMENT_START,
+						buildMessage("Alignment start should != 0 because reference name != *.", isMate),
+						getReadName()));
 			}
 
 			if (getHeader().getSequenceDictionary().size() > 0) {
-				final SAMSequenceRecord sequence = (referenceIndex != null ? getHeader()
-						.getSequence(referenceIndex) : getHeader().getSequence(
-						referenceName));
+				final SAMSequenceRecord sequence = (referenceIndex != null ? getHeader().getSequence(referenceIndex)
+						: getHeader().getSequence(referenceName));
 				if (sequence == null) {
 					if (ret == null)
 						ret = new ArrayList<SAMValidationError>();
-					ret.add(new SAMValidationError(
-							SAMValidationError.Type.INVALID_REFERENCE_INDEX,
-							buildMessage(
-									"Reference sequence not found in sequence dictionary.",
-									isMate), getReadName()));
+					ret.add(new SAMValidationError(SAMValidationError.Type.INVALID_REFERENCE_INDEX,
+							buildMessage("Reference sequence not found in sequence dictionary.", isMate),
+							getReadName()));
 				} else {
 					if (alignmentStart > sequence.getSequenceLength()) {
 						if (ret == null)
 							ret = new ArrayList<SAMValidationError>();
-						ret.add(new SAMValidationError(
-								SAMValidationError.Type.INVALID_ALIGNMENT_START,
-								buildMessage(
-										"Alignment start ("
-												+ alignmentStart
-												+ ") must be <= reference sequence length ("
-												+ sequence.getSequenceLength()
-												+ ") on reference "
-												+ sequence.getSequenceName(),
-										isMate), getReadName()));
+						ret.add(new SAMValidationError(SAMValidationError.Type.INVALID_ALIGNMENT_START, buildMessage(
+								"Alignment start (" + alignmentStart + ") must be <= reference sequence length ("
+										+ sequence.getSequenceLength() + ") on reference " + sequence.getSequenceName(),
+								isMate), getReadName()));
 					}
 				}
 			}
@@ -267,8 +251,7 @@ public class GaeaSamRecord extends SAMRecord {
 			final CigarElement cig = cigs.get(i);
 			final CigarOperator op = cig.getOperator();
 
-			if (!(op == CigarOperator.SOFT_CLIP
-					|| op == CigarOperator.HARD_CLIP || op == CigarOperator.DELETION)) {
+			if (!(op == CigarOperator.SOFT_CLIP || op == CigarOperator.HARD_CLIP || op == CigarOperator.DELETION)) {
 				len += cig.getLength();
 			}
 		}
@@ -302,6 +285,16 @@ public class GaeaSamRecord extends SAMRecord {
 			}
 		}
 	}
+	
+	public GaeaSamRecord copy(){
+		GaeaSamRecord newRecord = null;
+		try {
+			newRecord = (GaeaSamRecord) super.clone();
+		} catch (CloneNotSupportedException e) {
+			throw new RuntimeException(e.toString());
+		}
+		return newRecord;
+	}
 
 	public Object clone() throws CloneNotSupportedException {
 		final GaeaSamRecord newRecord = (GaeaSamRecord) super.clone();
@@ -329,55 +322,42 @@ public class GaeaSamRecord extends SAMRecord {
 			if (getProperPairFlagUnchecked()) {
 				if (ret == null)
 					ret = new ArrayList<SAMValidationError>();
-				ret.add(new SAMValidationError(
-						SAMValidationError.Type.INVALID_FLAG_PROPER_PAIR,
-						"Proper pair flag should not be set for unpaired read.",
-						getReadName()));
+				ret.add(new SAMValidationError(SAMValidationError.Type.INVALID_FLAG_PROPER_PAIR,
+						"Proper pair flag should not be set for unpaired read.", getReadName()));
 			}
 			if (getMateUnmappedFlagUnchecked()) {
 				if (ret == null)
 					ret = new ArrayList<SAMValidationError>();
-				ret.add(new SAMValidationError(
-						SAMValidationError.Type.INVALID_FLAG_MATE_UNMAPPED,
-						"Mate unmapped flag should not be set for unpaired read.",
-						getReadName()));
+				ret.add(new SAMValidationError(SAMValidationError.Type.INVALID_FLAG_MATE_UNMAPPED,
+						"Mate unmapped flag should not be set for unpaired read.", getReadName()));
 			}
 			if (getMateNegativeStrandFlagUnchecked()) {
 				if (ret == null)
 					ret = new ArrayList<SAMValidationError>();
-				ret.add(new SAMValidationError(
-						SAMValidationError.Type.INVALID_FLAG_MATE_NEG_STRAND,
-						"Mate negative strand flag should not be set for unpaired read.",
-						getReadName()));
+				ret.add(new SAMValidationError(SAMValidationError.Type.INVALID_FLAG_MATE_NEG_STRAND,
+						"Mate negative strand flag should not be set for unpaired read.", getReadName()));
 			}
 			if (getFirstOfPairFlagUnchecked()) {
 				if (ret == null)
 					ret = new ArrayList<SAMValidationError>();
-				ret.add(new SAMValidationError(
-						SAMValidationError.Type.INVALID_FLAG_FIRST_OF_PAIR,
-						"First of pair flag should not be set for unpaired read.",
-						getReadName()));
+				ret.add(new SAMValidationError(SAMValidationError.Type.INVALID_FLAG_FIRST_OF_PAIR,
+						"First of pair flag should not be set for unpaired read.", getReadName()));
 			}
 			if (getSecondOfPairFlagUnchecked()) {
 				if (ret == null)
 					ret = new ArrayList<SAMValidationError>();
-				ret.add(new SAMValidationError(
-						SAMValidationError.Type.INVALID_FLAG_SECOND_OF_PAIR,
-						"Second of pair flag should not be set for unpaired read.",
-						getReadName()));
+				ret.add(new SAMValidationError(SAMValidationError.Type.INVALID_FLAG_SECOND_OF_PAIR,
+						"Second of pair flag should not be set for unpaired read.", getReadName()));
 			}
 			if (getMateReferenceIndex() != NO_ALIGNMENT_REFERENCE_INDEX) {
 				if (ret == null)
 					ret = new ArrayList<SAMValidationError>();
-				ret.add(new SAMValidationError(
-						SAMValidationError.Type.INVALID_MATE_REF_INDEX,
-						"MRNM should not be set for unpaired read.",
-						getReadName()));
+				ret.add(new SAMValidationError(SAMValidationError.Type.INVALID_MATE_REF_INDEX,
+						"MRNM should not be set for unpaired read.", getReadName()));
 			}
 		} else {
-			final List<SAMValidationError> errors = isValidReferenceIndexAndPosition(
-					mMateReferenceIndex, getMateReferenceName(),
-					getMateAlignmentStart(), true);
+			final List<SAMValidationError> errors = isValidReferenceIndexAndPosition(mMateReferenceIndex,
+					getMateReferenceName(), getMateAlignmentStart(), true);
 			if (errors != null) {
 				if (ret == null)
 					ret = new ArrayList<SAMValidationError>();
@@ -386,69 +366,54 @@ public class GaeaSamRecord extends SAMRecord {
 			if (!hasMateReferenceName() && !getMateUnmappedFlag()) {
 				if (ret == null)
 					ret = new ArrayList<SAMValidationError>();
-				ret.add(new SAMValidationError(
-						SAMValidationError.Type.INVALID_FLAG_MATE_UNMAPPED,
-						"Mapped mate should have mate reference name",
-						getReadName()));
+				ret.add(new SAMValidationError(SAMValidationError.Type.INVALID_FLAG_MATE_UNMAPPED,
+						"Mapped mate should have mate reference name", getReadName()));
 			}
-			if (!getFirstOfPairFlagUnchecked()
-					&& !getSecondOfPairFlagUnchecked()) {
+			if (!getFirstOfPairFlagUnchecked() && !getSecondOfPairFlagUnchecked()) {
 				if (ret == null)
 					ret = new ArrayList<SAMValidationError>();
-				ret.add(new SAMValidationError(
-						SAMValidationError.Type.PAIRED_READ_NOT_MARKED_AS_FIRST_OR_SECOND,
-						"Paired read should be marked as first of pair or second of pair.",
-						getReadName()));
+				ret.add(new SAMValidationError(SAMValidationError.Type.PAIRED_READ_NOT_MARKED_AS_FIRST_OR_SECOND,
+						"Paired read should be marked as first of pair or second of pair.", getReadName()));
 			}
 		}
-		if (getInferredInsertSize() > MAX_INSERT_SIZE
-				|| getInferredInsertSize() < -MAX_INSERT_SIZE) {
+		if (getInferredInsertSize() > MAX_INSERT_SIZE || getInferredInsertSize() < -MAX_INSERT_SIZE) {
 			if (ret == null)
 				ret = new ArrayList<SAMValidationError>();
-			ret.add(new SAMValidationError(
-					SAMValidationError.Type.INVALID_INSERT_SIZE,
-					"Insert size out of range", getReadName()));
+			ret.add(new SAMValidationError(SAMValidationError.Type.INVALID_INSERT_SIZE, "Insert size out of range",
+					getReadName()));
 		}
 		if (getReadUnmappedFlag()) {
 			if (getNotPrimaryAlignmentFlag()) {
 				if (ret == null)
 					ret = new ArrayList<SAMValidationError>();
-				ret.add(new SAMValidationError(
-						SAMValidationError.Type.INVALID_FLAG_NOT_PRIM_ALIGNMENT,
-						"Not primary alignment flag should not be set for unmapped read.",
-						getReadName()));
+				ret.add(new SAMValidationError(SAMValidationError.Type.INVALID_FLAG_NOT_PRIM_ALIGNMENT,
+						"Not primary alignment flag should not be set for unmapped read.", getReadName()));
 			}
 
 		} else {
 			if (getMappingQuality() >= 256) {
 				if (ret == null)
 					ret = new ArrayList<SAMValidationError>();
-				ret.add(new SAMValidationError(
-						SAMValidationError.Type.INVALID_MAPPING_QUALITY,
-						"MAPQ should be < 256.", getReadName()));
+				ret.add(new SAMValidationError(SAMValidationError.Type.INVALID_MAPPING_QUALITY, "MAPQ should be < 256.",
+						getReadName()));
 			}
 			if (getCigarLength() == 0) {
 				if (ret == null)
 					ret = new ArrayList<SAMValidationError>();
-				ret.add(new SAMValidationError(
-						SAMValidationError.Type.INVALID_CIGAR,
-						"CIGAR should have > zero elements for mapped read.",
-						getReadName()));
+				ret.add(new SAMValidationError(SAMValidationError.Type.INVALID_CIGAR,
+						"CIGAR should have > zero elements for mapped read.", getReadName()));
 			}
 			if (getHeader().getSequenceDictionary().size() == 0) {
 				if (ret == null)
 					ret = new ArrayList<SAMValidationError>();
-				ret.add(new SAMValidationError(
-						SAMValidationError.Type.MISSING_SEQUENCE_DICTIONARY,
+				ret.add(new SAMValidationError(SAMValidationError.Type.MISSING_SEQUENCE_DICTIONARY,
 						"Empty sequence dictionary.", getReadName()));
 			}
 			if (!hasReferenceName()) {
 				if (ret == null)
 					ret = new ArrayList<SAMValidationError>();
-				ret.add(new SAMValidationError(
-						SAMValidationError.Type.INVALID_FLAG_READ_UNMAPPED,
-						"Mapped read should have valid reference name",
-						getReadName()));
+				ret.add(new SAMValidationError(SAMValidationError.Type.INVALID_FLAG_READ_UNMAPPED,
+						"Mapped read should have valid reference name", getReadName()));
 			}
 
 		}
@@ -456,14 +421,11 @@ public class GaeaSamRecord extends SAMRecord {
 		if (rgId != null && getHeader().getReadGroup(rgId) == null) {
 			if (ret == null)
 				ret = new ArrayList<SAMValidationError>();
-			ret.add(new SAMValidationError(
-					SAMValidationError.Type.READ_GROUP_NOT_FOUND,
-					"RG ID on SAMRecord not found in header: " + rgId,
-					getReadName()));
+			ret.add(new SAMValidationError(SAMValidationError.Type.READ_GROUP_NOT_FOUND,
+					"RG ID on SAMRecord not found in header: " + rgId, getReadName()));
 		}
-		final List<SAMValidationError> errors = isValidReferenceIndexAndPosition(
-				mReferenceIndex, getMateReferenceName(), getAlignmentStart(),
-				false);
+		final List<SAMValidationError> errors = isValidReferenceIndexAndPosition(mReferenceIndex,
+				getMateReferenceName(), getAlignmentStart(), false);
 		if (errors != null) {
 			if (ret == null)
 				ret = new ArrayList<SAMValidationError>();
@@ -474,18 +436,14 @@ public class GaeaSamRecord extends SAMRecord {
 			if (fz == null) {
 				String cq = (String) getAttribute(SAMTagUtil.getSingleton().CQ);
 				String cs = (String) getAttribute(SAMTagUtil.getSingleton().CS);
-				if (cq == null || cq.length() == 0 || cs == null
-						|| cs.length() == 0) {
+				if (cq == null || cq.length() == 0 || cs == null || cs.length() == 0) {
 					if (ret == null)
 						ret = new ArrayList<SAMValidationError>();
-					ret.add(new SAMValidationError(
-							SAMValidationError.Type.EMPTY_READ,
-							"Zero-length read without FZ, CS or CQ tag",
-							getReadName()));
+					ret.add(new SAMValidationError(SAMValidationError.Type.EMPTY_READ,
+							"Zero-length read without FZ, CS or CQ tag", getReadName()));
 				} else if (!getReadUnmappedFlag()) {
 					boolean hasIndel = false;
-					for (CigarElement cigarElement : getCigar()
-							.getCigarElements()) {
+					for (CigarElement cigarElement : getCigar().getCigarElements()) {
 						if (cigarElement.getOperator() == CigarOperator.DELETION
 								|| cigarElement.getOperator() == CigarOperator.INSERTION) {
 							hasIndel = true;
@@ -495,20 +453,16 @@ public class GaeaSamRecord extends SAMRecord {
 					if (!hasIndel) {
 						if (ret == null)
 							ret = new ArrayList<SAMValidationError>();
-						ret.add(new SAMValidationError(
-								SAMValidationError.Type.EMPTY_READ,
-								"Colorspace read with zero-length bases but no indel",
-								getReadName()));
+						ret.add(new SAMValidationError(SAMValidationError.Type.EMPTY_READ,
+								"Colorspace read with zero-length bases but no indel", getReadName()));
 					}
 				}
 			}
 		}
-		if (this.getReadLength() != getBaseQualities().length
-				&& !Arrays.equals(getBaseQualities(), NULL_QUALS)) {
+		if (this.getReadLength() != getBaseQualities().length && !Arrays.equals(getBaseQualities(), NULL_QUALS)) {
 			if (ret == null)
 				ret = new ArrayList<SAMValidationError>();
-			ret.add(new SAMValidationError(
-					SAMValidationError.Type.MISMATCH_READ_LENGTH_AND_QUALS_LENGTH,
+			ret.add(new SAMValidationError(SAMValidationError.Type.MISMATCH_READ_LENGTH_AND_QUALS_LENGTH,
 					"Read length does not match quals length", getReadName()));
 		}
 		if (ret == null || ret.size() == 0) {
@@ -579,8 +533,7 @@ public class GaeaSamRecord extends SAMRecord {
 				else
 					shift = 0;
 			}
-			softEnd = (lastOperator == CigarOperator.HARD_CLIP) ? stop - 1
-					: stop + shift - 1;
+			softEnd = (lastOperator == CigarOperator.HARD_CLIP) ? stop - 1 : stop + shift - 1;
 		}
 		return softEnd;
 	}
@@ -591,8 +544,7 @@ public class GaeaSamRecord extends SAMRecord {
 	public final byte getReducedCount(final int i) {
 		byte firstCount = getReducedReadCounts()[0];
 		byte offsetCount = getReducedReadCounts()[i];
-		return (i == 0) ? firstCount : (byte) Math.min(
-				firstCount + offsetCount, Byte.MAX_VALUE);
+		return (i == 0) ? firstCount : (byte) Math.min(firstCount + offsetCount, Byte.MAX_VALUE);
 	}
 
 	public byte[] getBaseQualities(final EventType errorModel) {
@@ -604,11 +556,10 @@ public class GaeaSamRecord extends SAMRecord {
 		case Deletion:
 			return getBaseDeletionQualities(true);
 		default:
-			throw new RuntimeException("Unrecognized Base Recalibration type: "
-					+ errorModel);
+			throw new RuntimeException("Unrecognized Base Recalibration type: " + errorModel);
 		}
 	}
-	
+
 	public byte[] getBaseDeletionQualities() {
 		return getBaseDeletionQualities(false);
 	}
@@ -618,35 +569,33 @@ public class GaeaSamRecord extends SAMRecord {
 		if (quals == null) {
 			quals = new byte[getBaseQualities().length];
 			Arrays.fill(quals, (byte) 45);
-			if(!disableAttribute)
+			if (!disableAttribute)
 				setBaseQualities(quals, EventType.Deletion);
 		}
 		return quals;
 	}
 
 	public byte[] getExistingBaseDeletionQualities() {
-		return SAMUtils
-				.fastqToPhred(getStringAttribute(BQSR_BASE_DELETION_QUALITIES));
+		return SAMUtils.fastqToPhred(getStringAttribute(BQSR_BASE_DELETION_QUALITIES));
 	}
 
 	public byte[] getBaseInsertionQualities() {
 		return getBaseInsertionQualities(false);
 	}
-	
-	public byte[] getBaseInsertionQualities(boolean disableAttribute){
+
+	public byte[] getBaseInsertionQualities(boolean disableAttribute) {
 		byte[] quals = getExistingBaseInsertionQualities();
 		if (quals == null) {
 			quals = new byte[getBaseQualities().length];
 			Arrays.fill(quals, (byte) 45);
-			if(!disableAttribute)
+			if (!disableAttribute)
 				setBaseQualities(quals, EventType.Insertion);
 		}
 		return quals;
 	}
 
 	public byte[] getExistingBaseInsertionQualities() {
-		return SAMUtils
-				.fastqToPhred(getStringAttribute(BQSR_BASE_INSERTION_QUALITIES));
+		return SAMUtils.fastqToPhred(getStringAttribute(BQSR_BASE_INSERTION_QUALITIES));
 	}
 
 	public void setBaseQualities(final byte[] quals, final EventType errorModel) {
@@ -663,14 +612,12 @@ public class GaeaSamRecord extends SAMRecord {
 					quals == null ? null : SAMUtils.phredToFastq(quals));
 			break;
 		default:
-			throw new RuntimeException("Unrecognized Base Recalibration type: "
-					+ errorModel);
+			throw new RuntimeException("Unrecognized Base Recalibration type: " + errorModel);
 		}
 	}
 
 	public NGSPlatform getNGSPlatform() {
-		NGSPlatform mNGSPlatform = NGSPlatform
-				.fromReadGroupPL(getReadGroup().getPlatform());
+		NGSPlatform mNGSPlatform = NGSPlatform.fromReadGroupPL(getReadGroup().getPlatform());
 
 		return mNGSPlatform;
 	}
@@ -701,9 +648,8 @@ public class GaeaSamRecord extends SAMRecord {
 	}
 
 	public static GaeaSamRecord emptyRead(GaeaSamRecord read) {
-		GaeaSamRecord emptyRead = new GaeaSamRecord(read.getHeader(),
-				read.getReferenceIndex(), 0, (short) 0, read.getFlags(),
-				read.getMateReferenceIndex(), read.getMateAlignmentStart(),
+		GaeaSamRecord emptyRead = new GaeaSamRecord(read.getHeader(), read.getReferenceIndex(), 0, (short) 0,
+				read.getFlags(), read.getMateReferenceIndex(), read.getMateAlignmentStart(),
 				read.getInferredInsertSize());
 		emptyRead.setReferenceIndex(read.getReferenceIndex());
 
@@ -714,8 +660,7 @@ public class GaeaSamRecord extends SAMRecord {
 		SAMReadGroupRecord samRG = read.getReadGroup();
 		emptyRead.clearAttributes();
 		if (samRG != null) {
-			SAMReadGroupRecord rg = new SAMReadGroupRecord(
-					samRG.getReadGroupId(), samRG);
+			SAMReadGroupRecord rg = new SAMReadGroupRecord(samRG.getReadGroupId(), samRG);
 			emptyRead.setReadGroup(rg);
 		}
 
@@ -734,5 +679,76 @@ public class GaeaSamRecord extends SAMRecord {
 	public boolean hasBaseIndelQualities() {
 		return getAttribute(BQSR_BASE_INSERTION_QUALITIES) != null
 				|| getAttribute(BQSR_BASE_DELETION_QUALITIES) != null;
+	}
+
+	public void setPosition(final String contig, final int start) {
+		if (contig == null || contig.equals(SAMRecord.NO_ALIGNMENT_REFERENCE_NAME) || start < 1) {
+			throw new IllegalArgumentException(
+					"contig must be non-null and not equal to " + SAMRecord.NO_ALIGNMENT_REFERENCE_NAME
+							+ ", and start must be >= 1 \ncontig = " + contig + "\nstart = " + start);
+		}
+
+		setReferenceName(contig);
+		setAlignmentStart(start);
+		setReadUnmappedFlag(false);
+	}
+
+	public boolean isUnmapped() {
+		return getReadUnmappedFlag() || getReferenceName() == null
+				|| getReferenceName().equals(SAMRecord.NO_ALIGNMENT_REFERENCE_NAME)
+				|| getAlignmentStart() == SAMRecord.NO_ALIGNMENT_START;
+	}
+
+	public byte getBaseQuality(int index) {
+		if (index < 0 || index >= getReadLength())
+			throw new IllegalArgumentException(
+					"index " + index + " must more than zero and less than " + getReadLength());
+		return this.getBaseQualities()[index];
+	}
+
+	public boolean mateIsUnmapped() {
+		if (!getReadPairedFlag())
+			throw new IllegalStateException("Cannot get mate information for an unpaired read");
+
+		return getMateUnmappedFlag() || getMateReferenceName() == null
+				|| getMateReferenceName().equals(SAMRecord.NO_ALIGNMENT_REFERENCE_NAME)
+				|| getMateAlignmentStart() == SAMRecord.NO_ALIGNMENT_START;
+	}
+
+	public int getMateStart() {
+		if (mateIsUnmapped()) {
+			return 0;
+		}
+
+		return getMateAlignmentStart();
+	}
+	
+	public String getMateContig() {
+        if ( mateIsUnmapped() ) {
+            return null;
+        }
+
+        return getMateReferenceName();
+    }
+	
+	public boolean readHasNoAssignedPosition() {
+	    // Check actual assigned positions rather than unmapped status, so that unmapped reads with
+	    // assigned positions will be considered to have a position
+	    return this.getReferenceName() == null ||
+	           this.getReferenceName().equals(SAMRecord.NO_ALIGNMENT_REFERENCE_NAME) ||
+	           this.getAlignmentStart() == SAMRecord.NO_ALIGNMENT_START;
+	}
+	
+	@Override
+	public int getEnd() {
+		if ( isUnmapped() ) {
+            return UNSET_POSITION;
+        }
+		
+        return getAlignmentEnd();
+    }
+	
+	public boolean isFirstOfPair() {
+		return getFirstOfPairFlag();
 	}
 }

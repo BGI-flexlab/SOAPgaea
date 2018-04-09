@@ -87,7 +87,7 @@ public class RegionReport{
 			} 
 			if(region.isPositionInFlank(chrName, pos)) 
 				bTracker.setTrackerAttribute(Interval.FLANK, DepthType.NORMAL.setDepth(depth), DepthType.WITHOUT_PCR.setDepth(noPCRdepth));
-		} else if(depth == 0) {
+		} else {
 			if(region.isPositionInRegion(chrName, pos) && pd.isDeletionBaseWithNoConver(i)) {
 				bTracker.setTrackerAttribute(Interval.TARGET, DepthType.NORMAL, DepthType.WITHOUT_PCR);
 			}

@@ -44,6 +44,7 @@ package org.bgi.flexlab.gaea.tools.vcfqualitycontrol.variantrecalibratioin.train
 
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.VariantContextUtils;
+
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocationParser;
 import org.bgi.flexlab.gaea.tools.mapreduce.vcfqualitycontrol.VCFQualityControlOptions;
@@ -210,7 +211,7 @@ public class VariantDatumMessenger{
 			if(checkFlag(this.flag, VariantDatumMessenger.isSNP) && VariantContextUtils.isTransition(vc))
 				this.flag = (this.flag |= VariantDatumMessenger.isTransition);
 
-			parseTrainingSets(flag, options.isTrustAllPolymorphic());
+			this.flag = parseTrainingSets(flag, options.isTrustAllPolymorphic());
 			return this;
 		}
 		
@@ -230,8 +231,10 @@ public class VariantDatumMessenger{
 			return this;
 		}
 		
-		private void decodeAnnotations( final VariantContext vc, final boolean jitter ) {
+		private void decodeAnnotations( final VariantContext vc, final boolean jitter) {
 	        int iii = 0;
+	        isNull = new boolean[options.getUseAnnotations().size()];
+	        annotations = new double[options.getUseAnnotations().size()];
 	        for( final String key : options.getUseAnnotations() ) {
 	            isNull[iii] = false;
 	            annotations[iii] = decodeAnnotation( key, vc, jitter );
@@ -271,7 +274,7 @@ public class VariantDatumMessenger{
 	                    	result = (result |= VariantDatumMessenger.atTruthSite);
 	                    }
 	                    if(checkFlag(this.flag, VariantDatumMessenger.atTrainingSite) || trainingData.isTraining()) {
-	                    	result = (result |= VariantDatumMessenger.atAntiTrainingSite);
+	                    	result = (result |= VariantDatumMessenger.atTrainingSite);
 	                    }
 	                    this.prior = Math.max(this.prior, trainingData.getPrior());
 	                }

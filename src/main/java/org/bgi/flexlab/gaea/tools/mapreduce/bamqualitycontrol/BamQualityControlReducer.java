@@ -73,22 +73,24 @@ public class BamQualityControlReducer extends Reducer<Text, Text, NullWritable, 
 		}
 		reportBuilder.setReportChoice(reportType);
 		reportBuilder.initReports(sampleName, chrName);
-		
+
 		if(reportBuilder.unmappedReport(winNum, chrName, values)) {
 			ResultReport report = reportBuilder.build();
 			context.write(NullWritable.get(), new Text(report.toReducerString(sampleName, chrName, true)));
 			return;
 		}
-		
+
 		long start = winNum * BamQualityControl.WINDOW_SIZE; // 窗口起始坐标
+
+		if (chrInfo == null)
+			return;
 
 		if(start > chrInfo.getLength()) {
 			context.getCounter("Exception", "window start beyond chromosome").increment(1);
 			return;
 		}
-		
-		long winStart = start; 
-		long readPos;	
+
+		long readPos;
 		long winEnd = start + BamQualityControl.WINDOW_SIZE - 1;
 		
 		int winSize = BamQualityControl.WINDOW_SIZE;
@@ -113,7 +115,7 @@ public class BamQualityControlReducer extends Reducer<Text, Text, NullWritable, 
 				continue;
 			}
 			
-			if(!deep.add(new CompoundInformation<SamRecordDatum>((int)winStart, winSize, datum, chrInfo))) 
+			if(!deep.add(new CompoundInformation<SamRecordDatum>((int) start, winSize, datum, chrInfo)))
 				context.getCounter("Exception", "null read info in depth class").increment(1);
 			
 			if(datum.isRepeat())
@@ -126,10 +128,10 @@ public class BamQualityControlReducer extends Reducer<Text, Text, NullWritable, 
 		}
 				
 		for(int i = 0; i < winSize; i++) {
-			long pos = winStart + i;
+			long pos = start + i;
 			int depth = deep.getPosDepth(i);
 			if(depth < 0) {
-				throw new RuntimeException("sample:" + sampleName + " chr:" + chrName + " windSize:" + winSize + " position:" + i + " winStart:" + winStart + " depth:" + depth + " < 0.");
+				throw new RuntimeException("sample:" + sampleName + " chr:" + chrName + " windSize:" + winSize + " position:" + i + " winStart:" + start + " depth:" + depth + " < 0.");
 			}
 			reportBuilder.constructDepthReport(deep, i, chrName, pos);
 		}
@@ -140,7 +142,7 @@ public class BamQualityControlReducer extends Reducer<Text, Text, NullWritable, 
 			reportBuilder.finalizeUnmappedReport(chrName);
 		}
 		//sum single region
-		reportBuilder.singleRegionReports(chrName, winStart, winSize, deep);
+		reportBuilder.singleRegionReports(chrName, start, winSize, deep);
 		
 		//write reducer
 		ResultReport report = reportBuilder.build();
