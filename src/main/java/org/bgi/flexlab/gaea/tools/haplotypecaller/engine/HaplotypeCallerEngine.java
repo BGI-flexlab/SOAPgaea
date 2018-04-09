@@ -757,7 +757,7 @@ public final class HaplotypeCallerEngine {
 	 */
 	public ReadLikelihoods<Haplotype> createDummyStratifiedReadMap(final Haplotype refHaplotype,
 			final SampleList samples, final AssemblyRegion region) {
-		return new ReadLikelihoods<>(samples, new IndexedAlleleList<>(refHaplotype),
+		return new ReadLikelihoods<Haplotype>(samples, new IndexedAlleleList<>(refHaplotype),
 				splitReadsBySample(samples, region.getReads()));
 	}
 
