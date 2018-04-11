@@ -17,7 +17,6 @@
 package org.bgi.flexlab.gaea.tools.mapreduce.bamsort;
 
 import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SAMReadGroupRecord;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Reducer;
@@ -27,8 +26,6 @@ import org.bgi.flexlab.gaea.data.mapreduce.writable.PairWritable;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.SamRecordWritable;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -39,9 +36,9 @@ public final class MultiSortReducer
 		Reducer<PairWritable, SamRecordWritable, NullWritable, SamRecordWritable> {
 	private MultipleOutputs<NullWritable,SamRecordWritable> mos;
 	private SAMFileHeader header;
-	private Map<String, String> formatSampleName = new HashMap<>();
+//	private Map<String, String> formatSampleName = new HashMap<>();
+	private Map<String, SAMFileHeader> sampleHeader = new HashMap<>();
 	private BamSortOptions options;
-	private boolean isSampleHeader = false;
 
 	@Override
 	protected void setup(Context context) throws IOException {
@@ -69,13 +66,13 @@ public final class MultiSortReducer
 			Context ctx)
 			throws IOException, InterruptedException {
 
-		if(!isSampleHeader) {
-			header = BamSortUtils.deleteSampleFromHeader(header, key.getFirst());
-			isSampleHeader = true;
+		if(!sampleHeader.containsKey(key.getFirst())) {
+			SAMFileHeader newHeader = BamSortUtils.deleteSampleFromHeader(header, key.getFirst());
+			sampleHeader.put(key.getFirst(), newHeader);
 		}
 
 		for (SamRecordWritable rec : records) {
-			GaeaSamRecord sam = new GaeaSamRecord(header, rec.get());
+			GaeaSamRecord sam = new GaeaSamRecord(sampleHeader.get(key.getFirst()), rec.get());
 			SamRecordWritable w = new SamRecordWritable();
 			w.set(sam);
 			mos.write(NullWritable.get(), w, key.getFirst());
