@@ -446,11 +446,15 @@ public class Config implements Serializable {
 	}
 
 	public String getHeaderString(){
+		return getHeaderString("#", "\t");
+	}
+
+	public String getHeaderString(String prefix, String delimiter){
 		ArrayList<String> headers = new ArrayList<>();
 		for(String field: getFields()){
 			headers.add(getHeaderNameByField(field));
 		}
-		return "#" + String.join("\t", headers);
+		return prefix+String.join(delimiter, headers);
 	}
 
 	public AnnotatorOptions getOptions() {
