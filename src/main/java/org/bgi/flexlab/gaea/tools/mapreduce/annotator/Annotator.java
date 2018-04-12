@@ -30,6 +30,7 @@ import org.apache.hadoop.mapreduce.lib.output.LazyOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.bgi.flexlab.gaea.data.mapreduce.partitioner.FirstPartitioner;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.PairWritable;
+import org.bgi.flexlab.gaea.data.mapreduce.writable.VcfLineWritable;
 import org.bgi.flexlab.gaea.data.structure.header.SingleVCFHeader;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.BioJob;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.ToolsRunner;

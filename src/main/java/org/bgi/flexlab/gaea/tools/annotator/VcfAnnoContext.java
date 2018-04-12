@@ -20,6 +20,7 @@ import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.VariantContextBuilder;
+import org.apache.commons.lang3.ArrayUtils;
 import org.bgi.flexlab.gaea.tools.annotator.db.AnnoDBQuery;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Chromosome;
 import org.bgi.flexlab.gaea.tools.annotator.interval.Genome;
@@ -29,6 +30,15 @@ import org.bgi.flexlab.gaea.tools.annotator.realignment.VcfRefAltAlign;
 import java.util.*;
 
 public class VcfAnnoContext {
+
+    public static String ANN_FIELD_NAMES[] = { //
+            "FLKSEQ", //
+            "CHROM", //
+            "REF", //
+            "START", //
+            "END", //
+            "POS", //
+    };
 
     private String contig;
     private String refStr;
@@ -41,6 +51,7 @@ public class VcfAnnoContext {
     private Map<String, SampleAnnotationContext> sampleAnnoContexts;
     private Map<String, String> annoItems;
     private String annoStr;
+    private String flankSeq;
 
     public VcfAnnoContext(){
         variants = new LinkedList<>();
@@ -339,7 +350,7 @@ public class VcfAnnoContext {
         }
     }
 
-    public String getFieldByName(String field, String allele) {
+    public String getFieldByName(String field) {
         switch (field) {
             case "CHROM":
                 return contig;
@@ -348,13 +359,16 @@ public class VcfAnnoContext {
                 return getRefStr();
 
             case "START":
-                return Integer.toString(getStart());
+                return Integer.toString(getStart()-1);
 
             case "END":
                 return Integer.toString(getEnd());
 
+            case "FLKSEQ":
+                return getFlankSeq();
+
             default:
-                return null;
+                return ".";
         }
     }
 
@@ -362,23 +376,16 @@ public class VcfAnnoContext {
         List<String> annoStrings = new ArrayList<>();
         for(AnnotationContext ac : annotationContexts){
             StringBuilder sb = new StringBuilder();
-            sb.append(getContig());
-            sb.append("\t");
-            sb.append(start);
-//            sb.append("\t");
-//            sb.append(start-1);
-//            sb.append("\t");
-//            sb.append(end);
-            sb.append("\t");
-            sb.append(refStr);
-            sb.append("\t");
-            sb.append(ac.getGenotype());
             for (String field : fields) {
+                if(ArrayUtils.contains(ANN_FIELD_NAMES, field)){
+                    sb.append(getFieldByName(field));
+                }else {
+                    sb.append(ac.getAnnoItemAsString(field, "."));
+                }
                 sb.append("\t");
-                sb.append(ac.getAnnoItemAsString(field, "."));
             }
 
-            sb.append("\tSI:");
+            sb.append("SI:");
             for(SampleAnnotationContext sac: sampleAnnoContexts.values()){
                 if(sac.hasAlt(ac.getAlt()) || !sac.isCalled()){
                     sb.append(";");
@@ -431,5 +438,13 @@ public class VcfAnnoContext {
         return getContig() +
                 "\t" +  start +
                 "\t" +  refStr;
+    }
+
+    public void setFlankSeq(String flankSeq) {
+        this.flankSeq = flankSeq;
+    }
+
+    public String getFlankSeq() {
+        return flankSeq;
     }
 }

@@ -27,7 +27,9 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
+import org.bgi.flexlab.gaea.data.mapreduce.writable.VcfLineWritable;
 import org.bgi.flexlab.gaea.data.structure.header.SingleVCFHeader;
+import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
 import org.bgi.flexlab.gaea.data.structure.reference.ReferenceShare;
 import org.bgi.flexlab.gaea.tools.annotator.AnnotationEngine;
 import org.bgi.flexlab.gaea.tools.annotator.SampleAnnotationContext;
@@ -48,6 +50,7 @@ public class AnnotationReducer extends Reducer<Text, VcfLineWritable, Text, Text
 	private HashMap<String, VCFHeader> vcfHeaders;
 	private AnnotationEngine annoEngine;
 	private DBAnnotator dbAnnotator;
+	ReferenceShare genomeShare;
 	Config userConfig;
 	long mapTime = 0;
 	long mapCount = 0;
@@ -60,7 +63,7 @@ public class AnnotationReducer extends Reducer<Text, VcfLineWritable, Text, Text
 
 		long setupStart = System.currentTimeMillis();
 		long start = System.currentTimeMillis();
-		ReferenceShare genomeShare = new ReferenceShare();
+		genomeShare = new ReferenceShare();
 		genomeShare.loadChromosomeList(options.getReferenceSequencePath());
 		if(options.isDebug())
 			System.err.println("genomeShare耗时：" + (System.currentTimeMillis()-start)+"毫秒");
@@ -164,6 +167,13 @@ public class AnnotationReducer extends Reducer<Text, VcfLineWritable, Text, Text
 				}
 			}
 
+			ChromosomeInformationShare chrShare = genomeShare.getChromosomeInfo(vcfAnnoContext.getContig());
+			String prefixSeq = chrShare.getGA4GHBaseSequence(vcfAnnoContext.getStart() - 11, vcfAnnoContext.getStart()-2);
+			int rightStart = vcfAnnoContext.getStart() + vcfAnnoContext.getRefStr().length() - 1;
+			String suffixSeq = chrShare.getGA4GHBaseSequence(rightStart, rightStart+10);
+			String flankSeq = prefixSeq + "." + suffixSeq;
+			vcfAnnoContext.setFlankSeq(flankSeq);
+
 			if (!options.isUseDatabaseCache() || !dbAnnotator.annotate(vcfAnnoContext, "ANNO")) {
 				if (!annoEngine.annotate(vcfAnnoContext)) {
 					continue;
@@ -174,7 +184,7 @@ public class AnnotationReducer extends Reducer<Text, VcfLineWritable, Text, Text
 			}
 
 			if(options.getOutputFormat() == AnnotatorOptions.OutputFormat.VCF){
-				Map<String, List<VariantContext>> annos = vcfAnnoContext.toAnnotationVariantContexts(userConfig.getFields());
+				Map<String, List<VariantContext>> annos = vcfAnnoContext.toAnnotationVariantContexts(userConfig.getFieldsWithoutVariant());
 				for(String filename: annos.keySet()){
 					resultKey.set(filename);
 					VCFHeader vcfHeader = vcfHeaders.get(filename);

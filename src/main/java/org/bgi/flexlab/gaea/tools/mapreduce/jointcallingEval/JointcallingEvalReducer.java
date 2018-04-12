@@ -28,7 +28,7 @@ import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.bgi.flexlab.gaea.data.structure.header.SingleVCFHeader;
-import org.bgi.flexlab.gaea.tools.mapreduce.annotator.VcfLineWritable;
+import org.bgi.flexlab.gaea.data.mapreduce.writable.VcfLineWritable;
 
 import java.io.IOException;
 import java.util.ArrayList;

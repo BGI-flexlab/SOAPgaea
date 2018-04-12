@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  *******************************************************************************/
-package org.bgi.flexlab.gaea.tools.mapreduce.annotator;
+package org.bgi.flexlab.gaea.data.mapreduce.writable;
 
 
 import org.apache.hadoop.io.Text;
@@ -24,9 +24,6 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
-/**
- * Created by 黄凯文 on 2017/8/15.
- */
 public class VcfLineWritable implements Writable {
     private Text fileName;
     private Text vcfLine;
