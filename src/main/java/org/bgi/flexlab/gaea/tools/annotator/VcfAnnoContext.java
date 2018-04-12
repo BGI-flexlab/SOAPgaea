@@ -324,7 +324,7 @@ public class VcfAnnoContext {
         String[] fields = annoLine.split("\tSI:;");
         annoStr = fields[0];
         String[] annoFields = annoStr.split("\t");
-        int i = 0;
+        int i = 1;
         for(String k: header){
             annoItems.put(k,annoFields[i]);
             i ++;

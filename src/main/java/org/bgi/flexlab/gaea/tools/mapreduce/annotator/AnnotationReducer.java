@@ -164,12 +164,12 @@ public class AnnotationReducer extends Reducer<Text, VcfLineWritable, Text, Text
 				}
 			}
 
-			if(options.isUseDatabaseCache() && !dbAnnotator.annotate(vcfAnnoContext, "ANNO")){
+			if (!options.isUseDatabaseCache() || !dbAnnotator.annotate(vcfAnnoContext, "ANNO")) {
 				if (!annoEngine.annotate(vcfAnnoContext)) {
 					continue;
 				}
 				dbAnnotator.annotate(vcfAnnoContext);
-				if(options.isDatabaseCache())
+				if (options.isDatabaseCache())
 					dbAnnotator.insert(vcfAnnoContext, "ANNO");
 			}
 

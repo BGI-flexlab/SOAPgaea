@@ -70,6 +70,7 @@ public class AnnotationSortMapper extends Mapper<LongWritable, Text, PairWritabl
 				anno.add(annoValue);
 			}
 			resultValue.set(String.join("\t",anno));
+//			System.err.println("anno: " + String.join("\t",anno));
 //			resultValue.set(vac.getAnnoStr()+"\t"+sac.toAlleleString(sac.getSingleAlt()));
 			context.write(resultKey, resultValue);
 		}
