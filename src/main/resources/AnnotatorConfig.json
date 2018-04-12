@@ -2,6 +2,7 @@
   "connectionInfo":{
     "HBASE":"/etc/hbase/conf",
     "MYSQL":"",
+    "MYBED":"/hwfssz1/BIGDATA_COMPUTING/hadoop/annodb",
     "TSV":"/hwfssz1/BIGDATA_COMPUTING/hadoop/huangkaiwen/test/exac",
     "VCF":"/hwfssz1/BIGDATA_COMPUTING/hadoop/huangkaiwen/test/clinvar"
   },
@@ -200,6 +201,32 @@
         "GWAS_loc":"region",
         "GWAS_riskAlFre":"riskAlFre",
         "GWAS_riskAllel":"riskAllel"
+      }
+    },
+    "GWAS":{
+      "database":"MYBED",
+      "queryClassName":"MybedQuery",
+      "queryCondition":"CHR_START_END",
+      "dbVersion":{
+        "GRCh37":{
+          "table":""
+        },
+        "GRCh38":{
+          "table":"hg38_quning/gwasCatalog.hg38.bed.gz"
+        }
+      }
+    },
+    "CytoBand":{
+      "database":"MYBED",
+      "queryClassName":"MybedQuery",
+      "queryCondition":"CHR_START_END",
+      "dbVersion":{
+        "GRCh37":{
+          "table":""
+        },
+        "GRCh38":{
+          "table":"hg38_quning/cytoBand.sorted.txt.gz"
+        }
       }
     },
     "CLINVAR":{

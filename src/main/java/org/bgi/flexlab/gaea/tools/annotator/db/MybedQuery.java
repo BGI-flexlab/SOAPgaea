@@ -16,22 +16,33 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.annotator.db;
 
-import org.bgi.flexlab.gaea.tools.annotator.config.DatabaseInfo.DbType;
+import org.bgi.flexlab.gaea.tools.annotator.config.DatabaseInfo;
 
-public class DBAdapterFactory {
-	
-	public static DBAdapterInterface createDbAdapter(DbType dbType, String connInfo ) {
-		if(dbType == DbType.HBASE){
-			HbaseAdapter hbase = new HbaseAdapter(connInfo);
-			return hbase;
-		}else if (dbType == DbType.TSV) {
-			return new TSVAdapter(connInfo);
-		}else if (dbType == DbType.VCF) {
-			return new VCFAdapter(connInfo);
-		}else if(dbType == DbType.MYBED){
-			return new MybedAdapter(connInfo);
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+
+public class MybedQuery extends DBQuery {
+
+	private static final long serialVersionUID = 805441802476012341L;
+
+	public Results query(Condition condition)throws IOException{
+		List<String> fields = condition.getFields();
+		Results results = new Results();
+
+		HashMap<String,String> result = dbAdapter.getResult(condition.getRefTable().getTable(), condition.getConditionString());
+		if (result ==null || result.isEmpty()) return null;
+		List<String> alts = condition.getAlts();
+
+		for(String alt: alts){
+			results.add(alt, result);
 		}
-		return new MysqlAdapter(connInfo);
+
+		return results;
 	}
 
+	public void connection(String tableName, DatabaseInfo.DbType dbType, String connInfo) throws IOException{
+		dbAdapter = DBAdapterFactory.createDbAdapter(dbType, connInfo);
+		dbAdapter.connection(tableName);
+	}
 }
