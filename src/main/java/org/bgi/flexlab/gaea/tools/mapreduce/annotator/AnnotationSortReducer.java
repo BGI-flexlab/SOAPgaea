@@ -25,13 +25,15 @@ import org.bgi.flexlab.gaea.data.mapreduce.writable.PairWritable;
 import org.bgi.flexlab.gaea.tools.annotator.config.Config;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
 
 public class AnnotationSortReducer extends Reducer<PairWritable, Text, NullWritable, Text> {
 
 	private MultipleOutputs<NullWritable,Text> multipleOutputs = null;
 	private Text resultValue;
-	private boolean printHeader = true;
+	private Set<String> printHeader = new HashSet<>();
 
 	@Override
 	protected void setup(Context context) throws IOException, InterruptedException {
@@ -46,16 +48,13 @@ public class AnnotationSortReducer extends Reducer<PairWritable, Text, NullWrita
 	@Override
 	protected void reduce(PairWritable key, Iterable<Text> values, Context context)
 			throws IOException, InterruptedException {
-		if(printHeader) {
+		if(!printHeader.contains(key.getFirst())) {
 			multipleOutputs.write(NullWritable.get(), resultValue, key.getFirst());
-			printHeader = false;
+			printHeader.add(key.getFirst());
 		}
-		Iterator<Text> iter =  values.iterator();
-		while(iter.hasNext()) {
-			Text inputLine = iter.next();
+		for (Text inputLine : values) {
 			resultValue.set(inputLine);
 			multipleOutputs.write(NullWritable.get(), resultValue, key.getFirst());
-//			context.write(NullWritable.get(), resultValue);
 		}
 	}
 
