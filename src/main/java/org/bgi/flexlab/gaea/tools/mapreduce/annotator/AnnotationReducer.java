@@ -167,12 +167,14 @@ public class AnnotationReducer extends Reducer<Text, VcfLineWritable, Text, Text
 				}
 			}
 
-			ChromosomeInformationShare chrShare = genomeShare.getChromosomeInfo(vcfAnnoContext.getContig());
-			String prefixSeq = chrShare.getGA4GHBaseSequence(vcfAnnoContext.getStart() - 11, vcfAnnoContext.getStart()-2);
-			int rightStart = vcfAnnoContext.getStart() + vcfAnnoContext.getRefStr().length() - 1;
-			String suffixSeq = chrShare.getGA4GHBaseSequence(rightStart, rightStart+10);
-			String flankSeq = prefixSeq + "." + suffixSeq;
-			vcfAnnoContext.setFlankSeq(flankSeq);
+			if(userConfig.getFields().contains("FLKSEQ")) {
+				ChromosomeInformationShare chrShare = genomeShare.getChromosomeInfo(vcfAnnoContext.getContig());
+				String prefixSeq = chrShare.getGA4GHBaseSequence(vcfAnnoContext.getStart() - 11, vcfAnnoContext.getStart() - 2);
+				int rightStart = vcfAnnoContext.getStart() + vcfAnnoContext.getRefStr().length() - 1;
+				String suffixSeq = chrShare.getGA4GHBaseSequence(rightStart, rightStart + 9);
+				String flankSeq = prefixSeq + "." + suffixSeq;
+				vcfAnnoContext.setFlankSeq(flankSeq);
+			}
 
 			if (!options.isUseDatabaseCache() || !dbAnnotator.annotate(vcfAnnoContext, "ANNO")) {
 				if (!annoEngine.annotate(vcfAnnoContext)) {
