@@ -79,8 +79,7 @@ public class MybedAdapter implements DBAdapterInterface{
 
         String[] fields = null;
         String s;
-        TabixReader tr = new TabixReader(filePath+"/"+tableName);
-        TabixReader.Iterator iter = tr.query(region[0],  Integer.valueOf(region[1]), Integer.valueOf(region[2]));
+        TabixReader.Iterator iter = bedReader.query(region[0],  Integer.valueOf(region[1]), Integer.valueOf(region[2]));
         while (iter != null && (s = iter.next()) != null){
             if(fields == null)
                 fields = s.split("\t");

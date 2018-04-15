@@ -24,10 +24,7 @@ import java.util.List;
 
 public class MybedQuery extends DBQuery {
 
-	private static final long serialVersionUID = 805441802476012341L;
-
 	public Results query(Condition condition)throws IOException{
-		List<String> fields = condition.getFields();
 		Results results = new Results();
 
 		HashMap<String,String> result = dbAdapter.getResult(condition.getRefTable().getTable(), condition.getConditionString());

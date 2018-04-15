@@ -230,6 +230,7 @@ public class Config implements Serializable {
 				ArrayList<String> annoFieldList = new ArrayList<>();
 
 				for (String annoField : annoFields) {
+					annoField = annoField.trim();
 					if (annoField.contains(":")) {
 						String[] tags = annoField.split(":");
 						fields.add(tags[0]);
@@ -242,7 +243,8 @@ public class Config implements Serializable {
 				}
 
 				if (!key.startsWith(KEY_GENEINFO_PREFIX) && !key.startsWith(KEY_VARIANT_PREFIX)) {
-					dbNameList.add(dbName);
+					if(!dbNameList.contains(dbName))
+						dbNameList.add(dbName);
 				}
 
 				if(annoFieldsByDB.containsKey(dbName))

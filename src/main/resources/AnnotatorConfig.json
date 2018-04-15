@@ -4,7 +4,7 @@
     "MYSQL":"",
     "MYBED":"/hwfssz1/BIGDATA_COMPUTING/hadoop/annodb",
     "TSV":"/hwfssz1/BIGDATA_COMPUTING/hadoop/huangkaiwen/test/exac",
-    "VCF":"/hwfssz1/BIGDATA_COMPUTING/hadoop/huangkaiwen/test/clinvar"
+    "VCF":"/hwfssz1/BIGDATA_COMPUTING/hadoop/annodb"
   },
   "databaseInfo":{
     "ANNO":{
@@ -206,7 +206,7 @@
     "GWAS":{
       "database":"MYBED",
       "queryClassName":"MybedQuery",
-      "queryCondition":"CHR_START_END",
+      "queryCondition":"CHROM_START_END",
       "dbVersion":{
         "GRCh37":{
           "table":""
@@ -219,7 +219,7 @@
     "CytoBand":{
       "database":"MYBED",
       "queryClassName":"MybedQuery",
-      "queryCondition":"CHR_START_END",
+      "queryCondition":"CHROM_START_END",
       "dbVersion":{
         "GRCh37":{
           "table":""
@@ -229,20 +229,148 @@
         }
       }
     },
-    "CLINVAR":{
-      "database":"VCF",
-      "queryClassName":"VCFQuery",
+    "ChromTrf":{
+      "database":"MYBED",
+      "queryClassName":"MybedQuery",
+      "queryCondition":"CHROM_START_END",
+      "dbVersion":{
+        "GRCh37":{
+          "table":""
+        },
+        "GRCh38":{
+          "table":"hg38_quning/chromTrf.hg38.bed.gz"
+        }
+      }
+    },
+    "ClinGenHaplo":{
+      "database":"MYBED",
+      "queryClassName":"MybedQuery",
+      "queryCondition":"CHROM_START_END",
+      "dbVersion":{
+        "GRCh37":{
+          "table":""
+        },
+        "GRCh38":{
+          "table":"hg38_quning/ClinGen_haploinsufficiency.hg38.bed.gz"
+        }
+      }
+    },
+    "ClinGenTriplo":{
+      "database":"MYBED",
+      "queryClassName":"MybedQuery",
+      "queryCondition":"CHROM_START_END",
+      "dbVersion":{
+        "GRCh37":{
+          "table":""
+        },
+        "GRCh38":{
+          "table":"hg38_quning/ClinGen_triplosensitivity.hg38.bed.gz"
+        }
+      }
+    },
+    "Clinvar":{
+      "database":"HBASE",
+      "queryClassName":"DBQuery",
       "queryCondition":"CHR_POS_END",
       "dbVersion":{
         "GRCh37":{
-          "table":"CLINVAR.vcf.gz",
-          "key":"id",
-          "indexTable":"CLINVAR.vcf.gz"
+          "table":""
         },
         "GRCh38":{
-          "table":"CLINVAR.vcf.gz",
+          "table":"annotation:t_hg38_clinvar",
           "key":"id",
-          "indexTable":"CLINVAR.vcf.gz"
+          "indexTable":"annotation:t_hg38_clinvar_index"
+        }
+      }
+    },
+    "CLINVAR":{
+      "database":"VCF",
+      "queryClassName":"VCFQuery",
+      "queryCondition":"CHROM_POS_END",
+      "dbVersion":{
+        "GRCh37":{
+          "table":"hg19_db/clinvar_hg19.vcf.gz"
+        },
+        "GRCh38":{
+          "table":"hg38_db/clinvar_hg38.vcf.gz"
+        }
+      }
+    },
+    "MCAP":{
+      "database":"VCF",
+      "queryClassName":"VCFQuery",
+      "queryCondition":"CHROM_POS_END",
+      "dbVersion":{
+        "GRCh37":{
+          "table":"hg19_db/mcap.hg19.vcf.gz"
+        },
+        "GRCh38":{
+          "table":"hg38_db/mcap.hg38.vcf.gz"
+        }
+      }
+    },
+    "REVEL":{
+      "database":"VCF",
+      "queryClassName":"VCFQuery",
+      "queryCondition":"CHROM_POS_END",
+      "dbVersion":{
+        "GRCh37":{
+          "table":"hg19_db/revel.hg19.vcf.gz"
+        },
+        "GRCh38":{
+          "table":"hg38_db/revel.hg38.vcf.gz"
+        }
+      }
+    },
+    "DBSCSNV":{
+      "database":"VCF",
+      "queryClassName":"VCFQuery",
+      "queryCondition":"CHROM_POS_END",
+      "dbVersion":{
+        "GRCh37":{
+          "table":"hg19_db/dbscsnv.hg19.vcf.gz"
+        },
+        "GRCh38":{
+          "table":"hg38_db/dbscsnv.hg38.vcf.gz"
+        }
+      }
+    },
+    "Native":{
+      "database":"VCF",
+      "queryClassName":"VCFQuery",
+      "queryCondition":"CHROM_POS_END",
+      "dbVersion":{
+        "GRCh37":{
+          "table":"hg19_db/native.hg19.vcf.gz"
+        },
+        "GRCh38":{
+          "table":"hg38_db/native.hg38.vcf.gz"
+        }
+      }
+    },
+    "NativeInterp":{
+      "database":"VCF",
+      "queryClassName":"VCFQuery",
+      "queryCondition":"CHROM_POS_END",
+      "dbVersion":{
+        "GRCh37":{
+          "table":"hg19_db/nativeInterp_geriatric.vcf.gz"
+        },
+        "GRCh38":{
+          "table":"hg38_db/nativeInterp_geriatric.vcf.gz"
+        }
+      }
+    },
+    "NativeTumor":{
+      "database":"VCF",
+      "queryClassName":"VCFQuery",
+      "queryCondition":"CHROM_POS_END",
+      "dbVersion":{
+        "GRCh37":{
+          "table":"hg19_db/native_tumor_heart.vcf.gz"
+        },
+        "GRCh38":{
+          "table":"hg38_db/native_tumor_heart.vcf.gz"
         }
       }
     },
