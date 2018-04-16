@@ -35,14 +35,12 @@ public class VCFQuery extends DBQuery {
 		String key = condition.getConditionString();
 		HashMap<String,String> result = dbAdapter.getResult(condition.getRefTable().getTable(), key);
 
+		if (result ==null || result.isEmpty())
+			return null;
+
 		HashMap<String,String> annoResult = new HashMap<>();
 		for (String field : fields) {
 			annoResult.put(field, result.get(field));
-		}
-
-		if (result ==null || result.isEmpty()){
-			System.err.println("Cann't find value from table:"+condition.getRefTable().getTable()+". Key:"+key);
-			return null;
 		}
 
 		String resultAltStr = result.get("ALT");

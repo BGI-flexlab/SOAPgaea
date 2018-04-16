@@ -66,13 +66,9 @@ public class DBQuery implements Serializable {
 		String[] keys = keyStr.split(",");
 		for (String key : keys) {
 			result = dbAdapter.getResult(condition.getRefTable().getTable(), key);
-			System.err.println("Alt:"+key);
-			System.err.println("Alt:"+String.join("|",result.values()));
 
-			if (result ==null || result.isEmpty()){
-				System.err.println("Cann't find value from table:"+condition.getRefTable().getTable()+". Key:"+key);
+			if (result ==null || result.isEmpty())
 				return null;
-			}
 
 			String resultAltStr = result.get("ALT");
 			if (resultAltStr == null) {
