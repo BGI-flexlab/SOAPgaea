@@ -169,7 +169,11 @@ public class AnnotationReducer extends Reducer<Text, VcfLineWritable, Text, Text
 
 			if(userConfig.getFields().contains("FLKSEQ")) {
 				ChromosomeInformationShare chrShare = genomeShare.getChromosomeInfo(vcfAnnoContext.getContig());
-				String prefixSeq = chrShare.getGA4GHBaseSequence(vcfAnnoContext.getStart() - 11, vcfAnnoContext.getStart() - 2);
+				int lelfStart = vcfAnnoContext.getStart() - 11;
+				lelfStart = lelfStart < 0 ? 0 : lelfStart;
+				int lelfEnd = vcfAnnoContext.getStart() - 2;
+				lelfEnd = lelfEnd < 0 ? 0 : lelfEnd;
+				String prefixSeq = chrShare.getGA4GHBaseSequence(lelfStart, lelfEnd);
 				int rightStart = vcfAnnoContext.getStart() + vcfAnnoContext.getRefStr().length() - 1;
 				String suffixSeq = chrShare.getGA4GHBaseSequence(rightStart, rightStart + 9);
 				String flankSeq = prefixSeq + "." + suffixSeq;
