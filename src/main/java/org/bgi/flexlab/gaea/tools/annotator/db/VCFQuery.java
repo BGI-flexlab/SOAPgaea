@@ -20,8 +20,10 @@ package org.bgi.flexlab.gaea.tools.annotator.db;
 import org.bgi.flexlab.gaea.tools.annotator.config.DatabaseInfo;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class VCFQuery extends DBQuery {
 
@@ -66,6 +68,38 @@ public class VCFQuery extends DBQuery {
 		}
 
 		return results;
+	}
+
+	@Override
+	protected List<HashMap<String, String>> splitResult(HashMap<String, String> result, int altNum) {
+		List<HashMap<String, String>> resultList = new ArrayList<>();
+		for (int i = 0; i < altNum; i++) {
+			resultList.add(new HashMap<>());
+		}
+
+		for (Map.Entry<String, String> entry : result.entrySet()) {
+			String v = entry.getValue();
+			if(v == null) continue;
+			if(v.startsWith("[") && v.endsWith("]")){
+				v = v.substring(1,v.length()-1);
+
+				String[] values = v.split(",");
+				if(altNum == values.length){
+					for (int i = 0; i < altNum; i++) {
+						resultList.get(i).put(entry.getKey(), values[i]);
+					}
+				}else {
+					for (int i = 0; i < altNum; i++) {
+						resultList.get(i).put(entry.getKey(), v);
+					}
+				}
+			}else {
+				for (int i = 0; i < altNum; i++) {
+					resultList.get(i).put(entry.getKey(), entry.getValue());
+				}
+			}
+		}
+		return resultList;
 	}
 
 	public void connection(String dbName, DatabaseInfo.DbType dbType, String connInfo) throws IOException{
