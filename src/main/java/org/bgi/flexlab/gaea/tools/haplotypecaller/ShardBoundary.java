@@ -23,7 +23,7 @@ public class ShardBoundary implements Locatable, Serializable {
     public ShardBoundary(final GenomeLocation interval, final GenomeLocation paddedInterval) {
         Utils.nonNull(interval);
         Utils.nonNull(paddedInterval);
-        Utils.validateArg(paddedInterval.contains(interval), "interval must be contained within paddedInterval");
+        //Utils.validateArg(paddedInterval.contains(interval), "interval must be contained within paddedInterval");
         this.interval = interval;
         this.paddedInterval = paddedInterval;
     }

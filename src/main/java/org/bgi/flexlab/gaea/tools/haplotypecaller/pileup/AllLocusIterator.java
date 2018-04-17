@@ -27,7 +27,6 @@ public class AllLocusIterator implements Iterator<AlignmentContext> {
         
         this.nestedLocusIterator = new PeekableIterator<>(nestedLocusIterator);
         this.interval = interval;
-        //this.currentPosition = interval.getStart();
         this.currentPosition = -1;
 
         // Sanity check:

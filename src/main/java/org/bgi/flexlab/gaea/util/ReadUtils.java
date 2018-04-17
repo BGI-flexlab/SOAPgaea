@@ -389,7 +389,6 @@ public class ReadUtils {
 	 * needs.
 	 */
 	public static Pair<Integer, Boolean> getReadCoordinateForReferenceCoordinate(GaeaSamRecord read, int refCoord) {
-		//return getReadCoordinateForReferenceCoordinate(read.getSoftStart(), read.getCigar(), refCoord, false);
 		return getReadCoordinateForReferenceCoordinate(read, read.getCigar(), refCoord, false);
 	}
 	

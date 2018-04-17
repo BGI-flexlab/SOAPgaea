@@ -1,7 +1,6 @@
 package org.bgi.flexlab.gaea.tools.haplotypecaller.utils;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
