@@ -77,6 +77,8 @@ public class AnnotationContext implements Serializable{
 			"POS_AA", "AA_POS", //
 			"LEN_AA", "AA_LEN", //
 			"DISTANCE", //
+			"VarType", //
+			"Strand", //
 			"ERRORS", "WARNINGS", "INFOS", //
 	};
 
