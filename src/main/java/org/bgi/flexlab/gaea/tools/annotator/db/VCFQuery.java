@@ -27,79 +27,35 @@ import java.util.Map;
 
 public class VCFQuery extends DBQuery {
 
-	private static final long serialVersionUID = 805441802476032672L;
-
 	@Override
 	public Results query(Condition condition)throws IOException{
 		List<String> fields = condition.getFields();
 		Results results = new Results();
 		List<String> alts = condition.getAlts();
 		String key = condition.getConditionString();
-		HashMap<String,String> result = dbAdapter.getResult(condition.getRefTable().getTable(), key);
+		List<HashMap<String,String>> resultList = dbAdapter.getResult( key, fields);
 
-		if (result ==null || result.isEmpty())
+		if (resultList.isEmpty())
 			return null;
 
-		HashMap<String,String> annoResult = new HashMap<>();
-		for (String field : fields) {
-			annoResult.put(field, result.get(field));
-		}
-
-		String resultAltStr = result.get("ALT");
-		if (resultAltStr == null) {
-			System.err.println("Alt is null:"+condition.getRefTable().getTable()+". Key:"+key);
-			return null;
-		}
-
-		if (!resultAltStr.contains(",")) {
-			resultAltStr = resultAltStr.toUpperCase();
-			if(alts.contains(resultAltStr)){
-				results.add(resultAltStr, annoResult);
+		for(HashMap<String,String> result :resultList) {
+			String resultAltStr = result.get("ALT");
+			if (resultAltStr == null) {
+				System.err.println("Alt is null:" + condition.getRefTable().getTable() + ". Key:" + key);
+				return null;
 			}
-		}else {
+
+
 			String[] resultAlts = resultAltStr.split(",");
-			List<HashMap<String, String>> annoResults = splitResult(annoResult, resultAlts.length);
+			List<HashMap<String, String>> annoResults = splitResult(result, resultAlts.length);
 			for (int i = 0; i < resultAlts.length; i++) {
 				String alt = resultAlts[i].toUpperCase();
-				if(alts.contains(alt)){
+				if (alts.contains(alt)) {
 					results.add(alt, annoResults.get(i));
 				}
 			}
 		}
-
 		return results;
-	}
-
-	@Override
-	protected List<HashMap<String, String>> splitResult(HashMap<String, String> result, int altNum) {
-		List<HashMap<String, String>> resultList = new ArrayList<>();
-		for (int i = 0; i < altNum; i++) {
-			resultList.add(new HashMap<>());
-		}
-
-		for (Map.Entry<String, String> entry : result.entrySet()) {
-			String v = entry.getValue();
-			if(v == null) continue;
-			if(v.startsWith("[") && v.endsWith("]")){
-				v = v.substring(1,v.length()-1);
-
-				String[] values = v.split(",");
-				if(altNum == values.length){
-					for (int i = 0; i < altNum; i++) {
-						resultList.get(i).put(entry.getKey(), values[i]);
-					}
-				}else {
-					for (int i = 0; i < altNum; i++) {
-						resultList.get(i).put(entry.getKey(), v);
-					}
-				}
-			}else {
-				for (int i = 0; i < altNum; i++) {
-					resultList.get(i).put(entry.getKey(), entry.getValue());
-				}
-			}
-		}
-		return resultList;
 	}
 
 	public void connection(String dbName, DatabaseInfo.DbType dbType, String connInfo) throws IOException{

@@ -20,10 +20,9 @@ import org.bgi.flexlab.gaea.tools.annotator.config.DatabaseInfo.DbType;
 
 public class DBAdapterFactory {
 	
-	public static DBAdapterInterface createDbAdapter(DbType dbType, String connInfo ) {
+	static DBAdapter createDbAdapter(DbType dbType, String connInfo) {
 		if(dbType == DbType.HBASE){
-			HbaseAdapter hbase = new HbaseAdapter(connInfo);
-			return hbase;
+			return new HbaseAdapter(connInfo);
 		}else if (dbType == DbType.TSV) {
 			return new TSVAdapter(connInfo);
 		}else if (dbType == DbType.VCF) {

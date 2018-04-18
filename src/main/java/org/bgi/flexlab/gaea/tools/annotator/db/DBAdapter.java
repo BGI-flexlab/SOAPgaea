@@ -21,33 +21,43 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public interface DBAdapterInterface {
+public abstract class DBAdapter {
 	
-	public void connection(String dbName) throws IOException;
+	public abstract void connection(String dbName) throws IOException;
 	
-	public void disconnection() throws IOException;
-	
+	public abstract void disconnection() throws IOException;
+
 	/**
 	 * 根据查询条件和fieldMap查询所有相关字段，fieldMap的value为数据库中字段String，其key值作为返回的HashMap的key。
-	 * 
+	 *
 	 * @param tableName
 	 * @param condition
 	 * @param fields
 	 * @return
 	 * @throws IOException
 	 */
-	public HashMap<String, String> getResult(String tableName, String condition, List<String> fields) throws IOException;
+	public HashMap<String, String> getResult(String tableName, String condition, List<String> fields) throws IOException {
+		return null;
+	}
 
-	 /**
-     * 根据查询条件查询所有相关信息，返回的HashMap包含该行所有字段
-     * 
-     * @tableName 表名
-     * @conditionString conditionString (对于Hbase则为rowKey)
-     * @return HashMap<String, String>
-     */
+	public List<HashMap<String, String>> getResult(String condition, List<String> fields) throws IOException {
+		return null;
+	}
+
+	/**
+	 * 根据查询条件查询所有相关信息，返回的HashMap包含该行所有字段
+	 *
+	 * @return HashMap<String, String>
+	 * @tableName 表名
+	 * @conditionString conditionString (对于Hbase则为rowKey)
+	 */
 	public HashMap<String, String> getResult(String tableName,
-			String conditionString) throws IOException;
+											 String conditionString) throws IOException {
+		return null;
+	}
 
-	public boolean insert(String tableName, String rowKey, Map<String, String> fields) throws IOException;
+	public boolean insert(String tableName, String rowKey, Map<String, String> fields) throws IOException {
+		return false;
+	}
 
 }

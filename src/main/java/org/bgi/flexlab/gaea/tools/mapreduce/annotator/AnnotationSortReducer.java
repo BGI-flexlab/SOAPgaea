@@ -34,21 +34,21 @@ public class AnnotationSortReducer extends Reducer<PairWritable, Text, NullWrita
 	private MultipleOutputs<NullWritable,Text> multipleOutputs = null;
 	private Text resultValue;
 	private Set<String> printHeader = new HashSet<>();
+	private Config userConfig;
 
 	@Override
 	protected void setup(Context context) throws IOException, InterruptedException {
 		resultValue = new Text();
 		multipleOutputs = new MultipleOutputs<>(context);
 		Configuration conf = context.getConfiguration();
-		Config userConfig = new Config(conf);
-		System.err.println(userConfig.getHeaderString());
-		resultValue.set(userConfig.getHeaderString());
+		userConfig = new Config(conf);
 	}
 
 	@Override
 	protected void reduce(PairWritable key, Iterable<Text> values, Context context)
 			throws IOException, InterruptedException {
 		if(!printHeader.contains(key.getFirst())) {
+			resultValue.set(userConfig.getHeaderString());
 			multipleOutputs.write(NullWritable.get(), resultValue, key.getFirst());
 			printHeader.add(key.getFirst());
 		}

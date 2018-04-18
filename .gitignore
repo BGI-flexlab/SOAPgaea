@@ -7,3 +7,5 @@
 .fatjar
 
 *.jar
+
+TempFatjarBuildDir_erase_me/

@@ -26,7 +26,7 @@ import java.util.*;
 
 import static java.lang.Integer.min;
 
-public class TSVAdapter implements DBAdapterInterface{
+public class TSVAdapter extends DBAdapter {
 
     private BufferedRandomAccessFile tsvReader = null;
     private String filePath = null;
@@ -174,10 +174,5 @@ public class TSVAdapter implements DBAdapterInterface{
 
         return resultMap;
 
-    }
-
-    @Override
-    public boolean insert(String tableName, String rowKey, Map<String, String> fields) throws IOException {
-        return false;
     }
 }

@@ -17,9 +17,7 @@
 package org.bgi.flexlab.gaea.tools.annotator.db;
 
 import htsjdk.tribble.readers.TabixReader;
-import org.bgi.flexlab.gaea.tools.annotator.util.BufferedRandomAccessFile;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,7 +27,7 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.zip.GZIPInputStream;
 
-public class MybedAdapter implements DBAdapterInterface{
+public class MybedAdapter extends DBAdapter {
 
     private TabixReader bedReader;
     private String filePath = null;
@@ -46,7 +44,6 @@ public class MybedAdapter implements DBAdapterInterface{
         Scanner sc=new Scanner(in);
         while(sc.hasNextLine()){
             String line = sc.nextLine();
-            System.err.println("header:"+tableName + "-" + line);
             if(line.startsWith("##"))
                 continue;
             if(line.startsWith("#")){
@@ -102,10 +99,5 @@ public class MybedAdapter implements DBAdapterInterface{
 
         return resultMap;
 
-    }
-
-    @Override
-    public boolean insert(String tableName, String rowKey, Map<String, String> fields) throws IOException {
-        return false;
     }
 }
