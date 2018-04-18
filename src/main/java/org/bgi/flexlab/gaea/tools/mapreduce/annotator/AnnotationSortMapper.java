@@ -52,7 +52,6 @@ public class AnnotationSortMapper extends Mapper<LongWritable, Text, PairWritabl
 	protected void map(LongWritable key, Text value, Context context)
 			throws IOException, InterruptedException {
 		String annoLine = value.toString();
-		if (annoLine.startsWith("#")) return;
 
 		VcfAnnoContext vac = new VcfAnnoContext();
 		vac.parseAnnotationStrings(annoLine, userConfig.getFields());

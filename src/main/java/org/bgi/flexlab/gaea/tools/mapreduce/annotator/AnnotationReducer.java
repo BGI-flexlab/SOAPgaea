@@ -61,7 +61,6 @@ public class AnnotationReducer extends Reducer<Text, VcfLineWritable, Text, Text
 		Configuration conf = context.getConfiguration();
 		options.getOptionsFromHadoopConf(conf);
 
-		long setupStart = System.currentTimeMillis();
 		long start = System.currentTimeMillis();
 		genomeShare = new ReferenceShare();
 		genomeShare.loadChromosomeList(options.getReferenceSequencePath());
@@ -127,7 +126,6 @@ public class AnnotationReducer extends Reducer<Text, VcfLineWritable, Text, Text
 			String fileName = vcfInput.getFileName();
 			String vcfLine = vcfInput.getVCFLine();
 			VariantContext variantContext =  vcfCodecs.get(fileName).decode(vcfLine);
-//			String refStr = variantContext.getReference().getBaseString();
 			int pos = variantContext.getStart();
 			int end = variantContext.getEnd();
 
@@ -204,13 +202,9 @@ public class AnnotationReducer extends Reducer<Text, VcfLineWritable, Text, Text
 				}
 			}else {
 				List<String> annoLines = vcfAnnoContext.toAnnotationStrings(userConfig.getFields());
-				for(String sampleName: vcfAnnoContext.getSampleAnnoContexts().keySet())
-				{
-					resultKey.set(sampleName);
-					for(String annoLine: annoLines){
-						resultValue.set(annoLine);
-						context.write(resultKey, resultValue);
-					}
+				for(String annoLine: annoLines){
+					resultValue.set(annoLine);
+					context.write(resultKey, resultValue);
 				}
 			}
 		}

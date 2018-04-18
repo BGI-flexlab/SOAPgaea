@@ -96,9 +96,8 @@ public class VcfAnnoContext {
             variantContextMap.put(filename, variantContexts);
         }
         for(Allele allele: variantContext.getAlternateAlleles()){
-            if(alts.contains(allele.getBaseString()))
-                continue;
-            alts.add(allele.getBaseString());
+            if(!alts.contains(allele.getBaseString()))
+                alts.add(allele.getBaseString());
         }
         addSampleContext(variantContext);
     }
