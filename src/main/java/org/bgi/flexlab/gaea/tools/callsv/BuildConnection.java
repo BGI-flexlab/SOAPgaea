@@ -183,6 +183,11 @@ public class BuildConnection {
 	 * @param r 当前read
 	 */
 	private void saveReadInfo(int regId, SamWritable r) {
+		if (readInfoMap == null) {
+			readInfoMap = new TreeMap<String, Reads>();
+		}
+		if(r == null) return;
+		
 		Reads read = readInfoMap.get(r.getReadName());
 		if(read == null)
 			read = new Reads(r);

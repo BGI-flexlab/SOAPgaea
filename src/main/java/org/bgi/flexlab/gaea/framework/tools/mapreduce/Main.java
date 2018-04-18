@@ -27,7 +27,7 @@ public class Main {
 	private static HashMap<String, String> getTools(Properties properties) {
 		HashMap<String, String> toolsDescription = new HashMap<String, String>();
 		for (Object key : properties.keySet()) {
-			String className = properties.getProperty((String) key);
+			String className = properties.getProperty((String) key);			
 			try {
 				ToolsRunner tools = (ToolsRunner) (Class.forName(className)
 						.newInstance());
