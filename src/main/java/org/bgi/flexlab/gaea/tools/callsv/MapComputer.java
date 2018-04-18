@@ -122,7 +122,7 @@ public class MapComputer {
 			}
 		}
 		
-		if(!type.equals(null)) {
+		if(!type.equals(null) && !"Diff".equals(type)) {
 			res.setAll(record, type);
 		}else {
 			return null;
