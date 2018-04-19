@@ -68,17 +68,15 @@ public class TSVAdapter extends DBAdapter {
         }
 
 
-    };
+    }
+
     @Override
     public void disconnection() throws IOException{
         if(tsvReader != null)
             tsvReader.close();
 
-    };
-    @Override
-    public HashMap<String, String> getResult(String tableName, String rowKey, List<String> fieldMap) throws IOException{
-        return null;
     }
+
     @Override
     public HashMap<String, String> getResult(String tableName,
                                              String rowKey) throws IOException{
@@ -143,8 +141,6 @@ public class TSVAdapter extends DBAdapter {
                 }
             }
 
-
-
             if(value != null) {
                 System.out.println(rowKey + " " + value);
                 resultMap.put(rowKey, value);
@@ -170,9 +166,6 @@ public class TSVAdapter extends DBAdapter {
         else
             throw  new IOException("table name error!!");
 
-
-
         return resultMap;
-
     }
 }

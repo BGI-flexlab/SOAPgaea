@@ -41,13 +41,13 @@ public class VCFAdapter extends DBAdapter {
     public void connection(String tableName) throws IOException{
         String fileName = filepath + "/" + tableName;
         vcfReader = new VCFFileReader(new File(fileName));
-    };
+    }
 
     @Override
     public void disconnection() throws IOException{
         if(vcfReader != null)
             vcfReader.close();
-    };
+    }
 
     public List<HashMap<String, String>> getResult(String reg, List<String> fields) throws IOException{
         List<HashMap<String, String>> results = new ArrayList<>();
@@ -79,36 +79,6 @@ public class VCFAdapter extends DBAdapter {
             results.add(resultMap);
         }
         return results;
-    }
-
-    @Override
-    public HashMap<String, String> getResult(String tableName, String reg, List<String> fields) throws IOException{
-        HashMap<String,String> resultMap = new HashMap<>();
-        String[] arr = reg.split("\t");
-        String chr = arr[0];
-        int start = Integer.valueOf(arr[1]);
-        int end = Integer.valueOf(arr[2]);
-        CloseableIterator<VariantContext> vcfIter = vcfReader.query(chr, start, end);
-
-        while (vcfIter.hasNext()) {
-            VariantContext vc = vcfIter.next();
-            if (start == vc.getStart() && end == vc.getEnd()) {//输出start，end完全一致的数据
-                for(String field: fields){
-                    String v = vc.getAttributeAsString(field, ".");
-                    if (v.startsWith("[") && v.endsWith("]"))
-                        v = v.substring(1, v.length() - 1);
-                    resultMap.put(field, v);
-                }
-
-                List<String> alts = new ArrayList<>();
-                for(Allele allele: vc.getAlternateAlleles()){
-                    alts.add(allele.getBaseString());
-                }
-                resultMap.put("ID", vc.getID());
-                resultMap.put("ALT", String.join(",", alts));
-            }
-        }
-        return resultMap;
     }
 
     @Override

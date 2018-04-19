@@ -80,20 +80,18 @@
         }
       }
     },
-    "ESP6500":{
+    "oldHGMD":{
       "database":"HBASE",
       "queryClassName":"DBQuery",
       "queryCondition":"CHR_POS_END",
       "dbVersion":{
         "GRCh37":{
-          "table":"ESP6500_hg19",
-          "key":"id",
-          "indexTable":"ESP6500_hg19_index"
+          "table":""
         },
         "GRCh38":{
-          "table":"ESP6500_hg38",
+          "table":"annotation:t_hg38_oldHGMD",
           "key":"id",
-          "indexTable":"ESP6500_hg19_index"
+          "indexTable":"annotation:t_hg38_oldHGMD_index"
         }
       }
     },
@@ -322,15 +320,17 @@
       }
     },
     "NativeInterp":{
-      "database":"VCF",
-      "queryClassName":"VCFQuery",
-      "queryCondition":"CHROM_POS_END",
+      "database":"HBASE",
+      "queryClassName":"DBQuery",
+      "queryCondition":"CHR_POS_END",
       "dbVersion":{
         "GRCh37":{
-          "table":"hg19_db/nativeInterp_geriatric.vcf.gz"
+          "table":""
         },
         "GRCh38":{
-          "table":"hg38_db/nativeInterp_geriatric.vcf.gz"
+          "table":"annotation:t_hg38_NativeInterp",
+          "key":"id",
+          "indexTable":"annotation:t_hg38_NativeInterp_index"
         }
       }
     },
@@ -348,15 +348,43 @@
       }
     },
     "chrMdb":{
+      "database":"HBASE",
+      "queryClassName":"DBQuery",
+      "queryCondition":"CHR_POS_END",
+      "dbVersion":{
+        "GRCh37":{
+          "table":""
+        },
+        "GRCh38":{
+          "table":"annotation:t_hg38_chrMdb",
+          "key":"id",
+          "indexTable":"annotation:t_hg38_chrMdb_index"
+        }
+      }
+    },
+    "gnomAD":{
       "database":"VCF",
       "queryClassName":"VCFQuery",
       "queryCondition":"CHROM_POS_END",
       "dbVersion":{
         "GRCh37":{
-          "table":"hg19_db/chrMdatabase.vcf.gz"
+          "table":"hg19_db/gnomad.r2.0.1_hg19.vcf.gz"
         },
         "GRCh38":{
-          "table":"hg38_db/chrMdatabase.vcf.gz"
+          "table":"hg38_db/gnomad.r2.0.1_hg38.vcf.gz"
+        }
+      }
+    },
+    "ESP6500":{
+      "database":"VCF",
+      "queryClassName":"VCFQuery",
+      "queryCondition":"CHROM_POS_END",
+      "dbVersion":{
+        "GRCh37":{
+          "table":"hg19_db/ESP6500.hg19.vcf.gz"
+        },
+        "GRCh38":{
+          "table":"hg38_db/ESP6500.hg38.vcf.gz"
         }
       }
     },
@@ -373,19 +401,6 @@
         "GRCh38": {
           "table": "DBNSFP"
         }
-      },
-      "fields": {
-        "ESP6500 AC": "ESP6500_EA_AC",
-        "ESP6500 AF": "ESP6500_EA_AF",
-        "1000G AF": "1000Gp3_AF",
-        "1000G EAS AF": "1000Gp3_EAS_AF",
-        "PhyloP Vertebrates": "phyloP100way_vertebrate",
-        "PhyloP Mammals": "phyloP20way_mammalian",
-        "SIFT Score": "SIFT_score",
-        "SIFT Pred": "SIFT_pred",
-        "Polyphen2HumVar Score": "Polyphen2_HVAR_score",
-        "Polyphen2HumDiv Score": "Polyphen2_HDIV_score",
-        "GWAS Trait": "Trait_association(GWAS)"
       }
     },
     "BGIGaP":{
@@ -399,14 +414,6 @@
         "GRCh38":{
           "table":"NULL"
         }
-      },
-      "fields":{
-        "BGIGaP Gene":"approved_symbol",
-        "BGIGaP MutName":"nt_change",
-        "BGIGaP Data Source":"alt_name",
-        "BGIGaP Case Reported":"reported_case_count",
-        "BGIGaP Pathogenicity":"pathogenicity",
-        "BGIGaP Validation":"validation"
       }
     }
   }
