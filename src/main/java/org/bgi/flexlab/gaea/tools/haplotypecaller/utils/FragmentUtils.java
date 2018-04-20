@@ -75,7 +75,7 @@ public final class FragmentUtils {
         final GaeaSamRecord firstRead = overlappingPair.get(0);
         final GaeaSamRecord secondRead = overlappingPair.get(1);
 
-        if ( secondRead.getSoftStart() < firstRead.getSoftStart() ) {
+        if ( ReadUtils.getSoftStart(secondRead) < ReadUtils.getSoftStart(firstRead) ) {
             adjustQualsOfOverlappingPairedFragments(secondRead, firstRead);
         }
         else {
