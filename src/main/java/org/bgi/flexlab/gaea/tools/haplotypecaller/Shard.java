@@ -88,7 +88,7 @@ public interface Shard<T> extends Iterable<T>, Locatable {
 
         while ( start <= interval.getEnd() ) {
             final int end = Math.min(start + shardSize - 1, interval.getEnd());
-            final GenomeLocation nextShardInterval = new GenomeLocation(interval.getContig(),dictionary.getSequenceIndex(interval.getContig()), start, end);
+            final GenomeLocation nextShardInterval = new GenomeLocation(interval.getContig(),-1, start, end);
             final GenomeLocation nextShardIntervalPadded = nextShardInterval.expandWithinContig(shardPadding, dictionary);
             shards.add(new ShardBoundary(nextShardInterval, nextShardIntervalPadded));
             start += shardStep;

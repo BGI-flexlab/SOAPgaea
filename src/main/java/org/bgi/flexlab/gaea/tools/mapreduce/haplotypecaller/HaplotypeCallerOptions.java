@@ -31,7 +31,7 @@ public class HaplotypeCallerOptions  extends GaeaOptions implements HadoopOption
 	
 	private int windowsExtends = 300;
 	
-	private int readShardSize = 300;
+	private int readShardSize = -1;
 	
 	private int readPaddingSize = 100;
 	

@@ -11,7 +11,6 @@ import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
-import org.apache.hadoop.mapreduce.Reducer.Context;
 import org.bgi.flexlab.gaea.data.mapreduce.input.bed.RegionHdfsParser;
 import org.bgi.flexlab.gaea.data.mapreduce.output.vcf.GaeaVariantContextWriter;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.SamRecordWritable;
@@ -51,7 +50,7 @@ public class HaplotypeCallerTraversal {
 	private static final int READ_QUALITY_FILTER_THRESHOLD = 20;
 	
 	// intervals of windows
-	private List<GenomeLocation> intervals = new ArrayList<GenomeLocation>();
+	private List<GenomeLocation> intervals = null;
 
 	// hc engine
 	private HaplotypeCallerEngine hcEngine = null;
@@ -180,20 +179,17 @@ public class HaplotypeCallerTraversal {
 			readsSource = new ReadsDataSource(iterable, header);
 		this.ref = ref;
 		this.features = features;
-		//initializeIntervals(win);
+		initializeIntervals(win);
 		hcArgs.dbsnp = features.getValues("DB");
 		hcEngine.initializeAnnotationEngine(hcArgs,ref);
-		makeReadsShard(options.getReadShardSize(), options.getReadShardPadding(),win);
+		makeReadsShard(options.getReadShardSize(), options.getReadShardPadding());
 	}
 
-	/*private void initializeIntervals(Window win) {
+	private void initializeIntervals(Window win) {
 		this.intervals = GenomeLocation.getGenomeLocationFromWindow(win, region);
-	}*/
+	}
 
-	private void makeReadsShard(int readShardSize, int readShardPadding,Window win) {
-		if(!shards.isEmpty())
-			shards.clear();
-		GenomeLocation.getGenomeLocationFromWindow(intervals,win, region);
+	private void makeReadsShard(int readShardSize, int readShardPadding) {
 		for (final GenomeLocation interval : intervals) {
 			if (readShardSize != NO_INTERVAL_SHARDING) {
 				shards.addAll(LocalReadShard.divideIntervalIntoShards(interval, readShardSize, readShardPadding,
@@ -277,7 +273,7 @@ public class HaplotypeCallerTraversal {
         return filters;
     }
 
-	public final void traverse(GaeaVariantContextWriter writer,Window win) {
+	public final void traverse(GaeaVariantContextWriter writer) {
 		CountingReadFilter countedFilter = getMergedCountingReadFilter(header);
 
 		for (final LocalReadShard readShard : shards) {
@@ -290,12 +286,12 @@ public class HaplotypeCallerTraversal {
 							: null);
 			currentReadShard = readShard;
 
-			processReadShard(readShard, features, writer,win);
+			processReadShard(readShard, features, writer);
 		}
 	}
 
 	private void processReadShard(Shard<GaeaSamRecord> shard, RefMetaDataTracker features,
-			GaeaVariantContextWriter writer,Window win) {
+			GaeaVariantContextWriter writer) {
 		final Iterator<AssemblyRegion> assemblyRegionIter = new AssemblyRegionIterator(shard, header, ref, features,
 				hcEngine, minAssemblyRegionSize, maxAssemblyRegionSize, assemblyRegionPadding, activeProbThreshold,
 				maxProbPropagationDistance, true);
@@ -307,10 +303,8 @@ public class HaplotypeCallerTraversal {
 			writeAssemblyRegion(assemblyRegion);
 			List<VariantContext> results = apply(assemblyRegion, features);
 			
-			for (VariantContext context : results) {
-				if(context.getStart() >= win.getStart() && context.getStart() < win.getStop())
-					writer.write(context);
-			}
+			for (VariantContext context : results)
+				writer.write(context);
 		}
 	}
 
@@ -364,7 +358,6 @@ public class HaplotypeCallerTraversal {
 	}
 
 	public void clear() {
-		this.intervals.clear();
-		this.shards.clear();
+
 	}
 }

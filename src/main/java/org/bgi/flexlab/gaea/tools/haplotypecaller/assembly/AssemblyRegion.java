@@ -139,7 +139,7 @@ public final class AssemblyRegion implements Locatable {
 	 */
 	private GenomeLocation trimIntervalToContig(final String contig, final int start, final int stop) {
 		final int contigLength = header.getSequence(contig).getSequenceLength();
-		return GenomeLocation.createGenomeLocation(contig, start, stop,1, contigLength);
+		return GenomeLocation.createGenomeLocation(contig, start, stop, contigLength);
 	}
 
 	private void checkStates(final GenomeLocation activeRegionLoc) {
