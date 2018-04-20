@@ -38,7 +38,6 @@ public class CallStructuralVariationReducer extends Reducer<NewMapKey, SamWritab
 	protected void reduce(NewMapKey key, Iterable<SamWritable> values, Context context) throws IOException, InterruptedException {
 		
 		List<SamWritable> APRs = bc.getAPRs(key, values);
-		System.out.println(APRs.isEmpty());
 		if(APRs.isEmpty()) return;
 			
 		Map<Integer, Region> regInfoMap = bc.getRegion(APRs);
@@ -60,7 +59,7 @@ public class CallStructuralVariationReducer extends Reducer<NewMapKey, SamWritab
 			Text sv = bc.svCaller(linkReg, reads, firstReg, secondReg);
 			
 			if(sv != null) {
-				context.write(null, sv);
+				context.write(NullWritable.get(), sv);
 			}
 		}
 	}
