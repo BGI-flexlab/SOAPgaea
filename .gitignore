@@ -1,3 +1,7 @@
 /target/
 /.settings/
 /.classpath
+
+.idea/
+
+gaea.iml
