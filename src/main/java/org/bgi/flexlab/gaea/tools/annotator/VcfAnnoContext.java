@@ -135,6 +135,8 @@ public class VcfAnnoContext {
         // interval 使用 0-base 方式建立，应使用start - 1创建variant对象
         for (String alt : alts) {
             Variant variant = createVariant(chr, (int)start - 1, refStr, alt, "");
+            if(variant == null)
+                continue;
             variants.add(variant);
         }
         return variants;

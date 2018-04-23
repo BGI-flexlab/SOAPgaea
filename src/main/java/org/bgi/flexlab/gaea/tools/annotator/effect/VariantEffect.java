@@ -567,6 +567,22 @@ public class VariantEffect implements Cloneable, Comparable<VariantEffect> {
 		return hgvs != null ? hgvs : "";
 	}
 
+	public String getHgvsIVS() {
+		if (!Config.get().isHgvs()) return "";
+
+		HgvsIVS hgvsIVS = new HgvsIVS(this);
+		String hgvs = hgvsIVS.toString();
+		return hgvs != null ? hgvs : "";
+	}
+
+	public String getHgvsOld() {
+		if (!Config.get().isHgvs()) return "";
+
+		HgvsOld hgvsOld = new HgvsOld(this);
+		String hgvs = hgvsOld.toString();
+		return hgvs != null ? hgvs : "";
+	}
+
 	/**
 	 * Get intron (if any)
 	 */

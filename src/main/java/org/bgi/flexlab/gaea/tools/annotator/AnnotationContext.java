@@ -70,6 +70,8 @@ public class AnnotationContext implements Serializable{
 			"RANK", "EXID", //
 			"HGVS_C", "HGVS_DNA", "CODON", //
 			"HGVS", "HGVS_P", "HGVS_PROT", "AA", //
+			"HGVS_IVS", //
+			"HGVS_Old", //
 			"POS_CDNA", "CDNA_POS", //
 			"LEN_CDNA", "CDNA_LEN", //
 			"POS_CDS", "CDS_POS", //
@@ -97,7 +99,7 @@ public class AnnotationContext implements Serializable{
 	int distance;
 	int rank, rankMax;
 	BioType bioType;
-	String codon, aa, hgvsC, hgvsP;
+	String codon, aa, hgvsC, hgvsP, hgvsIVS, hgvsOld;
 	VariantEffect.Coding coding;
 	String genotype;
 	String errorsWarnings;
@@ -132,6 +134,7 @@ public class AnnotationContext implements Serializable{
 	void init() {
 		aaLen = aaPos = cdsLen = cdsPos = cDnaLen = cDnaPos = distance = rank = rankMax = -1;
 		vcfFieldString = effectTypesStr = effectDetails = codon = aa = hgvsC = hgvsP = genotype = errorsWarnings = geneName = geneId = featureType = featureId = transcriptId = exonId = errorsWarnings = "";
+		hgvsIVS = hgvsOld = ".";
 		bioType = null;
 		impact = null;
 		funClass = FunctionalClass.NONE;
@@ -421,6 +424,12 @@ public class AnnotationContext implements Serializable{
 		case "HGVS_DNA":
 			return hgvsC;
 
+		case "HGVS_IVS":
+			return hgvsIVS;
+
+		case "HGVS_Old":
+			return hgvsOld;
+
 		case "CODON":
 			return codon;
 
@@ -663,6 +672,8 @@ public class AnnotationContext implements Serializable{
 		// HGVS notation
 		hgvsC = variantEffect.getHgvsDna();
 		hgvsP = variantEffect.getHgvsProt();
+		hgvsIVS = variantEffect.getHgvsIVS();
+		hgvsOld = variantEffect.getHgvsOld();
 
 		// cDna position & len (cDNA is the DNA version of mRNA)
 		if (tr != null) {
