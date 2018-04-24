@@ -137,6 +137,9 @@ public class SampleAnnotationContext{
 			case "QUAL":
 				return getQual();
 
+			case "DP":
+				return Integer.toString(getDepth());
+
 			default:
 				return null;
 		}
@@ -253,6 +256,8 @@ public class SampleAnnotationContext{
 		sb.append(getAlleleFilter(allele));
 		sb.append("|");
 		sb.append(getQual());
+		sb.append("|");
+		sb.append(getDepth());
 		return sb.toString();
 	}
 
@@ -273,6 +278,7 @@ public class SampleAnnotationContext{
 		zygosity.put(singleAlt, fields[5]);
 		filter.put(singleAlt, fields[6]);
 		setQual(fields[7]);
+		setDepth(Integer.parseInt(fields[8]));
 	}
 
 	public boolean isCalled() {
