@@ -125,6 +125,10 @@ public class HaplotypeCallerOptions  extends GaeaOptions implements HadoopOption
 		this.output = getOptionValue("o",null);
 		this.reference = getOptionValue("r",null);
 		this.dbsnp = getOptionValue("k",null);
+		
+		if(dbsnp != null) {
+			comps.put("DB", dbsnp);
+		}
 	}
 	
 	private void parseInput(String input) throws IOException {

@@ -186,6 +186,12 @@ public final class VariantAnnotatorEngine {
 
 	public static VariantAnnotatorEngine ofSelectedMinusExcluded(
 			final VariantAnnotationArgumentCollection argumentCollection) {
+		for(String line : argumentCollection.annotationGroupsToUse) {
+			System.err.println("annotationGroupsToUse:"+line);
+		}
+		for(String line : argumentCollection.annotationsToExclude) {
+			System.err.println("annotationsToExclude:"+line);
+		}
 		return ofSelectedMinusExcluded(argumentCollection.annotationGroupsToUse, argumentCollection.annotationsToUse,
 				argumentCollection.annotationsToExclude);
 	}
@@ -287,6 +293,30 @@ public final class VariantAnnotatorEngine {
 				"getVCFAnnotationDescriptions should not contain null. This error is likely due to an incorrect implementation of getDescriptions() in one or more of the annotation classes");
 		return descriptions;
 	}
+	
+	public Set<VCFHeaderLine> getVCFAnnotationDescriptions(boolean useRaw) {
+        final Set<VCFHeaderLine> descriptions = new LinkedHashSet<>();
+
+        for ( final InfoFieldAnnotation annotation : infoAnnotations) {
+            if (annotation instanceof ReducibleAnnotation && useRaw) {
+                descriptions.addAll(((ReducibleAnnotation)annotation).getRawDescriptions());
+            } else {
+                descriptions.addAll(annotation.getDescriptions());
+            }
+        }
+        for ( final GenotypeAnnotation annotation : genotypeAnnotations) {
+            descriptions.addAll(annotation.getDescriptions());
+        }
+        for ( final String db : variantOverlapAnnotator.getOverlapNames() ) {
+            if ( VCFStandardHeaderLines.getInfoLine(db, false) != null ) {
+                descriptions.add(VCFStandardHeaderLines.getInfoLine(db));
+            } else {
+                descriptions.add(new VCFInfoHeaderLine(db, 0, VCFHeaderLineType.Flag, db + " Membership"));
+            }
+        }
+        
+        return descriptions;
+    }
 
 	/**
 	 * Combine (raw) data for reducible annotations (those that use raw data in
