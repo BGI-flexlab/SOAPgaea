@@ -11,7 +11,6 @@ import java.util.TreeMap;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
-import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -47,8 +46,6 @@ public class BuildConnection {
 	 * Map集合，key是ReadName，value是Reads的对象，保存了reads的信息
 	 */
 	private Map<String, Reads> readInfoMap;
-	
-	private FSDataOutputStream out ;
 	
 	private BufferedReader br ;
 	private FileSystem fs ;
@@ -218,7 +215,6 @@ public class BuildConnection {
 			 * 同一对reads不是比对到两个区域或者两个区域相等，去掉这对reads
 			 */
 			if(r.getReg().size() !=2)
-			//if( r.getReg().size() !=2 || r.getReg().get(0).equals(r.getReg().get(1))) 
 				continue;
 				
 			/**
@@ -273,11 +269,7 @@ public class BuildConnection {
 		
 		upper = mean + options.getStdtimes() * upstd;
 		lower = mean - options.getStdtimes() * lowstd;
-		
-		//String w = "Mean : " + mean + "\tLower: " + lower + "\tUpper: " + upper + "\tLowstd: " + lowstd + "\tUpstd: " + upstd + "\n";
-
-		//writeFile(new Path(options.getHdfsdir() + "/Sort/Mean_UpLow/" + UUID.randomUUID().toString()), w);
-		
+				
 	}
 	
 	
@@ -330,13 +322,7 @@ public class BuildConnection {
 			dist = Math.min(d, ref_length/indel_num);
 		}
 		dist = dist < 50 ? 50 : dist;
-		
-		/**
-		 * 将dist存到中间文件中
-		 */
-		//Path distPath = new Path(options.getHdfsdir() + "/Sort/Dist/" + key.getChr());
-		//String writer = key.getChr() + "\t" + dist + "\t" + ref_length + "\n";
-		//writeFile(distPath , writer);
+
 		return aprs;
 	}
 
@@ -362,21 +348,7 @@ public class BuildConnection {
 
 	}
 	
-	/*
-	private void writeFile(Path path, String writer) {
-		System.out.println("Mean: " + writer);
-		out = null;
-		try {
-			out = FileSystem.get(conf).create(path,true);
-			System.out.println(out.toString());
-			out.write(writer.getBytes());
-	
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		
-	}
-	*/
+
 	
 	/**
 	 * 遍历每一对有联系的区域，做最终的calling
@@ -522,14 +494,6 @@ public class BuildConnection {
 	
 	
 	public void close() {
-		if(out != null) {
-			try {
-				out.flush();
-				out.close();
-			}catch(Exception e) {
-				e.printStackTrace();
-			}
-		}
 		
 		if(fs != null) {
 			try {
