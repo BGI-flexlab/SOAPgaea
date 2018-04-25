@@ -1,15 +1,18 @@
 package org.bgi.flexlab.gaea.tools.callsv;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.UUID;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
+import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
@@ -44,6 +47,11 @@ public class BuildConnection {
 	 * Map集合，key是ReadName，value是Reads的对象，保存了reads的信息
 	 */
 	private Map<String, Reads> readInfoMap;
+	
+	private FSDataOutputStream out ;
+	
+	private BufferedReader br ;
+	private FileSystem fs ;
 	
 	public BuildConnection() {
 		this.conf = new Configuration();
@@ -232,8 +240,7 @@ public class BuildConnection {
 	
 	
 	public void setUpperLower() {
-		TxtReader mc = new TxtReader(conf);
-		Map<Integer, Integer> insert = mc.readInsertFile(options.getHdfsdir() + "/Sort/LibConf/");
+		Map<Integer, Integer> insert = readInsertFile(options.getHdfsdir() + "/Sort/LibConf/");
 		
 		int maxnum = 0;
 		
@@ -264,14 +271,12 @@ public class BuildConnection {
 		float lowstd = (float) Math.sqrt(lowsum/(lownum-1));
 		float upstd = (float) Math.sqrt(upsum/(upnum-1));
 		
-		//System.out.println("Low Std : " + lowstd);
-		//System.out.println("Up Std : " + upstd);
-		
 		upper = mean + options.getStdtimes() * upstd;
 		lower = mean - options.getStdtimes() * lowstd;
 		
-		String w = "Mean : " + mean + "\tLower: " + lower + "\tUpper: " + upper + "\tLowstd: " + lowstd + "\tUpstd: " + upstd + "\n";
-		writeFile(new Path(options.getHdfsdir() + "/Sort/Mean_UpLow/" + UUID.randomUUID().toString()), w);
+		//String w = "Mean : " + mean + "\tLower: " + lower + "\tUpper: " + upper + "\tLowstd: " + lowstd + "\tUpstd: " + upstd + "\n";
+
+		//writeFile(new Path(options.getHdfsdir() + "/Sort/Mean_UpLow/" + UUID.randomUUID().toString()), w);
 		
 	}
 	
@@ -329,9 +334,9 @@ public class BuildConnection {
 		/**
 		 * 将dist存到中间文件中
 		 */
-		Path distPath = new Path(options.getHdfsdir() + "/Sort/Dist/" + key.getChr());
-		String writer = key.getChr() + "\t" + dist + "\t" + ref_length + "\n";
-		writeFile(distPath , writer);
+		//Path distPath = new Path(options.getHdfsdir() + "/Sort/Dist/" + key.getChr());
+		//String writer = key.getChr() + "\t" + dist + "\t" + ref_length + "\n";
+		//writeFile(distPath , writer);
 		return aprs;
 	}
 
@@ -357,28 +362,21 @@ public class BuildConnection {
 
 	}
 	
-	
+	/*
 	private void writeFile(Path path, String writer) {
-		FSDataOutputStream out = null;
+		System.out.println("Mean: " + writer);
+		out = null;
 		try {
 			out = FileSystem.get(conf).create(path,true);
+			System.out.println(out.toString());
 			out.write(writer.getBytes());
 	
 		} catch (IOException e) {
 			e.printStackTrace();
-		}finally {
-			if(out != null) {
-				try {
-					out.flush();
-					out.close();
-				} catch (Exception e2) {
-					e2.printStackTrace();
-				}
-			}
 		}
 		
 	}
-
+	*/
 	
 	/**
 	 * 遍历每一对有联系的区域，做最终的calling
@@ -485,5 +483,69 @@ public class BuildConnection {
 		}
 		finalType = (finalNum >= options.getMinpair()) ? finalType : null;
 		return finalType;
+	}
+	
+	
+	private Map<Integer, Integer> readInsertFile(String libconftxt){
+		br = null; fs = null;
+		
+		Map<Integer, Integer> map = new TreeMap<Integer, Integer>();
+		
+		try {
+			fs = FileSystem.get(this.conf);
+			FileStatus[] flist = fs.listStatus(new Path(libconftxt));
+			
+			for(FileStatus file : flist) {
+				
+				FSDataInputStream fsopen = fs.open(file.getPath());
+				br = new BufferedReader(new InputStreamReader(fsopen));
+				
+				String line = null;
+				while((line = br.readLine())!= null) {
+					String[] lines = line.split("\\t");
+					
+					int num;
+					if(!map.containsKey(Integer.parseInt(lines[0]))) {
+						num = Integer.parseInt(lines[1]);
+					}else {
+						int pnum = map.get(Integer.parseInt(lines[0]));
+						num = pnum + Integer.parseInt(lines[1]);
+					}
+					map.put(Integer.parseInt(lines[0]), num);
+				}
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return map;
+	}
+	
+	
+	public void close() {
+		if(out != null) {
+			try {
+				out.flush();
+				out.close();
+			}catch(Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		if(fs != null) {
+			try {
+				fs.close();
+			}catch(Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		if(br != null) {
+			try {
+				br.close();
+			}catch(Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
 	}
 }

@@ -62,6 +62,8 @@ public class CallStructuralVariationReducer extends Reducer<NewMapKey, SamWritab
 				context.write(NullWritable.get(), sv);
 			}
 		}
+		
+		bc.close();
 	}
 
 }
