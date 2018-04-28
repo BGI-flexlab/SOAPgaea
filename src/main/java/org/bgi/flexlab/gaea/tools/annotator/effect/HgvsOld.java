@@ -285,15 +285,16 @@ public class HgvsOld extends Hgvs {
 		// Are we in an exon?
 		// Note: This may come from an intron-exon boundary variant (intron side, walked in a duplication).
 		//       In that case, the exon marker won't be available from 'variantEffect.marker'.
-//		Exon ex = tr.findExon(pos);
-//		if (ex != null) return posExon(pos);
+
+		Exon ex = tr.findExon(pos);
+		if (ex != null) return posExon(pos);
 
 
 		Intron intron = tr.findIntron(pos);
 		if (intron != null) return posIntron(pos, intron);
 
-		if (isDownstream(pos)) return posDownstream(pos);
-		if (isUpstream(pos)) return posUpstream(pos);
+//		if (isDownstream(pos)) return posDownstream(pos);
+//		if (isUpstream(pos)) return posUpstream(pos);
 
 		if (debug) Gpr.debug("Unknown HGVS position " + pos + ", transcript " + tr);
 		return null;
@@ -316,7 +317,7 @@ public class HgvsOld extends Hgvs {
 		if (tr.isUtr3(pos)) return posUtr3(pos);
 		if (tr.isUtr5(pos)) return posUtr5(pos);
 
-		int idx = tr.baseNumberCds(pos, false) + 1; // Coding Exon: just use CDS position
+		int idx = tr.baseNumberTr(pos, false) + 1; // Coding Exon: just use CDS position
 
 		// Could not find dna position in transcript?
 		if (idx <= 0) return null;
@@ -356,7 +357,7 @@ public class HgvsOld extends Hgvs {
 		int cdsLeft = Math.min(tr.getCdsStart(), tr.getCdsEnd());
 		int cdsRight = Math.max(tr.getCdsStart(), tr.getCdsEnd());
 		if ((posExon >= cdsLeft) && (posExon <= cdsRight)) {
-			int distExonBase = tr.baseNumberCds(posExon, false) + 1;
+			int distExonBase = tr.baseNumberTr(posExon, false) + 1;
 			return distExonBase + (exonDistance > 0 ? posExonStr + exonDistance : "");
 		}
 
