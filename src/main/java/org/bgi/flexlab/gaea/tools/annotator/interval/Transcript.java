@@ -452,7 +452,7 @@ public class Transcript extends IntervalAndSubIntervals<Exon> {
 		if (!intersects(pos)) return -1;
 
 		// Is it in UTR instead of CDS?
-		if (isUtr(pos)) return -1;
+//		if (isUtr(pos)) return -1;
 
 		// All exons..
 		int firstCdsBaseInExon = 0; // Where the exon maps to the CDS (i.e. which CDS base number does the first base in this exon maps to).
