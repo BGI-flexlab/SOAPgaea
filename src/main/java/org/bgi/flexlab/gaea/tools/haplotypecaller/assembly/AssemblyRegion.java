@@ -23,8 +23,6 @@ import org.bgi.flexlab.gaea.util.ReadUtils;
 import org.bgi.flexlab.gaea.util.Utils;
 
 import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.reference.IndexedFastaSequenceFile;
-import htsjdk.samtools.reference.ReferenceSequenceFile;
 import htsjdk.samtools.util.Locatable;
 import htsjdk.samtools.util.PeekableIterator;
 
@@ -225,9 +223,12 @@ public final class AssemblyRegion implements Locatable {
 	 *         region.
 	 */
 	public List<GaeaSamRecord> getReads() {
-		return Collections.unmodifiableList(new ArrayList<>(reads));
+		return new ArrayList<>(reads);
 	}
 
+	public List<GaeaSamRecord> getUnmodifiableReads() {
+		return Collections.unmodifiableList(new ArrayList<>(reads));
+	}
 	/**
 	 * Returns the header for the reads in this region.
 	 */
@@ -776,5 +777,9 @@ public final class AssemblyRegion implements Locatable {
 
 			previousRegion = region;
 		}
+	}
+	
+	public void clear() {
+		this.reads.clear();
 	}
 }

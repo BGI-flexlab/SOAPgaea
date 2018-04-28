@@ -10,6 +10,8 @@ import java.util.List;
 import org.apache.commons.cli.ParseException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.util.LineReader;
 import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.data.mapreduce.options.HadoopOptions;
 import org.bgi.flexlab.gaea.data.options.GaeaOptions;
@@ -138,14 +140,13 @@ public class HaplotypeCallerOptions  extends GaeaOptions implements HadoopOption
 		if(fmt == SAMFormat.BAM)
 			inputs.add(path);
 		else {
-			BufferedReader br = new BufferedReader(new FileReader(input));
+			LineReader reader = new LineReader(path.getFileSystem(new Configuration()).open(path));
+			Text line = new Text();
 			
-			String line;
-			
-			while((line = br.readLine()) != null) {
-				inputs.add(new Path(line));
+			while(reader.readLine(line) > 0 && line.getLength() != 0) {
+				inputs.add(new Path(line.toString()));
 			}
-			br.close();
+			reader.close();
 		}
 	}
 
