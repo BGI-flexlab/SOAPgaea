@@ -25,6 +25,12 @@
 			<groupId>com.github.samtools</groupId>
 			<artifactId>htsjdk</artifactId>
 			<version>2.5.0</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.xerial.snappy</groupId>
+					<artifactId>snappy-java</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.seqdoop</groupId>
@@ -55,6 +61,10 @@
 				<exclusion>
 					<artifactId>commons-cli</artifactId>
 					<groupId>commons-cli</groupId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.xerial.snappy</groupId>
+					<artifactId>snappy-java</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>
@@ -121,11 +131,6 @@
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-math3</artifactId>
-			<version>3.6.1</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
 			<version>3.7</version>
 		</dependency>
@@ -145,11 +150,6 @@
 			<version>2.6.2</version>
 		</dependency>
 		<dependency>
-			<groupId>org.tukaani</groupId>
-			<artifactId>xz</artifactId>
-			<version>1.5</version>
-		</dependency>
-		<dependency>
 			<groupId>gov.nist.math</groupId>
 			<artifactId>jama</artifactId>
 			<version>1.0.3</version>
@@ -163,11 +163,6 @@
 			<groupId>org.reflections</groupId>
 			<artifactId>reflections</artifactId>
 			<version>0.9.10</version>
-		</dependency>
-		<dependency>
-			<groupId>com.google.java.contract</groupId>
-			<artifactId>cofoja</artifactId>
-			<version>1.1-r150</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>

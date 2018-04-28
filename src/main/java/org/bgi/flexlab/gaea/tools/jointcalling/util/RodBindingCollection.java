@@ -4,8 +4,6 @@ import java.lang.reflect.Constructor;
 import java.util.Collection;
 import java.util.Collections;
 
-import com.google.java.contract.Ensures;
-
 import htsjdk.tribble.Feature;
 
 public final class RodBindingCollection<T extends Feature> {
@@ -30,7 +28,6 @@ public final class RodBindingCollection<T extends Feature> {
     /**
      * @return the string name of the tribble type, such as vcf, bed, etc.
      */
-    @Ensures({"result != null"})
     final public Class<T> getType() {
         return type;
     }

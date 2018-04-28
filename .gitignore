@@ -1,11 +1,10 @@
 /target/
 /.settings/
 /.classpath
-/.idea
-/gaea.iml
 
-.fatjar
+.idea/
 
 *.jar
 
 TempFatjarBuildDir_erase_me/
+gaea.iml

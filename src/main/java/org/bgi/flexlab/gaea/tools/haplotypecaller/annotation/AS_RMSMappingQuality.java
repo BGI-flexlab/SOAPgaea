@@ -25,7 +25,6 @@ public final class AS_RMSMappingQuality extends InfoFieldAnnotation implements A
 
     private final String printFormat = "%.2f";
 
-    private static final Logger logger = Logger.getLogger(AS_RMSMappingQuality.class);
     public static final String SPLIT_DELIM = "\\|"; //String.split takes a regex, so we need to escape the pipe
     public static final String PRINT_DELIM = "|";
 
@@ -184,8 +183,6 @@ public final class AS_RMSMappingQuality extends InfoFieldAnnotation implements A
             }
             if (perAlleleValues.containsKey(current)) {
                 annotationString += String.format(printFormat, Math.sqrt((double) perAlleleValues.get(current) / variantADs.get(current)));
-            } else {
-                logger.warn("ERROR: VC allele is not found in annotation alleles -- maybe there was trimming?");
             }
         }
         return annotationString;
@@ -194,7 +191,6 @@ public final class AS_RMSMappingQuality extends InfoFieldAnnotation implements A
     private Map<Allele, Integer> getADcounts(final VariantContext vc) {
         final GenotypesContext genotypes = vc.getGenotypes();
         if ( genotypes == null || genotypes.size() == 0 ) {
-            logger.warn("VC does not have genotypes -- annotations were calculated in wrong order");
             return null;
         }
 

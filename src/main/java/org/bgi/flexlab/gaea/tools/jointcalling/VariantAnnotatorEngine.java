@@ -26,9 +26,7 @@ import org.bgi.flexlab.gaea.tools.jointcalling.genotypegvcfs.annotation.Reducibl
 import org.bgi.flexlab.gaea.tools.jointcalling.genotypegvcfs.annotation.VariantAnnotatorAnnotation;
 import org.bgi.flexlab.gaea.tools.jointcalling.util.GaeaGvcfVariantContextUtils;
 import org.bgi.flexlab.gaea.tools.jointcalling.util.RodBinding;
-
-import com.google.java.contract.Ensures;
-import com.google.java.contract.Requires;
+import org.bgi.flexlab.gaea.util.Utils;
 
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.Genotype;
@@ -207,9 +205,8 @@ public class VariantAnnotatorEngine {
 		return annotateDBs( annotated);
 	}
 	
-	@Requires({"tracker != null && loc != null && vc != null && infoAnnotations != null"})
-    @Ensures("result != null")
     private VariantContext annotateDBs(VariantContext vc) {
+		Utils.nonNull(vc, "variantContext must not be null");
         return variantOverlapAnnotator.annotateOverlaps( variantOverlapAnnotator.annotateRsID(vc));
     }
 
@@ -294,9 +291,11 @@ public class VariantAnnotatorEngine {
 		}
 	}
 	
-	@Requires({"tracker != null && loc != null && vc != null"})
     private void annotateExpressions(final RefMetaDataTracker tracker, final GenomeLocation loc, final VariantContext vc, final Map<String, Object> infoAnnotations){
 
+		Utils.nonNull(tracker, "refMetaDataTracker must not be null");
+		Utils.nonNull(loc, "GenomeLocation must not be null");
+		Utils.nonNull(vc, "VariantContext must not be null");
         // each requested expression
         for ( final VAExpression expression : requestedExpressions ) {
 

@@ -1,11 +1,11 @@
 package org.bgi.flexlab.gaea.tools.haplotypecaller.utils;
 
 import org.bgi.flexlab.gaea.data.exception.UserException;
+import org.bgi.flexlab.gaea.tools.haplotypecaller.math.EnumeratedDistribution;
 import org.bgi.flexlab.gaea.tools.jointcalling.util.GvcfMathUtils;
 import org.bgi.flexlab.gaea.util.QualityUtils;
 import org.bgi.flexlab.gaea.util.Utils;
 
-import org.apache.commons.math3.distribution.EnumeratedDistribution;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.stat.descriptive.moment.Variance;

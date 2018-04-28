@@ -10,9 +10,6 @@ import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.tools.genotyer.genotypeLikelihoodCalculator.Haplotype;
 import org.bgi.flexlab.gaea.util.AlignmentUtil;
 
-import com.google.java.contract.Ensures;
-import com.google.java.contract.Requires;
-
 import htsjdk.samtools.Cigar;
 import htsjdk.samtools.CigarElement;
 import htsjdk.samtools.CigarOperator;
@@ -388,7 +385,6 @@ public class AlignmentExtendUtils extends AlignmentUtil {
         return new Cigar(elements);
     }
 	
-	@Ensures("result != null")
     public static Cigar leftAlignIndel(Cigar cigar, final byte[] refSeq, final byte[] readSeq, final int refIndex, final int readIndex, final boolean doNotThrowExceptionForMultipleIndels) {
         ensureLeftAlignmentHasGoodArguments(cigar, refSeq, readSeq, refIndex, readIndex);
 
@@ -419,8 +415,6 @@ public class AlignmentExtendUtils extends AlignmentUtil {
      * @param cigar   cigar to check -- cannot be null
      * @return  non-negative count of indel operators
      */
-    @Requires("cigar != null")
-    @Ensures("result >= 0")
     private static int countIndelElements(final Cigar cigar) {
         int indelCount = 0;
         for ( CigarElement ce : cigar.getCigarElements() ) {
@@ -430,7 +424,6 @@ public class AlignmentExtendUtils extends AlignmentUtil {
         return indelCount;
     }
     
-    @Ensures("result != null")
     public static Cigar leftAlignSingleIndel(Cigar cigar, final byte[] refSeq, final byte[] readSeq, final int refIndex, final int readIndex, final boolean cleanupCigar) {
         ensureLeftAlignmentHasGoodArguments(cigar, refSeq, readSeq, refIndex, readIndex);
 
@@ -480,7 +473,6 @@ public class AlignmentExtendUtils extends AlignmentUtil {
         return cigar;
     }
     
-    @Requires("c != null")
     protected static boolean cigarHasZeroSizeElement(final Cigar c) {
         for (final CigarElement ce : c.getCigarElements()) {
             if (ce.getLength() == 0)
@@ -489,8 +481,6 @@ public class AlignmentExtendUtils extends AlignmentUtil {
         return false;
     }
     
-    @Requires("cigar != null && indexOfIndel >= 0 && indexOfIndel < cigar.numCigarElements()")
-    @Ensures("result != null")
     private static Cigar moveCigarLeft(Cigar cigar, int indexOfIndel) {
         // get the first few elements
         ArrayList<CigarElement> elements = new ArrayList<CigarElement>(cigar.numCigarElements());
@@ -514,8 +504,6 @@ public class AlignmentExtendUtils extends AlignmentUtil {
         return new Cigar(elements);
     }
     
-    @Requires("cigar != null && indexOfIndel >= 0 && indexOfIndel < cigar.numCigarElements() && refSeq != null && readSeq != null && refIndex >= 0 && readIndex >= 0")
-    @Ensures("result != null")
     private static byte[] createIndelString(final Cigar cigar, final int indexOfIndel, final byte[] refSeq, final byte[] readSeq, int refIndex, int readIndex) {
         CigarElement indel = cigar.getCigarElement(indexOfIndel);
         int indelLength = indel.getLength();

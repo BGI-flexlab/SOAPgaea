@@ -4,9 +4,7 @@ import java.io.File;
 import java.util.List;
 
 import org.bgi.flexlab.gaea.tools.jointcalling.util.SimpleTimer;
-
-import com.google.java.contract.Ensures;
-import com.google.java.contract.Requires;
+import org.bgi.flexlab.gaea.util.Utils;
 
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.GenotypeBuilder;
@@ -108,8 +106,6 @@ public abstract class AFCalculator implements Cloneable {
 	 *            the priors by AC vector
 	 * @return a AFCalculationResult describing the result of this calculation
 	 */
-	@Requires("stateTracker.getnEvaluations() >= 0")
-	@Ensures("result != null")
 	protected AFCalculationResult getResultFromFinalState(final VariantContext vcWorking,
 			final double[] log10AlleleFrequencyPriors, final StateTracker stateTracker) {
 		stateTracker.setAllelesUsedInGenotyping(vcWorking.getAlleles());
@@ -135,8 +131,6 @@ public abstract class AFCalculator implements Cloneable {
 	 *            the initial VC provided by the caller to this AFcalculation
 	 * @return a potentially simpler VC that's more tractable to genotype
 	 */
-	@Requires({ "vc != null", "vc.getNAlleles() > 1" })
-	@Ensures("result != null")
 	protected abstract VariantContext reduceScope(final VariantContext vc, final int defaultPloidy,
 			final int maximumAlternativeAlleles);
 
@@ -151,7 +145,6 @@ public abstract class AFCalculator implements Cloneable {
 	 *            priors
 	 * @return a AFCalcResult object describing the results of this calculation
 	 */
-	@Requires({ "vc != null", "log10AlleleFrequencyPriors != null", "vc.getNAlleles() > 1" })
 	protected abstract AFCalculationResult computeLog10PNonRef(final VariantContext vc, final int defaultPloidy,
 			final double[] log10AlleleFrequencyPriors, final StateTracker stateTracker);
 

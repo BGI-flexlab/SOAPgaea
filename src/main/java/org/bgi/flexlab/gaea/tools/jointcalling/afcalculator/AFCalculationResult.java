@@ -9,9 +9,6 @@ import java.util.Map;
 import org.bgi.flexlab.gaea.util.MathUtils;
 import org.bgi.flexlab.gaea.util.Utils;
 
-import com.google.java.contract.Ensures;
-import com.google.java.contract.Requires;
-
 import htsjdk.variant.variantcontext.Allele;
 
 public class AFCalculationResult {
@@ -108,7 +105,6 @@ public class AFCalculationResult {
 	 *
 	 * @return a vector with allele counts, not all of which may be meaningful
 	 */
-	@Ensures("result != null")
 	public int[] getAlleleCountsOfMLE() {
 		return alleleCountsOfMLE;
 	}
@@ -147,7 +143,6 @@ public class AFCalculationResult {
 	 * @return a non-empty list of alleles used during genotyping, the first of
 	 *         which is the reference allele
 	 */
-	@Ensures({ "result != null", "! result.isEmpty()" })
 	public List<Allele> getAllelesUsedInGenotyping() {
 		return allelesUsedInGenotyping;
 	}
@@ -158,7 +153,6 @@ public class AFCalculationResult {
 	 *
 	 * @return
 	 */
-	@Ensures({ "MathUtils.goodLog10Probability(result)" })
 	public double getLog10PosteriorOfAFEq0() {
 		return log10PosteriorsOfAC[AF0];
 	}
@@ -169,7 +163,6 @@ public class AFCalculationResult {
 	 *
 	 * @return
 	 */
-	@Ensures({ "MathUtils.goodLog10Probability(result)" })
 	public double getLog10PosteriorOfAFGT0() {
 		return log10PosteriorsOfAC[AF1p];
 	}
@@ -180,7 +173,6 @@ public class AFCalculationResult {
 	 *
 	 * @return
 	 */
-	@Ensures({ "MathUtils.goodLog10Probability(result)" })
 	public double getLog10LikelihoodOfAFEq0() {
 		return log10LikelihoodsOfAC[AF0];
 	}
@@ -191,7 +183,6 @@ public class AFCalculationResult {
 	 *
 	 * @return
 	 */
-	@Ensures({ "MathUtils.goodLog10Probability(result)" })
 	public double getLog10LikelihoodOfAFGT0() {
 		return log10LikelihoodsOfAC[AF1p];
 	}
@@ -202,7 +193,6 @@ public class AFCalculationResult {
 	 *
 	 * @return
 	 */
-	@Ensures({ "MathUtils.goodLog10Probability(result)" })
 	public double getLog10PriorOfAFEq0() {
 		return log10PriorsOfAC[AF0];
 	}
@@ -213,7 +203,6 @@ public class AFCalculationResult {
 	 *
 	 * @return
 	 */
-	@Ensures({ "MathUtils.goodLog10Probability(result)" })
 	public double getLog10PriorOfAFGT0() {
 		return log10PriorsOfAC[AF1p];
 	}
@@ -249,7 +238,6 @@ public class AFCalculationResult {
 	 * @return true if there's enough confidence (relative to log10minPNonRef)
 	 *         to reject AF == 0
 	 */
-	@Requires("MathUtils.goodLog10Probability(log10minPNonRef)")
 	public boolean isPolymorphic(final Allele allele, final double log10minPNonRef) {
 		return getLog10PosteriorOfAFEq0ForAllele(allele) < log10minPNonRef;
 	}
@@ -301,7 +289,6 @@ public class AFCalculationResult {
 	 *            getAllelesUsedInGenotyping
 	 * @return the log10 probability that allele is not segregating at this site
 	 */
-	@Ensures("MathUtils.goodLog10Probability(result)")
 	public double getLog10PosteriorOfAFEq0ForAllele(final Allele allele) {
 		final Double log10pNonRef = log10pRefByAllele.get(allele);
 		if (log10pNonRef == null)
@@ -318,9 +305,8 @@ public class AFCalculationResult {
 	 *
 	 * @return freshly allocated log10 normalized posteriors vector
 	 */
-	@Requires("log10LikelihoodsOfAC.length == log10PriorsOfAC.length")
-	@Ensures("MathUtils.goodLog10ProbVector(result, LOG_10_ARRAY_SIZES, true)")
 	private static double[] computePosteriors(final double[] log10LikelihoodsOfAC, final double[] log10PriorsOfAC) {
+		Utils.validateArg(log10LikelihoodsOfAC.length <= log10PriorsOfAC.length, "must equal length.");
 		final double[] log10UnnormalizedPosteriors = new double[log10LikelihoodsOfAC.length];
 		for (int i = 0; i < log10LikelihoodsOfAC.length; i++)
 			log10UnnormalizedPosteriors[i] = log10LikelihoodsOfAC[i] + log10PriorsOfAC[i];
@@ -341,9 +327,8 @@ public class AFCalculationResult {
 	 * @return an index value greater than 0 suitable for indexing into the MLE
 	 *         and other alt allele indexed arrays
 	 */
-	@Requires("allele != null")
-	@Ensures({ "result >= 0", "result < allelesUsedInGenotyping.size() - 1" })
 	private int altAlleleIndex(final Allele allele) {
+		Utils.nonNull(allele, "allele must no null!");
 		if (allele.isReference())
 			throw new IllegalArgumentException("Cannot get the alt allele index for reference allele " + allele);
 		final int index = allelesUsedInGenotyping.indexOf(allele);

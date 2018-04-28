@@ -2,6 +2,7 @@ package org.bgi.flexlab.gaea.tools.mapreduce.haplotypecaller;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
@@ -121,12 +122,16 @@ public class HaplotypeCallerReducer extends Reducer<WindowsBasedWritable, SamRec
 			if(tracker == null)
 				tracker = new RefMetaDataTracker();
 			ArrayList<VariantContext> dbsnps = getRegionVatiantContext(chr,number,winSize,end,dbsnpShare,DBloader);
+			if(dbsnps == null)
+				dbsnps = new ArrayList<VariantContext>();
 			tracker.add(RefMetaDataTracker.DB_VALUE, dbsnps);
 		}
 		if(alleleShare != null) {
 			if(tracker == null)
 				tracker = new RefMetaDataTracker();
 			ArrayList<VariantContext> dbsnps = getRegionVatiantContext(chr,number,winSize,end,alleleShare,alleleLoader);
+			if(dbsnps == null)
+				dbsnps = new ArrayList<VariantContext>();
 			tracker.add(RefMetaDataTracker.ALLELE_VALUE, dbsnps);
 		}
 		
@@ -137,18 +142,19 @@ public class HaplotypeCallerReducer extends Reducer<WindowsBasedWritable, SamRec
     public void reduce(WindowsBasedWritable key, Iterable<SamRecordWritable> values, Context context) throws IOException, InterruptedException {
 		if(key.getChromosomeIndex() < 0)
 			return;
+		
 		Window win = new Window(header, key.getChromosomeIndex(), key.getWindowsNumber(), options.getWindowSize());
 		
 		int start = key.getWindowsNumber() * options.getWindowSize() ;
 		start = start == 0 ? 1 : start;
 		int end = start + options.getWindowSize() - 1;
 		
-		String chr = header.getSequence(key.getChromosomeIndex()).getSequenceName();
+		String chr = win.getContigName();
 		ChromosomeInformationShare chrInfo = genomeShare.getChromosomeInfo(chr);
 		
 		RefMetaDataTracker tracker = createTracker(chr,key.getWindowsNumber(),options.getWindowSize(),end);
 		haplotypecaller.dataSourceReset(win, values, chrInfo, tracker);
-		haplotypecaller.traverse(writer);
+		haplotypecaller.traverse(writer,win);
 	}
 	
 	@Override

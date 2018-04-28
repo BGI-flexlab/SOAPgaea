@@ -1,7 +1,6 @@
 package org.bgi.flexlab.gaea.tools.haplotypecaller.annotation;
 
-import org.apache.commons.math3.distribution.AbstractIntegerDistribution;
-import org.apache.commons.math3.distribution.HypergeometricDistribution;
+import org.bgi.flexlab.gaea.tools.haplotypecaller.math.HypergeometricDistribution;
 import org.bgi.flexlab.gaea.tools.jointcalling.util.GvcfMathUtils;
 import org.bgi.flexlab.gaea.util.IndexRange;
 import org.bgi.flexlab.gaea.util.Utils;
@@ -38,7 +37,7 @@ public final class FisherExactTest {
 			return 1.0;
 		}
 
-		final AbstractIntegerDistribution dist = new HypergeometricDistribution(null, m + n, m, k);
+		final HypergeometricDistribution dist = new HypergeometricDistribution(null, m + n, m, k);
 		final double[] logds = support.mapToDouble(dist::logProbability);
 		final double threshold = logds[x[0][0] - lo] * REL_ERR;
 		final double[] log10ds = DoubleStream.of(logds).filter(d -> d <= threshold).map(GvcfMathUtils::logToLog10)

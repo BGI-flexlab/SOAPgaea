@@ -27,7 +27,8 @@ public class AllLocusIterator implements Iterator<AlignmentContext> {
         
         this.nestedLocusIterator = new PeekableIterator<>(nestedLocusIterator);
         this.interval = interval;
-        this.currentPosition = interval.getStart();
+        //this.currentPosition = interval.getStart();
+        this.currentPosition = -1;
 
         // Sanity check:
         if ( this.nestedLocusIterator.peek() != null && ! this.nestedLocusIterator.peek().getContig().equals(interval.getContig()) ) {
@@ -71,7 +72,13 @@ public class AllLocusIterator implements Iterator<AlignmentContext> {
 
         final AlignmentContext nextNestedPileup = nestedLocusIterator.peek();
         AlignmentContext toReturn;
-
+        
+        if( nextNestedPileup != null ) {
+        	currentPosition = nextNestedPileup.getStart();
+        }
+        else
+        	return null;
+        	
         // No more pileups from the nested iterator? then always return an empty pileup
         if ( nextNestedPileup == null ) {
             toReturn = createEmptyAlignmentContextForPosition(currentPosition);
@@ -86,7 +93,7 @@ public class AllLocusIterator implements Iterator<AlignmentContext> {
             toReturn = createEmptyAlignmentContextForPosition(currentPosition);
         }
 
-        currentPosition++;
+        //currentPosition++;
         return toReturn;
     }
 

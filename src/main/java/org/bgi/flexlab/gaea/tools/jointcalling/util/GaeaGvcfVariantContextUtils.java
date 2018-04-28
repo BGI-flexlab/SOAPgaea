@@ -32,9 +32,6 @@ import org.bgi.flexlab.gaea.util.MathUtils;
 import org.bgi.flexlab.gaea.util.Pair;
 import org.bgi.flexlab.gaea.util.Utils;
 
-import com.google.java.contract.Ensures;
-import com.google.java.contract.Requires;
-
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.tribble.AbstractFeatureReader;
 import htsjdk.tribble.util.popgen.HardyWeinbergCalculation;
@@ -290,7 +287,6 @@ public class GaeaGvcfVariantContextUtils extends GaeaVariantContextUtils {
 	 *            not this is assumed to include the PADDED reference
 	 * @return
 	 */
-	@Requires({ "vc != null", "refBasesStartingAtVCWithPad != null && refBasesStartingAtVCWithPad.length > 0" })
 	public static boolean isTandemRepeat(final VariantContext vc, final byte[] refBasesStartingAtVCWithPad) {
 		final String refBasesStartingAtVCWithoutPad = new String(refBasesStartingAtVCWithPad).substring(1);
 		if (!vc.isIndel()) // only indels are tandem repeats
@@ -313,7 +309,6 @@ public class GaeaGvcfVariantContextUtils extends GaeaVariantContextUtils {
 	 * @param refBasesStartingAtVCWithPad
 	 * @return
 	 */
-	@Requires({ "vc != null", "refBasesStartingAtVCWithPad != null && refBasesStartingAtVCWithPad.length > 0" })
 	public static Pair<List<Integer>, byte[]> getNumTandemRepeatUnits(final VariantContext vc,
 			final byte[] refBasesStartingAtVCWithPad) {
 		final boolean VERBOSE = false;
@@ -1779,7 +1774,6 @@ public class GaeaGvcfVariantContextUtils extends GaeaVariantContextUtils {
 	 * @return a non-null VariantContext (may be == to inputVC) with trimmed up
 	 *         alleles
 	 */
-	@Ensures("result != null")
 	public static VariantContext trimAlleles(final VariantContext inputVC, final boolean trimForward,
 			final boolean trimReverse) {
 		if (inputVC == null)
@@ -1813,8 +1807,6 @@ public class GaeaGvcfVariantContextUtils extends GaeaVariantContextUtils {
 	 * @return a non-null VariantContext (may be == to inputVC) with trimmed up
 	 *         alleles
 	 */
-	@Requires({ "inputVC != null" })
-	@Ensures("result != null")
 	protected static VariantContext trimAlleles(final VariantContext inputVC, final int fwdTrimEnd, final int revTrim) {
 		if (fwdTrimEnd == -1 && revTrim == 0) // nothing to do, so just return
 												// inputVC unmodified
@@ -1850,7 +1842,6 @@ public class GaeaGvcfVariantContextUtils extends GaeaVariantContextUtils {
 		return builder.make();
 	}
 
-	@Requires("originalGenotypes != null && alleleMapper != null")
 	protected static GenotypesContext updateGenotypesWithMappedAlleles(final GenotypesContext originalGenotypes,
 			final AlleleMapper alleleMapper) {
 		final GenotypesContext updatedGenotypes = GenotypesContext.create(originalGenotypes.size());

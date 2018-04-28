@@ -28,8 +28,6 @@ import org.bgi.flexlab.gaea.tools.mapreduce.jointcalling.JointCallingOptions;
 import org.bgi.flexlab.gaea.util.GaeaVCFConstants;
 import org.bgi.flexlab.gaea.util.Utils;
 
-import com.google.java.contract.Requires;
-
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.GenotypeLikelihoods;
@@ -113,10 +111,12 @@ public class UnifiedGenotypingEngine {
 		private final int[] mleCounts;
 		private final int count;
 
-		@Requires({ "count >= 0", "alleles != null", "mleCounts != null", "count <= alleles.length",
-				" count <= mleCounts" })
 		private OutputAlleleSubset(final int count, final Allele[] alleles, final int[] mleCounts,
 				final boolean siteIsMonomorphic) {
+			Utils.nonNull(alleles, "alleles must not be null");
+			Utils.nonNull(mleCounts, "mleCounts must not be null");
+			Utils.validateArg(count <= alleles.length, "count must be <= "+alleles.length);
+			Utils.validateArg(count <= mleCounts.length, "count must be <= "+mleCounts.length);
 			this.siteIsMonomorphic = siteIsMonomorphic;
 			this.count = count;
 			this.alleles = alleles;
@@ -174,10 +174,10 @@ public class UnifiedGenotypingEngine {
 		return calculateGenotypes(vc, model, false, useAlleleSpecificCalcs);
 	}
 
-	@Requires("vc != null")
 	protected final boolean hasTooManyAlternativeAlleles(final VariantContext vc) {
 		// protect against too many alternate alleles that we can't even run AF
 		// on:
+		Utils.nonNull(vc, "variantContext must not be null");
 		if (vc.getNAlleles() <= GenotypeLikelihoods.MAX_DIPLOID_ALT_ALLELES_THAT_CAN_BE_GENOTYPED)
 			return false;
 		return true;

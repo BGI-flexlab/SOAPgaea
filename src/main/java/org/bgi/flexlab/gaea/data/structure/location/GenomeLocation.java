@@ -86,6 +86,10 @@ public class GenomeLocation implements Comparable<GenomeLocation>, Comparator<Ge
 	public GenomeLocation(final Locatable locatable) {
 		this(Utils.nonNull(locatable).getContig(), -1, locatable.getStart(), locatable.getEnd());
 	}
+	
+	public GenomeLocation(final GenomeLocation location) {
+		this(Utils.nonNull(location).getContig(), location.getContigIndex(), location.getStart(), location.getEnd());
+	}
 
 	/** Unsafe constructor for special constant genome locs */
 	private GenomeLocation(final String contig) {
@@ -106,6 +110,10 @@ public class GenomeLocation implements Comparable<GenomeLocation>, Comparator<Ge
 	
 	public static final GenomeLocation createGenomeLocation(String contig,int start, int end,int contigLength) {
 		return new GenomeLocation(contig, -1, start, Math.min(end, contigLength));
+	}
+	
+	public static final GenomeLocation createGenomeLocation(String contig,int start, int end,int contigStart,int contigLength) {
+		return new GenomeLocation(contig, -1, Math.max(start,contigStart), Math.min(end, contigLength));
 	}
 
 	public final GenomeLocation getStartLocation() {
@@ -162,11 +170,24 @@ public class GenomeLocation implements Comparable<GenomeLocation>, Comparator<Ge
 	}
 
 	public final boolean overlaps(Locatable that) {
-		return !disjoint(that);
+		return overlapsWithMargin(that,0);
 	}
+	
+	public boolean overlapsWithMargin(final Locatable other, final int margin) {
+        if ( margin < 0 ) {
+            throw new IllegalArgumentException("given margin is negative: " + margin +
+                    "\tfor this: " + toString() + "\tand that: " + (other == null ? "other is null" : other.toString()));
+        }
+        if ( other == null || other.getContig() == null ) {
+            return false;
+        }
+
+        return this.contigName.equals(other.getContig()) && this.contigStart <= other.getEnd() + margin && other.getStart() - margin <= this.contigEnd;
+    }
 
 	public final boolean contiguous(Locatable that) {
-		return !discontinuous(that);
+		Utils.nonNull(that);
+	    return this.getContig().equals(that.getContig()) && this.getStart() <= that.getEnd() + 1 && that.getStart() <= this.getEnd() + 1;
 	}
 
 	/**
@@ -514,8 +535,7 @@ public class GenomeLocation implements Comparable<GenomeLocation>, Comparator<Ge
 				Math.max(getEnd(), that.getEnd()));
 	}
 	
-	public static List<GenomeLocation> getGenomeLocationFromWindow(Window win,RegionHdfsParser region){
-		List<GenomeLocation> intervals = new ArrayList<GenomeLocation>();
+	public static void getGenomeLocationFromWindow(List<GenomeLocation> intervals,Window win,RegionHdfsParser region){
 		if (!intervals.isEmpty())
 			intervals.clear();
 
@@ -524,8 +544,8 @@ public class GenomeLocation implements Comparable<GenomeLocation>, Comparator<Ge
 		int index = win.getChrIndex();
 		int stop = win.getStop();
 		if (region == null) {
-			intervals.add(new GenomeLocation(chr, index, start, stop - 1));
-			return intervals;
+			intervals.add(new GenomeLocation(chr, index, start, stop));
+			return ;
 		}
 		int length = stop - start;
 
@@ -553,6 +573,5 @@ public class GenomeLocation implements Comparable<GenomeLocation>, Comparator<Ge
 
 		if (intervalStart != -1)
 			intervals.add(new GenomeLocation(chr, index, intervalStart, stop - 1));
-		return intervals;
 	} 
 }

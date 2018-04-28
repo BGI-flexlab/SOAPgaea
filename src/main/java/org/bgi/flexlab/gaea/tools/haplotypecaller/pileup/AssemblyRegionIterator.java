@@ -102,7 +102,9 @@ public class AssemblyRegionIterator implements Iterator<AssemblyRegion> {
 
         // We wrap our LocusIteratorByState inside an AllLocusIterator so that we get empty loci
         // for uncovered locations. This is critical for reproducing GATK 3.x behavior!
-        final LocusIteratorByState libs = new LocusIteratorByState(readCachingIterator, DownsamplingMethod.NONE, false, ReadUtils.getSamplesFromHeader(readHeader), readHeader, includeReadsWithDeletionsInIsActivePileups);
+        DownsamplingMethod samplingMethod = new DownsamplingMethod(DownsamplingMethod.DEFAULT_DOWNSAMPLING_TYPE,300,null);
+        //final LocusIteratorByState libs = new LocusIteratorByState(readCachingIterator, DownsamplingMethod.NONE, false, ReadUtils.getSamplesFromHeader(readHeader), readHeader, includeReadsWithDeletionsInIsActivePileups);
+        final LocusIteratorByState libs = new LocusIteratorByState(readCachingIterator,samplingMethod, false, ReadUtils.getSamplesFromHeader(readHeader), readHeader, includeReadsWithDeletionsInIsActivePileups);
         this.locusIterator = new AllLocusIterator(readShard.getInterval(), libs);
 
         readyRegion = loadNextAssemblyRegion();
@@ -189,6 +191,7 @@ public class AssemblyRegionIterator implements Iterator<AssemblyRegion> {
                     region.add(previousRegionRead);
                 }
             }
+            previousRegionReads.clear();
         }
 
         // Update our read cache with the reads newly-read by our locus iterator.
