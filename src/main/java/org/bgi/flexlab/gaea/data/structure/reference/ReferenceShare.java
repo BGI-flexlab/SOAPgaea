@@ -39,6 +39,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class ReferenceShare extends WholeGenomeShare {
 	private static final String CACHE_NAME = "refList";
+	
+	private String prevChrName = null;
 
 	/**
 	 * 染色体信息Map
@@ -118,8 +120,17 @@ public class ReferenceShare extends WholeGenomeShare {
 	 * @return
 	 */
 	public ChromosomeInformationShare getChromosomeInfo(String chrName) {
+		return getChromosomeInfo(chrName,false);
+	}
+	
+	// clean refInfo
+	public ChromosomeInformationShare getChromosomeInfo(String chrName,boolean cleanPreChromosome) {
 		if (chromosomeInfoMap.get(ChromosomeUtils.formatChrName(chrName)) == null)
 			throw new RuntimeException("chr name not in GaeaIndex of ref:" + chrName);
+		if(cleanPreChromosome && this.prevChrName != null && !this.prevChrName.equals(chrName))
+			chromosomeInfoMap.remove(this.prevChrName);
+		this.prevChrName = chrName;
+
 		//FIXME::temporary solution for chromosome name problem.
 		ChromosomeInformationShare chrInfo = chromosomeInfoMap.get(ChromosomeUtils.formatChrName(chrName));
 		chrInfo.setChromosomeName(chrName);

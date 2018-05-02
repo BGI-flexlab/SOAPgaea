@@ -102,9 +102,9 @@ public class AssemblyRegionIterator implements Iterator<AssemblyRegion> {
 
         // We wrap our LocusIteratorByState inside an AllLocusIterator so that we get empty loci
         // for uncovered locations. This is critical for reproducing GATK 3.x behavior!
-        DownsamplingMethod samplingMethod = new DownsamplingMethod(DownsamplingMethod.DEFAULT_DOWNSAMPLING_TYPE,300,null);
-        //final LocusIteratorByState libs = new LocusIteratorByState(readCachingIterator, DownsamplingMethod.NONE, false, ReadUtils.getSamplesFromHeader(readHeader), readHeader, includeReadsWithDeletionsInIsActivePileups);
-        final LocusIteratorByState libs = new LocusIteratorByState(readCachingIterator,samplingMethod, false, ReadUtils.getSamplesFromHeader(readHeader), readHeader, includeReadsWithDeletionsInIsActivePileups);
+        //DownsamplingMethod samplingMethod = new DownsamplingMethod(DownsamplingMethod.DEFAULT_DOWNSAMPLING_TYPE,300,null);
+        final LocusIteratorByState libs = new LocusIteratorByState(readCachingIterator, DownsamplingMethod.NONE, false, ReadUtils.getSamplesFromHeader(readHeader), readHeader, includeReadsWithDeletionsInIsActivePileups);
+        //final LocusIteratorByState libs = new LocusIteratorByState(readCachingIterator,samplingMethod, false, ReadUtils.getSamplesFromHeader(readHeader), readHeader, includeReadsWithDeletionsInIsActivePileups);
         this.locusIterator = new AllLocusIterator(readShard.getInterval(), libs);
 
         readyRegion = loadNextAssemblyRegion();
@@ -158,6 +158,7 @@ public class AssemblyRegionIterator implements Iterator<AssemblyRegion> {
             if ( ! pendingRegions.isEmpty() && isAfter(pileup.getLocation(), pendingRegions.peek().getExtendedSpan(), readHeader.getSequenceDictionary()) ) {
                 nextRegion = pendingRegions.poll();
             }
+            pileup.clear();
         }
 
         // When we run out of loci, close out the activity profile, and close out any remaining pending regions one at a time

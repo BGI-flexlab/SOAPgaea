@@ -496,5 +496,9 @@ public class ReadPileup implements Iterable<PileupElement> {
         }
         return new String(quals);
     }
+    
+    public void clear() {
+    	this.pileupElements.clear();
+    }
 }
 

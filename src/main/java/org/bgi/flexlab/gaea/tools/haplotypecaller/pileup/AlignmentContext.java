@@ -147,4 +147,8 @@ public final class AlignmentContext implements Locatable {
 		return "AlignmentContext{" + "loc=" + loc + ", basePileup=" + basePileup + ", hasPileupBeenDownsampled="
 				+ hasPileupBeenDownsampled + '}';
 	}
+	
+	public void clear() {
+		this.basePileup.clear();
+	}
 }

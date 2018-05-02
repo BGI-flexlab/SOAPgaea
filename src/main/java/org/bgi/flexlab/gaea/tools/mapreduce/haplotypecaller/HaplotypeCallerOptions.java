@@ -1,7 +1,5 @@
 package org.bgi.flexlab.gaea.tools.mapreduce.haplotypecaller;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -67,6 +65,8 @@ public class HaplotypeCallerOptions  extends GaeaOptions implements HadoopOption
 		addOption("b","hets",true,"Heterozygosity value used to compute prior likelihoods for any locus");
 		addOption("B","indel_hets",true,"Heterozygosity for indel calling");
 		addOption("C","sample_ploidy",true,"Ploidy (number of chromosomes) per sample. For pooled data, set to (Number of samples in each pool * Sample Ploidy).");
+		addOption("c","shard_size",true,"read shard size.");
+		addOption("d","shard_padding_size",true,"read shard padding size.");
 		addOption("f", "format", false, "output format is gvcf");
 		addOption("E","windowExtendSize",true,"key window extend size.");
 		addOption("G", "gt_mode",true,"Specifies how to determine the alternate alleles to use for genotyping(DISCOVERY or GENOTYPE_GIVEN_ALLELES)");
@@ -123,6 +123,8 @@ public class HaplotypeCallerOptions  extends GaeaOptions implements HadoopOption
 		
 		this.windowsSize = getOptionIntValue("w",10000);
 		this.reduceNumber = getOptionIntValue("n",100);
+		this.readShardSize = getOptionIntValue("c",300);
+		this.readPaddingSize = getOptionIntValue("d",100);
 		
 		this.output = getOptionValue("o",null);
 		this.reference = getOptionValue("r",null);
