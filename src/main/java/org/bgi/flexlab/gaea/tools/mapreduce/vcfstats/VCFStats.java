@@ -53,11 +53,11 @@ public class VCFStats extends ToolsRunner {
         job.setJobName("GaeaVCFStats");
         job.setJarByClass(this.getClass());
         job.setMapperClass(Mapper.class);
-        job.setReducerClass(VCFStatsReducer.class);
+//        job.setReducerClass(VCFStatsReducer.class);
         job.setNumReduceTasks(options.getReducerNum());
 
-        job.setMapOutputKeyClass(Text.class);
-        job.setMapOutputValueClass(VariantContextWritable.class);
+//        job.setMapOutputKeyClass(Text.class);
+//        job.setMapOutputValueClass(VariantContextWritable.class);
 
 
         MNLineInputFormat.addInputPath(job, new Path(options.getInput()));
