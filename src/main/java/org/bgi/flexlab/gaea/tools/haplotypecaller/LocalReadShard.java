@@ -151,11 +151,11 @@ public final class LocalReadShard implements Shard<GaeaSamRecord> {
 	 */
 	@Override
 	public Iterator<GaeaSamRecord> iterator() {
-		Iterator<GaeaSamRecord> readsIterator = readsSource.query(paddedInterval);
+		Iterator<GaeaSamRecord> readsIterator = readsSource.query(paddedInterval,readFilter);
 
-		if (readFilter != null) {
+		/*if (readFilter != null) {
 			readsIterator = new ReadFilteringIterator(readsIterator, readFilter);
-		}
+		}*/
 
 		if (downsampler != null) {
 			readsIterator = new ReadsDownsamplingIterator(readsIterator, downsampler);
