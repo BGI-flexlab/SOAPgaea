@@ -70,6 +70,7 @@ public class AssemblyRegionIterator implements Iterator<AssemblyRegion> {
                                   final int assemblyRegionPadding,
                                   final double activeProbThreshold,
                                   final int maxProbPropagationDistance,
+                                  final int maxReadsPerPosition,
                                   final boolean includeReadsWithDeletionsInIsActivePileups) {
 
         Utils.nonNull(readShard);
@@ -102,7 +103,7 @@ public class AssemblyRegionIterator implements Iterator<AssemblyRegion> {
 
         // We wrap our LocusIteratorByState inside an AllLocusIterator so that we get empty loci
         // for uncovered locations. This is critical for reproducing GATK 3.x behavior!
-        //DownsamplingMethod samplingMethod = new DownsamplingMethod(DownsamplingMethod.DEFAULT_DOWNSAMPLING_TYPE,300,null);
+        //DownsamplingMethod samplingMethod = new DownsamplingMethod(DownsamplingMethod.DEFAULT_DOWNSAMPLING_TYPE,maxReadsPerPosition,null);
         final LocusIteratorByState libs = new LocusIteratorByState(readCachingIterator, DownsamplingMethod.NONE, false, ReadUtils.getSamplesFromHeader(readHeader), readHeader, includeReadsWithDeletionsInIsActivePileups);
         //final LocusIteratorByState libs = new LocusIteratorByState(readCachingIterator,samplingMethod, false, ReadUtils.getSamplesFromHeader(readHeader), readHeader, includeReadsWithDeletionsInIsActivePileups);
         this.locusIterator = new AllLocusIterator(readShard.getInterval(), libs);
