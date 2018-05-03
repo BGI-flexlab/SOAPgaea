@@ -31,6 +31,18 @@ public class Pair<X, Y> {
 		second = y;
 	}
 
+	/**
+	 * Utility method to make creating pairs easier by skipping typing out the types
+	 * @param one the first item
+	 * @param two the second item
+	 * @param <T1> type of the first item
+	 * @param <T2> type of the second item
+	 * @return a pair containing both items
+	 */
+	public static<T1, T2> Pair<T1, T2> create(T1 one, T2 two) {
+		return new Pair<>(one, two);
+	}
+
 	public X getFirst() {
 		return first;
 	}
