@@ -20,19 +20,13 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
-import org.bgi.flexlab.gaea.data.mapreduce.input.vcf.VCFMultipleInputFormat;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.BioJob;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.ToolsRunner;
-import org.bgi.flexlab.gaea.tools.mapreduce.annotator.MNLineInputFormat;
 import org.bgi.flexlab.gaea.tools.vcfstats.report.VCFReport;
 import org.seqdoop.hadoop_bam.VCFInputFormat;
 import org.seqdoop.hadoop_bam.VCFOutputFormat;
-import org.seqdoop.hadoop_bam.VariantContextWritable;
 
 public class VCFStats extends ToolsRunner {
 
@@ -52,30 +46,28 @@ public class VCFStats extends ToolsRunner {
 
         job.setJobName("GaeaVCFStats");
         job.setJarByClass(this.getClass());
-        job.setMapperClass(Mapper.class);
+        job.setMapperClass(VCFStatsMapper.class);
 //        job.setReducerClass(VCFStatsReducer.class);
-        job.setNumReduceTasks(options.getReducerNum());
+        job.setNumReduceTasks(0);
 
 //        job.setMapOutputKeyClass(Text.class);
 //        job.setMapOutputValueClass(VariantContextWritable.class);
 
 
-        MNLineInputFormat.addInputPath(job, new Path(options.getInput()));
-        MNLineInputFormat.setMinNumLinesToSplit(job,1000); //按行处理的最小单位
-        MNLineInputFormat.setMapperNum(job, options.getReducerNum());
+        VCFInputFormat.addInputPath(job, new Path(options.getInput()));
 
         job.setOutputKeyClass(NullWritable.class);
         job.setOutputValueClass(Text.class);
 //        job.setOutputKeyValue();
 
-        job.setInputFormatClass(MNLineInputFormat.class);
+        job.setInputFormatClass(VCFInputFormat.class);
         job.setOutputFormatClass(TextOutputFormat.class);
 
         Path partTmp = new Path(options.getOutputPath() + "/out_vcf");
         FileOutputFormat.setOutputPath(job, partTmp);
 
-        MultipleOutputs.addNamedOutput(job, "Statistic",
-                TextOutputFormat.class, NullWritable.class, Text.class);
+//        MultipleOutputs.addNamedOutput(job, "Statistic",
+//                TextOutputFormat.class, NullWritable.class, Text.class);
 
         if (job.waitForCompletion(true)) {
             VCFReport report = new VCFReport();

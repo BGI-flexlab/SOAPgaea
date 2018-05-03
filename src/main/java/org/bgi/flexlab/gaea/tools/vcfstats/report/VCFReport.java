@@ -13,27 +13,27 @@ import java.util.Map;
 
 public class VCFReport {
 
-    private Map<String, SampleVCFReport> sampleVCFReports;
+    private Map<String, PerSampleVCFReport> PerSampleVCFReports;
 
     public VCFReport(){
-        sampleVCFReports = new HashMap<>();
+        PerSampleVCFReports = new HashMap<>();
     }
 
     public void parseVariation(VariantContext vc){
-        SampleVCFReport sampleVCFReport;
+        PerSampleVCFReport PerSampleVCFReport;
         for(String sample: vc.getSampleNames()){
             Genotype gt = vc.getGenotype(sample);
             if(!gt.isCalled())
                 return;
 
-            if(sampleVCFReports.containsKey(sample))
-                sampleVCFReport = sampleVCFReports.get(sample);
+            if(PerSampleVCFReports.containsKey(sample))
+                PerSampleVCFReport = PerSampleVCFReports.get(sample);
             else {
-                sampleVCFReport = new SampleVCFReport();
-                sampleVCFReports.put(sample, sampleVCFReport);
+                PerSampleVCFReport = new PerSampleVCFReport();
+                PerSampleVCFReports.put(sample, PerSampleVCFReport);
             }
 
-            sampleVCFReport.add(vc, sample);
+            PerSampleVCFReport.add(vc, sample);
         }
     }
 
@@ -51,16 +51,16 @@ public class VCFReport {
 
         LineReader lineReader = new LineReader(FSinput, conf);
         Text line = new Text();
-        SampleVCFReport sampleVCFReport;
+        PerSampleVCFReport PerSampleVCFReport;
         while ((lineReader.readLine(line)) != 0) {
             String sample = line.toString().split("\t")[0];
-            if(sampleVCFReports.containsKey(sample))
-                sampleVCFReport = sampleVCFReports.get(sample);
+            if(PerSampleVCFReports.containsKey(sample))
+                PerSampleVCFReport = PerSampleVCFReports.get(sample);
             else {
-                sampleVCFReport = new SampleVCFReport();
-                sampleVCFReports.put(sample, sampleVCFReport);
+                PerSampleVCFReport = new PerSampleVCFReport();
+                PerSampleVCFReports.put(sample, PerSampleVCFReport);
             }
-            sampleVCFReport.parseReducerString(line.toString());
+            PerSampleVCFReport.parseReducerString(line.toString());
         }
         lineReader.close();
     }
@@ -76,7 +76,8 @@ public class VCFReport {
 
     public void mergeReport(Path input, Configuration conf, Path outputDir) throws IOException {
         FileSystem fs = input.getFileSystem(conf);
-        FileStatus filelist[] = fs.listStatus(input,new StaticPathFilter());
+        FileStatus filelist[] = fs.listStatus(input);
+//        FileStatus filelist[] = fs.listStatus(input,new StaticPathFilter());
 
         for (int i = 0; i < filelist.length; i++) {
             if (!filelist[i].isDirectory()) {
@@ -86,22 +87,22 @@ public class VCFReport {
         }
 
         fs.close();
-        for(String sample: getSampleVCFReports().keySet()){
-            SampleVCFReport sampleVCFReport = getSampleVCFReports().get(sample);
+        for(String sample: getPerSampleVCFReports().keySet()){
+            PerSampleVCFReport PerSampleVCFReport = getPerSampleVCFReports().get(sample);
             String fileName = outputDir + "/" + sample + ".vcfstats.report.txt";
-            write(fileName, conf, sampleVCFReport.getReport());
+            write(fileName, conf, PerSampleVCFReport.getReport());
         }
 
     }
 
-    public Map<String, SampleVCFReport> getSampleVCFReports() {
-        return sampleVCFReports;
+    public Map<String, PerSampleVCFReport> getPerSampleVCFReports() {
+        return PerSampleVCFReports;
     }
 
     static class StaticPathFilter implements PathFilter {
         @Override
         public boolean accept(Path path) {
-            if (path.getName().startsWith("filterStatistic"))
+            if (path.getName().startsWith("Statistic"))
                 return true;
             return false;
         }
