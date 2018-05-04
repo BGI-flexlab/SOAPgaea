@@ -1,7 +1,6 @@
 package org.bgi.flexlab.gaea.tools.haplotypecaller;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -37,7 +36,7 @@ public class ReadsDataSource implements Iterator<GaeaSamRecord>, Iterable<GaeaSa
 
 	public void dataReset(Iterable<SamRecordWritable> iterable) {
 		reads = iterable.iterator();
-		if (!overlaps.isEmpty())
+		if (overlaps != null && !overlaps.isEmpty())
 			overlaps.clear();
 		currentRecord = null;
 	}
@@ -58,38 +57,18 @@ public class ReadsDataSource implements Iterator<GaeaSamRecord>, Iterable<GaeaSa
 
 		final boolean traversalIsBounded = queryInterval != null;
 		
-		if (!overlaps.isEmpty()) {
-			List<GaeaSamRecord> remove = new ArrayList<GaeaSamRecord>();
-			for (GaeaSamRecord read : overlaps) {
-				if (read.getEnd() < queryInterval.getStart())
-					remove.add(read);
-				else if (read.getStart() >= queryInterval.getStart())
-					break;
-			}
-			overlaps.removeAll(remove);
-			remove.clear();
-		}
-		
-		if(!overlaps.isEmpty()){
+		if (overlaps != null && !overlaps.isEmpty()) {
 			for(GaeaSamRecord read : overlaps){
 				if(overlapReads(queryInterval , read) == 1)
 					downsampler.submit(read);
 			}
+			
+			overlaps.clear();
 		}
 		
 		if ( !downsampler.hasFinalizedItems() ){
     		if (traversalIsBounded) {
-    			if(currentRecord != null) {
-    				if(readFilter == null) {
-    					if(overlapReads(queryInterval , currentRecord) == 1)
-    						downsampler.submit(currentRecord);
-    				}else {
-    					if(readFilter.test(currentRecord) && overlapReads(queryInterval , currentRecord) == 1)
-    						downsampler.submit(currentRecord);
-    				}
-    			}
-    			while (reads.hasNext()) {
-    				currentRecord = new GaeaSamRecord(header,reads.next().get());
+    			while (currentRecord != null) {
     				if ((readFilter != null && readFilter.test(currentRecord)) || readFilter == null) {
     					int result = overlapReads(queryInterval , currentRecord);
     					if (result == 0) {
@@ -99,6 +78,10 @@ public class ReadsDataSource implements Iterator<GaeaSamRecord>, Iterable<GaeaSa
     					} else
     						break;
     				}
+    				if(reads.hasNext())
+    					currentRecord = new GaeaSamRecord(header,reads.next().get());
+    				else
+    					currentRecord = null;
     			}
     		}
         }
@@ -117,6 +100,8 @@ public class ReadsDataSource implements Iterator<GaeaSamRecord>, Iterable<GaeaSa
 
 	public void clear() {
 		this.overlaps = null;
+		downsampler.clearItems();
+		nextRead = null;
 	}
 
 	@Override
@@ -154,6 +139,7 @@ public class ReadsDataSource implements Iterator<GaeaSamRecord>, Iterable<GaeaSa
 		this.queryInterval = interval;
 		this.readFilter = readFilter;
 		this.downsampler = downsampler;
+		advanceToNextRead();
 	}
 	
 	private boolean readyToReleaseReads() {

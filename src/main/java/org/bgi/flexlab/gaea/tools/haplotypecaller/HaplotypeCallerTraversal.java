@@ -173,8 +173,10 @@ public class HaplotypeCallerTraversal {
 
 	public void dataSourceReset(Window win, Iterable<SamRecordWritable> iterable, ChromosomeInformationShare ref,
 			RefMetaDataTracker features) {
-		if (readsSource != null)
+		if (readsSource != null) {
+			readsSource.clear();
 			readsSource.dataReset(iterable);
+		}
 		else
 			readsSource = new ReadsDataSource(iterable, header);
 		this.ref = ref;
