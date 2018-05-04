@@ -126,7 +126,6 @@ public class PerSampleVCFReport {
         else
             mHomozygous++;
 
-
         switch (type) {
             case SNP:
                 if (gt.isHet()) mHeterozygousSnps++;
@@ -179,10 +178,9 @@ public class PerSampleVCFReport {
         names.add("NoCall");
         values.add(Long.toString(mHomozygous));
         names.add("De Novo Genotypes");
-        values.add(mDeNovo > 0 ? Long.toString(mDeNovo) : null);
+        values.add(Long.toString(mDeNovo));
         names.add("Phased Genotypes");
-        final long totalNonMissingGenotypes = mTotalSnps + mTotalMnps + mTotalInsertions + mTotalDeletions + mTotalUnchanged;
-        values.add(mPhased > 0 ? StatsUtils.percent(mPhased, totalNonMissingGenotypes) : null);
+        values.add(Long.toString(mPhased));
 
         names.add("SNPs");
         values.add(Long.toString(mTotalSnps));
@@ -224,14 +222,13 @@ public class PerSampleVCFReport {
         values.add(Long.toString(mHomozygousDeletions));
 
         names.add("Structural variant breakends");
-        values.add(mTotalBreakends > 0 ? Long.toString(mTotalBreakends) : null);
+        values.add(Long.toString(mTotalBreakends));
         names.add("Breakend Het");
         values.add(Long.toString(mHeterozygousBreakends));
         names.add("Breakend Hom");
         values.add(Long.toString(mHomozygousBreakends));
 
         return Pair.create(names, values);
-
     }
 
     Pair<List<String>, List<String>> getReportResult() {
@@ -275,9 +272,7 @@ public class PerSampleVCFReport {
         names.add("Indel/SNP+MNP ratio");
         values.add(StatsUtils.divide(mTotalInsertions + mTotalDeletions, mTotalSnps + mTotalMnps));
         return Pair.create(names, values);
-
     }
-
 
     private void tallyTransitionTransversionRatio(String ref, String pred) {
         final boolean transition = "AG".contains(ref) && "AG".contains(pred) || "CT".contains(ref) && "CT".contains(pred);
@@ -306,6 +301,7 @@ public class PerSampleVCFReport {
             outString.append(names.get(i));
             outString.append(" :\t");
             outString.append(values.get(i));
+            outString.append("\n");
         }
 
         return outString.toString();
