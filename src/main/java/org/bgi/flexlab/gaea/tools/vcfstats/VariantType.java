@@ -38,8 +38,6 @@ public enum VariantType {
         Genotype gt = vc.getGenotype(sample);
         VariantType type = null;
 
-        vc.getReference();
-
         // do a pairwise comparison of all alleles against the reference allele
         for ( Allele allele : gt.getAlleles() ) {
             if ( allele.isReference())
@@ -60,7 +58,7 @@ public enum VariantType {
         return type;
     }
 
-    private static VariantType typeOfBiallelicVariant(Allele ref, Allele allele) {
+    public static VariantType typeOfBiallelicVariant(Allele ref, Allele allele) {
         if ( ref.isSymbolic() )
             throw new IllegalStateException("Unexpected error: encountered a record with a symbolic reference allele");
 

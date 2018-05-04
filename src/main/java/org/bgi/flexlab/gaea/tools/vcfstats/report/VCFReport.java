@@ -92,7 +92,6 @@ public class VCFReport {
             String fileName = outputDir + "/" + sample + ".vcfstats.report.txt";
             write(fileName, conf, PerSampleVCFReport.getReport());
         }
-
     }
 
     public Map<String, PerSampleVCFReport> getPerSampleVCFReports() {

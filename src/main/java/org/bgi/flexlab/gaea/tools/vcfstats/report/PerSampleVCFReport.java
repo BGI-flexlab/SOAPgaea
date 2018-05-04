@@ -13,8 +13,8 @@ import java.util.List;
 
 public class PerSampleVCFReport {
 
-    private static final String[] VARIANT_TYPE_NAMES = {
-            "No-call", "Reference", "SNP", "MNP", "Delete", "Insert", "MIXED", "Breakend", "Symbolic"
+    private static final String[] VARIANT_TYPE_COUNT_LENGTH = {
+            "SNP", "MNP", "Insert", "Delete"
     };
 
     private String sampleName;
@@ -52,13 +52,16 @@ public class PerSampleVCFReport {
     protected long mHeterozygousBreakends = 0;
     protected long mHomozygousBreakends = 0;
 
+    protected long mTotalFailedFilters = 0;
+    protected long mTotalPassedFilters = 0;
+
     protected final Histogram[] mAlleleLengths;
 
 
     public PerSampleVCFReport(){
         sampleName = null;
-        mAlleleLengths = new Histogram[VARIANT_TYPE_NAMES.length];
-        for (int i = VariantContext.Type.SNP.ordinal(); i < mAlleleLengths.length; ++i) {
+        mAlleleLengths = new Histogram[VARIANT_TYPE_COUNT_LENGTH.length];
+        for (int i = VariantType.SNP.ordinal(); i < mAlleleLengths.length; ++i) {
             // i from SNP as we don't care about NO_CALL/UNCHANGED
             mAlleleLengths[i] = new Histogram();
         }
@@ -101,13 +104,16 @@ public class PerSampleVCFReport {
         mTotalBreakends += Integer.valueOf(fields[24]);
         mHeterozygousBreakends += Integer.valueOf(fields[25]);
         mHomozygousBreakends += Integer.valueOf(fields[26]);
+
+        mTotalFailedFilters += Integer.valueOf(fields[27]);
+        mTotalPassedFilters += Integer.valueOf(fields[28]);
     }
 
     public String toReducerString(){
         StringBuilder sb = new StringBuilder();
         sb.append(sampleName);
         sb.append("\t");
-        String value = String.join("\t", getStatistics().getSecond());
+        String value = String.join("\t", getStatistics());
         sb.append(value);
         return sb.toString();
     }
@@ -116,15 +122,30 @@ public class PerSampleVCFReport {
         setSampleName(sample);
         Genotype gt = vc.getGenotype(sample);
         VariantType type = VariantType.determineType(vc, sample);
+
+        if(vc.isFiltered())
+            mTotalFailedFilters++;
+        else
+            mTotalPassedFilters++;
+
         if(gt.isNoCall()) {
             mNoCall++;
             return;
         }
 
+        if(gt.isHomRef())
+            mTotalUnchanged++;
+
         if (gt.isHet())
             mHeterozygous++;
         else
             mHomozygous++;
+
+        for(Allele allele: gt.getAlleles()){
+            if(allele.isReference())
+                continue;
+            tallyAlleleLengths(vc.getReference(), allele);
+        }
 
         switch (type) {
             case SNP:
@@ -132,6 +153,8 @@ public class PerSampleVCFReport {
                 else mHomozygousSnps++;
                 mTotalSnps++;
                 for(Allele allele: gt.getAlleles()){
+                    if(allele.isReference())
+                        continue;
                     tallyTransitionTransversionRatio(vc.getReference().getBaseString(), allele.getBaseString());
                 }
                 break;
@@ -165,92 +188,85 @@ public class PerSampleVCFReport {
         }
     }
 
-    Pair<List<String>, List<String>> getStatistics() {
-        final List<String> names = new ArrayList<>();
+    private void tallyAlleleLengths(Allele ref, Allele alt) {
+        VariantType type = VariantType.typeOfBiallelicVariant(ref, alt);
+        int len = Math.max(ref.length(), alt.length());
+        if(type.ordinal() < mAlleleLengths.length)
+            mAlleleLengths[type.ordinal()].increment(len, 1);
+    }
+
+    List<String> getStatistics() {
         final List<String> values = new ArrayList<>();
 
-        names.add("Same as reference");
         values.add(Long.toString(mTotalUnchanged));
-        names.add("Total Het");
         values.add(Long.toString(mHeterozygous));
-        names.add("Total Hom");
         values.add(Long.toString(mHomozygous));
-        names.add("NoCall");
         values.add(Long.toString(mHomozygous));
-        names.add("De Novo Genotypes");
         values.add(Long.toString(mDeNovo));
-        names.add("Phased Genotypes");
         values.add(Long.toString(mPhased));
 
-        names.add("SNPs");
         values.add(Long.toString(mTotalSnps));
-        names.add("SNP Transitions");
         values.add(Long.toString(mTransitions));
-        names.add("SNP Transversions");
         values.add(Long.toString(mTransversions));
-        names.add("SNP Het");
         values.add(Long.toString(mHeterozygousSnps));
-        names.add("SNP Hom");
         values.add(Long.toString(mHomozygousSnps));
 
-        names.add("MNPs");
         values.add(Long.toString(mTotalMnps));
-        names.add("MNP Het");
         values.add(Long.toString(mHeterozygousMnps));
-        names.add("MNP Hom");
         values.add(Long.toString(mHomozygousMnps));
 
-        names.add("MIXEDs");
         values.add(Long.toString(mTotalMixeds));
-        names.add("MIXED Het");
         values.add(Long.toString(mHeterozygousMixeds));
-        names.add("MIXED Hom");
         values.add(Long.toString(mHomozygousMixeds));
 
-        names.add("Insertions");
         values.add(Long.toString(mTotalInsertions));
-        names.add("Insertion Het");
         values.add(Long.toString(mHeterozygousInsertions));
-        names.add("Insertion Hom");
         values.add(Long.toString(mHomozygousInsertions));
 
-        names.add("Deletions");
         values.add(Long.toString(mTotalDeletions));
-        names.add("Deletion Het");
         values.add(Long.toString(mHeterozygousDeletions));
-        names.add("Deletion Hom");
         values.add(Long.toString(mHomozygousDeletions));
 
-        names.add("Structural variant breakends");
         values.add(Long.toString(mTotalBreakends));
-        names.add("Breakend Het");
         values.add(Long.toString(mHeterozygousBreakends));
-        names.add("Breakend Hom");
         values.add(Long.toString(mHomozygousBreakends));
 
-        return Pair.create(names, values);
+        values.add(Long.toString(mTotalFailedFilters));
+        values.add(Long.toString(mTotalPassedFilters));
+
+        return values;
     }
 
     Pair<List<String>, List<String>> getReportResult() {
         final List<String> names = new ArrayList<>();
         final List<String> values = new ArrayList<>();
+        names.add("SampleName");
+        values.add(sampleName);
+        names.add("Failed Filters");
+        values.add(Long.toString(mTotalFailedFilters));
+        names.add("Passed Filters");
+        values.add(Long.toString(mTotalPassedFilters));
+        names.add("NoCalls");
+        values.add(Long.toString(mNoCall));
         names.add("SNPs");
         values.add(Long.toString(mTotalSnps));
         names.add("MNPs");
         values.add(Long.toString(mTotalMnps));
+        names.add("MIXEDs");
+        values.add(Long.toString(mTotalMixeds));
         names.add("Insertions");
         values.add(Long.toString(mTotalInsertions));
         names.add("Deletions");
         values.add(Long.toString(mTotalDeletions));
         names.add("Structural variant breakends");
-        values.add(mTotalBreakends > 0 ? Long.toString(mTotalBreakends) : null);
+        values.add(mTotalBreakends > 0 ? Long.toString(mTotalBreakends) : "-");
         names.add("Same as reference");
         values.add(Long.toString(mTotalUnchanged));
-        names.add("De Novo Genotypes");
-        values.add(mDeNovo > 0 ? Long.toString(mDeNovo) : null);
-        names.add("Phased Genotypes");
-        final long totalNonMissingGenotypes = mTotalSnps + mTotalMnps + mTotalInsertions + mTotalDeletions + mTotalUnchanged;
-        values.add(mPhased > 0 ? StatsUtils.percent(mPhased, totalNonMissingGenotypes) : null);
+//        names.add("De Novo Genotypes");
+//        values.add(mDeNovo > 0 ? Long.toString(mDeNovo) : null);
+//        names.add("Phased Genotypes");
+//        final long totalNonMissingGenotypes = mTotalSnps + mTotalMnps + mTotalInsertions + mTotalDeletions + mTotalUnchanged;
+//        values.add(mPhased > 0 ? StatsUtils.percent(mPhased, totalNonMissingGenotypes) : null);
         names.add("SNP Transitions/Transversions");
         values.add(StatsUtils.divide(mTransitions, mTransversions));
 
@@ -265,7 +281,7 @@ public class PerSampleVCFReport {
         names.add("Deletion Het/Hom ratio");
         values.add(StatsUtils.divide(mHeterozygousDeletions, mHomozygousDeletions));
         names.add("Breakend Het/Hom ratio");
-        values.add(mTotalBreakends > 0 ? StatsUtils.divide(mHeterozygousBreakends, mHomozygousBreakends) : null);
+        values.add(mTotalBreakends > 0 ? StatsUtils.divide(mHeterozygousBreakends, mHomozygousBreakends) : "-");
 
         names.add("Insertion/Deletion ratio");
         values.add(StatsUtils.divide(mTotalInsertions, mTotalDeletions));
@@ -291,6 +307,52 @@ public class PerSampleVCFReport {
         this.sampleName = sampleName;
     }
 
+    /**
+     * Append per sample histograms to a buffer.
+     * @param sb buffer to append to
+     */
+    public void appendHistograms(StringBuilder sb) {
+        sb.append("Variant Allele Lengths :").append("\n");
+        //sb.append("bin\tSNP\tMNP\tInsert\tDelete\tIndel").append(StringUtils.LS);
+        sb.append("length");
+        for (int i = VariantType.SNP.ordinal(); i < mAlleleLengths.length; ++i) {
+            if (i <= VariantType.DEL.ordinal() || mAlleleLengths[i].getLength() != 0) {
+                sb.append("\t").append(VARIANT_TYPE_COUNT_LENGTH[i]);
+            }
+        }
+        sb.append("\n");
+
+        int size = 0;
+        final int[] lengths = new int[mAlleleLengths.length];
+        for (int i = VariantType.SNP.ordinal(); i < mAlleleLengths.length; ++i) {
+            lengths[i] = mAlleleLengths[i].getLength();
+            if (lengths[i] > size) {
+                size = lengths[i];
+            }
+        }
+        int bin = 1;
+        int step = 1;
+        while (bin < size) {
+            sb.append(bin);
+            final int end = bin + step;
+            if (end - bin > 1) {
+                sb.append("-").append(end - 1);
+            }
+            for (int i = VariantType.SNP.ordinal(); i < mAlleleLengths.length; ++i) {
+                if (i <= VariantType.DEL.ordinal() || mAlleleLengths[i].getLength() != 0) {
+                    long sum = 0L;
+                    for (int j = bin; j < end; ++j) {
+                        if (j < lengths[i]) {
+                            sum += mAlleleLengths[i].getValue(j);
+                        }
+                    }
+                    sb.append("\t").append(sum);
+                }
+            }
+            sb.append("\n");
+        }
+    }
+
     public String getReport() {
         Pair<List<String>, List<String>> pair = getReportResult();
         List<String> names = pair.getFirst();
@@ -298,11 +360,13 @@ public class PerSampleVCFReport {
         StringBuilder outString = new StringBuilder();
 
         for (int i = 0; i < names.size(); i++) {
-            outString.append(names.get(i));
-            outString.append(" :\t");
+            outString.append(String.format("%-37s", names.get(i)));
+            outString.append(":  ");
             outString.append(values.get(i));
             outString.append("\n");
         }
+
+        appendHistograms(outString);
 
         return outString.toString();
     }
