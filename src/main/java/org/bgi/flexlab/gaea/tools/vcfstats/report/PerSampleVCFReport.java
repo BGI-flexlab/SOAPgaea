@@ -38,45 +38,45 @@ public class PerSampleVCFReport {
 
     private String sampleName;
 
-    protected long mTotalUnchanged = 0;
-    protected long mHeterozygous = 0;
-    protected long mHomozygous = 0;
-    protected long mNoCall = 0;
-    protected long mDeNovo = 0;
-    protected long mPhased = 0;
+    private long mTotalUnchanged = 0;
+    private long mHeterozygous = 0;
+    private long mHomozygous = 0;
+    private long mNoCall = 0;
+    private long mDeNovo = 0;
+    private long mPhased = 0;
 
-    protected long mTotalSnps = 0;
-    protected long mTransitions = 0;
-    protected long mTransversions = 0;
-    protected long mHeterozygousSnps = 0;
-    protected long mHomozygousSnps = 0;
+    private long mTotalSnps = 0;
+    private long mTransitions = 0;
+    private long mTransversions = 0;
+    private long mHeterozygousSnps = 0;
+    private long mHomozygousSnps = 0;
 
-    protected long mTotalMnps = 0;
-    protected long mHeterozygousMnps = 0;
-    protected long mHomozygousMnps = 0;
+    private long mTotalMnps = 0;
+    private long mHeterozygousMnps = 0;
+    private long mHomozygousMnps = 0;
 
-    protected long mTotalMixeds = 0;
-    protected long mHeterozygousMixeds = 0;
-    protected long mHomozygousMixeds = 0;
+    private long mTotalMixeds = 0;
+    private long mHeterozygousMixeds = 0;
+    private long mHomozygousMixeds = 0;
 
-    protected long mTotalInsertions = 0;
-    protected long mHeterozygousInsertions = 0;
-    protected long mHomozygousInsertions = 0;
+    private long mTotalInsertions = 0;
+    private long mHeterozygousInsertions = 0;
+    private long mHomozygousInsertions = 0;
 
-    protected long mTotalDeletions = 0;
-    protected long mHeterozygousDeletions = 0;
-    protected long mHomozygousDeletions = 0;
+    private long mTotalDeletions = 0;
+    private long mHeterozygousDeletions = 0;
+    private long mHomozygousDeletions = 0;
 
-    protected long mTotalBreakends = 0;
-    protected long mHeterozygousBreakends = 0;
-    protected long mHomozygousBreakends = 0;
+    private long mTotalBreakends = 0;
+    private long mHeterozygousBreakends = 0;
+    private long mHomozygousBreakends = 0;
 
-    protected long mTotalFailedFilters = 0;
-    protected long mTotalPassedFilters = 0;
+    private long mTotalFailedFilters = 0;
+    private long mTotalPassedFilters = 0;
 
-    protected long mTotalDbSnp = 0;
+    private long mTotalDbSnp = 0;
 
-    protected final Histogram[] mAlleleLengths;
+    private final Histogram[] mAlleleLengths;
 
 
     public PerSampleVCFReport(){
@@ -88,57 +88,57 @@ public class PerSampleVCFReport {
         }
     }
 
+    // reducerStr: without sampleName
     public void parseReducerString(String reducerStr){
 
-        String[] fields = reducerStr.split("\t", 4);
-        if(fields[1].startsWith(ALLELE_LENGTH_TAG)){
-            VariantType type = VariantType.valueOf(fields[2]);
+        if(reducerStr.startsWith(ALLELE_LENGTH_TAG)){
+            String[] fields = reducerStr.split("\t", 3);
+            VariantType type = VariantType.valueOf(fields[1]);
             if(type.ordinal() < mAlleleLengths.length)
-                mAlleleLengths[type.ordinal()].addHistogram(fields[3]);
+                mAlleleLengths[type.ordinal()].addHistogram(fields[2]);
             return;
         }
 
-        fields = reducerStr.split("\t");
-        if(sampleName == null)
-            sampleName = fields[0];
+        String[] fields = reducerStr.split("\t");
+        int i = 0;
 
-        mTotalUnchanged += Integer.valueOf(fields[1]);
-        mHeterozygous += Integer.valueOf(fields[2]);
-        mHomozygous += Integer.valueOf(fields[3]);
-        mNoCall += Integer.valueOf(fields[4]);
-        mDeNovo += Integer.valueOf(fields[5]);
-        mPhased += Integer.valueOf(fields[6]);
+        mTotalUnchanged += Integer.valueOf(fields[i++]);
+        mHeterozygous += Integer.valueOf(fields[i++]);
+        mHomozygous += Integer.valueOf(fields[i++]);
+        mNoCall += Integer.valueOf(fields[i++]);
+        mDeNovo += Integer.valueOf(fields[i++]);
+        mPhased += Integer.valueOf(fields[i++]);
 
-        mTotalSnps += Integer.valueOf(fields[7]);
-        mTransitions += Integer.valueOf(fields[8]);
-        mTransversions += Integer.valueOf(fields[9]);
-        mHeterozygousSnps += Integer.valueOf(fields[10]);
-        mHomozygousSnps += Integer.valueOf(fields[11]);
+        mTotalSnps += Integer.valueOf(fields[i++]);
+        mTransitions += Integer.valueOf(fields[i++]);
+        mTransversions += Integer.valueOf(fields[i++]);
+        mHeterozygousSnps += Integer.valueOf(fields[i++]);
+        mHomozygousSnps += Integer.valueOf(fields[i++]);
 
-        mTotalMnps += Integer.valueOf(fields[12]);
-        mHeterozygousMnps += Integer.valueOf(fields[13]);
-        mHomozygousMnps += Integer.valueOf(fields[14]);
+        mTotalMnps += Integer.valueOf(fields[i++]);
+        mHeterozygousMnps += Integer.valueOf(fields[i++]);
+        mHomozygousMnps += Integer.valueOf(fields[i++]);
 
-        mTotalMixeds += Integer.valueOf(fields[15]);
-        mHeterozygousMixeds += Integer.valueOf(fields[16]);
-        mHomozygousMixeds += Integer.valueOf(fields[17]);
+        mTotalMixeds += Integer.valueOf(fields[i++]);
+        mHeterozygousMixeds += Integer.valueOf(fields[i++]);
+        mHomozygousMixeds += Integer.valueOf(fields[i++]);
 
-        mTotalInsertions += Integer.valueOf(fields[18]);
-        mHeterozygousInsertions += Integer.valueOf(fields[19]);
-        mHomozygousInsertions += Integer.valueOf(fields[20]);
+        mTotalInsertions += Integer.valueOf(fields[i++]);
+        mHeterozygousInsertions += Integer.valueOf(fields[i++]);
+        mHomozygousInsertions += Integer.valueOf(fields[i++]);
 
-        mTotalDeletions += Integer.valueOf(fields[21]);
-        mHeterozygousDeletions += Integer.valueOf(fields[22]);
-        mHomozygousDeletions += Integer.valueOf(fields[23]);
+        mTotalDeletions += Integer.valueOf(fields[i++]);
+        mHeterozygousDeletions += Integer.valueOf(fields[i++]);
+        mHomozygousDeletions += Integer.valueOf(fields[i++]);
 
-        mTotalBreakends += Integer.valueOf(fields[24]);
-        mHeterozygousBreakends += Integer.valueOf(fields[25]);
-        mHomozygousBreakends += Integer.valueOf(fields[26]);
+        mTotalBreakends += Integer.valueOf(fields[i++]);
+        mHeterozygousBreakends += Integer.valueOf(fields[i++]);
+        mHomozygousBreakends += Integer.valueOf(fields[i++]);
 
-        mTotalFailedFilters += Integer.valueOf(fields[27]);
-        mTotalPassedFilters += Integer.valueOf(fields[28]);
+        mTotalFailedFilters += Integer.valueOf(fields[i++]);
+        mTotalPassedFilters += Integer.valueOf(fields[i++]);
 
-        mTotalDbSnp += Integer.valueOf(fields[29]);
+        mTotalDbSnp += Integer.valueOf(fields[i]);
     }
 
     public String toReducerString(){
@@ -289,7 +289,7 @@ public class PerSampleVCFReport {
         return values;
     }
 
-    Pair<List<String>, List<String>> getReportResult() {
+    private Pair<List<String>, List<String>> getReportResult() {
         final List<String> names = new ArrayList<>();
         final List<String> values = new ArrayList<>();
         names.add("SampleName");
@@ -365,7 +365,7 @@ public class PerSampleVCFReport {
      * Append per sample histograms to a buffer.
      * @param sb buffer to append to
      */
-    public void appendHistograms(StringBuilder sb) {
+    private void appendHistograms(StringBuilder sb) {
         sb.append("Variant Allele Lengths :").append("\n");
         //sb.append("bin\tSNP\tMNP\tInsert\tDelete\tIndel").append(StringUtils.LS);
         sb.append("length");
@@ -390,15 +390,19 @@ public class PerSampleVCFReport {
                 sb.append(bin);
                 for (int i = VariantType.SNP.ordinal(); i < mAlleleLengths.length; ++i) {
                     if (i <= VariantType.DEL.ordinal() || mAlleleLengths[i].getLength() != 0) {
-                        sb.append("\t").append(mAlleleLengths[i].getValue(bin));
+                        long sum = 0L;
+                        if(bin<mAlleleLengths[i].getLength())
+                            sum = mAlleleLengths[i].getValue(bin);
+                        sb.append("\t").append(sum);
                     }
                 }
+                sb.append("\n");
             }else {
                 sb.append(">").append(ALLELE_LENGTH_MAX_PRINT);
                 for (int i = VariantType.SNP.ordinal(); i < mAlleleLengths.length; ++i) {
                     if (i <= VariantType.DEL.ordinal() || mAlleleLengths[i].getLength() != 0) {
                         long sum = 0L;
-                        for (int j = bin; j < size; ++j) {
+                        for (int j = bin; j < size && j<mAlleleLengths[i].getLength(); ++j) {
                             if (j < lengths[i]) {
                                 sum += mAlleleLengths[i].getValue(j);
                             }
@@ -426,6 +430,7 @@ public class PerSampleVCFReport {
             outString.append("\n");
         }
 
+        outString.append("\n");
         appendHistograms(outString);
 
         return outString.toString();

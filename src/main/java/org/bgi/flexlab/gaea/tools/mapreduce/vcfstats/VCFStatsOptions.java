@@ -44,7 +44,7 @@ public class VCFStatsOptions extends GaeaOptions implements HadoopOptions {
     public VCFStatsOptions() {
         addOption("i", "input",      true,  "input file(VCF). [request]", true);
         addOption("o", "output",     true,  "output file [request]", true);
-        addOption("d", "dbsnp",     true,  "dbsnp file(.vcf.gz), must be indexed [request]", true);
+        addOption("d", "dbsnp",     true,  "dbsnp file(.vcf.gz), must be indexed [null]");
 //        addOption("r", "reference",  true,  "indexed reference sequence file list [request]", true);
         addOption(null,"verbose",    false, "display verbose information.");
         addOption(null,"debug",      false, "for debug.");

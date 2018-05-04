@@ -112,16 +112,20 @@ public class VCFReport {
 
         LineReader lineReader = new LineReader(FSinput, conf);
         Text line = new Text();
-        PerSampleVCFReport PerSampleVCFReport;
+        PerSampleVCFReport perSampleVCFReport;
         while ((lineReader.readLine(line)) != 0) {
-            String sample = line.toString().split("\t")[0];
+            String reducerStr = line.toString();
+            if(reducerStr.isEmpty()) continue;
+            String[] fields = reducerStr.split("\t",2);
+            String sample = fields[0];
             if(PerSampleVCFReports.containsKey(sample))
-                PerSampleVCFReport = PerSampleVCFReports.get(sample);
+                perSampleVCFReport = PerSampleVCFReports.get(sample);
             else {
-                PerSampleVCFReport = new PerSampleVCFReport();
-                PerSampleVCFReports.put(sample, PerSampleVCFReport);
+                perSampleVCFReport = new PerSampleVCFReport();
+                perSampleVCFReport.setSampleName(sample);
+                PerSampleVCFReports.put(sample, perSampleVCFReport);
             }
-            PerSampleVCFReport.parseReducerString(line.toString());
+            perSampleVCFReport.parseReducerString(fields[1]);
         }
         lineReader.close();
     }
