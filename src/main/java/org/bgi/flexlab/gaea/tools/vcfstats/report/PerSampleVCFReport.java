@@ -34,6 +34,7 @@ public class PerSampleVCFReport {
     };
 
     private static final String ALLELE_LENGTH_TAG = "AlleleLen:";
+    private static final int ALLELE_LENGTH_MAX_PRINT = 200;
 
     private String sampleName;
 
@@ -89,14 +90,15 @@ public class PerSampleVCFReport {
 
     public void parseReducerString(String reducerStr){
 
-        if(reducerStr.startsWith(ALLELE_LENGTH_TAG)){
-            String[] fields = reducerStr.split("\t", 3);
-            VariantType type = VariantType.valueOf(fields[1]);
+        String[] fields = reducerStr.split("\t", 4);
+        if(fields[1].startsWith(ALLELE_LENGTH_TAG)){
+            VariantType type = VariantType.valueOf(fields[2]);
             if(type.ordinal() < mAlleleLengths.length)
-                mAlleleLengths[type.ordinal()].addHistogram(fields[2]);
+                mAlleleLengths[type.ordinal()].addHistogram(fields[3]);
+            return;
         }
 
-        String[] fields = reducerStr.split("\t");
+        fields = reducerStr.split("\t");
         if(sampleName == null)
             sampleName = fields[0];
 
@@ -150,6 +152,8 @@ public class PerSampleVCFReport {
 
         for (int i = VariantType.SNP.ordinal(); i < mAlleleLengths.length; ++i) {
             Histogram histogram = mAlleleLengths[i];
+            sb.append(sampleName);
+            sb.append("\t");
             sb.append(ALLELE_LENGTH_TAG);
             sb.append("\t");
             sb.append(VARIANT_TYPE_COUNT_LENGTH[i]);
@@ -381,25 +385,31 @@ public class PerSampleVCFReport {
             }
         }
         int bin = 1;
-        int step = 1;
         while (bin < size) {
-            sb.append(bin);
-            final int end = bin + step;
-            if (end - bin > 1) {
-                sb.append("-").append(end - 1);
-            }
-            for (int i = VariantType.SNP.ordinal(); i < mAlleleLengths.length; ++i) {
-                if (i <= VariantType.DEL.ordinal() || mAlleleLengths[i].getLength() != 0) {
-                    long sum = 0L;
-                    for (int j = bin; j < end; ++j) {
-                        if (j < lengths[i]) {
-                            sum += mAlleleLengths[i].getValue(j);
-                        }
+            if(bin < ALLELE_LENGTH_MAX_PRINT) {
+                sb.append(bin);
+                for (int i = VariantType.SNP.ordinal(); i < mAlleleLengths.length; ++i) {
+                    if (i <= VariantType.DEL.ordinal() || mAlleleLengths[i].getLength() != 0) {
+                        sb.append("\t").append(mAlleleLengths[i].getValue(bin));
                     }
-                    sb.append("\t").append(sum);
                 }
+            }else {
+                sb.append(">").append(ALLELE_LENGTH_MAX_PRINT);
+                for (int i = VariantType.SNP.ordinal(); i < mAlleleLengths.length; ++i) {
+                    if (i <= VariantType.DEL.ordinal() || mAlleleLengths[i].getLength() != 0) {
+                        long sum = 0L;
+                        for (int j = bin; j < size; ++j) {
+                            if (j < lengths[i]) {
+                                sum += mAlleleLengths[i].getValue(j);
+                            }
+                        }
+                        sb.append("\t").append(sum);
+                    }
+                }
+                sb.append("\n");
+                break;
             }
-            sb.append("\n");
+            bin++;
         }
     }
 
