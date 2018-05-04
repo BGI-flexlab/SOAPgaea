@@ -1,7 +1,5 @@
 package org.bgi.flexlab.gaea.tools.mapreduce.haplotypecaller;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,6 +13,7 @@ import org.apache.hadoop.util.LineReader;
 import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.data.mapreduce.options.HadoopOptions;
 import org.bgi.flexlab.gaea.data.options.GaeaOptions;
+import org.bgi.flexlab.gaea.tools.haplotypecaller.ReferenceConfidenceMode;
 import org.bgi.flexlab.gaea.tools.haplotypecaller.argumentcollection.HaplotypeCallerArgumentCollection;
 import org.bgi.flexlab.gaea.tools.mapreduce.realigner.RealignerExtendOptions;
 import org.seqdoop.hadoop_bam.SAMFormat;
@@ -61,12 +60,17 @@ public class HaplotypeCallerOptions  extends GaeaOptions implements HadoopOption
 	
 	private HashMap<String,String> comps  = new HashMap<String,String>();
 	
+	private int maxReadsPerPosition = 0;
+	
 	public HaplotypeCallerOptions() {
 		addOption("a","allSitePLs",false,"Annotate all sites with PLs");
 		addOption("A","annotateNDA",false,"If provided, we will annotate records with the number of alternate alleles that were discovered (but not necessarily genotyped) at a given site");
 		addOption("b","hets",true,"Heterozygosity value used to compute prior likelihoods for any locus");
 		addOption("B","indel_hets",true,"Heterozygosity for indel calling");
 		addOption("C","sample_ploidy",true,"Ploidy (number of chromosomes) per sample. For pooled data, set to (Number of samples in each pool * Sample Ploidy).");
+		addOption("c","shard_size",true,"read shard size.");
+		addOption("d","shard_padding_size",true,"read shard padding size.");
+		addOption("D","max_reads",true,"max reads for pileup.");
 		addOption("f", "format", false, "output format is gvcf");
 		addOption("E","windowExtendSize",true,"key window extend size.");
 		addOption("G", "gt_mode",true,"Specifies how to determine the alternate alleles to use for genotyping(DISCOVERY or GENOTYPE_GIVEN_ALLELES)");
@@ -121,8 +125,15 @@ public class HaplotypeCallerOptions  extends GaeaOptions implements HadoopOption
 			throw new UserException(e.toString());
 		}
 		
+		if(getOptionBooleanValue("f",false)){
+			this.hcArgs.emitReferenceConfidence = ReferenceConfidenceMode.GVCF;
+		}
+		
 		this.windowsSize = getOptionIntValue("w",10000);
 		this.reduceNumber = getOptionIntValue("n",100);
+		this.readShardSize = getOptionIntValue("c",300);
+		this.readPaddingSize = getOptionIntValue("d",100);
+		this.maxReadsPerPosition = getOptionIntValue("D",0);
 		
 		this.output = getOptionValue("o",null);
 		this.reference = getOptionValue("r",null);
@@ -233,5 +244,9 @@ public class HaplotypeCallerOptions  extends GaeaOptions implements HadoopOption
 			list.add(name);
 		
 		return list;
+	}
+	
+	public int getMaxReadsPerPosition(){
+		return this.maxReadsPerPosition;
 	}
 }

@@ -2,8 +2,6 @@ package org.bgi.flexlab.gaea.tools.mapreduce.haplotypecaller;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Reducer;
@@ -21,7 +19,6 @@ import org.bgi.flexlab.gaea.data.variant.filter.VariantRegionFilter;
 import org.bgi.flexlab.gaea.tools.haplotypecaller.HaplotypeCallerTraversal;
 import org.bgi.flexlab.gaea.tools.haplotypecaller.utils.RefMetaDataTracker;
 import org.bgi.flexlab.gaea.util.Window;
-import org.seqdoop.hadoop_bam.SAMRecordWritable;
 import org.seqdoop.hadoop_bam.VariantContextWritable;
 
 import htsjdk.samtools.SAMFileHeader;
@@ -150,7 +147,7 @@ public class HaplotypeCallerReducer extends Reducer<WindowsBasedWritable, SamRec
 		int end = start + options.getWindowSize() - 1;
 		
 		String chr = win.getContigName();
-		ChromosomeInformationShare chrInfo = genomeShare.getChromosomeInfo(chr);
+		ChromosomeInformationShare chrInfo = genomeShare.getChromosomeInfo(chr,true);
 		
 		RefMetaDataTracker tracker = createTracker(chr,key.getWindowsNumber(),options.getWindowSize(),end);
 		haplotypecaller.dataSourceReset(win, values, chrInfo, tracker);

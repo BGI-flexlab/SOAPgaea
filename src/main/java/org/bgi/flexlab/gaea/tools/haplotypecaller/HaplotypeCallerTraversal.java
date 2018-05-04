@@ -113,6 +113,7 @@ public class HaplotypeCallerTraversal {
 		hcArgs = options.getHaplotypeCallerArguments();
 		hcEngine = new HaplotypeCallerEngine(hcArgs, header);
 		setHeader();
+		maxReadsPerAlignmentStart = options.getMaxReadsPerPosition();
 	}
 
 	private void setHeader() {
@@ -172,8 +173,10 @@ public class HaplotypeCallerTraversal {
 
 	public void dataSourceReset(Window win, Iterable<SamRecordWritable> iterable, ChromosomeInformationShare ref,
 			RefMetaDataTracker features) {
-		if (readsSource != null)
+		if (readsSource != null) {
+			readsSource.clear();
 			readsSource.dataReset(iterable);
+		}
 		else
 			readsSource = new ReadsDataSource(iterable, header);
 		this.ref = ref;
@@ -291,7 +294,7 @@ public class HaplotypeCallerTraversal {
 			GaeaVariantContextWriter writer,Window win) {
 		final Iterator<AssemblyRegion> assemblyRegionIter = new AssemblyRegionIterator(shard, header, ref, features,
 				hcEngine, minAssemblyRegionSize, maxAssemblyRegionSize, assemblyRegionPadding, activeProbThreshold,
-				maxProbPropagationDistance, true);
+				maxProbPropagationDistance, options.getMaxReadsPerPosition(),true);
 
 		// Call into the tool implementation to process each assembly region
 		// from this shard.

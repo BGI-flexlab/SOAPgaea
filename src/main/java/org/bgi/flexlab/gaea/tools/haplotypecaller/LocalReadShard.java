@@ -10,9 +10,7 @@ import java.util.stream.StreamSupport;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
 import org.bgi.flexlab.gaea.tools.haplotypecaller.pileup.ReadsDownsampler;
-import org.bgi.flexlab.gaea.tools.haplotypecaller.pileup.ReadsDownsamplingIterator;
 import org.bgi.flexlab.gaea.tools.haplotypecaller.readfilter.ReadFilter;
-import org.bgi.flexlab.gaea.tools.haplotypecaller.readfilter.ReadFilteringIterator;
 import org.bgi.flexlab.gaea.util.Utils;
 
 import htsjdk.samtools.SAMSequenceDictionary;
@@ -151,9 +149,12 @@ public final class LocalReadShard implements Shard<GaeaSamRecord> {
 	 */
 	@Override
 	public Iterator<GaeaSamRecord> iterator() {
-		Iterator<GaeaSamRecord> readsIterator = readsSource.query(paddedInterval);
+		readsSource.set(paddedInterval, readFilter, downsampler);
+		
+		return readsSource.iterator();
+		//Iterator<GaeaSamRecord> readsIterator = readsSource.query(paddedInterval,readFilter);
 
-		if (readFilter != null) {
+		/*if (readFilter != null) {
 			readsIterator = new ReadFilteringIterator(readsIterator, readFilter);
 		}
 
@@ -161,7 +162,7 @@ public final class LocalReadShard implements Shard<GaeaSamRecord> {
 			readsIterator = new ReadsDownsamplingIterator(readsIterator, downsampler);
 		}
 
-		return readsIterator;
+		return readsIterator;*/
 	}
 
 	/**
