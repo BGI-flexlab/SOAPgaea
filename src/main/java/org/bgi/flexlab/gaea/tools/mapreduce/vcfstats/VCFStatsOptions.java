@@ -34,7 +34,7 @@ public class VCFStatsOptions extends GaeaOptions implements HadoopOptions {
     private String outputPath;
     private String input;
 
-    private String referenceSequencePath; //参考序列gaeaindex
+//    private String referenceSequencePath; //参考序列gaeaindex
 
     private boolean verbose = false;
     private boolean debug = false;
@@ -44,7 +44,7 @@ public class VCFStatsOptions extends GaeaOptions implements HadoopOptions {
     public VCFStatsOptions() {
         addOption("i", "input",      true,  "input file(VCF). [request]", true);
         addOption("o", "output",     true,  "output file [request]", true);
-        addOption("r", "reference",  true,  "indexed reference sequence file list [request]", true);
+//        addOption("r", "reference",  true,  "indexed reference sequence file list [request]", true);
         addOption(null,"verbose",    false, "display verbose information.");
         addOption(null,"debug",      false, "for debug.");
         addOption("h", "help",       false, "help information.");
@@ -73,7 +73,7 @@ public class VCFStatsOptions extends GaeaOptions implements HadoopOptions {
         tmpPath = "/user/" + System.getProperty("user.name") + "/vcfsummarytmp-" + df.format(new Date());
 
         setInput(cmdLine.getOptionValue("input"));
-        setReferenceSequencePath(cmdLine.getOptionValue("reference",""));
+//        setReferenceSequencePath(cmdLine.getOptionValue("reference",""));
         setOutputPath(cmdLine.getOptionValue("output"));
         setVerbose(getOptionBooleanValue("verbose", false));
         setDebug(getOptionBooleanValue("debug", false));
@@ -92,15 +92,6 @@ public class VCFStatsOptions extends GaeaOptions implements HadoopOptions {
 
     public int getReducerNum() {
         return reducerNum;
-    }
-
-    private String formatPath(String p) {
-        if (p.startsWith("/")) {
-            p = "file://" + p;
-        }else if (p.startsWith(".")) {
-            p = "file://" + new File(p).getAbsolutePath();
-        }
-        return p;
     }
 
     public String getOutputPath() {
@@ -127,13 +118,13 @@ public class VCFStatsOptions extends GaeaOptions implements HadoopOptions {
         this.input = input;
     }
 
-    public String getReferenceSequencePath() {
-        return referenceSequencePath;
-    }
-
-    public void setReferenceSequencePath(String referenceSequencePath) {
-        this.referenceSequencePath = formatPath(referenceSequencePath);
-    }
+//    public String getReferenceSequencePath() {
+//        return referenceSequencePath;
+//    }
+//
+//    public void setReferenceSequencePath(String referenceSequencePath) {
+//        this.referenceSequencePath = formatPath(referenceSequencePath);
+//    }
 
     public boolean isVerbose() {
         return verbose;
@@ -149,9 +140,5 @@ public class VCFStatsOptions extends GaeaOptions implements HadoopOptions {
 
     public void setDebug(boolean debug) {
         this.debug = debug;
-    }
-
-    public String getFormatOutput() {
-        return formatPath(outputPath);
     }
 }
