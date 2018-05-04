@@ -30,8 +30,10 @@ import java.util.List;
 public class PerSampleVCFReport {
 
     private static final String[] VARIANT_TYPE_COUNT_LENGTH = {
-            "SNP", "MNP", "Insert", "Delete"
+            "SNP", "MNP", "INS", "DEL"
     };
+
+    private static final String ALLELE_LENGTH_TAG = "AlleleLen:";
 
     private String sampleName;
 
@@ -86,6 +88,14 @@ public class PerSampleVCFReport {
     }
 
     public void parseReducerString(String reducerStr){
+
+        if(reducerStr.startsWith(ALLELE_LENGTH_TAG)){
+            String[] fields = reducerStr.split("\t", 3);
+            VariantType type = VariantType.valueOf(fields[1]);
+            if(type.ordinal() < mAlleleLengths.length)
+                mAlleleLengths[type.ordinal()].addHistogram(fields[2]);
+        }
+
         String[] fields = reducerStr.split("\t");
         if(sampleName == null)
             sampleName = fields[0];
@@ -135,6 +145,19 @@ public class PerSampleVCFReport {
         sb.append("\t");
         String value = String.join("\t", getStatistics());
         sb.append(value);
+        sb.append("\n");
+
+
+        for (int i = VariantType.SNP.ordinal(); i < mAlleleLengths.length; ++i) {
+            Histogram histogram = mAlleleLengths[i];
+            sb.append(ALLELE_LENGTH_TAG);
+            sb.append("\t");
+            sb.append(VARIANT_TYPE_COUNT_LENGTH[i]);
+            sb.append("\t");
+            sb.append(histogram.toString());
+            sb.append("\n");
+        }
+
         return sb.toString();
     }
 
