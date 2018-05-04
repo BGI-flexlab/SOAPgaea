@@ -21,7 +21,6 @@ import org.apache.hadoop.conf.Configuration;
 import org.bgi.flexlab.gaea.data.mapreduce.options.HadoopOptions;
 import org.bgi.flexlab.gaea.data.options.GaeaOptions;
 
-import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -33,6 +32,7 @@ public class VCFStatsOptions extends GaeaOptions implements HadoopOptions {
     private String tmpPath;
     private String outputPath;
     private String input;
+    private String dbsnpFile; //vcf.gz, must be indexed
 
 //    private String referenceSequencePath; //参考序列gaeaindex
 
@@ -44,6 +44,7 @@ public class VCFStatsOptions extends GaeaOptions implements HadoopOptions {
     public VCFStatsOptions() {
         addOption("i", "input",      true,  "input file(VCF). [request]", true);
         addOption("o", "output",     true,  "output file [request]", true);
+        addOption("d", "dbsnp",     true,  "dbsnp file(.vcf.gz), must be indexed [request]", true);
 //        addOption("r", "reference",  true,  "indexed reference sequence file list [request]", true);
         addOption(null,"verbose",    false, "display verbose information.");
         addOption(null,"debug",      false, "for debug.");
@@ -73,6 +74,7 @@ public class VCFStatsOptions extends GaeaOptions implements HadoopOptions {
         tmpPath = "/user/" + System.getProperty("user.name") + "/vcfsummarytmp-" + df.format(new Date());
 
         setInput(cmdLine.getOptionValue("input"));
+        setDbsnpFile(cmdLine.getOptionValue("dbsnp"));
 //        setReferenceSequencePath(cmdLine.getOptionValue("reference",""));
         setOutputPath(cmdLine.getOptionValue("output"));
         setVerbose(getOptionBooleanValue("verbose", false));
@@ -140,5 +142,13 @@ public class VCFStatsOptions extends GaeaOptions implements HadoopOptions {
 
     public void setDebug(boolean debug) {
         this.debug = debug;
+    }
+
+    public String getDbsnpFile() {
+        return dbsnpFile;
+    }
+
+    public void setDbsnpFile(String dbsnpFile) {
+        this.dbsnpFile = dbsnpFile;
     }
 }

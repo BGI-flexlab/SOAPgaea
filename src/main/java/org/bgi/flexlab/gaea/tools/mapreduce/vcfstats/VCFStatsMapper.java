@@ -13,11 +13,13 @@ import java.io.IOException;
 
 public class VCFStatsMapper extends Mapper<LongWritable, VariantContextWritable, NullWritable, Text> {
 
-    VCFReport vcfReport;
+    private VCFReport vcfReport;
     private Text resultValue = new Text();
     protected void setup(Context context)
             throws IOException, InterruptedException {
-        vcfReport = new VCFReport();
+        VCFStatsOptions options = new VCFStatsOptions();
+        options.getOptionsFromHadoopConf(context.getConfiguration());
+        vcfReport = new VCFReport(options);
     }
 
     @Override

@@ -55,6 +55,8 @@ public class PerSampleVCFReport {
     protected long mTotalFailedFilters = 0;
     protected long mTotalPassedFilters = 0;
 
+    protected long mTotalDbSnp = 0;
+
     protected final Histogram[] mAlleleLengths;
 
 
@@ -107,6 +109,8 @@ public class PerSampleVCFReport {
 
         mTotalFailedFilters += Integer.valueOf(fields[27]);
         mTotalPassedFilters += Integer.valueOf(fields[28]);
+
+        mTotalDbSnp += Integer.valueOf(fields[29]);
     }
 
     public String toReducerString(){
@@ -140,6 +144,9 @@ public class PerSampleVCFReport {
             mHeterozygous++;
         else
             mHomozygous++;
+
+        if(vc.hasID())
+            mTotalDbSnp++;
 
         for(Allele allele: gt.getAlleles()){
             if(allele.isReference())
@@ -234,6 +241,8 @@ public class PerSampleVCFReport {
         values.add(Long.toString(mTotalFailedFilters));
         values.add(Long.toString(mTotalPassedFilters));
 
+        values.add(Long.toString(mTotalDbSnp));
+
         return values;
     }
 
@@ -287,6 +296,8 @@ public class PerSampleVCFReport {
         values.add(StatsUtils.divide(mTotalInsertions, mTotalDeletions));
         names.add("Indel/SNP+MNP ratio");
         values.add(StatsUtils.divide(mTotalInsertions + mTotalDeletions, mTotalSnps + mTotalMnps));
+        names.add("dbSNP ratio");
+        values.add(StatsUtils.divide(mTotalDbSnp, mTotalPassedFilters - mNoCall));
         return Pair.create(names, values);
     }
 

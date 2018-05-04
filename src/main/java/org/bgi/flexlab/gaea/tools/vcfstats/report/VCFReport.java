@@ -1,12 +1,18 @@
 package org.bgi.flexlab.gaea.tools.vcfstats.report;
 
+import htsjdk.samtools.util.CloseableIterator;
+import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.VariantContext;
+import htsjdk.variant.variantcontext.VariantContextBuilder;
+import htsjdk.variant.vcf.VCFFileReader;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.*;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.util.LineReader;
+import org.bgi.flexlab.gaea.tools.mapreduce.vcfstats.VCFStatsOptions;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -14,12 +20,20 @@ import java.util.Map;
 public class VCFReport {
 
     private Map<String, PerSampleVCFReport> PerSampleVCFReports;
+    private VCFStatsOptions options;
 
     public VCFReport(){
         PerSampleVCFReports = new HashMap<>();
     }
 
+    public VCFReport(VCFStatsOptions options){
+        PerSampleVCFReports = new HashMap<>();
+        this.options = options;
+    }
+
     public void parseVariation(VariantContext vc){
+        if(options.getDbsnpFile() != null)
+            vc = setDbSNP(vc);
         PerSampleVCFReport PerSampleVCFReport;
         for(String sample: vc.getSampleNames()){
             Genotype gt = vc.getGenotype(sample);
@@ -36,6 +50,37 @@ public class VCFReport {
             PerSampleVCFReport.add(vc, sample);
         }
     }
+
+    private VariantContext setDbSNP(VariantContext vc) {
+        VCFFileReader vcfReader = new VCFFileReader(new File(options.getDbsnpFile()));
+        CloseableIterator<VariantContext> vcfIter = vcfReader.query(vc.getContig(), vc.getStart(), vc.getEnd());
+
+        String id = null;
+        while (vcfIter.hasNext()) {
+            VariantContext dbsnpvc = vcfIter.next();
+            if (dbsnpvc.getStart() != vc.getStart() || dbsnpvc.getEnd() != vc.getEnd())
+                continue;
+
+            for(Allele allele: vc.getAlternateAlleles()){
+                for(Allele dnsnpAllele: dbsnpvc.getAlternateAlleles()) {
+                    if(allele.equals(dnsnpAllele)) {
+                        id = dbsnpvc.getID();
+                        break;
+                    }
+                }
+                if(id != null)
+                    break;
+            }
+            if(id != null)
+                break;
+        }
+
+        if(id != null) {
+            return new VariantContextBuilder(vc).id(id).make();
+        }
+        return vc;
+    }
+
 
     public String parseReducerString(){
         return null;
