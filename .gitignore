@@ -1,10 +1,12 @@
-/target/
-/.settings/
-/.classpath
-
+.settings/
 .idea/
+.classpath
+.project
+.DS_Store
+
+target/
+TempFatjarBuildDir_erase_me/
 
 *.jar
-
-TempFatjarBuildDir_erase_me/
-gaea.iml
+*.iml
+*.swp
