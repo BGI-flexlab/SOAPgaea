@@ -439,6 +439,47 @@ public class Transcript extends IntervalAndSubIntervals<Exon> {
 	}
 
 	/**
+	 * Calculate base number in this transcript where 'pos' maps
+	 *
+	 * @param usePrevBaseIntron: When 'pos' is intronic this method returns:
+	 * 			- if( usePrevBaseIntron== false)  => The first base in the exon after 'pos' (i.e. first coding base after intron)
+	 * 			- if( usePrevBaseIntron== true)   => The last base in the  exon before 'pos'  (i.e. last coding base before intron)
+	 *
+	 * @returns Base number or '-1' if it does not map to a coding base
+	 */
+	public synchronized int baseNumberTr(int pos, boolean usePrevBaseIntron) {
+		// Doesn't hit this transcript?
+		if (!intersects(pos)) return -1;
+
+		// Is it in UTR instead of CDS?
+//		if (isUtr(pos)) return -1;
+
+		// All exons..
+		int firstCdsBaseInExon = 0; // Where the exon maps to the CDS (i.e. which CDS base number does the first base in this exon maps to).
+		for (Exon eint : sortedStrand()) {
+			if (eint.intersects(pos)) {
+				int cdsBaseInExon; // cdsBaseInExon: base number relative to the beginning of the coding part of this exon (i.e. excluding 5'UTRs)
+				if (isStrandPlus()) cdsBaseInExon = pos - Math.max(eint.getStart(), start);
+				else cdsBaseInExon = Math.min(eint.getEnd(), end) - pos;
+
+				cdsBaseInExon = Math.max(0, cdsBaseInExon);
+
+				return firstCdsBaseInExon + cdsBaseInExon;
+			} else {
+				// Before exon begins?
+				if ((isStrandPlus() && (pos < eint.getStart())) // Before exon begins (positive strand)?
+						|| (isStrandMinus() && (pos > eint.getEnd()))) // Before exon begins (negative strand)?
+					return firstCdsBaseInExon - (usePrevBaseIntron ? 1 : 0);
+			}
+
+			if (isStrandPlus()) firstCdsBaseInExon += Math.max(0, eint.getEnd() - Math.max(eint.getStart(), start) + 1);
+			else firstCdsBaseInExon += Math.max(0, Math.min(end, eint.getEnd()) - eint.getStart() + 1);
+		}
+
+		return firstCdsBaseInExon - 1;
+	}
+
+	/**
 	 * Return a codon that includes 'cdsBaseNumber'
 	 */
 	public String baseNumberCds2Codon(int cdsBaseNumber) {

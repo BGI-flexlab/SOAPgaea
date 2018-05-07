@@ -28,7 +28,7 @@ public class DBQuery implements Serializable {
 
 	private static final long serialVersionUID = -897843908487603204L;
 	
-	DBAdapterInterface dbAdapter = null;
+	DBAdapter dbAdapter = null;
 	Results results = null;
 	Condition condition = null;
 	
@@ -66,13 +66,9 @@ public class DBQuery implements Serializable {
 		String[] keys = keyStr.split(",");
 		for (String key : keys) {
 			result = dbAdapter.getResult(condition.getRefTable().getTable(), key);
-			System.err.println("Alt:"+key);
-			System.err.println("Alt:"+String.join("|",result.values()));
 
-			if (result ==null || result.isEmpty()){
-				System.err.println("Cann't find value from table:"+condition.getRefTable().getTable()+". Key:"+key);
+			if (result ==null || result.isEmpty())
 				return null;
-			}
 
 			String resultAltStr = result.get("ALT");
 			if (resultAltStr == null) {
@@ -85,19 +81,12 @@ public class DBQuery implements Serializable {
 				annoResult.put(field, result.get(field));
 			}
 
-			if (!resultAltStr.contains(",")) {
-				resultAltStr = resultAltStr.toUpperCase();
-				if(alts.contains(resultAltStr)){
-					results.add(resultAltStr, annoResult);
-				}
-			}else {
-				String[] resultAlts = resultAltStr.split(",");
-				List<HashMap<String, String>> annoResults = splitResult(annoResult, resultAlts.length);
-				for (int i = 0; i < resultAlts.length; i++) {
-					String alt = resultAlts[i].toUpperCase();
-					if(alts.contains(alt)){
-						results.add(alt, annoResults.get(i));
-					}
+			String[] resultAlts = resultAltStr.split(",");
+			List<HashMap<String, String>> annoResults = splitResult(annoResult, resultAlts.length);
+			for (int i = 0; i < resultAlts.length; i++) {
+				String alt = resultAlts[i].toUpperCase();
+				if(alts.contains(alt)){
+					results.add(alt, annoResults.get(i));
 				}
 			}
 		}
@@ -110,22 +99,27 @@ public class DBQuery implements Serializable {
 	 */
 	protected List<HashMap<String, String>> splitResult(HashMap<String, String> result, int altNum) {
 		List<HashMap<String, String>> resultList = new ArrayList<>();
+		if(altNum == 1) {
+			resultList.add(result);
+			return resultList;
+		}
+
 		for (int i = 0; i < altNum; i++) {
 			resultList.add(new HashMap<>());
 		}
 
 		for (Entry<String, String> entry : result.entrySet()) {
-			if(entry.getValue() == null)
-				continue;
-			if (entry.getValue().contains(",")) {
-				String[] values = entry.getValue().split(",");
+			String v = entry.getValue();
+			if(v == null) continue;
+			if(v.contains(",")){
+				String[] values = v.split(",");
 				if(altNum == values.length){
 					for (int i = 0; i < altNum; i++) {
 						resultList.get(i).put(entry.getKey(), values[i]);
 					}
 				}else {
 					for (int i = 0; i < altNum; i++) {
-						resultList.get(i).put(entry.getKey(), entry.getValue());
+						resultList.get(i).put(entry.getKey(), v);
 					}
 				}
 			}else {

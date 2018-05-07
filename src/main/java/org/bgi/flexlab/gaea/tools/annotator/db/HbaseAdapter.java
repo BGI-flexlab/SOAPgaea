@@ -34,7 +34,7 @@ import java.util.Map;
  * @author huangzhibo
  *
  */
-public class HbaseAdapter implements DBAdapterInterface{
+public class HbaseAdapter extends DBAdapter {
 
 	private String columnFamily = "data";
 

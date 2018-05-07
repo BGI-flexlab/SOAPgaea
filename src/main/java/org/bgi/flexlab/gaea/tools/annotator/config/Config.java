@@ -44,7 +44,8 @@ public class Config implements Serializable {
 	private static Config configInstance = null; 
 	
 	public static final String KEY_REFERENCE = "ref";
-	public static final String KEY_GENE_INFO = "GeneInfo";
+	public static final String KEY_GENEINFO_PREFIX = "GeneInfo";
+	public static final String KEY_VARIANT_PREFIX = "Variant";
 	public static final String KEY_TSV_PREFIX = "TSV";
 	public static final String KEY_CODON_PREFIX = "codon.";
 	public static final String KEY_CODONTABLE_SUFIX = ".codonTable";
@@ -70,6 +71,7 @@ public class Config implements Serializable {
 	private DatabaseJson databaseJson;
 	private List<String> dbNameList;
 	private List<String> fields = new ArrayList<>();
+	private List<String> fieldsWithoutVariant = null;
 	private Map<String, String> headerByField = new HashMap<>();
 	private Properties properties;
 	private Genome genome;
@@ -209,7 +211,7 @@ public class Config implements Serializable {
 		// Sorted keys
 		Set<String> keys = properties.stringPropertyNames();
 		ref = properties.getProperty(KEY_REFERENCE);
-		setGeneInfo(properties.getProperty(KEY_GENE_INFO));
+		setGeneInfo(properties.getProperty(KEY_GENEINFO_PREFIX));
 		
 		annoFieldsByDB = new HashMap<>();
 		dbNameList = new ArrayList<>();
@@ -228,6 +230,7 @@ public class Config implements Serializable {
 				ArrayList<String> annoFieldList = new ArrayList<>();
 
 				for (String annoField : annoFields) {
+					annoField = annoField.trim();
 					if (annoField.contains(":")) {
 						String[] tags = annoField.split(":");
 						fields.add(tags[0]);
@@ -239,8 +242,9 @@ public class Config implements Serializable {
 					}
 				}
 
-				if (!key.startsWith(KEY_GENE_INFO)) {
-					dbNameList.add(dbName);
+				if (!key.startsWith(KEY_GENEINFO_PREFIX) && !key.startsWith(KEY_VARIANT_PREFIX)) {
+					if(!dbNameList.contains(dbName))
+						dbNameList.add(dbName);
 				}
 
 				if(annoFieldsByDB.containsKey(dbName))
@@ -255,6 +259,17 @@ public class Config implements Serializable {
 
 	public List<String> getFields() {
 		return fields;
+	}
+
+	public List<String> getFieldsWithoutVariant() {
+		if(fieldsWithoutVariant != null)
+			return fieldsWithoutVariant;
+
+		fieldsWithoutVariant = new ArrayList<>();
+		for (String field: getFields())
+			if(!annoFieldsByDB.get(KEY_VARIANT_PREFIX).contains(field))
+				fieldsWithoutVariant.add(field);
+		return fieldsWithoutVariant;
 	}
 
 	public Map<String, String> getHeaderByField() {
@@ -432,35 +447,16 @@ public class Config implements Serializable {
 		return databaseJson;
 	}
 
-	public List<String> getHeaderList(){
-		List<String> headerList = new ArrayList<>();
-		headerList.add("CHROM");
-		headerList.add("POS");
-//		headerList.add("START");
-//		headerList.add("END");
-		headerList.add("REF");
-		headerList.add("ALT");
-		ArrayList<String> fields = getFieldsByDB(Config.KEY_GENE_INFO);
-		headerList.addAll(fields);
-		List<String> dbNameList = getDbNameList();
-		for (String dbName : dbNameList) {
-			fields = getFieldsByDB(dbName);
-			headerList.addAll(fields);
-		}
-		return headerList;
-	}
-
 	public String getHeaderString(){
-		return getHeaderString("#CHROM\tPOS\tREF\tALT", "\t");
+		return getHeaderString("#", "\t");
 	}
 
 	public String getHeaderString(String prefix, String delimiter){
-		StringBuilder sb = new StringBuilder(prefix);
+		ArrayList<String> headers = new ArrayList<>();
 		for(String field: getFields()){
-			sb.append(delimiter);
-			sb.append(getHeaderNameByField(field));
+			headers.add(getHeaderNameByField(field));
 		}
-		return sb.toString();
+		return prefix+String.join(delimiter, headers);
 	}
 
 	public AnnotatorOptions getOptions() {

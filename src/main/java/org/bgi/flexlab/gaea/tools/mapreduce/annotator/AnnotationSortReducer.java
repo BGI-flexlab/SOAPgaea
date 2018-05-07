@@ -19,43 +19,42 @@ package org.bgi.flexlab.gaea.tools.mapreduce.annotator;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
+import org.bgi.flexlab.gaea.data.mapreduce.writable.PairWritable;
 import org.bgi.flexlab.gaea.tools.annotator.config.Config;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 
 public class AnnotationSortReducer extends Reducer<PairWritable, Text, NullWritable, Text> {
 
 	private MultipleOutputs<NullWritable,Text> multipleOutputs = null;
 	private Text resultValue;
-	private boolean printHeader = true;
+	private Set<String> printHeader = new HashSet<>();
+	private Config userConfig;
 
 	@Override
 	protected void setup(Context context) throws IOException, InterruptedException {
 		resultValue = new Text();
 		multipleOutputs = new MultipleOutputs<>(context);
 		Configuration conf = context.getConfiguration();
-		Config userConfig = new Config(conf);
-		System.err.println(userConfig.getHeaderString());
-		resultValue.set(userConfig.getHeaderString());
+		userConfig = new Config(conf);
 	}
 
 	@Override
 	protected void reduce(PairWritable key, Iterable<Text> values, Context context)
 			throws IOException, InterruptedException {
-		if(printHeader) {
+		if(!printHeader.contains(key.getFirst())) {
+			resultValue.set(userConfig.getHeaderString());
 			multipleOutputs.write(NullWritable.get(), resultValue, key.getFirst());
-			printHeader = false;
+			printHeader.add(key.getFirst());
 		}
-		Iterator<Text> iter =  values.iterator();
-		while(iter.hasNext()) {
-			Text inputLine = iter.next();
+		for (Text inputLine : values) {
 			resultValue.set(inputLine);
 			multipleOutputs.write(NullWritable.get(), resultValue, key.getFirst());
-//			context.write(NullWritable.get(), resultValue);
 		}
 	}
 

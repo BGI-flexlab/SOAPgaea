@@ -26,7 +26,7 @@ import java.util.*;
 
 import static java.lang.Integer.min;
 
-public class TSVAdapter implements DBAdapterInterface{
+public class TSVAdapter extends DBAdapter {
 
     private BufferedRandomAccessFile tsvReader = null;
     private String filePath = null;
@@ -68,17 +68,15 @@ public class TSVAdapter implements DBAdapterInterface{
         }
 
 
-    };
+    }
+
     @Override
     public void disconnection() throws IOException{
         if(tsvReader != null)
             tsvReader.close();
 
-    };
-    @Override
-    public HashMap<String, String> getResult(String tableName, String rowKey, List<String> fieldMap) throws IOException{
-        return null;
     }
+
     @Override
     public HashMap<String, String> getResult(String tableName,
                                              String rowKey) throws IOException{
@@ -143,8 +141,6 @@ public class TSVAdapter implements DBAdapterInterface{
                 }
             }
 
-
-
             if(value != null) {
                 System.out.println(rowKey + " " + value);
                 resultMap.put(rowKey, value);
@@ -170,14 +166,6 @@ public class TSVAdapter implements DBAdapterInterface{
         else
             throw  new IOException("table name error!!");
 
-
-
         return resultMap;
-
-    }
-
-    @Override
-    public boolean insert(String tableName, String rowKey, Map<String, String> fields) throws IOException {
-        return false;
     }
 }

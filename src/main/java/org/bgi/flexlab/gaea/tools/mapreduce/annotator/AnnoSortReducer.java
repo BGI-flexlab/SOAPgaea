@@ -25,6 +25,7 @@ import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
+import org.bgi.flexlab.gaea.data.mapreduce.writable.PairWritable;
 import org.bgi.flexlab.gaea.data.structure.header.SingleVCFHeader;
 import org.bgi.flexlab.gaea.tools.annotator.config.Config;
 
@@ -49,7 +50,7 @@ public class AnnoSortReducer extends Reducer<PairWritable, Text, NullWritable, T
 		Config userConfig = new Config(conf);
 		options = new AnnotatorOptions();
 		options.getOptionsFromHadoopConf(conf);
-		annoFieldNameHeader = userConfig.getHeaderString("ALT","|");
+		annoFieldNameHeader = userConfig.getHeaderString("ALT|","|");
 
 		vcfHeaders = new HashMap<>();
 		Path inputPath = new Path(options.getInputFilePath());
@@ -72,6 +73,7 @@ public class AnnoSortReducer extends Reducer<PairWritable, Text, NullWritable, T
 	@Override
 	protected void reduce(PairWritable key, Iterable<Text> values, Context context)
 			throws IOException, InterruptedException {
+		//TODO fix like AnnotationSortReducer
 		if(printHeader) {
 			VCFHeader vcfHeader = vcfHeaders.get(key.getFirst());
 			VCFHeaderLine annoVcfHeaderLine = new VCFInfoHeaderLine("ANNO", VCFHeaderLineCount.UNBOUNDED, VCFHeaderLineType.String, "fieldName:"+annoFieldNameHeader);

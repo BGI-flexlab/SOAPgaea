@@ -21,6 +21,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
+import org.bgi.flexlab.gaea.data.mapreduce.writable.PairWritable;
 import org.bgi.flexlab.gaea.tools.annotator.SampleAnnotationContext;
 import org.bgi.flexlab.gaea.tools.annotator.VcfAnnoContext;
 import org.bgi.flexlab.gaea.tools.annotator.config.Config;
@@ -51,7 +52,6 @@ public class AnnotationSortMapper extends Mapper<LongWritable, Text, PairWritabl
 	protected void map(LongWritable key, Text value, Context context)
 			throws IOException, InterruptedException {
 		String annoLine = value.toString();
-		if (annoLine.startsWith("#")) return;
 
 		VcfAnnoContext vac = new VcfAnnoContext();
 		vac.parseAnnotationStrings(annoLine, userConfig.getFields());
@@ -69,6 +69,7 @@ public class AnnotationSortMapper extends Mapper<LongWritable, Text, PairWritabl
 				anno.add(annoValue);
 			}
 			resultValue.set(String.join("\t",anno));
+//			System.err.println("anno: " + String.join("\t",anno));
 //			resultValue.set(vac.getAnnoStr()+"\t"+sac.toAlleleString(sac.getSingleAlt()));
 			context.write(resultKey, resultValue);
 		}

@@ -24,6 +24,7 @@ public class DatabaseInfo implements Serializable {
 	public enum DbType {
 		HBASE
 		, MYSQL
+		, MYBED
 		,VCF
 		,TSV
 	}

@@ -4,4 +4,7 @@
 
 .idea/
 
+*.jar
+
+TempFatjarBuildDir_erase_me/
 gaea.iml

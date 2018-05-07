@@ -23,11 +23,12 @@ import htsjdk.variant.vcf.VCFFileReader;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class VCFAdapter implements DBAdapterInterface{
+public class VCFAdapter extends DBAdapter {
 
     private VCFFileReader vcfReader = null;
     private String filepath = null;
@@ -35,30 +36,54 @@ public class VCFAdapter implements DBAdapterInterface{
     public VCFAdapter(String confDir) {
         filepath = confDir;
     }
+
     @Override
-    public void connection(String dbName) throws IOException{
+    public void connection(String tableName) throws IOException{
+        String fileName = filepath + "/" + tableName;
+        vcfReader = new VCFFileReader(new File(fileName));
+    }
 
-
-    };
     @Override
     public void disconnection() throws IOException{
         if(vcfReader != null)
             vcfReader.close();
+    }
 
-    };
-    @Override
-    public HashMap<String, String> getResult(String tableName, String rowKey, List<String> fieldMap) throws IOException{
-        return null;
+    public List<HashMap<String, String>> getResult(String reg, List<String> fields) throws IOException{
+        List<HashMap<String, String>> results = new ArrayList<>();
+        String[] arr = reg.split("\t");
+        String chr = arr[0];
+        int start = Integer.valueOf(arr[1]);
+        int end = Integer.valueOf(arr[2]);
+        CloseableIterator<VariantContext> vcfIter = vcfReader.query(chr, start, end);
+
+        while (vcfIter.hasNext()) {
+            VariantContext vc = vcfIter.next();
+            if (start != vc.getStart() || end != vc.getEnd())
+                continue;
+
+            HashMap<String,String> resultMap = new HashMap<>();
+            for(String field: fields){
+                String v = vc.getAttributeAsString(field, ".");
+                if (v.startsWith("[") && v.endsWith("]"))
+                    v = v.substring(1, v.length() - 1);
+                resultMap.put(field, v);
+            }
+
+            List<String> alts = new ArrayList<>();
+            for(Allele allele: vc.getAlternateAlleles()){
+                alts.add(allele.getBaseString());
+            }
+            resultMap.put("ID", vc.getID());
+            resultMap.put("ALT", String.join(",", alts));
+            results.add(resultMap);
+        }
+        return results;
     }
 
     @Override
     public HashMap<String, String> getResult(String tableName,
                                              String rowKey) throws IOException{
-        if(vcfReader == null)
-        {
-            String fileName = filepath + "/" + tableName;// + ".vcf.gz";
-            vcfReader = new VCFFileReader(new File(fileName));
-        }
         HashMap<String,String> resultMap = new HashMap<>();
 
         String[] arr = rowKey.split("\t");
@@ -85,17 +110,8 @@ public class VCFAdapter implements DBAdapterInterface{
                 }
                 altStr.deleteCharAt(altStr.length() - 1);
                 resultMap.put("ALT", altStr.toString());
-
             }
         }
-        //System.err.println(arr[0] + " "+ arr[1] + " " + arr[2] + ":" +resultMap.size());
-
         return resultMap;
-
-    }
-
-    @Override
-    public boolean insert(String tableName, String rowKey, Map<String, String> fields) throws IOException {
-        return false;
     }
 }

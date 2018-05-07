@@ -14,20 +14,32 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  *******************************************************************************/
-package org.bgi.flexlab.gaea.tools.mapreduce.annotator;
+package org.bgi.flexlab.gaea.tools.annotator.db;
 
+import org.bgi.flexlab.gaea.tools.annotator.config.DatabaseInfo;
 
-import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.Partitioner;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
 
-public class FirstPartitioner extends Partitioner<PairWritable, Text> {
+public class MybedQuery extends DBQuery {
 
-    @Override
-    public int getPartition(PairWritable key, Text value, int numPartitions) {
-        /*
-         * 默认的实现 (key.hashCode() & Integer.MAX_VALUE) % numPartitions
-         * 让key中first字段作为分区依据
-         */
-        return (key.getFirst().hashCode() & Integer.MAX_VALUE) % numPartitions;
-    }
+	public Results query(Condition condition)throws IOException{
+		Results results = new Results();
+
+		HashMap<String,String> result = dbAdapter.getResult(condition.getRefTable().getTable(), condition.getConditionString());
+		if (result ==null || result.isEmpty()) return null;
+		List<String> alts = condition.getAlts();
+
+		for(String alt: alts){
+			results.add(alt, result);
+		}
+
+		return results;
+	}
+
+	public void connection(String tableName, DatabaseInfo.DbType dbType, String connInfo) throws IOException{
+		dbAdapter = DBAdapterFactory.createDbAdapter(dbType, connInfo);
+		dbAdapter.connection(tableName);
+	}
 }

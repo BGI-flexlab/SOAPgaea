@@ -31,8 +31,6 @@ public class GeneDBQuery extends DBQuery {
 		for (String gene : condition.getGenes()) {
 			HashMap<String,String> result = dbAdapter.getResult(condition.getRefTable().getTable(), gene, condition.getFields());
 			if (result ==null || result.isEmpty()) return null;
-			System.err.println("Gene:"+gene);
-			System.err.println("Gene:"+String.join("|",result.values()));
 			results.add(gene, result);
 		}
 		return results;

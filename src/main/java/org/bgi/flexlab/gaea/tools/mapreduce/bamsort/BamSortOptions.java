@@ -60,7 +60,7 @@ public class BamSortOptions extends GaeaOptions implements HadoopOptions {
         addOption("h", "help",       false, "help information.");
         addOption("R", "reducer", true, "reducer numbers [30]");
         addOption("T","type",    true, "filter mode. unmap/all [all]");
-        addOption(null,"tmpdir",    true, "hdfs tmpdir [default]");
+//        addOption(null,"tmpdir",    true, "hdfs tmpdir [default]");
         addOption(null,"verbose",    false, "display verbose information.");
 
         FormatHelpInfo(SOFTWARE_NAME,SOFTWARE_VERSION);
@@ -83,12 +83,12 @@ public class BamSortOptions extends GaeaOptions implements HadoopOptions {
 
         reducerNum = getOptionIntValue("R", 30);
 
-        if(cmdLine.hasOption("tmpdir")){
-            setTmpPath(cmdLine.getOptionValue("tmpdir"));
-        }else {
+//        if(cmdLine.hasOption("tmpdir")){
+//            setTmpPath(cmdLine.getOptionValue("tmpdir"));
+//        }else {
             SimpleDateFormat df = new SimpleDateFormat("yyyyMMddHHmmss");
-            tmpPath = "/user/" + System.getProperty("user.name") + "/bamsort-tmp-" + df.format(new Date());
-        }
+            tmpPath = cmdLine.getOptionValue("outdir") + "/bamsort-tmp-" + df.format(new Date());
+//        }
 
         try {
             setStrInputs(cmdLine.getOptionValue("input"));

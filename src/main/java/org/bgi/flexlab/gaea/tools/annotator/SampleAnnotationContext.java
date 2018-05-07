@@ -47,6 +47,7 @@ public class SampleAnnotationContext{
 	private boolean hasNearVar = false;
 	private boolean isCalled;
 	private String singleAlt;
+	private String qual;
 
 	public SampleAnnotationContext() {}
 
@@ -60,6 +61,8 @@ public class SampleAnnotationContext{
 	}
 
 	void init(VariantContext variantContext){
+		DecimalFormat df = new DecimalFormat("0.000");
+		df.setRoundingMode(RoundingMode.HALF_UP);
 		Genotype gt = variantContext.getGenotype(sampleName);
 		Map<String, Integer> alleleDepths = new HashMap<>();
 		Map<String, String> zygosity = new HashMap<>();
@@ -74,6 +77,7 @@ public class SampleAnnotationContext{
 				alts.add(allele.getBaseString());
 			i++;
 		}
+		setQual(df.format(variantContext.getPhredScaledQual()));
 		setCalled(gt.isCalled());
 		setAlleleDepths(alleleDepths);
 		setDepth(gt.getDP());
@@ -129,6 +133,12 @@ public class SampleAnnotationContext{
 
 			case "Filter":
 				return getAlleleFilter(allele);
+
+			case "QUAL":
+				return getQual();
+
+			case "DP":
+				return Integer.toString(getDepth());
 
 			default:
 				return null;
@@ -244,6 +254,10 @@ public class SampleAnnotationContext{
 		sb.append(getAlleleZygosity(allele));
 		sb.append("|");
 		sb.append(getAlleleFilter(allele));
+		sb.append("|");
+		sb.append(getQual());
+		sb.append("|");
+		sb.append(getDepth());
 		return sb.toString();
 	}
 
@@ -263,6 +277,8 @@ public class SampleAnnotationContext{
 			setHasNearVar();
 		zygosity.put(singleAlt, fields[5]);
 		filter.put(singleAlt, fields[6]);
+		setQual(fields[7]);
+		setDepth(Integer.parseInt(fields[8]));
 	}
 
 	public boolean isCalled() {
@@ -333,4 +349,11 @@ public class SampleAnnotationContext{
 		return false;
 	}
 
+	public String getQual() {
+		return qual;
+	}
+
+	public void setQual(String qual) {
+		this.qual = qual;
+	}
 }

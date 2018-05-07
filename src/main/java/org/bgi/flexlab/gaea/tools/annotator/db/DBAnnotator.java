@@ -142,18 +142,21 @@ public class DBAnnotator implements Serializable{
 			String queryClassName = "DBQuery";
 			if (databaseInfo.getQueryClassName() != null) {
 				queryClassName = databaseInfo.getQueryClassName();
-				System.err.println("queryClassName is :" +queryClassName);
-				System.err.println("queryCondition is :" +databaseInfo.getQueryCondition());
 			}else {
 				System.err.println("queryClassName is null, use DBQuery.class defaultly. This maybe a bug! dbName:" +dbName);
 			}
 			DBQuery dbQuery = (DBQuery)Class.forName("org.bgi.flexlab.gaea.tools.annotator.db." + queryClassName).newInstance();
 			DbType dbType = databaseInfo.getDatabase();
 			String connInfo = config.getDatabaseJson().getConnectionInfo(dbType);
-			dbQuery.connection(dbName, dbType,connInfo);
+			if(dbType == DbType.MYBED || dbType == DbType.VCF) {
+				String tableName = config.getDatabaseJson().getDatabaseInfo(dbName).getRefTable(config.getRef()).getTable();
+				dbQuery.connection(tableName, dbType, connInfo);
+			}else
+				dbQuery.connection(dbName, dbType, connInfo);
 			DbQueryMap.put(dbName, dbQuery);
-			
+
 			Condition condition = new Condition(dbName,databaseInfo);
+
 			if(dbName.equals("ANNO")){
 				condition.setFields(config.getFields());
 			}else

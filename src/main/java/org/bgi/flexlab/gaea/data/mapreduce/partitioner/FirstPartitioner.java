@@ -14,23 +14,20 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  *******************************************************************************/
-package org.bgi.flexlab.gaea.tools.annotator.db;
+package org.bgi.flexlab.gaea.data.mapreduce.partitioner;
 
-import org.bgi.flexlab.gaea.tools.annotator.config.DatabaseInfo.DbType;
 
-public class DBAdapterFactory {
-	
-	static DBAdapter createDbAdapter(DbType dbType, String connInfo) {
-		if(dbType == DbType.HBASE){
-			return new HbaseAdapter(connInfo);
-		}else if (dbType == DbType.TSV) {
-			return new TSVAdapter(connInfo);
-		}else if (dbType == DbType.VCF) {
-			return new VCFAdapter(connInfo);
-		}else if(dbType == DbType.MYBED){
-			return new MybedAdapter(connInfo);
-		}
-		return new MysqlAdapter(connInfo);
-	}
+import org.apache.hadoop.mapreduce.Partitioner;
+import org.bgi.flexlab.gaea.data.mapreduce.writable.PairWritable;
 
+public class FirstPartitioner<T> extends Partitioner<PairWritable, T> {
+
+    @Override
+    public int getPartition(PairWritable key, T value, int numPartitions) {
+        /*
+         * 默认的实现 (key.hashCode() & Integer.MAX_VALUE) % numPartitions
+         * 让key中first字段作为分区依据
+         */
+        return (key.getFirst().hashCode() & Integer.MAX_VALUE) % numPartitions;
+    }
 }

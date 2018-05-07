@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Map;
 
 
-public class MysqlAdapter implements DBAdapterInterface{
+public class MysqlAdapter extends DBAdapter {
 	
 	
 	private static final String USER="root";
