@@ -13,7 +13,7 @@ import org.bgi.flexlab.gaea.tools.haplotypecaller.readfilter.ReadFilter;
 
 import htsjdk.samtools.SAMFileHeader;
 
-public class ReadsDataSource implements Iterator<GaeaSamRecord>, Iterable<GaeaSamRecord>{
+public class ReadsDataSource implements Iterator<GaeaSamRecord>, Iterable<GaeaSamRecord> {
 	private GaeaSamRecord currentRecord = null;
 
 	// reads iterator
@@ -22,26 +22,33 @@ public class ReadsDataSource implements Iterator<GaeaSamRecord>, Iterable<GaeaSa
 	private List<GaeaSamRecord> overlaps = new ArrayList<GaeaSamRecord>();
 
 	private SAMFileHeader header = null;
-	
+
 	private ReadsDownsampler downsampler;
-    private Iterator<GaeaSamRecord> cachedDownsampledReads = null;
-    private GaeaSamRecord nextRead = null;   
-    private GenomeLocation queryInterval = null;
-    private ReadFilter readFilter = null;
+	private Iterator<GaeaSamRecord> cachedDownsampledReads = null;
+	private GaeaSamRecord nextRead = null;
+	private GenomeLocation queryInterval = null;
+	private ReadFilter readFilter = null;
 
 	public ReadsDataSource(Iterable<SamRecordWritable> iterable, SAMFileHeader header) {
-		this.reads = iterable.iterator();
 		this.header = header;
+		dataReset(iterable);
 	}
 
 	public void dataReset(Iterable<SamRecordWritable> iterable) {
 		reads = iterable.iterator();
 		if (overlaps != null && !overlaps.isEmpty())
 			overlaps.clear();
-		currentRecord = null;
+		init();
 	}
-	
-	private int overlapReads(final GenomeLocation queryInterval,GaeaSamRecord read) {
+
+	private void init() {
+		if (reads.hasNext())
+			currentRecord = new GaeaSamRecord(header, reads.next().get());
+		else
+			currentRecord = null;
+	}
+
+	private int overlapReads(GaeaSamRecord read) {
 		if (read.getEnd() < queryInterval.getStart()) {
 			return 0;
 		} else if ((read.getAlignmentStart() >= queryInterval.getStart()
@@ -53,54 +60,70 @@ public class ReadsDataSource implements Iterator<GaeaSamRecord>, Iterable<GaeaSa
 			return 2;
 	}
 
-	private boolean fillDownsampledReadsCache() {
-
+	private void processReads() {
 		final boolean traversalIsBounded = queryInterval != null;
-		
-		if (overlaps != null && !overlaps.isEmpty()) {
-			for(GaeaSamRecord read : overlaps){
-				if(overlapReads(queryInterval , read) == 1)
-					downsampler.submit(read);
+		if (traversalIsBounded) {
+			while (currentRecord != null) {
+				if ((readFilter != null && readFilter.test(currentRecord)) || readFilter == null) {
+					int result = overlapReads(currentRecord);
+					if (result == 1) {
+						if (downsampler != null) {
+							downsampler.submit(currentRecord);
+							
+						}
+						else
+							overlaps.add(currentRecord);
+					} else if (result == 2)
+						break;
+				}
+				if (reads.hasNext())
+					currentRecord = new GaeaSamRecord(header, reads.next().get());
+				else
+					currentRecord = null;
 			}
-			
-			overlaps.clear();
 		}
-		
-		if ( !downsampler.hasFinalizedItems() ){
-    		if (traversalIsBounded) {
-    			while (currentRecord != null) {
-    				if ((readFilter != null && readFilter.test(currentRecord)) || readFilter == null) {
-    					int result = overlapReads(queryInterval , currentRecord);
-    					if (result == 0) {
-    						continue;
-    					} else if (result == 1) {
-    						downsampler.submit(currentRecord);
-    					} else
-    						break;
-    				}
-    				if(reads.hasNext())
-    					currentRecord = new GaeaSamRecord(header,reads.next().get());
-    				else
-    					currentRecord = null;
-    			}
-    		}
-        }
+	}
+	
+	private void processPrevReads() {
+		if (overlaps != null && !overlaps.isEmpty()) {
+			ArrayList<GaeaSamRecord> removes = new ArrayList<GaeaSamRecord>();
+			for (GaeaSamRecord read : overlaps) {
+				if (overlapReads(read) == 1) {
+					if (downsampler != null)
+						downsampler.submit(read);
+				} else
+					removes.add(read);
+			}
 
-        if (! reads.hasNext() ) {
-            downsampler.signalEndOfInput();
-        }
+			if (downsampler != null)
+				overlaps.clear();
+			else {
+				overlaps.removeAll(removes);
+				removes.clear();
+			}
+		}
+	}
 
-        overlaps = downsampler.consumeFinalizedItems();
-        cachedDownsampledReads = overlaps.iterator();
-        
-        downsampler.clearItems();
+	private boolean fillDownsampledReadsCache() {
+		processPrevReads();
+		processReads();
 
-        return cachedDownsampledReads.hasNext();
+		if (downsampler != null) {
+			//if (!reads.hasNext())
+				downsampler.signalEndOfInput();
+			overlaps = downsampler.consumeFinalizedItems();
+			downsampler.clearItems();
+		}
+		cachedDownsampledReads = overlaps.iterator();
+
+		return cachedDownsampledReads.hasNext();
 	}
 
 	public void clear() {
-		this.overlaps = null;
-		downsampler.clearItems();
+		if (overlaps != null)
+			overlaps.clear();
+		if(downsampler != null)
+			downsampler.clearItems();
 		nextRead = null;
 	}
 
@@ -116,33 +139,48 @@ public class ReadsDataSource implements Iterator<GaeaSamRecord>, Iterable<GaeaSa
 
 	@Override
 	public GaeaSamRecord next() {
-		if ( nextRead == null ) {
-            throw new NoSuchElementException("next() called when there are no more items");
-        }
+		if (nextRead == null) {
+			throw new NoSuchElementException("next() called when there are no more items");
+		}
 
-        final GaeaSamRecord toReturn = nextRead;
-        advanceToNextRead();
+		final GaeaSamRecord toReturn = nextRead;
+		nextReads();
 
-        return toReturn;
+		return toReturn;
 	}
-	
+
+	private void nextReads() {
+		if (readyToReleaseReads())
+			nextRead = cachedDownsampledReads.next();
+		else
+			nextRead = null;
+	}
+
 	private void advanceToNextRead() {
-        if ( readyToReleaseReads() || fillDownsampledReadsCache() ) {
-            nextRead = cachedDownsampledReads.next();
-        }
-        else {
-            nextRead = null;
-        }
-    }
-	
-	public void set(GenomeLocation interval , ReadFilter readFilter,ReadsDownsampler downsampler){
+		if (fillDownsampledReadsCache()) {
+			nextRead = cachedDownsampledReads.next();
+		} else {
+			nextRead = null;
+		}
+	}
+
+	public void set(GenomeLocation interval, ReadFilter readFilter, ReadsDownsampler downsampler) {
 		this.queryInterval = interval;
 		this.readFilter = readFilter;
 		this.downsampler = downsampler;
+		cachedDownsampledReads = null;
 		advanceToNextRead();
 	}
-	
+
 	private boolean readyToReleaseReads() {
-        return cachedDownsampledReads != null && cachedDownsampledReads.hasNext();
-    }
+		return cachedDownsampledReads != null && cachedDownsampledReads.hasNext();
+	}
+	
+	public void printReads() {
+		if(queryInterval.getContig().equals("chr1") && queryInterval.getStart() == 12600 && queryInterval.getEnd() == 13099) {
+			for(GaeaSamRecord read : overlaps) {
+				System.err.println(read.toString());
+			}
+		}
+	}
 }
