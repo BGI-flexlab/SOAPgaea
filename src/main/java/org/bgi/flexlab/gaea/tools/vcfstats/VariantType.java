@@ -25,6 +25,7 @@ public enum VariantType {
     , MNP // Multiple nucleotide polymorphism (i.e. several bases are changed)
     , INS // Insertion (i.e. some bases added)
     , DEL // Deletion (some bases removed)
+    , InDel
     , MIXED // A mixture of insertion, deletions, SNPs and or MNPs (a.k.a. substitution)
     , NO_VARIATION
     , SYMBOLIC
@@ -87,8 +88,14 @@ public enum VariantType {
             else
                 return MNP;
         } else if ( ref.length() > allele.length() ) {
-            return DEL;
+            if(ref.getBaseString().startsWith(allele.getBaseString()))
+                return DEL;
+            else
+                return InDel;
         } else
-            return INS;
+            if(allele.getBaseString().startsWith(ref.getBaseString()))
+                return INS;
+            else
+                return InDel;
     }
 }

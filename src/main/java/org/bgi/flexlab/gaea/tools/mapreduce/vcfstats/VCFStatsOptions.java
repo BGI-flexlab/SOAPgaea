@@ -34,7 +34,7 @@ public class VCFStatsOptions extends GaeaOptions implements HadoopOptions {
     private String input;
     private String dbsnpFile; //vcf.gz, must be indexed
 
-//    private String referenceSequencePath; //参考序列gaeaindex
+    private String referenceSequencePath; //参考序列gaeaindex
 
     private boolean verbose = false;
     private boolean debug = false;
@@ -44,8 +44,8 @@ public class VCFStatsOptions extends GaeaOptions implements HadoopOptions {
     public VCFStatsOptions() {
         addOption("i", "input",      true,  "input file(VCF). [request]", true);
         addOption("o", "output",     true,  "output file [request]", true);
-        addOption("d", "dbsnp",     true,  "dbsnp file(.vcf.gz), must be indexed [null]");
-//        addOption("r", "reference",  true,  "indexed reference sequence file list [request]", true);
+//        addOption("d", "dbsnp",     true,  "dbsnp file(.vcf.gz), must be indexed [null]");
+        addOption("r", "reference",  true,  "indexed reference sequence file list [request]", true);
         addOption(null,"verbose",    false, "display verbose information.");
         addOption(null,"debug",      false, "for debug.");
         addOption("h", "help",       false, "help information.");
@@ -74,8 +74,8 @@ public class VCFStatsOptions extends GaeaOptions implements HadoopOptions {
         tmpPath = "/user/" + System.getProperty("user.name") + "/vcfsummarytmp-" + df.format(new Date());
 
         setInput(cmdLine.getOptionValue("input"));
-        setDbsnpFile(cmdLine.getOptionValue("dbsnp"));
-//        setReferenceSequencePath(cmdLine.getOptionValue("reference",""));
+//        setDbsnpFile(cmdLine.getOptionValue("dbsnp"));
+        setReferenceSequencePath(cmdLine.getOptionValue("reference",""));
         setOutputPath(cmdLine.getOptionValue("output"));
         setVerbose(getOptionBooleanValue("verbose", false));
         setDebug(getOptionBooleanValue("debug", false));
@@ -120,13 +120,13 @@ public class VCFStatsOptions extends GaeaOptions implements HadoopOptions {
         this.input = input;
     }
 
-//    public String getReferenceSequencePath() {
-//        return referenceSequencePath;
-//    }
-//
-//    public void setReferenceSequencePath(String referenceSequencePath) {
-//        this.referenceSequencePath = formatPath(referenceSequencePath);
-//    }
+    public String getReferenceSequencePath() {
+        return referenceSequencePath;
+    }
+
+    public void setReferenceSequencePath(String referenceSequencePath) {
+        this.referenceSequencePath = referenceSequencePath;
+    }
 
     public boolean isVerbose() {
         return verbose;

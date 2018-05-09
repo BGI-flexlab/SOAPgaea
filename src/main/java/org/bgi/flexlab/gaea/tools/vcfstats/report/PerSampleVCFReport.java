@@ -19,6 +19,7 @@ package org.bgi.flexlab.gaea.tools.vcfstats.report;
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.VariantContext;
+import org.bgi.flexlab.gaea.data.structure.reference.ReferenceShare;
 import org.bgi.flexlab.gaea.tools.vcfstats.VariantType;
 import org.bgi.flexlab.gaea.util.Histogram;
 import org.bgi.flexlab.gaea.util.Pair;
@@ -35,6 +36,7 @@ public class PerSampleVCFReport {
 
     private static final String ALLELE_LENGTH_TAG = "AlleleLen:";
     private static final int ALLELE_LENGTH_MAX_PRINT = 200;
+    private ReferenceShare genomeShare;
 
     private String sampleName;
 
@@ -76,11 +78,18 @@ public class PerSampleVCFReport {
 
     private long mTotalDbSnp = 0;
 
+    private long mTotalInDels = 0;
+    private long mHeterozygousInDels = 0;
+    private long mHomozygousInDels = 0;
+
+
     private final Histogram[] mAlleleLengths;
 
 
-    public PerSampleVCFReport(){
+    public PerSampleVCFReport(ReferenceShare genomeShare){
         sampleName = null;
+        this.genomeShare = genomeShare;
+
         mAlleleLengths = new Histogram[VARIANT_TYPE_COUNT_LENGTH.length];
         for (int i = VariantType.SNP.ordinal(); i < mAlleleLengths.length; ++i) {
             // i from SNP as we don't care about NO_CALL/UNCHANGED
@@ -138,7 +147,11 @@ public class PerSampleVCFReport {
         mTotalFailedFilters += Integer.valueOf(fields[i++]);
         mTotalPassedFilters += Integer.valueOf(fields[i++]);
 
-        mTotalDbSnp += Integer.valueOf(fields[i]);
+        mTotalDbSnp += Integer.valueOf(fields[i++]);
+
+        mTotalInDels += Integer.valueOf(fields[i++]);
+        mHeterozygousInDels += Integer.valueOf(fields[i++]);
+        mHomozygousInDels += Integer.valueOf(fields[i]);
     }
 
     public String toReducerString(){
@@ -188,48 +201,59 @@ public class PerSampleVCFReport {
         else
             mHomozygous++;
 
-        if(vc.hasID())
+        if(genomeShare.getChromosomeInfo(vc.getContig()).isSNP(vc.getStart()))
             mTotalDbSnp++;
 
         for(Allele allele: gt.getAlleles()){
             if(allele.isReference())
                 continue;
             tallyAlleleLengths(vc.getReference(), allele);
+            if(type == VariantType.SNP){
+                tallyTransitionTransversionRatio(vc.getReference().getBaseString(), allele.getBaseString());
+            }
+            if(type == VariantType.MIXED){
+                VariantType type2 =VariantType.typeOfBiallelicVariant(vc.getReference(), allele);
+                count(type2, gt.isHet());
+            }
         }
 
+        count(type, gt.isHet());
+    }
+
+    private void count(VariantType type, boolean isHet){
         switch (type) {
             case SNP:
-                if (gt.isHet()) mHeterozygousSnps++;
+                if (isHet) mHeterozygousSnps++;
                 else mHomozygousSnps++;
                 mTotalSnps++;
-                for(Allele allele: gt.getAlleles()){
-                    if(allele.isReference())
-                        continue;
-                    tallyTransitionTransversionRatio(vc.getReference().getBaseString(), allele.getBaseString());
-                }
                 break;
             case MNP:
-                if (gt.isHet()) mHeterozygousMnps++;
+                if (isHet) mHeterozygousMnps++;
                 else mHomozygousMnps++;
                 mTotalMnps++;
                 break;
             case MIXED:
-                if (gt.isHet()) mHeterozygousMixeds++;
+                if (isHet) mHeterozygousMixeds++;
                 else mHomozygousMixeds++;
                 mTotalMixeds++;
                 break;
             case INS:
-                if (gt.isHet()) mHeterozygousInsertions++;
+                if (isHet) mHeterozygousInsertions++;
                 else mHomozygousInsertions++;
                 mTotalInsertions++;
                 break;
             case DEL:
-                if (gt.isHet()) mHeterozygousDeletions++;
+                if (isHet) mHeterozygousDeletions++;
                 else mHomozygousDeletions++;
                 mTotalDeletions++;
                 break;
+            case InDel:
+                if (isHet) mHeterozygousInDels++;
+                else mHomozygousInDels++;
+                mTotalInDels++;
+                break;
             case BND:
-                if (gt.isHet()) mHeterozygousBreakends++;
+                if (isHet) mHeterozygousBreakends++;
                 else mHomozygousBreakends++;
                 mTotalBreakends++;
                 break;
@@ -237,6 +261,7 @@ public class PerSampleVCFReport {
                 break;
         }
     }
+
 
     private void tallyAlleleLengths(Allele ref, Allele alt) {
         VariantType type = VariantType.typeOfBiallelicVariant(ref, alt);
@@ -286,6 +311,10 @@ public class PerSampleVCFReport {
 
         values.add(Long.toString(mTotalDbSnp));
 
+        values.add(Long.toString(mTotalInDels));
+        values.add(Long.toString(mHeterozygousInDels));
+        values.add(Long.toString(mHomozygousInDels));
+
         return values;
     }
 
@@ -310,6 +339,8 @@ public class PerSampleVCFReport {
         values.add(Long.toString(mTotalInsertions));
         names.add("Deletions");
         values.add(Long.toString(mTotalDeletions));
+        names.add("Deletions");
+        values.add(Long.toString(mTotalInDels));
         names.add("Structural variant breakends");
         values.add(mTotalBreakends > 0 ? Long.toString(mTotalBreakends) : "-");
         names.add("Same as reference");
@@ -332,8 +363,6 @@ public class PerSampleVCFReport {
         values.add(StatsUtils.divide(mHeterozygousInsertions, mHomozygousInsertions));
         names.add("Deletion Het/Hom ratio");
         values.add(StatsUtils.divide(mHeterozygousDeletions, mHomozygousDeletions));
-        names.add("Breakend Het/Hom ratio");
-        values.add(mTotalBreakends > 0 ? StatsUtils.divide(mHeterozygousBreakends, mHomozygousBreakends) : "-");
 
         names.add("Insertion/Deletion ratio");
         values.add(StatsUtils.divide(mTotalInsertions, mTotalDeletions));
