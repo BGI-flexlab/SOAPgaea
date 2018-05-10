@@ -339,7 +339,7 @@ public class PerSampleVCFReport {
         values.add(Long.toString(mTotalInsertions));
         names.add("Deletions");
         values.add(Long.toString(mTotalDeletions));
-        names.add("Deletions");
+        names.add("InDels");
         values.add(Long.toString(mTotalInDels));
         names.add("Structural variant breakends");
         values.add(mTotalBreakends > 0 ? Long.toString(mTotalBreakends) : "-");
