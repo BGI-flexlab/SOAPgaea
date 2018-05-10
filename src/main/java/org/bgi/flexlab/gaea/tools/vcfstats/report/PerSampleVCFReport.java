@@ -276,7 +276,7 @@ public class PerSampleVCFReport {
         values.add(Long.toString(mTotalUnchanged));
         values.add(Long.toString(mHeterozygous));
         values.add(Long.toString(mHomozygous));
-        values.add(Long.toString(mHomozygous));
+        values.add(Long.toString(mNoCall));
         values.add(Long.toString(mDeNovo));
         values.add(Long.toString(mPhased));
 
