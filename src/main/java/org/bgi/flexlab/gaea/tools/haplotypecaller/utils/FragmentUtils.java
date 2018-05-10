@@ -2,8 +2,8 @@ package org.bgi.flexlab.gaea.tools.haplotypecaller.utils;
 
 import java.util.List;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
-import org.bgi.flexlab.gaea.util.Pair;
 import org.bgi.flexlab.gaea.util.ReadUtils;
 import org.bgi.flexlab.gaea.util.Utils;
 
@@ -42,7 +42,7 @@ public final class FragmentUtils {
         }
 
         final Pair<Integer, Boolean> pair = ReadUtils.getReadCoordinateForReferenceCoordinate(clippedFirstRead, clippedSecondRead.getStart());
-        final int firstReadStop = ( pair.getSecond() ? pair.getFirst() + 1 : pair.getFirst());
+        final int firstReadStop = ( pair.getRight() ? pair.getLeft() + 1 : pair.getLeft());
         final int numOverlappingBases = Math.min(clippedFirstRead.getReadLength() - firstReadStop, clippedSecondRead.getReadLength());
 
         final byte[] firstReadBases = clippedFirstRead.getReadBases();

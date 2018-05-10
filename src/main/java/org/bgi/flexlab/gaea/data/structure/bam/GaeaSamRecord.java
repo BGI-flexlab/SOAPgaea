@@ -45,10 +45,12 @@ package org.bgi.flexlab.gaea.data.structure.bam;
 import htsjdk.samtools.*;
 import htsjdk.samtools.util.Locatable;
 
+import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.data.structure.sequenceplatform.NGSPlatform;
 import org.bgi.flexlab.gaea.util.EventType;
 import org.bgi.flexlab.gaea.util.ReadUtils;
 
+import java.nio.charset.Charset;
 import java.util.*;
 
 public class GaeaSamRecord extends SAMRecord implements Locatable {
@@ -56,6 +58,9 @@ public class GaeaSamRecord extends SAMRecord implements Locatable {
 	 * 
 	 */
 	private static final long serialVersionUID = 8070430647521989737L;
+	
+	private static final Charset DEFAULT_CHARSET = Charset.forName("UTF-8");
+	
 	// ReduceReads specific attribute tags
 	public static final String REDUCED_READ_CONSENSUS_TAG = "RR";
 	// Base Quality Score Recalibrator specific attribute tags
@@ -751,4 +756,60 @@ public class GaeaSamRecord extends SAMRecord implements Locatable {
 	public boolean isFirstOfPair() {
 		return getFirstOfPairFlag();
 	}
+	
+	public Integer getAttributeAsInteger( final String attributeName ) {
+        ReadUtils.assertAttributeNameIsLegal(attributeName);
+        final Object attributeValue = getAttribute(attributeName);
+
+        if ( attributeValue == null ) {
+            return null;
+        }
+        else if ( attributeValue instanceof Integer ) {
+            return (Integer)attributeValue;
+        }
+        else {
+            try {
+                return Integer.parseInt(attributeValue.toString());
+            }
+            catch ( NumberFormatException e ) {
+                throw new UserException.ReadAttributeTypeMismatch(attributeName, "integer", e);
+            }
+        }
+    }
+
+    public String getAttributeAsString( final String attributeName ) {
+        ReadUtils.assertAttributeNameIsLegal(attributeName);
+        final Object attributeValue = getAttribute(attributeName);
+        if ( attributeValue instanceof byte[]) {
+            // in case that the attribute is a byte[] array, the toString method will format it as name@hashCode
+            // for a good representation of the byte[] as String, it encodes the bytes with the default charset (UTF-8)
+            final byte[] val = (byte[]) attributeValue;
+            return (val.length == 0) ? "" : new String(val, DEFAULT_CHARSET);
+        }
+        // otherwise, just use the toString() method unless it is null
+        return attributeValue != null ? attributeValue.toString() : null;
+    }
+    
+    public byte[] getBases() {
+        final byte[] bases = getReadBases();
+
+        // Make a defensive copy to protect against direct modification of the returned array
+        return bases != null ? Arrays.copyOf(bases, bases.length) : new byte[0];
+    }
+    
+    public String commonToString() {
+        //Note: SAMRecord blows up on getAlignmentEnd when cigar is null.
+        // That would result in a blow up here so we work around this bug
+        // by checking for empty cigar (nulls get converted to empty cigars in SAMRecordToGATKReadAdapter)
+        if (isUnmapped() || getCigar().isEmpty()){
+            return String.format("%s UNMAPPED", this.getReadName());
+        } else {
+            return String.format("%s %s:%d-%d", getReadName(), getContig(), getStart(), getEnd());
+        }
+    }
+    
+    public boolean hasAttribute( final String attributeName ) {
+        ReadUtils.assertAttributeNameIsLegal(attributeName);
+        return getAttribute(attributeName) != null;
+    }
 }
