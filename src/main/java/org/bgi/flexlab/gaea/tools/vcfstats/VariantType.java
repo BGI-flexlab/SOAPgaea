@@ -83,19 +83,38 @@ public enum VariantType {
             return SYMBOLIC;
 
         if ( ref.length() == allele.length() ) {
-            if ( allele.length() == 1 )
-                return SNP;
-            else
+            if ( isMNP(ref, allele))
                 return MNP;
+            else
+                return SNP;
         } else if ( ref.length() > allele.length() ) {
-            if(ref.getBaseString().startsWith(allele.getBaseString()))
+            if(isInDel(ref,allele))
+//            if(isInDel2(ref,allele))
+                return InDel;
+            else
                 return DEL;
-            else
-                return InDel;
         } else
-            if(allele.getBaseString().startsWith(ref.getBaseString()))
-                return INS;
-            else
+            if(isInDel(allele, ref))
+//            if(isInDel2(allele, ref))
                 return InDel;
+            else
+                return INS;
+    }
+
+    public static boolean isMNP(Allele ref, Allele alt){
+        int diffBaseNum = 0;
+        for (int i = 0; i < ref.length(); i++) {
+            if(ref.getBaseString().charAt(i) != alt.getBaseString().charAt(i))
+                diffBaseNum++;
+        }
+        return diffBaseNum > 1;
+    }
+
+    public static boolean isInDel(Allele longAllele, Allele shortAllele){
+        return !longAllele.getBaseString().startsWith(shortAllele.getBaseString());
+    }
+
+    public static boolean isInDel2(Allele longAllele, Allele shortAllele){
+        return shortAllele.length() > 1;
     }
 }
