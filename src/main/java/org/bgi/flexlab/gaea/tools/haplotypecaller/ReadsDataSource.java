@@ -28,6 +28,8 @@ public class ReadsDataSource implements Iterator<GaeaSamRecord>, Iterable<GaeaSa
 	private GaeaSamRecord nextRead = null;
 	private GenomeLocation queryInterval = null;
 	private ReadFilter readFilter = null;
+	
+	private int readsNumber = 0;
 
 	public ReadsDataSource(Iterable<SamRecordWritable> iterable, SAMFileHeader header) {
 		this.header = header;
@@ -46,6 +48,10 @@ public class ReadsDataSource implements Iterator<GaeaSamRecord>, Iterable<GaeaSa
 			currentRecord = new GaeaSamRecord(header, reads.next().get());
 		else
 			currentRecord = null;
+		
+		if(currentRecord != null)
+			readsNumber = 1;
+		readsNumber = 0;
 	}
 
 	private int overlapReads(GaeaSamRecord read) {
@@ -76,8 +82,10 @@ public class ReadsDataSource implements Iterator<GaeaSamRecord>, Iterable<GaeaSa
 					} else if (result == 2)
 						break;
 				}
-				if (reads.hasNext())
+				if (reads.hasNext()) {
 					currentRecord = new GaeaSamRecord(header, reads.next().get());
+					readsNumber++;
+				}
 				else
 					currentRecord = null;
 			}
@@ -182,5 +190,9 @@ public class ReadsDataSource implements Iterator<GaeaSamRecord>, Iterable<GaeaSa
 				System.err.println(read.toString());
 			}
 		}
+	}
+	
+	public int getReadsNumber() {
+		return this.readsNumber;
 	}
 }

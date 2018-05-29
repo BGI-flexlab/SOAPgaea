@@ -71,8 +71,9 @@ public class HaplotypeCallerOptions  extends GaeaOptions implements HadoopOption
 		addOption("c","shard_size",true,"read shard size.");
 		addOption("d","shard_padding_size",true,"read shard padding size.");
 		addOption("D","max_reads",true,"max reads for pileup.");
-		addOption("f", "format", false, "output format is gvcf");
 		addOption("E","windowExtendSize",true,"key window extend size.");
+		addOption("e","max_depth_for_assembly",true,"max depth for assembly.");
+		addOption("f", "format", false, "output format is gvcf");
 		addOption("G", "gt_mode",true,"Specifies how to determine the alternate alleles to use for genotyping(DISCOVERY or GENOTYPE_GIVEN_ALLELES)");
 		addOption("i", "input", true, "a bam or bam list for input", true);
 		addOption("I","include_non_variant",false,"Include loci found to be non-variant after genotyping");
@@ -128,6 +129,8 @@ public class HaplotypeCallerOptions  extends GaeaOptions implements HadoopOption
 		if(getOptionBooleanValue("f",false)){
 			this.hcArgs.emitReferenceConfidence = ReferenceConfidenceMode.GVCF;
 		}
+		
+		this.hcArgs.maxDepthForAssembly = getOptionIntValue("e",0);
 		
 		this.windowsSize = getOptionIntValue("w",10000);
 		this.reduceNumber = getOptionIntValue("n",100);

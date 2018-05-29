@@ -23,6 +23,7 @@ import org.bgi.flexlab.gaea.tools.haplotypecaller.assembly.vertex.BaseGraph;
 import org.bgi.flexlab.gaea.tools.haplotypecaller.assembly.vertex.BaseVertex;
 import org.bgi.flexlab.gaea.tools.haplotypecaller.assembly.vertex.SeqGraph;
 import org.bgi.flexlab.gaea.tools.haplotypecaller.assembly.vertex.SeqVertex;
+import org.bgi.flexlab.gaea.tools.haplotypecaller.downsampler.PositionalDownsampler;
 import org.bgi.flexlab.gaea.tools.haplotypecaller.smithwaterman.SmithWatermanAligner;
 import org.bgi.flexlab.gaea.tools.haplotypecaller.utils.CigarUtils;
 import org.bgi.flexlab.gaea.tools.haplotypecaller.utils.ParamUtils;
@@ -122,7 +123,7 @@ public final class ReadThreadingAssembler {
 	public AssemblyResultSet runLocalAssembly(final AssemblyRegion assemblyRegion, final Haplotype refHaplotype,
 			final byte[] fullReferenceWithPadding, final GenomeLocation refLoc, final List<VariantContext> givenAlleles,
 			final ReadErrorCorrector readErrorCorrector, final SAMFileHeader header,
-			final SmithWatermanAligner aligner) {
+			final SmithWatermanAligner aligner,final int maxDepthForAssembly) {
 		Utils.nonNull(assemblyRegion, "Assembly engine cannot be used with a null AssemblyRegion.");
 		Utils.nonNull(assemblyRegion.getExtendedSpan(), "Active region must have an extended location.");
 		Utils.nonNull(refHaplotype, "Reference haplotype cannot be null.");
@@ -151,7 +152,17 @@ public final class ReadThreadingAssembler {
 			readErrorCorrector.addReadsToKmers(assemblyRegion.getReads());
 			correctedReads = new ArrayList<>(readErrorCorrector.correctReads(assemblyRegion.getReads()));
 		} else {
-			correctedReads = assemblyRegion.getReads();
+			if(maxDepthForAssembly > 0) {
+				PositionalDownsampler downsampler = new PositionalDownsampler(maxDepthForAssembly,header);
+				
+				for(GaeaSamRecord record : assemblyRegion.getReads()) {
+					downsampler.submit(record);
+				}
+				downsampler.signalEndOfInput();
+				correctedReads = downsampler.consumeFinalizedItems();
+			}else {
+				correctedReads = assemblyRegion.getReads();
+			}
 		}
 
 		final List<SeqGraph> nonRefGraphs = new LinkedList<>();

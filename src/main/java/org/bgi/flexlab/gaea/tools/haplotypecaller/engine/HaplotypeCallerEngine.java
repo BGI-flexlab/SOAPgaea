@@ -585,7 +585,7 @@ public final class HaplotypeCallerEngine {
 		// run the local assembler, getting back a collection of information on
 		// how we should proceed
 		final AssemblyResultSet untrimmedAssemblyResult = AssemblyBasedCallerUtils.assembleReads(region, givenAlleles,
-				hcArgs, readsHeader, samplesList, referenceReader, assemblyEngine, aligner);
+				hcArgs, readsHeader, samplesList, referenceReader, assemblyEngine, aligner,hcArgs.maxDepthForAssembly);
 
 		final SortedSet<VariantContext> allVariationEvents = untrimmedAssemblyResult.getVariationEvents();
 		// TODO - line bellow might be unnecessary : it might be that
