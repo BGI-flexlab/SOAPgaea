@@ -29,7 +29,7 @@ public class AdaptorDynamicFilter {
 	public AdaptorDynamicFilter(FastqQualityControlOptions option) {
 		adaptorLength = option.getAdaptorLength();
 
-		DynamicAdaptor dpt = new DynamicAdaptor();
+		dpt = new DynamicAdaptor();
 		dpt.setArgs(option.getCest(), option.getBias(), adaptorLength,
 				option.getMinimum());
 		prep = dpt.BMprep(dpt.illumina, adaptorLength);
