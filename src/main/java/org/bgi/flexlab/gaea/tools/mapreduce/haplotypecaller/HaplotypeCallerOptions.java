@@ -79,6 +79,7 @@ public class HaplotypeCallerOptions  extends GaeaOptions implements HadoopOption
 		addOption("I","include_non_variant",false,"Include loci found to be non-variant after genotyping");
 		addOption("j","heterozygosity_stdev",true,"Standard deviation of eterozygosity for SNP and indel calling");
 		addOption("k", "knowSite", true, "known snp/indel file,the format is VCF4");
+		addOption("K","dontIncreaseKmerSizes",false,"dont increase kmer sizes for cycles.");
 		addOption("n", "reducer", true, "reducer numbers[100]");
 		addOption("m","max_num_PL_values",true,"Maximum number of PL values to output");
 		addOption("M","max_alternate_alleles",true,"Maximum number of alternate alleles to genotype");
@@ -126,10 +127,10 @@ public class HaplotypeCallerOptions  extends GaeaOptions implements HadoopOption
 			throw new UserException(e.toString());
 		}
 		
-		if(getOptionBooleanValue("f",false)){
+		if(getOptionBooleanValue("f",false))
 			this.hcArgs.emitReferenceConfidence = ReferenceConfidenceMode.GVCF;
-		}
-		
+		if(getOptionBooleanValue("K",false))
+			this.hcArgs.assemblerArgs.dontIncreaseKmerSizesForCycles = true;
 		this.hcArgs.maxDepthForAssembly = getOptionIntValue("e",0);
 		
 		this.windowsSize = getOptionIntValue("w",10000);
