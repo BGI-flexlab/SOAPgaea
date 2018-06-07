@@ -155,4 +155,6 @@ public class HaplotypeCallerArgumentCollection extends StandardCallerArgumentCol
     public boolean createOutputBamIndex = true;
 
 	public boolean createOutputBamMD5 = true;
+	
+	public int maxDepthForAssembly = 0;
 }

@@ -71,13 +71,15 @@ public class HaplotypeCallerOptions  extends GaeaOptions implements HadoopOption
 		addOption("c","shard_size",true,"read shard size.");
 		addOption("d","shard_padding_size",true,"read shard padding size.");
 		addOption("D","max_reads",true,"max reads for pileup.");
-		addOption("f", "format", false, "output format is gvcf");
 		addOption("E","windowExtendSize",true,"key window extend size.");
+		addOption("e","max_depth_for_assembly",true,"max depth for assembly.");
+		addOption("f", "format", false, "output format is gvcf");
 		addOption("G", "gt_mode",true,"Specifies how to determine the alternate alleles to use for genotyping(DISCOVERY or GENOTYPE_GIVEN_ALLELES)");
 		addOption("i", "input", true, "a bam or bam list for input", true);
 		addOption("I","include_non_variant",false,"Include loci found to be non-variant after genotyping");
 		addOption("j","heterozygosity_stdev",true,"Standard deviation of eterozygosity for SNP and indel calling");
 		addOption("k", "knowSite", true, "known snp/indel file,the format is VCF4");
+		addOption("K","dontIncreaseKmerSizes",false,"dont increase kmer sizes for cycles.");
 		addOption("n", "reducer", true, "reducer numbers[100]");
 		addOption("m","max_num_PL_values",true,"Maximum number of PL values to output");
 		addOption("M","max_alternate_alleles",true,"Maximum number of alternate alleles to genotype");
@@ -125,9 +127,11 @@ public class HaplotypeCallerOptions  extends GaeaOptions implements HadoopOption
 			throw new UserException(e.toString());
 		}
 		
-		if(getOptionBooleanValue("f",false)){
+		if(getOptionBooleanValue("f",false))
 			this.hcArgs.emitReferenceConfidence = ReferenceConfidenceMode.GVCF;
-		}
+		if(getOptionBooleanValue("K",false))
+			this.hcArgs.assemblerArgs.dontIncreaseKmerSizesForCycles = true;
+		this.hcArgs.maxDepthForAssembly = getOptionIntValue("e",0);
 		
 		this.windowsSize = getOptionIntValue("w",10000);
 		this.reduceNumber = getOptionIntValue("n",100);

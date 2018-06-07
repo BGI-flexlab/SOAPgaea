@@ -24,6 +24,7 @@ public class WindowsBasedPartitioner<T> extends Partitioner<WindowsBasedWritable
 	@Override
 	public int getPartition(WindowsBasedWritable key, T v, int numPartitioner) {
 		int hashcode = key.partition() ;
+		//int hashcode = key.hashCode();
 		return Math.abs(hashcode) % numPartitioner;
 	}
 }

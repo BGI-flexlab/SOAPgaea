@@ -6,7 +6,6 @@ import java.util.List;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.tools.haplotypecaller.pileup.ReadsDownsampler;
 import org.bgi.flexlab.gaea.tools.haplotypecaller.utils.ReadCoordinateComparator;
-import org.bgi.flexlab.gaea.util.ReadUtils;
 import org.bgi.flexlab.gaea.util.Utils;
 
 import htsjdk.samtools.SAMFileHeader;

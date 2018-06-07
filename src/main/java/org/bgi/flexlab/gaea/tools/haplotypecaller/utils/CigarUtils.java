@@ -190,4 +190,30 @@ public class CigarUtils {
 	            () -> "leftAlignCigarSequentially failed to produce a valid CIGAR.  Reference lengths differ.  Initial cigar " + cigar + " left aligned into " + result);
 	    return result;
 	}
+	
+	public static int countLeftHardClippedBases(final Cigar cigar) {
+	    Utils.nonNull(cigar, "the input cigar cannot not be null");
+	    if (cigar.numCigarElements() < 2) {
+	        return 0;
+	    } else if (cigar.getCigarElement(0).getOperator() != CigarOperator.H) {
+	        return 0;
+	    } else {
+	        return cigar.getCigarElement(0).getLength();
+	    }
+	}
+	
+	public static int countRightHardClippedBases(final Cigar cigar) {
+	    Utils.nonNull(cigar, "the input cigar cannot not be null");
+	    if (cigar.numCigarElements() < 2) {
+	        return 0;
+	    } else {
+	        final List<CigarElement> elements = cigar.getCigarElements();
+	        int lastElementIndex;
+	        if (elements.get(lastElementIndex = elements.size() - 1).getOperator() != CigarOperator.H) {
+	            return 0;
+	        } else {
+	            return elements.get(lastElementIndex).getLength();
+	        }
+	    }
+	}
 }

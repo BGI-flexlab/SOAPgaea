@@ -269,7 +269,7 @@ public final class AssemblyBasedCallerUtils {
 	public static AssemblyResultSet assembleReads(final AssemblyRegion region, final List<VariantContext> givenAlleles,
 			final HaplotypeCallerArgumentCollection argumentCollection, final SAMFileHeader header,
 			final SampleList sampleList, final ChromosomeInformationShare referenceReader,
-			final ReadThreadingAssembler assemblyEngine, final SmithWatermanAligner aligner) {
+			final ReadThreadingAssembler assemblyEngine, final SmithWatermanAligner aligner,final int maxDepthForAssembly) {
 		finalizeRegion(region, argumentCollection.errorCorrectReads, argumentCollection.dontUseSoftClippedBases,
 				(byte) (argumentCollection.minBaseQualityScore - 1), header, sampleList);
 
@@ -288,7 +288,7 @@ public final class AssemblyBasedCallerUtils {
 
 		try {
 			final AssemblyResultSet assemblyResultSet = assemblyEngine.runLocalAssembly(region, referenceHaplotype,
-					fullReferenceWithPadding, paddedReferenceLoc, givenAlleles, readErrorCorrector, header, aligner);
+					fullReferenceWithPadding, paddedReferenceLoc, givenAlleles, readErrorCorrector, header, aligner,maxDepthForAssembly);
 			return assemblyResultSet;
 		} catch (final Exception e) {
 			// Capture any exception that might be thrown, and write out the

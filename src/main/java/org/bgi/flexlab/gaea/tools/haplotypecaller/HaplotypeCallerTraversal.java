@@ -363,4 +363,8 @@ public class HaplotypeCallerTraversal {
 		this.intervals.clear();
 		this.shards.clear();
 	}
+	
+	public int getWindowReadsNumber() {
+		return this.readsSource.getReadsNumber();
+	}
 }
