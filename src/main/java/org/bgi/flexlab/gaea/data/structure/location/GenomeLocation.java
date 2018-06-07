@@ -564,7 +564,7 @@ public class GenomeLocation implements Comparable<GenomeLocation>, Comparator<Ge
 				}
 			} else {
 				if (intervalStart != -1) {
-					intervals.add(new GenomeLocation(chr, index, intervalStart, i + start - 1));
+					intervals.add(new GenomeLocation(chr, index, intervalStart, i + start));
 					intervalStart = -1;
 				}
 			}
@@ -572,6 +572,6 @@ public class GenomeLocation implements Comparable<GenomeLocation>, Comparator<Ge
 		bitSet = null;
 
 		if (intervalStart != -1)
-			intervals.add(new GenomeLocation(chr, index, intervalStart, stop - 1));
+			intervals.add(new GenomeLocation(chr, index, intervalStart, stop));
 	} 
 }

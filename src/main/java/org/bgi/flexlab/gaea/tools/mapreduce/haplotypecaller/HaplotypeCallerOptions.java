@@ -32,9 +32,9 @@ public class HaplotypeCallerOptions  extends GaeaOptions implements HadoopOption
 	
 	private int windowsExtends = 300;
 	
-	private int readShardSize = 300;
+	private int readShardSize = -1;
 	
-	private int readPaddingSize = 100;
+	private int readPaddingSize = 0;
 	
 	private List<String> userDisabledReadFilterNames = new ArrayList<>();
 	
@@ -135,8 +135,8 @@ public class HaplotypeCallerOptions  extends GaeaOptions implements HadoopOption
 		
 		this.windowsSize = getOptionIntValue("w",10000);
 		this.reduceNumber = getOptionIntValue("n",100);
-		this.readShardSize = getOptionIntValue("c",300);
-		this.readPaddingSize = getOptionIntValue("d",100);
+		this.readShardSize = getOptionIntValue("c",-1);
+		this.readPaddingSize = getOptionIntValue("d",0);
 		this.maxReadsPerPosition = getOptionIntValue("D",0);
 		
 		this.output = getOptionValue("o",null);

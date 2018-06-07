@@ -23,12 +23,12 @@ public final class ReadPosRankSumTest extends RankSumTest implements StandardAnn
     @Override
     public boolean isUsableRead(final GaeaSamRecord read, final int refLoc) {
         Utils.nonNull(read);
-        return super.isUsableRead(read, refLoc) && read.getSoftEnd() >= refLoc;
+        return super.isUsableRead(read, refLoc) && ReadUtils.getSoftEnd(read) >= refLoc;
     }
 
     public static OptionalDouble getReadPosition(final GaeaSamRecord read, final int refLoc) {
         Utils.nonNull(read);
-        final int offset = ReadUtils.getReadCoordinateForReferenceCoordinate(read.getSoftStart(), read.getCigar(), refLoc, ReadUtils.ClippingTail.RIGHT_TAIL, true);
+        final int offset = ReadUtils.getReadCoordinateForReferenceCoordinate(ReadUtils.getSoftStart(read), read.getCigar(), refLoc, ReadUtils.ClippingTail.RIGHT_TAIL, true);
         if ( offset == ReadUtils.CLIPPING_GOAL_NOT_REACHED ) {
             return OptionalDouble.empty();
         }
