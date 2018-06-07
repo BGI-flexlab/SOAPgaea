@@ -62,8 +62,13 @@ public class CallStructuralVariationReducer extends Reducer<NewMapKey, SamWritab
 				context.write(NullWritable.get(), sv);
 			}
 		}
-		
+	}
+
+	@Override
+	protected void cleanup(Context context) throws IOException, InterruptedException {
 		bc.close();
 	}
 
+	
+	
 }
