@@ -137,15 +137,13 @@ public class HaplotypeCallerReducer extends Reducer<WindowsBasedWritable, SamRec
 	
 	@Override
     public void reduce(WindowsBasedWritable key, Iterable<SamRecordWritable> values, Context context) throws IOException, InterruptedException {
-		if(key.getChromosomeIndex() < 0)
+		int index = key.getChromosomeIndex();
+		if(index < 0)
 			return;
-		
-		Window win = new Window(header, key.getChromosomeIndex(), key.getWindowsNumber(), options.getWindowSize());
-		
-		int start = key.getWindowsNumber() * options.getWindowSize() ;
-		start = start == 0 ? 1 : start;
-		int end = start + options.getWindowSize() - 1;
-		
+
+		int start = key.getWindowsNumber() * options.getWindowSize() + 1 ;
+		int end = start + options.getWindowSize();		
+		Window win = new Window(header.getSequence(index).getSequenceName(), key.getChromosomeIndex(), start, end);
 		String chr = win.getContigName();
 		ChromosomeInformationShare chrInfo = genomeShare.getChromosomeInfo(chr,true);
 		
