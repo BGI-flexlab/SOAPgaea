@@ -1,7 +1,6 @@
 package org.bgi.flexlab.gaea.tools.haplotypecaller.assembly;
 
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
-import org.bgi.flexlab.gaea.tools.haplotypecaller.BandPassActivityProfile;
 import org.bgi.flexlab.gaea.util.Utils;
 
 import htsjdk.samtools.util.Locatable;

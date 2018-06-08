@@ -11,7 +11,6 @@ import java.util.stream.Collectors;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
-import org.bgi.flexlab.gaea.tools.haplotypecaller.BandPassActivityProfile;
 import org.bgi.flexlab.gaea.tools.haplotypecaller.DownsamplingMethod;
 import org.bgi.flexlab.gaea.tools.haplotypecaller.Shard;
 import org.bgi.flexlab.gaea.tools.haplotypecaller.engine.HaplotypeCallerEngine;

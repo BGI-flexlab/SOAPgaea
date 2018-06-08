@@ -29,6 +29,13 @@ import java.io.IOException;
 
 public class VCFStatsMapper extends Mapper<LongWritable, VariantContextWritable, NullWritable, Text> {
 
+//    private DbsnpShare dbsnpShare = null;
+
+    /**
+     * vcf loader
+     */
+//    private VCFLocalLoader DBloader = null;
+
     private VCFReport vcfReport;
     private Text resultValue = new Text();
     protected void setup(Context context)
@@ -36,6 +43,12 @@ public class VCFStatsMapper extends Mapper<LongWritable, VariantContextWritable,
         VCFStatsOptions options = new VCFStatsOptions();
         options.getOptionsFromHadoopConf(context.getConfiguration());
         vcfReport = new VCFReport(options);
+
+//        if(options.getDbsnpFile() != null) {
+//            dbsnpShare = new DbsnpShare(options.getDbsnpFile(), options.getReferenceSequencePath());
+//            dbsnpShare.loadChromosomeList(options.getDbsnpFile() + VcfIndex.INDEX_SUFFIX);
+//            DBloader = new VCFLocalLoader(options.getDbsnpFile());
+//        }
     }
 
     @Override

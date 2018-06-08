@@ -14,42 +14,34 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  *******************************************************************************/
-package org.bgi.flexlab.gaea.tools.mapreduce.vcfstats;
+package org.bgi.flexlab.gaea.tools.mapreduce.fastqmerge;
+
 
 import org.apache.commons.cli.ParseException;
 import org.apache.hadoop.conf.Configuration;
 import org.bgi.flexlab.gaea.data.mapreduce.options.HadoopOptions;
 import org.bgi.flexlab.gaea.data.options.GaeaOptions;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
+public class FastqMergeOptions extends GaeaOptions implements HadoopOptions {
 
-public class VCFStatsOptions extends GaeaOptions implements HadoopOptions {
-
-    private final static String SOFTWARE_NAME = "VCFStats";
+    private final static String SOFTWARE_NAME = "FastqMerge";
     private final static String SOFTWARE_VERSION = "1.0";
 
-    private String tmpPath;
-    private String outputPath;
+    private String fq1out;
+    private String fq2out;
     private String input;
-    private String dbsnpFile; //vcf.gz, must be indexed
-
-    private String referenceSequencePath; //参考序列gaeaindex
 
     private boolean verbose = false;
     private boolean debug = false;
 
-    private int reducerNum;
+    public FastqMergeOptions() {
 
-    public VCFStatsOptions() {
-        addOption("i", "input",      true,  "input file(VCF). [request]", true);
-        addOption("o", "output",     true,  "output file [request]", true);
-//        addOption("d", "dbsnp",     true,  "dbsnp file(.vcf.gz), must be indexed [null]");
-        addOption("r", "reference",  true,  "indexed reference sequence file list [request]", true);
+        addOption("i", "input",      true,  "input dir. [request]", true);
+        addOption("1", "fq1out",     true,  "read1 output file [request]", true);
+        addOption("2", "fq2out",     true,  "read2 output file [null]");
         addOption(null,"verbose",    false, "display verbose information.");
         addOption(null,"debug",      false, "for debug.");
         addOption("h", "help",       false, "help information.");
-        addOption("R", "reducer", true, "reducer numbers [30]");
 
         FormatHelpInfo(SOFTWARE_NAME,SOFTWARE_VERSION);
     }
@@ -68,15 +60,9 @@ public class VCFStatsOptions extends GaeaOptions implements HadoopOptions {
         }
 
 
-        reducerNum = getOptionIntValue("R", 30);
-
-        SimpleDateFormat df = new SimpleDateFormat("yyyyMMddHHmmss");
-        tmpPath = "/user/" + System.getProperty("user.name") + "/vcfsummarytmp-" + df.format(new Date());
-
         setInput(cmdLine.getOptionValue("input"));
-//        setDbsnpFile(cmdLine.getOptionValue("dbsnp"));
-        setReferenceSequencePath(cmdLine.getOptionValue("reference",""));
-        setOutputPath(cmdLine.getOptionValue("output"));
+        setFq1out(cmdLine.getOptionValue("fq1out"));
+        setFq2out(cmdLine.getOptionValue("fq2out"));
         setVerbose(getOptionBooleanValue("verbose", false));
         setDebug(getOptionBooleanValue("debug", false));
     }
@@ -92,26 +78,6 @@ public class VCFStatsOptions extends GaeaOptions implements HadoopOptions {
         this.parse(args);
     }
 
-    public int getReducerNum() {
-        return reducerNum;
-    }
-
-    public String getOutputPath() {
-        return outputPath;
-    }
-
-    public void setOutputPath(String outputPath) {
-        this.outputPath = outputPath;
-    }
-
-    public String getTmpPath() {
-        return tmpPath;
-    }
-
-    public void setTmpPath(String tmpPath) {
-        this.tmpPath = tmpPath;
-    }
-
     public String getInput() {
         return input;
     }
@@ -120,12 +86,20 @@ public class VCFStatsOptions extends GaeaOptions implements HadoopOptions {
         this.input = input;
     }
 
-    public String getReferenceSequencePath() {
-        return referenceSequencePath;
+    public String getFq1out() {
+        return fq1out;
     }
 
-    public void setReferenceSequencePath(String referenceSequencePath) {
-        this.referenceSequencePath = referenceSequencePath;
+    public void setFq1out(String fq1out) {
+        this.fq1out = fq1out;
+    }
+
+    public String getFq2out() {
+        return fq2out;
+    }
+
+    public void setFq2out(String fq2out) {
+        this.fq2out = fq2out;
     }
 
     public boolean isVerbose() {
@@ -144,11 +118,4 @@ public class VCFStatsOptions extends GaeaOptions implements HadoopOptions {
         this.debug = debug;
     }
 
-    public String getDbsnpFile() {
-        return dbsnpFile;
-    }
-
-    public void setDbsnpFile(String dbsnpFile) {
-        this.dbsnpFile = dbsnpFile;
-    }
 }

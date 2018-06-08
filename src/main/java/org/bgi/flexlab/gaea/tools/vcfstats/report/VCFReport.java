@@ -26,6 +26,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.*;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.util.LineReader;
+import org.bgi.flexlab.gaea.data.structure.reference.ReferenceShare;
 import org.bgi.flexlab.gaea.tools.mapreduce.vcfstats.VCFStatsOptions;
 
 import java.io.File;
@@ -35,32 +36,37 @@ import java.util.Map;
 
 public class VCFReport {
 
-    private Map<String, PerSampleVCFReport> PerSampleVCFReports;
+    private Map<String, PerSampleVCFReport> perSampleVCFReports;
     private VCFStatsOptions options;
+    private ReferenceShare genomeShare;
 
     public VCFReport(){
-        PerSampleVCFReports = new HashMap<>();
+        perSampleVCFReports = new HashMap<>();
     }
 
     public VCFReport(VCFStatsOptions options){
-        PerSampleVCFReports = new HashMap<>();
+        perSampleVCFReports = new HashMap<>();
         this.options = options;
+        genomeShare = new ReferenceShare();
+        genomeShare.loadChromosomeList(options.getReferenceSequencePath());
     }
 
     public void parseVariation(VariantContext vc){
-        if(options.getDbsnpFile() != null)
-            vc = setDbSNP(vc);
+
+//        if(options.getDbsnpFile() != null)
+//            vc = setDbSNP(vc);
+
         PerSampleVCFReport PerSampleVCFReport;
         for(String sample: vc.getSampleNames()){
             Genotype gt = vc.getGenotype(sample);
             if(!gt.isCalled())
                 return;
 
-            if(PerSampleVCFReports.containsKey(sample))
-                PerSampleVCFReport = PerSampleVCFReports.get(sample);
+            if(perSampleVCFReports.containsKey(sample))
+                PerSampleVCFReport = perSampleVCFReports.get(sample);
             else {
-                PerSampleVCFReport = new PerSampleVCFReport();
-                PerSampleVCFReports.put(sample, PerSampleVCFReport);
+                PerSampleVCFReport = new PerSampleVCFReport(genomeShare);
+                perSampleVCFReports.put(sample, PerSampleVCFReport);
             }
 
             PerSampleVCFReport.add(vc, sample);
@@ -118,12 +124,12 @@ public class VCFReport {
             if(reducerStr.isEmpty()) continue;
             String[] fields = reducerStr.split("\t",2);
             String sample = fields[0];
-            if(PerSampleVCFReports.containsKey(sample))
-                perSampleVCFReport = PerSampleVCFReports.get(sample);
+            if(perSampleVCFReports.containsKey(sample))
+                perSampleVCFReport = perSampleVCFReports.get(sample);
             else {
-                perSampleVCFReport = new PerSampleVCFReport();
+                perSampleVCFReport = new PerSampleVCFReport(genomeShare);
                 perSampleVCFReport.setSampleName(sample);
-                PerSampleVCFReports.put(sample, perSampleVCFReport);
+                perSampleVCFReports.put(sample, perSampleVCFReport);
             }
             perSampleVCFReport.parseReducerString(fields[1]);
         }
@@ -160,7 +166,7 @@ public class VCFReport {
     }
 
     public Map<String, PerSampleVCFReport> getPerSampleVCFReports() {
-        return PerSampleVCFReports;
+        return perSampleVCFReports;
     }
 
     static class StaticPathFilter implements PathFilter {
