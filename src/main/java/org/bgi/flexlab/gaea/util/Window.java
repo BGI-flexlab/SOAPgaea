@@ -85,7 +85,7 @@ public class Window {
 		}
 		sb.append(start);
 		sb.append("-");
-		sb.append(stop);
+		sb.append(stop-1);
 		return sb.toString();
 	}
 	

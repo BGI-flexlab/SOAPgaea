@@ -16,7 +16,6 @@ import org.bgi.flexlab.gaea.data.mapreduce.output.vcf.GaeaVariantContextWriter;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.SamRecordWritable;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocation;
-import org.bgi.flexlab.gaea.data.structure.location.GenomeLocationParser;
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
 import org.bgi.flexlab.gaea.tools.haplotypecaller.argumentcollection.HaplotypeCallerArgumentCollection;
 import org.bgi.flexlab.gaea.tools.haplotypecaller.assembly.ActivityProfileState;
