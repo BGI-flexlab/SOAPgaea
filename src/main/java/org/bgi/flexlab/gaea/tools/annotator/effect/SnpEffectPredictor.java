@@ -53,7 +53,8 @@ import java.util.Set;
 public class SnpEffectPredictor implements Serializable {
 	private static final long serialVersionUID = 4519418862303325081L;
 
-	public static final int DEFAULT_UP_DOWN_LENGTH = 5000;
+//	public static final int DEFAULT_UP_DOWN_LENGTH = 5000;
+	public static final int DEFAULT_UP_DOWN_LENGTH = 0;
 	public static final int SMALL_VARIANT_SIZE_THRESHOLD = 10; // Number of bases for a variant to be considered 'small'
 
 	boolean useChromosomes = true;

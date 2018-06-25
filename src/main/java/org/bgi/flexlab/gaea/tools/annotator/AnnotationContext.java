@@ -99,7 +99,7 @@ public class AnnotationContext implements Serializable{
 	int distance;
 	int rank, rankMax;
 	BioType bioType;
-	String codon, aa, hgvsC, hgvsP, hgvsIVS, hgvsOld;
+	String codon, aa, hgvsC, hgvsP, hgvsProt, hgvsIVS, hgvsOld;
 	VariantEffect.Coding coding;
 	String genotype;
 	String errorsWarnings;
@@ -108,6 +108,7 @@ public class AnnotationContext implements Serializable{
 	VariantEffect.FunctionalClass funClass;
 	VariantEffect variantEffect;
 	boolean useSequenceOntology;
+	boolean useSimpleEffectNom;
 	boolean useHgvs;
 	boolean useGeneId;
 	boolean useFirstEffect;
@@ -130,10 +131,19 @@ public class AnnotationContext implements Serializable{
 		this.useFirstEffect = useFirstEffect;
 		set(variantEffect);
 	}
+
+	public AnnotationContext(VariantEffect variantEffect, boolean useSimpleEffectNom) {
+		init();
+		this.variantEffect = variantEffect;
+		this.useSimpleEffectNom = useSimpleEffectNom;
+		this.useSequenceOntology = true;
+		this.useFirstEffect = false;
+		set(variantEffect);
+	}
 	
 	void init() {
 		aaLen = aaPos = cdsLen = cdsPos = cDnaLen = cDnaPos = distance = rank = rankMax = -1;
-		vcfFieldString = effectTypesStr = effectDetails = codon = aa = hgvsC = hgvsP = genotype = errorsWarnings = geneName = geneId = featureType = featureId = transcriptId = exonId = errorsWarnings = "";
+		vcfFieldString = effectTypesStr = effectDetails = codon = aa = hgvsC = hgvsP = hgvsProt = genotype = errorsWarnings = geneName = geneId = featureType = featureId = transcriptId = exonId = errorsWarnings = "";
 		hgvsIVS = hgvsOld = ".";
 		bioType = null;
 		impact = null;
@@ -435,8 +445,10 @@ public class AnnotationContext implements Serializable{
 
 		case "HGVS":
 		case "HGVS_P":
-		case "HGVS_PROT":
 			return hgvsP;
+
+		case "HGVS_PROT":
+			return hgvsProt;
 
 		case "AA":
 			return aa;
@@ -579,6 +591,7 @@ public class AnnotationContext implements Serializable{
 		effectTypes = variantEffect.getEffectTypes();
 
 		effectTypesStr = variantEffect.getEffectTypeString(true, useFirstEffect);
+		effectTypesStr = variantEffect.getSimpleEffectTypeString(useFirstEffect);
 
 		// Impact
 		impact = variantEffect.getEffectImpact();
@@ -671,7 +684,8 @@ public class AnnotationContext implements Serializable{
 
 		// HGVS notation
 		hgvsC = variantEffect.getHgvsDna();
-		hgvsP = variantEffect.getHgvsProt();
+		hgvsP = variantEffect.getHgvsP();
+		hgvsProt = variantEffect.getHgvsProt();
 		hgvsIVS = variantEffect.getHgvsIVS();
 		hgvsOld = variantEffect.getHgvsOld();
 

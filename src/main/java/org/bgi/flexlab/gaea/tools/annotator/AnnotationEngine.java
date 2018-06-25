@@ -53,7 +53,7 @@ public class AnnotationEngine{
 			if (variant.isVariant()) {
 				VariantEffects variantEffects = snpEffectPredictor.variantEffect(variant);
 				for (VariantEffect variantEffect : variantEffects) {
-					AnnotationContext annotationContext = new AnnotationContext(variantEffect);
+					AnnotationContext annotationContext = new AnnotationContext(variantEffect, config.isUseSimpleEffectNom());
 					annotationContexts.add(annotationContext);
 				}
 			}
