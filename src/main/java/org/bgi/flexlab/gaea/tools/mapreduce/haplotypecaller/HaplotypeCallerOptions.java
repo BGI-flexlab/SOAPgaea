@@ -15,6 +15,7 @@ import org.bgi.flexlab.gaea.data.mapreduce.options.HadoopOptions;
 import org.bgi.flexlab.gaea.data.options.GaeaOptions;
 import org.bgi.flexlab.gaea.tools.haplotypecaller.ReferenceConfidenceMode;
 import org.bgi.flexlab.gaea.tools.haplotypecaller.argumentcollection.HaplotypeCallerArgumentCollection;
+import org.bgi.flexlab.gaea.tools.haplotypecaller.pairhmm.PairHMM;
 import org.bgi.flexlab.gaea.tools.mapreduce.realigner.RealignerExtendOptions;
 import org.seqdoop.hadoop_bam.SAMFormat;
 
@@ -34,7 +35,7 @@ public class HaplotypeCallerOptions  extends GaeaOptions implements HadoopOption
 	
 	private int readShardSize = -1;
 	
-	private int readPaddingSize = 0;
+	private int readPaddingSize = 100;
 	
 	private List<String> userDisabledReadFilterNames = new ArrayList<>();
 	
@@ -86,6 +87,7 @@ public class HaplotypeCallerOptions  extends GaeaOptions implements HadoopOption
 		addOption("o", "output", true, "output directory", true);
 		addOption("O","output_mode",true,"output mode(EMIT_VARIANTS_ONLY,EMIT_ALL_CONFIDENT_SITES,EMIT_ALL_SITES)");
 		addOption("p","input_prior",true,"Input prior for calls(separation by Comma(,))");
+		addOption("P","pairHMM",true,"pairHMM implementation:EXACT,ORIGINAL,LOGLESS_CACHING,AVX_LOGLESS_CACHING,AVX_LOGLESS_CACHING_OMP,FASTEST_AVAILABLE.");
 		addOption("r", "reference", true, "reference index(generation by GaeaIndex) file path", true);
 		addOption("R", "region", true, "One or more genomic intervals over which to operate");
 		addOption("s","stand_emit_conf",true,"The minimum phred-scaled confidence threshold at which variants should be emitted (and filtered with LowQual if less than the calling threshold");
@@ -136,9 +138,8 @@ public class HaplotypeCallerOptions  extends GaeaOptions implements HadoopOption
 		this.windowsSize = getOptionIntValue("w",10000);
 		this.reduceNumber = getOptionIntValue("n",100);
 		this.readShardSize = getOptionIntValue("c",-1);
-		this.readPaddingSize = getOptionIntValue("d",0);
-		this.maxReadsPerPosition = getOptionIntValue("x",0);
-		
+		this.readPaddingSize = getOptionIntValue("d",100);
+		this.maxReadsPerPosition = getOptionIntValue("x",0);		
 		this.output = getOptionValue("o",null);
 		this.reference = getOptionValue("r",null);
 		this.dbsnp = getOptionValue("k",null);
@@ -146,6 +147,8 @@ public class HaplotypeCallerOptions  extends GaeaOptions implements HadoopOption
 		if(dbsnp != null) {
 			comps.put("DB", dbsnp);
 		}
+		
+		setPairHMM(getOptionValue("P","AVX_LOGLESS_CACHING_OMP"));
 	}
 	
 	private void parseInput(String input) throws IOException {
@@ -252,5 +255,26 @@ public class HaplotypeCallerOptions  extends GaeaOptions implements HadoopOption
 	
 	public int getMaxReadsPerPosition(){
 		return this.maxReadsPerPosition;
+	}
+	
+	private void setPairHMM(String args) {
+		if(args == null)
+			return;
+		if(args.equals("EXACT"))
+			hcArgs.likelihoodArgs.pairHMM = PairHMM.Implementation.EXACT;
+		else if(args.equals("ORIGINAL"))
+			hcArgs.likelihoodArgs.pairHMM = PairHMM.Implementation.ORIGINAL;
+		else if(args.equals("ORIGINAL"))
+			hcArgs.likelihoodArgs.pairHMM = PairHMM.Implementation.ORIGINAL;
+		else if(args.equals("LOGLESS_CACHING"))
+			hcArgs.likelihoodArgs.pairHMM = PairHMM.Implementation.LOGLESS_CACHING;
+		else if(args.equals("AVX_LOGLESS_CACHING"))
+			hcArgs.likelihoodArgs.pairHMM = PairHMM.Implementation.AVX_LOGLESS_CACHING;
+		else if(args.equals("AVX_LOGLESS_CACHING_OMP"))
+			hcArgs.likelihoodArgs.pairHMM = PairHMM.Implementation.AVX_LOGLESS_CACHING_OMP;
+		else if(args.equals("FASTEST_AVAILABLE"))
+			hcArgs.likelihoodArgs.pairHMM = PairHMM.Implementation.FASTEST_AVAILABLE;
+		else
+			throw new UserException.BadArgumentValueException("pairHMM",args);
 	}
 }

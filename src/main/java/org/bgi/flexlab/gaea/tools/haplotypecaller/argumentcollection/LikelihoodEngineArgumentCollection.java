@@ -21,8 +21,7 @@ public final class LikelihoodEngineArgumentCollection implements Serializable {
     /**
      * The PairHMM implementation to use for genotype likelihood calculations. The various implementations balance a tradeoff of accuracy and runtime.
      */
-    //public PairHMM.Implementation pairHMM = PairHMM.Implementation.LOGLESS_CACHING;
-    public PairHMM.Implementation pairHMM = PairHMM.Implementation.AVX_LOGLESS_CACHING;
+    public PairHMM.Implementation pairHMM = PairHMM.Implementation.AVX_LOGLESS_CACHING_OMP;
 
     /**
      * When calculating the likelihood of variants, we can try to correct for PCR errors that cause indel artifacts.

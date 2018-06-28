@@ -157,6 +157,8 @@ public final class HaplotypeCallerEngine {
 	private static final Allele FAKE_REF_ALLELE = Allele.create("N", true);
 
 	private static final Allele FAKE_ALT_ALLELE = Allele.create("<FAKE_ALT>", false);
+	
+	private int haplotpeNumber = 0;
 
 	/**
 	 * Create and initialize a new HaplotypeCallerEngine given a collection of
@@ -553,6 +555,7 @@ public final class HaplotypeCallerEngine {
 	 * @return List of variants discovered in the region (may be empty)
 	 */
 	public List<VariantContext> callRegion(final AssemblyRegion region, final RefMetaDataTracker features) {
+		haplotpeNumber = 0;
 		if (hcArgs.justDetermineActiveRegions) {
 			// we're benchmarking ART and/or the active region determination
 			// code in the HC, just leave without doing any work
@@ -634,6 +637,7 @@ public final class HaplotypeCallerEngine {
 
 		// evaluate each sample's reads against all haplotypes
 		final List<Haplotype> haplotypes = assemblyResult.getHaplotypeList();
+		haplotpeNumber = haplotypes.size();
 		final Map<String, List<GaeaSamRecord>> reads = splitReadsBySample(regionForGenotyping.getReads());
 
 		// Calculate the likelihoods: CPU intensive part.
@@ -825,5 +829,9 @@ public final class HaplotypeCallerEngine {
 
 	public void setChromosome(ChromosomeInformationShare chr) {
 		this.referenceReader = chr;
+	}
+	
+	public int getHaplotypeNumber() {
+		return haplotpeNumber;
 	}
 }

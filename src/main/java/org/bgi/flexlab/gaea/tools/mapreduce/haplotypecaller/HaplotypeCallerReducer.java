@@ -151,9 +151,6 @@ public class HaplotypeCallerReducer extends Reducer<WindowsBasedWritable, SamRec
 		RefMetaDataTracker tracker = createTracker(chr,key.getWindowsNumber(),options.getWindowSize(),end);
 		haplotypecaller.dataSourceReset(win, values, chrInfo, tracker);
 		haplotypecaller.traverse(writer,win);
-		
-		if(haplotypecaller.getWindowReadsNumber() > 1000000)
-			context.getCounter("reads", win.toString()).increment(haplotypecaller.getWindowReadsNumber());
 	}
 	
 	@Override
