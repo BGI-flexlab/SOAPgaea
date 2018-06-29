@@ -87,6 +87,39 @@ public class HgvsProtein extends Hgvs {
 		}
 	}
 
+	public HgvsProtein(VariantEffect variantEffect, boolean hgvsOneLetterAa) {
+		super(variantEffect);
+
+		codonNum = variantEffect.getCodonNum();
+
+		this.hgvsOneLetterAa = hgvsOneLetterAa;
+		lettersPerAa = hgvsOneLetterAa ? 1 : 3;
+
+		// No marker? Nothing to do
+		if (marker != null) {
+			// Codon numbering
+			// HGVS: the translation initiator Methionine is numbered as +1
+			if (codonNum >= 0) aaPos = codonNum + 1;
+
+			// Convert to 3 letter code
+			// HGVS: the three-letter amino acid code is prefered (see Discussion), with "*" designating a translation
+			// 		 termination codon; for clarity we this page describes changes using the three-letter amino acid
+			CodonTable codonTable = marker.codonTable();
+
+			aaNew = variantEffect.getAaAlt();
+			aaOld = variantEffect.getAaRef();
+
+			if (aaNew == null || aaNew.isEmpty() || aaNew.equals("-")) aaNew = "";
+			else if (!hgvsOneLetterAa) aaNew = codonTable.aaThreeLetterCode(aaNew);
+
+			if (aaOld == null || aaOld.isEmpty() || aaOld.equals("-")) aaOld = "";
+			else if (!hgvsOneLetterAa) aaOld = codonTable.aaThreeLetterCode(aaOld);
+		} else {
+			aaPos = -1;
+			aaNew = aaOld = "";
+		}
+	}
+
 	/**
 	 * Deletions remove one or more amino acid residues from the protein and are described using "del"
 	 * after an indication of the first and last amino acid(s) deleted separated by a "_" (underscore).

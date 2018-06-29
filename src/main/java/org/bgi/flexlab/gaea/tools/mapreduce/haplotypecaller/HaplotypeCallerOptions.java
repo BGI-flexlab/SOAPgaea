@@ -71,7 +71,7 @@ public class HaplotypeCallerOptions  extends GaeaOptions implements HadoopOption
 		addOption("C","sample_ploidy",true,"Ploidy (number of chromosomes) per sample. For pooled data, set to (Number of samples in each pool * Sample Ploidy).");
 		addOption("c","shard_size",true,"read shard size.");
 		addOption("d","shard_padding_size",true,"read shard padding size.");
-		addOption("D","max_reads",true,"max reads for pileup.");
+		addOption("x","max_reads",true,"max reads for pileup.");
 		addOption("E","windowExtendSize",true,"key window extend size.");
 		addOption("e","max_depth_for_assembly",true,"max depth for assembly.");
 		addOption("f", "format", false, "output format is gvcf");
@@ -139,8 +139,7 @@ public class HaplotypeCallerOptions  extends GaeaOptions implements HadoopOption
 		this.reduceNumber = getOptionIntValue("n",100);
 		this.readShardSize = getOptionIntValue("c",-1);
 		this.readPaddingSize = getOptionIntValue("d",100);
-		this.maxReadsPerPosition = getOptionIntValue("D",0);
-		
+		this.maxReadsPerPosition = getOptionIntValue("x",0);		
 		this.output = getOptionValue("o",null);
 		this.reference = getOptionValue("r",null);
 		this.dbsnp = getOptionValue("k",null);

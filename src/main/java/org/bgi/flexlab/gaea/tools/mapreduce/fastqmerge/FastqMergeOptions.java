@@ -59,7 +59,6 @@ public class FastqMergeOptions extends GaeaOptions implements HadoopOptions {
             System.exit(1);
         }
 
-
         setInput(cmdLine.getOptionValue("input"));
         setFq1out(cmdLine.getOptionValue("fq1out"));
         setFq2out(cmdLine.getOptionValue("fq2out"));

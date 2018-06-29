@@ -59,15 +59,15 @@ public abstract class WholeGenomeShare {
 	}
 
 	protected void loadChromosomeList(String cacheName) {
-		BufferedReader br = null;
+		BufferedReader br;
 		try {
 			br = new BufferedReader(new FileReader(new File(cacheName)));
 		} catch (FileNotFoundException e) {
 			throw new RuntimeException(e.toString());
 		}
 		
-		String line = new String();
 		try {
+			String line;
 			while((line = br.readLine()) != null) {
 				String[] chrs = line.split("\t");
 				// insert chr
@@ -95,7 +95,7 @@ public abstract class WholeGenomeShare {
 		Text line = new Text();
 		
 		String chrFile = "";
-		String[] chrs = new String[3];
+		String[] chrs;
 		while((in.readLine(line)) != 0){
 			chrFile = line.toString();
 			chrs = chrFile.split("\t");

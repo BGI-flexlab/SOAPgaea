@@ -40,6 +40,7 @@ public class SampleAnnotationContext{
 	private String sampleName;
 	private List<String> alts;   // variants at chr:pos
 	private int depth;
+	private int alleleDepthSum;
 	private Map<String, Integer> alleleDepths = null;
 	private Map<String, String> alleleRatios = null;
 	private Map<String, String> zygosity = null;
@@ -82,6 +83,7 @@ public class SampleAnnotationContext{
 		setAlleleDepths(alleleDepths);
 		setDepth(gt.getDP());
 		setAlts(alts);
+		setAlleleDepthSum(gt);
 		setZygosity(zygosity);
 		setFilter(variantContext, gt);
 	}
@@ -102,14 +104,14 @@ public class SampleAnnotationContext{
 	}
 
 	private String getZygosityType(Genotype gt){
+		if(gt.isNoCall())
+			return "noCall";
+		if(gt.isHetNonRef())
+			return "het-alt";
 		if(gt.isHet())
 			return "het-ref";
-		else if(gt.isHomVar())
+		if(gt.isHomVar())
 			return "hom-alt";
-		else if(gt.isHetNonRef())
-			return "het-alt";
-		else if(gt.isNoCall())
-			return "noCall";
 		return ".";
 	}
 
@@ -176,7 +178,7 @@ public class SampleAnnotationContext{
 		df.setRoundingMode(RoundingMode.HALF_UP);
 		alleleRatios = new HashMap<>();
 		for(String alt: getAlts()){
-			double ratio = getDepth() == 0 ? 0 : getAlleleDepth(alt)*1.0 / getDepth();
+			double ratio = getDepth() == 0 ? 0 : getAlleleDepth(alt)*1.0 / getAlleleDepthSum();
 			alleleRatios.put(alt, df.format(ratio));
 		}
 	}
@@ -193,8 +195,19 @@ public class SampleAnnotationContext{
 		this.zygosity = zygosity;
 	}
 
+	public void setAlleleDepthSum(Genotype gt) {
+		alleleDepthSum = 0;
+		for(int altDP: gt.getAD()){
+			alleleDepthSum += altDP;
+		}
+	}
+
 	public int getDepth() {
 		return depth;
+	}
+
+	public int getAlleleDepthSum() {
+		return alleleDepthSum;
 	}
 
 	public void setDepth(int depth) {

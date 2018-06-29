@@ -142,9 +142,8 @@ public class HaplotypeCallerReducer extends Reducer<WindowsBasedWritable, SamRec
 			return;
 
 		int start = key.getWindowsNumber() * options.getWindowSize() + 1 ;
-		int end = start + options.getWindowSize();
-		int chrLength = header.getSequenceDictionary().getSequence(index).getSequenceLength();
-		end = end < chrLength ? end : chrLength;
+		int contigLength = header.getSequenceDictionary().getSequence(index).getSequenceLength();
+		int end = Math.min(contigLength, start + options.getWindowSize());
 		Window win = new Window(header.getSequence(index).getSequenceName(), key.getChromosomeIndex(), start, end);
 		String chr = win.getContigName();
 		ChromosomeInformationShare chrInfo = genomeShare.getChromosomeInfo(chr,true);

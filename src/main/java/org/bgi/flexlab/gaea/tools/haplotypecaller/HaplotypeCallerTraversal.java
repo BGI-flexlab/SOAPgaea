@@ -1,13 +1,7 @@
 package org.bgi.flexlab.gaea.tools.haplotypecaller;
 
 import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
@@ -299,14 +293,44 @@ public class HaplotypeCallerTraversal {
 		// from this shard.
 		while (assemblyRegionIter.hasNext()) {
 			final AssemblyRegion assemblyRegion = assemblyRegionIter.next();
+			int x = (assemblyRegion.getEnd() - assemblyRegion.getStart()) * assemblyRegion.size();
+			if(assemblyRegion.isActive() && x > 1200000)
+				downSampleOfAssemblyRegion(assemblyRegion, 20);
 			writeAssemblyRegion(assemblyRegion);
 			List<VariantContext> results = apply(assemblyRegion, features);
 			
 			for (VariantContext context : results) {
-				if(context.getStart() >= win.getStart() && context.getStart() <= win.getStop())
+				if(context.getStart() >= win.getStart() && context.getStart() < win.getStop())
 					writer.write(context);
 			}
 		}
+	}
+
+	private void downSampleOfAssemblyRegion(AssemblyRegion assemblyRegion, int maxReadsWithSameStart){
+//		System.err.println("assemblyRegion:"+assemblyRegion.getContig() + ":" + assemblyRegion.getStart() + "-" + assemblyRegion.getEnd());
+		maxReadsWithSameStart = maxReadsWithSameStart/2;
+		List<GaeaSamRecord>  reads = assemblyRegion.getReads();
+		List<GaeaSamRecord>  removeReads = new ArrayList<>();
+		Map<String, Integer> counter = new HashMap<>();
+		for (GaeaSamRecord read: reads){
+			if(read.isDuplicateRead() || read.mateIsUnmapped() || read.isSecondaryOrSupplementary() || read.getMappingQuality() < 20) {
+				removeReads.add(read);
+				continue;
+			}
+			String start;
+			if(read.getReadNegativeStrandFlag())
+				start = read.getReadGroup().getId() + "-" + read.getUnclippedStart();
+			else
+				start = read.getReadGroup().getId() + "+" + read.getUnclippedStart();
+
+			if(!counter.containsKey(start))
+				counter.put(start, 0);
+			else if(counter.get(start) < maxReadsWithSameStart)
+				counter.put(start, counter.get(start) + 1);
+			else
+				removeReads.add(read);
+		}
+		assemblyRegion.removeAll(removeReads);
 	}
 
 	private void writeAssemblyRegion(final AssemblyRegion region) {

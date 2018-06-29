@@ -109,7 +109,7 @@ public class AssemblyRegionIterator implements Iterator<AssemblyRegion> {
         
         //final LocusIteratorByState libs = new LocusIteratorByState(readCachingIterator, DownsamplingMethod.NONE, false, ReadUtils.getSamplesFromHeader(readHeader), readHeader, includeReadsWithDeletionsInIsActivePileups);
         final LocusIteratorByState libs = new LocusIteratorByState(readCachingIterator,samplingMethod, false, ReadUtils.getSamplesFromHeader(readHeader), readHeader, includeReadsWithDeletionsInIsActivePileups);
-        this.locusIterator = new AllLocusIterator(readShard.getInterval(), libs);
+        this.locusIterator = new AllLocusIterator(readShard.getPaddedInterval(), libs);
 
         readyRegion = loadNextAssemblyRegion();
     }
@@ -137,10 +137,13 @@ public class AssemblyRegionIterator implements Iterator<AssemblyRegion> {
         while ( locusIterator.hasNext() && nextRegion == null ) {
             final AlignmentContext pileup = locusIterator.next();
 
-            // Ignore sites that are not contained within this shard's interval
-            if ( ! readShard.getInterval().contains(pileup) ) {
-                continue;
-            }
+           // Ignore sites that are not contained within this shard's interval
+//            if ( ! readShard.getInterval().contains(pileup) ) {
+//                continue;
+//            }
+
+//            if( ! readShard.getInterval().overlaps(pileup))
+//                continue;
 
             // Pop any new pending regions off of the activity profile. These pending regions will not become ready
             // until we've traversed all the reads that belong in them.

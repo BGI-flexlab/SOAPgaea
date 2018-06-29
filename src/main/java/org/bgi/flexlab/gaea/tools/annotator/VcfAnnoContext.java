@@ -251,6 +251,20 @@ public class VcfAnnoContext {
         return genes;
     }
 
+    public Set<String> getTranscriptIds() {
+        Set<String> transcriptIds = new HashSet<>();
+        if(annotationContexts == null || annotationContexts.isEmpty())
+            return null;
+        for (AnnotationContext ac : annotationContexts) {
+            if (ac.getTranscriptId().startsWith("NR"))
+                continue;
+            if (!ac.getTranscriptId().equals("")) {
+                transcriptIds.add(ac.getTranscriptId());
+            }
+        }
+        return transcriptIds;
+    }
+
     public List<AnnotationContext> getAnnotationContexts() {
         return annotationContexts;
     }

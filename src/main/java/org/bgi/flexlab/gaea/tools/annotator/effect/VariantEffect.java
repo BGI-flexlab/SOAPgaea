@@ -466,6 +466,36 @@ public class VariantEffect implements Cloneable, Comparable<VariantEffect> {
 		return sb.toString();
 	}
 
+	/**
+	 * Get Effect Type as a simple string
+	 */
+	public String getSimpleEffectTypeString(boolean useFirstEffect) {
+		if (effectTypes == null) return "";
+
+		// Show all effects
+		StringBuilder sb = new StringBuilder();
+		Collections.sort(effectTypes);
+
+		// More than one effect? Check for repeats
+		Set<String> added = ((effectTypes.size() > 1) && (!useFirstEffect) ? new HashSet<String>() : null);
+
+		// Create string
+		for (EffectType et : effectTypes) {
+			String eff = et.toSimpleTag(variant);
+
+			// Make sure we don't add the same effect twice
+			if (added == null || added.add(eff)) {
+				if (sb.length() > 0) sb.append(AnnotationContext.EFFECT_TYPE_SEPARATOR);
+				sb.append(eff);
+			}
+
+			// Only use first effect?
+			if (useFirstEffect) return sb.toString();
+		}
+
+		return sb.toString();
+	}
+
 	public String getError() {
 		return error;
 	}
@@ -553,6 +583,17 @@ public class VariantEffect implements Cloneable, Comparable<VariantEffect> {
 
 		HgvsDna hgvsDna = new HgvsDna(this);
 		String hgvs = hgvsDna.toString();
+		return hgvs != null ? hgvs : "";
+	}
+
+	/**
+	 * Change in HGVS (Protein) notation
+	 */
+	public String getHgvsP() {
+		if (!Config.get().isHgvs()) return "";
+
+		HgvsProtein hgvsProtein = new HgvsProtein(this, true);
+		String hgvs = hgvsProtein.toString();
 		return hgvs != null ? hgvs : "";
 	}
 

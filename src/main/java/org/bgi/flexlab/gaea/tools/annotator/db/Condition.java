@@ -41,6 +41,7 @@ public class Condition implements Serializable{
 	private List<String> fields;
 	private List<String> alts;
 	private Set<String> genes;
+	private Set<String> transcriptIds;
 	private DatabaseInfo dbInfo;
 	private RefTableInfo refTable;
 	
@@ -230,9 +231,17 @@ public class Condition implements Serializable{
 	public void setGenes(Set<String> genes) {
 		this.genes = genes;
 	}
-	
+
 	public Set<String> getGenes() {
 		return genes;
+	}
+
+	public Set<String> getTranscriptIds() {
+		return transcriptIds;
+	}
+
+	public void setTranscriptIds(Set<String> transcriptIds) {
+		this.transcriptIds = transcriptIds;
 	}
 
 	public boolean isKeyHasGene() {
@@ -272,6 +281,7 @@ public class Condition implements Serializable{
 		conditionMap.put(ConditionKey.START, String.valueOf(vac.getStart()-1));
 		conditionMap.put(ConditionKey.END, String.valueOf(vac.getEnd()));
 		setAlts(vac.getAlts());  // alt == annotationContext.getAllele() ?? TODO
+		setTranscriptIds(vac.getTranscriptIds());
 		setGenes(vac.getGenes());
 	}
 	

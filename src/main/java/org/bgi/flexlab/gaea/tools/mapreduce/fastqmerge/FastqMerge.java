@@ -20,6 +20,10 @@ public class FastqMerge  extends ToolsRunner {
     private Configuration conf;
     private FastqMergeOptions options;
 
+    public FastqMerge() {
+        this.toolsDescription = "Load Clean Fastq Data from HDFS";
+    }
+
     private int runFastqMerge(String[] arg0) throws Exception {
 
         conf = new Configuration();
@@ -63,7 +67,7 @@ public class FastqMerge  extends ToolsRunner {
 
             String[] basename = p.toString().split("/");
 
-            if (!basename[basename.length-1].matches("part-\\D-\\d+")) {
+            if (!basename[basename.length-1].startsWith("part-")) {
                 continue;
             }
 
@@ -73,17 +77,17 @@ public class FastqMerge  extends ToolsRunner {
             BufferedReader br = new BufferedReader(new InputStreamReader(dis));
 
 
-            String line = "";
-
+            String line;
             while((line = br.readLine()) != null){
                 String bqHead, fastqStr;
 
+                line = line.trim();
                 fastqStr = line + "\n";
-                fastqStr += br.readLine() + "\n";
+                fastqStr += br.readLine().trim() + "\n";
                 bqHead = br.readLine();
                 bqHead = "+";
                 fastqStr +=  bqHead + "\n";
-                fastqStr += br.readLine() + "\n";
+                fastqStr += br.readLine().trim() + "\n";
 
                 if (line.endsWith("/1")) {
                     if(compress)
@@ -113,7 +117,9 @@ public class FastqMerge  extends ToolsRunner {
         }
         else {
             fq1os.close();
-            fq2os.close();
+            if(options.getFq2out() != null) {
+                fq2os.close();
+            }
         }
 
         return 1;

@@ -585,4 +585,194 @@ public enum EffectType {
 			throw new RuntimeException("Unknown SO term for " + this.toString());
 		}
 	}
+
+	public String toSimpleTag(Variant variant) {
+		switch (this) {
+
+//			case CODON_CHANGE:
+//				return "coding_sequence_variant";
+
+			case CODON_CHANGE_PLUS_CODON_INSERTION:
+				return "DisruptiveInframeInsertion";
+
+			case CODON_CHANGE_PLUS_CODON_DELETION:
+				return "DisruptiveInframeDeletion";
+
+			case CODON_DELETION:
+				return "InframeDeletion";
+
+			case CODON_INSERTION:
+				return "InframeInsertion";
+
+			case EXON:
+				return "NonCoding";
+//
+//			case EXON_DELETED:
+//				return "exon_loss_variant";
+//
+//			case EXON_DELETED_PARTIAL:
+//				return "exon_loss_variant";
+//
+//			case EXON_DUPLICATION:
+//				return "duplication";
+//
+//			case EXON_DUPLICATION_PARTIAL:
+//				return "duplication";
+//
+//			case EXON_INVERSION:
+//				return "inversion";
+//
+//			case EXON_INVERSION_PARTIAL:
+//				return "inversion";
+//
+//			case FEATURE_FUSION:
+//				return "feature_fusion";
+
+			case FRAME_SHIFT:
+				return "Frameshift";
+
+//			case GENE:
+//				return "gene_variant";
+//
+//			case GENE_INVERSION:
+//				return "inversion";
+//
+//			case GENE_DELETED:
+//				return "feature_ablation";
+//
+//			case GENE_DUPLICATION:
+//				return "duplication";
+//
+			case GENE_FUSION:
+				return "Intergenic";
+//
+			case GENE_FUSION_REVERESE:
+				return "Intergenic";
+
+//			case GENE_REARRANGEMENT:
+//				return "rearranged_at_DNA_level";
+
+			case INTERGENIC:
+				return "Intergenic";
+
+			case INTERGENIC_CONSERVED:
+				return "ConservedIntergenic";
+
+			case INTRON:
+				return "Intron";
+
+			case INTRON_CONSERVED:
+				return "ConservedIntron";
+
+			case INTRAGENIC:
+				return "intragenic_variant";
+
+			case MICRO_RNA:
+				return "miRNA";
+
+//			case MOTIF:
+//				return "TF_binding_site_variant";
+//
+//			case MOTIF_DELETED:
+//				return "TFBS_ablation";
+
+//			case NEXT_PROT:
+//				return "sequence_feature";
+
+			case NON_SYNONYMOUS_CODING:
+				return "Missense";
+
+			case NON_SYNONYMOUS_START:
+				return "StartCodon";
+
+			case NON_SYNONYMOUS_STOP:
+				return "Missense";
+
+			case PROTEIN_PROTEIN_INTERACTION_LOCUS:
+				return "ProteinInteracion";
+
+			case PROTEIN_STRUCTURAL_INTERACTION_LOCUS:
+				return "ProteinInteracion";
+
+			case RARE_AMINO_ACID:
+				return "RareAminoAcid";
+
+			case REGULATION:
+				return "RegulatoryRegion";
+
+			case SPLICE_SITE_ACCEPTOR:
+				return "SpliceAcceptor";
+
+			case SPLICE_SITE_DONOR:
+				return "SpliceDonor";
+
+			case SPLICE_SITE_REGION:
+				return "SpliceSite";
+
+//			case SPLICE_SITE_BRANCH:
+//				return "splice_branch_variant";
+//
+//			case SPLICE_SITE_BRANCH_U12:
+//				return "splice_branch_variant";
+
+			case START_LOST:
+				return "StartLost";
+
+			case START_GAINED:
+				return "StartGain";
+
+			case STOP_GAINED:
+				return "Nonsense";
+
+			case STOP_LOST:
+				return "StopLost";
+
+			case SYNONYMOUS_CODING:
+				return "Synonymous";
+
+			case SYNONYMOUS_STOP:
+				return "Synonymous";
+
+			case SYNONYMOUS_START:
+				return "Synonymous";
+
+			case TRANSCRIPT:
+				return "NonCoding";
+
+//			case TRANSCRIPT_DELETED:
+//				return "transcript_ablation";
+//
+//			case TRANSCRIPT_DUPLICATION:
+//				return "duplication";
+//
+//			case TRANSCRIPT_INVERSION:
+//				return "inversion";
+
+//			case UPSTREAM:
+//				return "upstream_gene_variant";
+
+			case UTR_3_PRIME:
+				return "Utr3";
+
+			case UTR_3_DELETED:
+				return "Utr3LossExon";
+
+			case UTR_5_PRIME:
+				return "Utr5";
+
+			case UTR_5_DELETED:
+				return "Utr5LossExon";
+
+//			case CUSTOM:
+//				return "custom";
+
+			case NONE:
+			case GENOME:
+			case SEQUENCE:
+				return "";
+
+			default:
+				throw new RuntimeException("Unknown SO term for " + this.toString());
+		}
+	}
 }

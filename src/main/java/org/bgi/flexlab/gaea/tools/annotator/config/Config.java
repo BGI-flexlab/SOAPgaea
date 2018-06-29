@@ -46,6 +46,7 @@ public class Config implements Serializable {
 	public static final String KEY_REFERENCE = "ref";
 	public static final String KEY_GENEINFO_PREFIX = "GeneInfo";
 	public static final String KEY_VARIANT_PREFIX = "Variant";
+	public static final String KEY_EFFECT_NOMEN = "EffectNomen";
 	public static final String KEY_TSV_PREFIX = "TSV";
 	public static final String KEY_CODON_PREFIX = "codon.";
 	public static final String KEY_CODONTABLE_SUFIX = ".codonTable";
@@ -78,8 +79,9 @@ public class Config implements Serializable {
 	private SnpEffectPredictor snpEffectPredictor;
 	private Configuration conf;
 	private AnnotatorOptions options;
+    private boolean useSimpleEffectNom;
 
-	public Config(Configuration conf) throws IOException {
+    public Config(Configuration conf) throws IOException {
 		this.conf = conf;
 		init();
 		configInstance = this;
@@ -97,6 +99,7 @@ public class Config implements Serializable {
 		options.getOptionsFromHadoopConf(conf);
 		treatAllAsProteinCoding = false;
 		onlyRegulation = false;
+		useSimpleEffectNom = false;
 		errorOnMissingChromo = true;
 		errorChromoHit = true;
 		verbose = options.isVerbose();
@@ -211,6 +214,8 @@ public class Config implements Serializable {
 		// Sorted keys
 		Set<String> keys = properties.stringPropertyNames();
 		ref = properties.getProperty(KEY_REFERENCE);
+		if(properties.containsKey(KEY_EFFECT_NOMEN))
+			setUseSimpleEffectNom(properties.getProperty(KEY_EFFECT_NOMEN));
 		setGeneInfo(properties.getProperty(KEY_GENEINFO_PREFIX));
 		
 		annoFieldsByDB = new HashMap<>();
@@ -256,6 +261,24 @@ public class Config implements Serializable {
 		
 		return true;
 	}
+
+	public void setUseSimpleEffectNom(String useSimpleEffectNomStr) {
+		switch (useSimpleEffectNomStr.trim().toLowerCase()) {
+			case "false":
+				this.useSimpleEffectNom = false;
+			case "f":
+				this.useSimpleEffectNom = false;
+			case "0":
+				this.useSimpleEffectNom = false;
+			default:
+				this.useSimpleEffectNom = true;
+		}
+	}
+
+	public boolean isUseSimpleEffectNom() {
+		return useSimpleEffectNom;
+	}
+
 
 	public List<String> getFields() {
 		return fields;
