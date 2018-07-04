@@ -5,8 +5,10 @@ import java.util.ArrayList;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Reducer;
+import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.data.mapreduce.input.bed.RegionHdfsParser;
 import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamHdfsFileHeader;
+import org.bgi.flexlab.gaea.data.mapreduce.output.vcf.GaeaVariantContextWriter;
 import org.bgi.flexlab.gaea.data.mapreduce.util.VariantContextHadoopWriter;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.SamRecordWritable;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.WindowsBasedWritable;
@@ -17,7 +19,9 @@ import org.bgi.flexlab.gaea.data.structure.reference.index.VcfIndex;
 import org.bgi.flexlab.gaea.data.structure.vcf.VCFLocalLoader;
 import org.bgi.flexlab.gaea.data.variant.filter.VariantRegionFilter;
 import org.bgi.flexlab.gaea.tools.haplotypecaller.HaplotypeCallerTraversal;
+import org.bgi.flexlab.gaea.tools.haplotypecaller.argumentcollection.HaplotypeCallerArgumentCollection;
 import org.bgi.flexlab.gaea.tools.haplotypecaller.utils.RefMetaDataTracker;
+import org.bgi.flexlab.gaea.tools.haplotypecaller.writer.GVCFHadoopWriter;
 import org.bgi.flexlab.gaea.util.Window;
 import org.seqdoop.hadoop_bam.VariantContextWritable;
 
@@ -67,7 +71,7 @@ public class HaplotypeCallerReducer extends Reducer<WindowsBasedWritable, SamRec
 	/**
 	 * variant context writer
 	 */
-	private VariantContextHadoopWriter writer = null;
+	private GaeaVariantContextWriter writer = null;
     
 	@Override
     protected void setup(Context context) throws IOException {
@@ -97,8 +101,17 @@ public class HaplotypeCallerReducer extends Reducer<WindowsBasedWritable, SamRec
         }
         
         haplotypecaller = new HaplotypeCallerTraversal(region,options,header);
-        
-        writer = new VariantContextHadoopWriter(context,haplotypecaller.getVCFHeader());
+
+		if (options.isGVCF()) {
+			HaplotypeCallerArgumentCollection hcArgs = options.getHaplotypeCallerArguments();
+			try {
+				writer = new GVCFHadoopWriter(context, haplotypecaller.getVCFHeader(), hcArgs.GVCFGQBands, hcArgs.samplePloidy);
+			} catch (IllegalArgumentException e) {
+				throw new UserException.BadArgumentValueException("GQBands", "are malformed: " + e.getMessage());
+			}
+		}else
+			writer = new VariantContextHadoopWriter(context,haplotypecaller.getVCFHeader());
+
 	}
 	
 	private ArrayList<VariantContext> getRegionVatiantContext(String chr,int number,int winSize,int end,DbsnpShare dbsnpShare,VCFLocalLoader loader){
@@ -155,6 +168,7 @@ public class HaplotypeCallerReducer extends Reducer<WindowsBasedWritable, SamRec
 	
 	@Override
     protected void cleanup(Context context) {
+		writer.close();
 		haplotypecaller.clear();
     }
 }

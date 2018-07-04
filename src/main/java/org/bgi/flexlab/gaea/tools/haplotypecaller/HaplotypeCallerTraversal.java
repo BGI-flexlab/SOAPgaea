@@ -301,6 +301,30 @@ public class HaplotypeCallerTraversal {
 			
 			for (VariantContext context : results) {
 				if(context.getStart() >= win.getStart() && context.getStart() < win.getStop())
+					writer.add(context);
+			}
+		}
+	}
+
+	private void processReadShard(Shard<GaeaSamRecord> shard, RefMetaDataTracker features,
+								  GaeaVariantContextWriter writer) {
+		final Iterator<AssemblyRegion> assemblyRegionIter = new AssemblyRegionIterator(shard, header, ref, features,
+				hcEngine, minAssemblyRegionSize, maxAssemblyRegionSize, assemblyRegionPadding, activeProbThreshold,
+				maxProbPropagationDistance, options.getMaxReadsPerPosition(),true);
+
+		// Call into the tool implementation to process each assembly region
+		// from this shard.
+		while (assemblyRegionIter.hasNext()) {
+			final AssemblyRegion assemblyRegion = assemblyRegionIter.next();
+			int x = (assemblyRegion.getEnd() - assemblyRegion.getStart()) * assemblyRegion.size();
+			if(assemblyRegion.isActive() && x > 1200000)
+				downSampleOfAssemblyRegion(assemblyRegion, 20);
+			writeAssemblyRegion(assemblyRegion);
+			List<VariantContext> results = apply(assemblyRegion, features);
+
+//			todo 注意shard regoin 边界问题
+			for (VariantContext context : results) {
+				if(context.getStart() > shard.getStart() && context.getStart() <= shard.getEnd())
 					writer.write(context);
 			}
 		}

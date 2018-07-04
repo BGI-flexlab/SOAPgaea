@@ -9,6 +9,7 @@ import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.tools.jointcalling.util.GaeaGvcfVariantContextUtils;
 import org.bgi.flexlab.gaea.tools.jointcalling.util.GvcfMathUtils;
 import org.bgi.flexlab.gaea.util.GaeaVCFConstants;
+import org.bgi.flexlab.gaea.util.MathUtils;
 import org.bgi.flexlab.gaea.util.Utils;
 
 import htsjdk.samtools.util.Locatable;
@@ -110,7 +111,7 @@ final class HomRefBlock implements Locatable {
 
     public int getMinDP() { return GvcfMathUtils.arrayMin(DPs); }
 
-    public int getMedianDP() { return GvcfMathUtils.median(DPs); }
+    public int getMedianDP() { return (int) Math.round(MathUtils.median(DPs)); }
     /** Get the min PLs observed within this band, can be null if no PLs have yet been observed */
     public int[] getMinPLs() { return minPLs; }
 

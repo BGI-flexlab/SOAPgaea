@@ -46,7 +46,12 @@ public class VariantContextHadoopWriter implements GaeaVariantContextWriter{
 	@Override
 	public void close() {
 	}
-	
+
+	@Override
+	public void add(VariantContext vc) {
+		write(vc);
+	}
+
 	@SuppressWarnings("rawtypes")
 	public Context getContext() {
 		return this.context;

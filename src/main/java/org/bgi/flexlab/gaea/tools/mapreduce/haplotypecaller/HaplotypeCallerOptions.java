@@ -1,12 +1,9 @@
 package org.bgi.flexlab.gaea.tools.mapreduce.haplotypecaller;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-
 import org.apache.commons.cli.ParseException;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.util.LineReader;
@@ -16,8 +13,12 @@ import org.bgi.flexlab.gaea.data.options.GaeaOptions;
 import org.bgi.flexlab.gaea.tools.haplotypecaller.ReferenceConfidenceMode;
 import org.bgi.flexlab.gaea.tools.haplotypecaller.argumentcollection.HaplotypeCallerArgumentCollection;
 import org.bgi.flexlab.gaea.tools.haplotypecaller.pairhmm.PairHMM;
-import org.bgi.flexlab.gaea.tools.mapreduce.realigner.RealignerExtendOptions;
 import org.seqdoop.hadoop_bam.SAMFormat;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 public class HaplotypeCallerOptions  extends GaeaOptions implements HadoopOptions{
 	
@@ -62,6 +63,8 @@ public class HaplotypeCallerOptions  extends GaeaOptions implements HadoopOption
 	private HashMap<String,String> comps  = new HashMap<String,String>();
 	
 	private int maxReadsPerPosition = 0;
+
+	public List<Integer> GVCFGQBands = new ArrayList<>(70);
 	
 	public HaplotypeCallerOptions() {
 		addOption("a","allSitePLs",false,"Annotate all sites with PLs");
@@ -118,8 +121,12 @@ public class HaplotypeCallerOptions  extends GaeaOptions implements HadoopOption
 		try {
 			cmdLine = parser.parse(options, args);
 		} catch (ParseException e) {
-			System.err.println(e.getMessage());
-			FormatHelpInfo(RealignerExtendOptions.SOFTWARE_NAME, RealignerExtendOptions.SOFTWARE_VERSION);
+			helpInfo.printHelp("Options:", options, true);
+			System.exit(1);
+		}
+
+		if(args.length == 0 || getOptionBooleanValue("h", false)) {
+			printHelpInfotmation(SOFTWARE_NAME);
 			System.exit(1);
 		}
 		
@@ -128,14 +135,20 @@ public class HaplotypeCallerOptions  extends GaeaOptions implements HadoopOption
 		} catch (IOException e) {
 			throw new UserException(e.toString());
 		}
-		
-		if(getOptionBooleanValue("f",false))
+
+		if(inputs.size() <= 0)
+			throw new RuntimeException("Input is empty!");
+
+		if(getOptionBooleanValue("f",false)) {
 			this.hcArgs.emitReferenceConfidence = ReferenceConfidenceMode.GVCF;
+			this.gvcfFormat = true;
+		}
 		if(getOptionBooleanValue("K",false))
 			this.hcArgs.assemblerArgs.dontIncreaseKmerSizesForCycles = true;
 		this.hcArgs.maxDepthForAssembly = getOptionIntValue("e",0);
 		
 		this.windowsSize = getOptionIntValue("w",10000);
+		this.windowsExtends = getOptionIntValue("E",300);
 		this.reduceNumber = getOptionIntValue("n",100);
 		this.readShardSize = getOptionIntValue("c",-1);
 		this.readPaddingSize = getOptionIntValue("d",100);
@@ -149,16 +162,25 @@ public class HaplotypeCallerOptions  extends GaeaOptions implements HadoopOption
 		}
 		
 		setPairHMM(getOptionValue("P","AVX_LOGLESS_CACHING_OMP"));
+
 	}
 	
 	private void parseInput(String input) throws IOException {
 		Path path = new Path(input);
-		SAMFormat fmt = SAMFormat.inferFromData(path.getFileSystem(new Configuration()).open(path));
+		FileSystem inFS = path.getFileSystem(new Configuration());
+		if(inFS.isDirectory(path)){
+			FileStatus[] fileStatuses = inFS.globStatus(new Path(input +"/part*"));
+			for (FileStatus f: fileStatuses)
+				inputs.add(f.getPath());
+			return;
+		}
+
+		SAMFormat fmt = SAMFormat.inferFromData(inFS.open(path));
 		
 		if(fmt == SAMFormat.BAM)
 			inputs.add(path);
 		else {
-			LineReader reader = new LineReader(path.getFileSystem(new Configuration()).open(path));
+			LineReader reader = new LineReader(inFS.open(path));
 			Text line = new Text();
 			
 			while(reader.readLine(line) > 0 && line.getLength() != 0) {
