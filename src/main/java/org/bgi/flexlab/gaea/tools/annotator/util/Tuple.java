@@ -34,6 +34,9 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.annotator.util;
 
+import java.util.Iterator;
+import java.util.Map;
+
 /**
  * Tuple: A pair of objects
  * @author pablocingolani
@@ -75,6 +78,23 @@ public class Tuple<A, B> {
 		int hashSecond = second != null ? second.hashCode() : 0;
 
 		return (hashFirst + hashSecond) * hashSecond + hashFirst;
+	}
+
+	public static Tuple<String, String> transMapToTuple(Map map){
+		return transMapToTuple(map, ";");
+	}
+
+	public static Tuple<String, String> transMapToTuple(Map map, String sep){
+		java.util.Map.Entry entry;
+		StringBuilder k = new StringBuilder();
+		StringBuilder v = new StringBuilder();
+		for(Iterator iterator = map.entrySet().iterator(); iterator.hasNext();)
+		{
+			entry = (java.util.Map.Entry)iterator.next();
+			k.append(entry.getKey().toString()).append (iterator.hasNext() ? ";" : "");
+			v.append(entry.getValue().toString()).append (iterator.hasNext() ? ";" : "");
+		}
+		return new Tuple<>(k.toString(), v.toString());
 	}
 
 	@Override

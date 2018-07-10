@@ -28,7 +28,9 @@ import org.bgi.flexlab.gaea.tools.annotator.config.Config;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class AnnotationSortMapper extends Mapper<LongWritable, Text, PairWritable, Text> {
 
@@ -36,6 +38,7 @@ public class AnnotationSortMapper extends Mapper<LongWritable, Text, PairWritabl
 	private Text resultValue;
 	private AnnotatorOptions options;
 	private Config userConfig;
+	private Map<String, String> defaultValue;
 
 	@Override
 	protected void setup(Context context)
@@ -46,6 +49,7 @@ public class AnnotationSortMapper extends Mapper<LongWritable, Text, PairWritabl
 		Configuration conf = context.getConfiguration();
 		options.getOptionsFromHadoopConf(conf);
 		userConfig = new Config(conf);
+		defaultValue = userConfig.getDefaultValue();
 	}
 
 	@Override
@@ -66,6 +70,8 @@ public class AnnotationSortMapper extends Mapper<LongWritable, Text, PairWritabl
 				if (annoValue == null) {
 					annoValue = vac.getAnnoItem(field);
 				}
+				if(annoValue.equals(".") && defaultValue.containsKey(field))
+					annoValue = defaultValue.get(field);
 				anno.add(annoValue);
 			}
 			resultValue.set(String.join("\t",anno));

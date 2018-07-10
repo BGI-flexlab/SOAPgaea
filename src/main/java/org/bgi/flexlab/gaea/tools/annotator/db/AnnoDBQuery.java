@@ -20,6 +20,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.hbase.util.MD5Hash;
 import org.bgi.flexlab.gaea.tools.annotator.config.DatabaseInfo;
+import org.bgi.flexlab.gaea.tools.annotator.util.Tuple;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -38,7 +39,7 @@ public class AnnoDBQuery extends DBQuery {
 		HashMap<String,String> result = dbAdapter.getResult(condition.getRefTable().getIndexTable(), condition.getConditionString());
 		List<String> alts = condition.getAlts();
 		if (result ==null || result.isEmpty()) return null;
-		String[] indexAlts = result.get(INDEX_ALT_COLUMN_NAME).split(",");
+		String[] indexAlts = result.get(INDEX_ALT_COLUMN_NAME).split(";");
 		for(String alt: alts)
 			if(!ArrayUtils.contains(indexAlts, alt))
 				return null;
@@ -61,40 +62,81 @@ public class AnnoDBQuery extends DBQuery {
 		return results;
 	}
 
-	public boolean insert(Condition condition,	Map<String,String>
-			fields )throws IOException{
-		HashMap<String,String> result = dbAdapter.getResult(condition.getRefTable().getIndexTable(), condition.getConditionString());
-		String mainKey = getHashRowKey(condition.getConditionString());
-		String alt =  fields.get("ALT");
-		Map<String, String> indexKV = new HashMap<>();
-		if (result ==null || result.isEmpty()){
-			indexKV.put(INDEX_ALT_COLUMN_NAME, alt);
-			indexKV.put(condition.getRefTable().getKey(), mainKey);
-			dbAdapter.insert(condition.getRefTable().getIndexTable(), condition.getConditionString(), indexKV);
-			dbAdapter.insert(condition.getRefTable().getTable(), mainKey, fields);
-		}else {
-			String altStr = result.get(INDEX_ALT_COLUMN_NAME);
-			String mainKeyStr = result.get(condition.getRefTable().getKey());
-			String[] alts = altStr.split(",");
-			int index = ArrayUtils.indexOf(alts, alt);
-			if(index == -1){
-				altStr += ","+alt;
-				mainKeyStr += ";"+mainKey;
-				indexKV.put(INDEX_ALT_COLUMN_NAME, altStr);
-				indexKV.put(condition.getRefTable().getKey(), mainKeyStr);
-				dbAdapter.insert(condition.getRefTable().getIndexTable(), condition.getConditionString(), indexKV);
-				dbAdapter.insert(condition.getRefTable().getTable(), mainKey, fields);
+	public boolean initInsert(Condition condition,	List<Map<String,String>>
+			annos)throws IOException{
+		Map<String, String> keys = new HashMap<>();
+		int count = 0;
+		for(Map<String,String> anno: annos){
+			String mainKey = getHashRowKey(condition.getConditionString(), count);
+			String alt =  anno.get(INDEX_ALT_COLUMN_NAME);
+			dbAdapter.insert(condition.getRefTable().getTable(), mainKey, anno);
+			if(keys.containsKey(alt)){
+				String mainKeyStr = keys.get(alt) + "," + mainKey;
+				keys.put(alt, mainKeyStr);
+			}else {
+				keys.put(alt, mainKey);
 			}
+			count ++;
 		}
+
+		Map<String, String> indexKV = new HashMap<>();
+		Tuple<String, String> tp = Tuple.transMapToTuple(keys);
+		indexKV.put(INDEX_ALT_COLUMN_NAME, tp.getFirst());
+		indexKV.put(condition.getRefTable().getKey(), tp.getSecond());
+		dbAdapter.insert(condition.getRefTable().getIndexTable(), condition.getConditionString(), indexKV);
 		return true;
 	}
 
-	public String getHashRowKey(String key){
-		long currentTime = System.currentTimeMillis();
+	public boolean addInsert(Condition condition, List<Map<String,String>>
+			annos, HashMap<String,String> result)throws IOException{
+		if(result == null || result.isEmpty())
+			return initInsert(condition, annos);
+
+		Map<String, String> keys = new HashMap<>();
+		StringBuilder altStr = new StringBuilder(result.get(INDEX_ALT_COLUMN_NAME));
+		String[] alts = altStr.toString().split(";");
+		int count = 0;
+		for(Map<String,String> anno: annos){
+
+			String alt =  anno.get(INDEX_ALT_COLUMN_NAME);
+			int index = ArrayUtils.indexOf(alts, alt);
+			if(index == -1){
+				continue;
+			}
+
+			String mainKey = getHashRowKey(condition.getConditionString(), count);
+			dbAdapter.insert(condition.getRefTable().getTable(), mainKey, anno);
+			if(keys.containsKey(alt)){
+				keys.put(alt, keys.get(alt) + "," + mainKey);
+			}else {
+				keys.put(alt, mainKey);
+			}
+			count ++;
+		}
+
+		StringBuilder mainKeyStr = new StringBuilder(result.get(condition.getRefTable().getKey()));
+		Map<String, String> indexKV = new HashMap<>();
+		for (String key: keys.keySet()){
+			altStr.append(";").append(key);
+			mainKeyStr.append(";").append(keys.get(key));
+		}
+		indexKV.put(INDEX_ALT_COLUMN_NAME, altStr.toString());
+		indexKV.put(condition.getRefTable().getKey(), mainKeyStr.toString());
+		dbAdapter.insert(condition.getRefTable().getIndexTable(), condition.getConditionString(), indexKV);
+		return true;
+	}
+
+	public boolean insert(Condition condition,	List<Map<String,String>>
+			annos )throws IOException{
+		HashMap<String,String> result = dbAdapter.getResult(condition.getRefTable().getIndexTable(), condition.getConditionString());
+		return addInsert(condition, annos, result);
+	}
+
+	public String getHashRowKey(String key, int count){
 		Random random = new Random();
-		currentTime += random.nextInt(1000);
-		String mainKey = MD5Hash.getMD5AsHex(Bytes.toBytes(key)).substring(0,8);
-		mainKey += MD5Hash.getMD5AsHex(Bytes.toBytes(currentTime)).substring(0,8);
+		String mainKey = MD5Hash.getMD5AsHex(Bytes.toBytes(key)).substring(0,10);
+		mainKey += String.format("%03x", random.nextInt(2457));
+		mainKey += String.format("%03x", count);
 		return mainKey;
 	}
 

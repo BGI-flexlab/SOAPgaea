@@ -47,6 +47,7 @@ public class Config implements Serializable {
 	public static final String KEY_GENEINFO_PREFIX = "GeneInfo";
 	public static final String KEY_VARIANT_PREFIX = "Variant";
 	public static final String KEY_EFFECT_NOMEN = "EffectNomen";
+	public static final String KEY_DEFAULT_VALUE = "SetDefaultValue";
 	public static final String KEY_TSV_PREFIX = "TSV";
 	public static final String KEY_CODON_PREFIX = "codon.";
 	public static final String KEY_CODONTABLE_SUFIX = ".codonTable";
@@ -74,6 +75,7 @@ public class Config implements Serializable {
 	private List<String> fields = new ArrayList<>();
 	private List<String> fieldsWithoutVariant = null;
 	private Map<String, String> headerByField = new HashMap<>();
+	private Map<String, String> defaultValue = new HashMap<>();
 	private Properties properties;
 	private Genome genome;
 	private SnpEffectPredictor snpEffectPredictor;
@@ -217,6 +219,8 @@ public class Config implements Serializable {
 		if(properties.containsKey(KEY_EFFECT_NOMEN))
 			setUseSimpleEffectNom(properties.getProperty(KEY_EFFECT_NOMEN));
 		setGeneInfo(properties.getProperty(KEY_GENEINFO_PREFIX));
+		if(properties.containsKey(KEY_DEFAULT_VALUE))
+			setDefaultValue(properties.getProperty(KEY_DEFAULT_VALUE));
 		
 		annoFieldsByDB = new HashMap<>();
 		dbNameList = new ArrayList<>();
@@ -272,6 +276,19 @@ public class Config implements Serializable {
 				this.useSimpleEffectNom = false;
 			default:
 				this.useSimpleEffectNom = true;
+		}
+	}
+
+	public Map<String, String> getDefaultValue() {
+		return defaultValue;
+	}
+
+	public void setDefaultValue(String defaultValueStr) {
+		String[] dv = defaultValueStr.split(",");
+		for (String aDv : dv) {
+			String[] kv = aDv.split(":", 2);
+			if (kv.length == 2)
+				defaultValue.put(kv[0], kv[1]);
 		}
 	}
 

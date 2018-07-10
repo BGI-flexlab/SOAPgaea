@@ -139,8 +139,7 @@ public class DBQuery implements Serializable {
 		return results.get(tag);
 	}
 
-	public boolean insert(Condition condition,	Map<String,String>
-			fields )throws IOException{
+	public boolean insert(Condition condition,	List<Map<String,String>> annos)throws IOException{
 		return true;
 	}
 
