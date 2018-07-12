@@ -499,12 +499,12 @@ public class Config implements Serializable {
 		return prefix+String.join(delimiter, headers);
 	}
 
-	public String getVCFHeaderString(String prefix, String delimiter){
+	public String getVCFHeaderString(){
 		ArrayList<String> headers = new ArrayList<>();
 		for(String field: getFieldsWithoutVariant()){
 			headers.add(getHeaderNameByField(field));
 		}
-		return prefix+String.join(delimiter, headers);
+		return String.join("|", headers);
 	}
 
 

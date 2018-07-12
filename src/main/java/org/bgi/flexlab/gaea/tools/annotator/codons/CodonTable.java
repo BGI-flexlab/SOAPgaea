@@ -142,8 +142,7 @@ public class CodonTable {
 	}
 
 	public String aaThreeLetterCode(char aa) {
-//		if (aa == '*') return "Ter"; // Termination codon. Used to be "*" (see reference http://www.hgvs.org/mutnomen/standards.html#aalist)
-		if (aa == '*') return "*"; // Termination codon. Used to be "*" (see reference http://www.hgvs.org/mutnomen/standards.html#aalist)
+		if (aa == '*') return "Ter"; // Termination codon. Used to be "*" (see reference http://www.hgvs.org/mutnomen/standards.html#aalist)
 		String aa3 = aa3letter.get(Character.toString(aa).toUpperCase());
 		if (aa3 == null) return "???";
 		return aa3;

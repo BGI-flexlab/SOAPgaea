@@ -50,7 +50,7 @@ public class AnnoSortReducer extends Reducer<PairWritable, Text, NullWritable, T
 		Config userConfig = new Config(conf);
 		options = new AnnotatorOptions();
 		options.getOptionsFromHadoopConf(conf);
-		annoFieldNameHeader = userConfig.getVCFHeaderString("ALT|","|");
+		annoFieldNameHeader = userConfig.getVCFHeaderString();
 
 		vcfHeaders = new HashMap<>();
 		Path inputPath = new Path(options.getInputFilePath());
@@ -106,9 +106,7 @@ public class AnnoSortReducer extends Reducer<PairWritable, Text, NullWritable, T
 			multipleOutputs.write(NullWritable.get(), resultValue, key.getFirst());
 			printHeader = false;
 		}
-		Iterator<Text> iter =  values.iterator();
-		while(iter.hasNext()) {
-			Text inputLine = iter.next();
+		for (Text inputLine : values) {
 			resultValue.set(inputLine);
 			multipleOutputs.write(NullWritable.get(), resultValue, key.getFirst());
 		}

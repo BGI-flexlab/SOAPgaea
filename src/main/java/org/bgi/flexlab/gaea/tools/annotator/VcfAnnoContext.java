@@ -82,7 +82,8 @@ public class VcfAnnoContext {
         end = variantContext.getEnd();
         alts = new ArrayList<>();
         for (Allele allele : variantContext.getAlternateAlleles()) {
-            alts.add(allele.toString());
+            if(! allele.isSymbolic())
+                alts.add(allele.getBaseString());
         }
         addSampleContext(variantContext);
     }
@@ -96,6 +97,8 @@ public class VcfAnnoContext {
             variantContextMap.put(filename, variantContexts);
         }
         for(Allele allele: variantContext.getAlternateAlleles()){
+            if(allele.isSymbolic())
+                continue;
             if(!alts.contains(allele.getBaseString()))
                 alts.add(allele.getBaseString());
         }

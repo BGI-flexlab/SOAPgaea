@@ -605,6 +605,17 @@ public enum EffectType {
 				return "InframeInsertion";
 
 			case EXON:
+			case EXON_DELETED:
+			case EXON_DELETED_PARTIAL:
+			case EXON_DUPLICATION:
+			case EXON_DUPLICATION_PARTIAL:
+			case EXON_INVERSION:
+			case EXON_INVERSION_PARTIAL:
+			case FEATURE_FUSION:
+			case GENE:
+			case GENE_INVERSION:
+			case GENE_DELETED:
+			case GENE_DUPLICATION:
 				return "NonCoding";
 //
 //			case EXON_DELETED:
