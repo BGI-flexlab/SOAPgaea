@@ -601,6 +601,7 @@ public class HgvsProtein extends Hgvs {
 		}
 
 		if (protChange == null || pos == null) return null;
+		if (!hgvsOneLetterAa) protChange = protChange.replace("Ter", "*");
 
 		return prefix + typeOfReference() + pos + protChange + suffix;
 	}
