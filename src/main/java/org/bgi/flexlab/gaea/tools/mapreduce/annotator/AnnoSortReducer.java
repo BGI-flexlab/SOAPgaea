@@ -50,7 +50,7 @@ public class AnnoSortReducer extends Reducer<PairWritable, Text, NullWritable, T
 		Config userConfig = new Config(conf);
 		options = new AnnotatorOptions();
 		options.getOptionsFromHadoopConf(conf);
-		annoFieldNameHeader = userConfig.getHeaderString("ALT|","|");
+		annoFieldNameHeader = userConfig.getVCFHeaderString("ALT|","|");
 
 		vcfHeaders = new HashMap<>();
 		Path inputPath = new Path(options.getInputFilePath());

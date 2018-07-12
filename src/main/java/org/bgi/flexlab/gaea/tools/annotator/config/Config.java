@@ -499,6 +499,15 @@ public class Config implements Serializable {
 		return prefix+String.join(delimiter, headers);
 	}
 
+	public String getVCFHeaderString(String prefix, String delimiter){
+		ArrayList<String> headers = new ArrayList<>();
+		for(String field: getFieldsWithoutVariant()){
+			headers.add(getHeaderNameByField(field));
+		}
+		return prefix+String.join(delimiter, headers);
+	}
+
+
 	public AnnotatorOptions getOptions() {
 		return options;
 	}
