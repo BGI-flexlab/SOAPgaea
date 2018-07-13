@@ -57,9 +57,9 @@ public abstract class WindowsBasedMapper<VALUEOUT extends Writable> extends
 	private RegionHdfsParser region = null;
 	protected VALUEOUT outputValue;
 
-	private HashMap<String, Integer> sampleIDs = null;
+	protected HashMap<String, Integer> sampleIDs = null;
 
-	abstract void otherSetup(Context context);
+	abstract void otherSetup(Context context) throws IOException, InterruptedException;
 	abstract void setOutputValue(SAMRecord samRecord);
 	abstract void initOutputVaule();
 
