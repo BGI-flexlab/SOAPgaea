@@ -604,7 +604,6 @@ public enum EffectType {
 			case CODON_INSERTION:
 				return "InframeInsertion";
 
-			case EXON:
 			case EXON_DELETED:
 			case EXON_DELETED_PARTIAL:
 			case EXON_DUPLICATION:
@@ -616,7 +615,7 @@ public enum EffectType {
 			case GENE_INVERSION:
 			case GENE_DELETED:
 			case GENE_DUPLICATION:
-				return "NonCoding";
+				return ".";
 //
 //			case EXON_DELETED:
 //				return "exon_loss_variant";
@@ -747,6 +746,7 @@ public enum EffectType {
 			case SYNONYMOUS_START:
 				return "Synonymous";
 
+			case EXON:
 			case TRANSCRIPT:
 				return "NonCoding";
 
