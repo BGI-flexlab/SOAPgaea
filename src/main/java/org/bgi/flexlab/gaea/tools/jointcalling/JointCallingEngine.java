@@ -105,12 +105,8 @@ public class JointCallingEngine {
 
 		// take care of the VCF headers
 		final Set<VCFHeaderLine> headerLines = new HashSet<VCFHeaderLine>();
-		
-		for ( final Iterator<VCFHeaderLine> iter = headerLines.iterator(); iter.hasNext(); ) {
-            if ( iter.next().getKey().contains(GVCF_BLOCK) ) {
-                iter.remove();
-            }
-        }
+
+		headerLines.removeIf(vcfHeaderLine -> vcfHeaderLine.getKey().contains(GVCF_BLOCK));
 		
 		headerLines.addAll(vcfheader.getMetaDataInInputOrder());
 

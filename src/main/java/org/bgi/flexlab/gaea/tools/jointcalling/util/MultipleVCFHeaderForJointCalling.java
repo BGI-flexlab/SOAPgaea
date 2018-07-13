@@ -6,7 +6,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 
+import htsjdk.variant.vcf.VCFHeaderLine;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
@@ -54,6 +56,16 @@ public class MultipleVCFHeaderForJointCalling extends GaeaVCFHeader implements S
 		writeHeaders(outputDir,conf);
 	}
 
+	public void headersConfig(VCFHeader header,String outputDir,Configuration conf){
+		getHeaders(header);
+		writeHeaders(outputDir,conf);
+	}
+
+	public void headersConfig(Path headerPath,String outputDir,Configuration conf){
+		getHeaders(headerPath, conf);
+		writeHeaders(outputDir,conf);
+	}
+
 	public void getHeaders(List<Path> paths) {
 		currentIndex = 0;
 		for (Path p : paths) {
@@ -74,6 +86,38 @@ public class MultipleVCFHeaderForJointCalling extends GaeaVCFHeader implements S
 			currentIndex++;
 			headers.put(name, headerWithIndex);
 			loader.close();
+		}
+	}
+
+	public void getHeaders(VCFHeader header) {
+		currentIndex = 0;
+		Set<VCFHeaderLine> vcfHeaderLines = header.getMetaDataInInputOrder();
+		for(String sample: header.getSampleNamesInOrder()){
+			Set<String> sampleSet = new TreeSet<>();
+			sampleSet.add(sample);
+			VCFHeader vcfHeader = new VCFHeader(vcfHeaderLines, sampleSet);
+			VCFHeaderWithIndex headerWithIndex = new VCFHeaderWithIndex(vcfHeader,currentIndex);
+			currentIndex++;
+			headers.put(sample, headerWithIndex);
+		}
+	}
+
+	public void getHeaders(Path headerPath, Configuration conf) {
+		VCFHeader header = null;
+		try {
+			header = readHeader(headerPath, conf);
+		} catch (IOException | ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+		currentIndex = 0;
+		Set<VCFHeaderLine> vcfHeaderLines = header.getMetaDataInInputOrder();
+		for(String sample: header.getSampleNamesInOrder()){
+			Set<String> sampleSet = new TreeSet<>();
+			sampleSet.add(sample);
+			VCFHeader vcfHeader = new VCFHeader(vcfHeaderLines, sampleSet);
+			VCFHeaderWithIndex headerWithIndex = new VCFHeaderWithIndex(vcfHeader,currentIndex);
+			currentIndex++;
+			headers.put(sample, headerWithIndex);
 		}
 	}
 

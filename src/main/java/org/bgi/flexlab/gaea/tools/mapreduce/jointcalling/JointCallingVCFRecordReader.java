@@ -132,7 +132,8 @@ public class JointCallingVCFRecordReader extends RecordReader<LongWritable, Vari
 		}
 		
 		CommonInfo info = v.getCommonInfo();
-		info.putAttribute("SM",vtemp.getSampleNamesOrderedByName().get(0));
+		if(!info.hasAttribute("SM"))
+			info.putAttribute("SM",vtemp.getSampleNamesOrderedByName().get(0));
 
 		Integer chromIdx = contigDict.get(v.getContig());
 		if (chromIdx == null)
