@@ -58,16 +58,20 @@ public class WholeGenomeCoverReport{
 		if(depth != 0) {
 			bTracker.setTrackerAttribute(Interval.WHOLEGENOME, DepthType.NORMAL.setDepth(depth), DepthType.WITHOUT_PCR.setDepth(rmdupDepth));
 			bTracker.setTrackerAttribute(BaseType.COVERED);
-			if(rmdupDepth > 4){
+			if(rmdupDepth >= 4){
 				bTracker.setTrackerAttribute(BaseType.FOURXCOVERED);
 				if(chrInfo.getBase(pos) != 'N')
 					bTracker.setTrackerAttribute(BaseType.FOURXNONNCOVERED);
 			}
-			if(rmdupDepth > 10){
+			if(rmdupDepth >= 10){
 				bTracker.setTrackerAttribute(BaseType.TENXCOVERED);
+				if(chrInfo.getBase(pos) != 'N')
+					bTracker.setTrackerAttribute(BaseType.TENXNONNCOVERED);
 			}
-			if(rmdupDepth > 30){
+			if(rmdupDepth >= 30){
 				bTracker.setTrackerAttribute(BaseType.THIRTYXCOVERED);
+				if(chrInfo.getBase(pos) != 'N')
+					bTracker.setTrackerAttribute(BaseType.THIRTYXNONNCOVERED);
 			}
 			if(chrInfo.getBase(pos) != 'N')
 				bTracker.setTrackerAttribute(BaseType.NONNCOVERED);
@@ -110,22 +114,26 @@ public class WholeGenomeCoverReport{
 		StringBuffer coverString = new StringBuffer();
 		coverString.append("chromsome:\t");
 		coverString.append(chrInfo.getChromosomeName());
-		coverString.append("\nCoverage (>0x):\t");
+		coverString.append("\nCoverage (>=1x):\t");
 		coverString.append(df.format(getCoverage()));
-		coverString.append("%\nCoverage (>4x):\t");
+		coverString.append("%\nCoverage (>=4x):\t");
 		coverString.append(df.format(getFourxCoverage()));
-		coverString.append("%\nCoverage (>10x):\t");
+		coverString.append("%\nCoverage (>=10x):\t");
 		coverString.append(df.format(getTenxCoverage()));
-		coverString.append("%\nCoverage (>30x):\t");
+		coverString.append("%\nCoverage (>=30x):\t");
 		coverString.append(df.format(getThirtyxCoverage()));
 		coverString.append("%\nMean Depth:\t");
 		coverString.append(df.format(getMeanDepth()));
 		coverString.append("\nMean Rmdup Depth:\t");
 		coverString.append(df.format(getMeanRmdupDepth()));
-		coverString.append("\nNonN Coverage (>0x):\t");
+		coverString.append("\nNonN Coverage (>=1x):\t");
 		coverString.append(df.format(getNonNbaseCoverage()));
-		coverString.append("%\nNonN Coverage (>4x):\t");
-		coverString.append(df.format(getNonNFourxCoverage()));
+		coverString.append("%\nNonN Coverage (>=4x):\t");
+		coverString.append(df.format(getFourxNonNCoverage()));
+		coverString.append("%\nNonN Coverage (>=10x):\t");
+		coverString.append(df.format(getTenxNonNCoverage()));
+		coverString.append("%\nNonN Coverage (>=30x):\t");
+		coverString.append(df.format(getThirtyxNonNCoverage()));
 		coverString.append("%\nNonN Mean Depth:\t");
 		coverString.append(df.format(getNonNMeanDepth()));
 		coverString.append("\nNonN Mean Rmdup Depth:\t");
@@ -180,17 +188,26 @@ public class WholeGenomeCoverReport{
 		return bTracker.getProperty(BaseType.TENXCOVERED);
 	}
 
+	public long getTenXNonNCoverBaseNum() {
+		return bTracker.getProperty(BaseType.TENXNONNCOVERED);
+	}
+
 	public long getThirtyXCoverBaseNum() {
 		return bTracker.getProperty(BaseType.THIRTYXCOVERED);
+	}
+
+	public long getThirtyXNonnCoverBaseNum() {
+		return bTracker.getProperty(BaseType.THIRTYXNONNCOVERED);
 	}
 
 	public long getNonNCoverBaseNum() {
 		return bTracker.getProperty(BaseType.NONNCOVERED);
 	}
 
-	public long getNonNFourXCoverBaseNum() {
+	public long getFourXNonNCoverBaseNum() {
 		return bTracker.getProperty(BaseType.FOURXNONNCOVERED);
 	}
+
 
 	public double getCoverage() {
 		return (100 * (getCoverBaseNum()/(double)chrInfo.getLength()));
@@ -200,8 +217,16 @@ public class WholeGenomeCoverReport{
 		return (100 * (getFourXCoverBaseNum()/(double)chrInfo.getLength()));
 	}
 
-	public double getNonNFourxCoverage() {
-		return (100 * (getNonNFourXCoverBaseNum()/(double)chrInfo.getNonNbaselength()));
+	public double getFourxNonNCoverage() {
+		return (100 * (getFourXNonNCoverBaseNum()/(double)chrInfo.getNonNbaselength()));
+	}
+
+	public double getTenxNonNCoverage() {
+		return (100 * (getTenXNonNCoverBaseNum()/(double)chrInfo.getNonNbaselength()));
+	}
+
+	public double getThirtyxNonNCoverage() {
+		return (100 * (getThirtyXNonnCoverBaseNum()/(double)chrInfo.getNonNbaselength()));
 	}
 
 	public double getTenxCoverage() {
@@ -247,7 +272,9 @@ public class WholeGenomeCoverReport{
 									 new BaseCounter(BaseType.FOURXCOVERED),
 									 new BaseCounter(BaseType.FOURXNONNCOVERED),
 									 new BaseCounter(BaseType.TENXCOVERED),
+									 new BaseCounter(BaseType.TENXNONNCOVERED),
 									 new BaseCounter(BaseType.THIRTYXCOVERED),
+									 new BaseCounter(BaseType.THIRTYXNONNCOVERED),
 									 new BaseCounter(BaseType.NONNCOVERED),
 									 new BaseCounter(BaseType.COVERED),
 									 new BaseCounter(BaseType.INDELREF),

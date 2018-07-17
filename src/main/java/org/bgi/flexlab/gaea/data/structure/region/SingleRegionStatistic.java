@@ -28,6 +28,8 @@ public class SingleRegionStatistic {
 	private double refGCrate;
 	private int coverBaseNum = 0;
 	private int fourxCoverBaseNum = 0;
+	private int tenxCoverBaseNum = 0;
+	private int thirtyxCoverBaseNum = 0;
 	private int depthNum = 0;
 	private int rmdupDepthNum = 0;
 	private double middleDepth = 0;
@@ -73,14 +75,22 @@ public class SingleRegionStatistic {
 		sb.append(rmdupDepthNum);
 		sb.append("\t");
 		sb.append(fourxCoverBaseNum);
+		sb.append("\t");
+		sb.append(tenxCoverBaseNum);
+		sb.append("\t");
+		sb.append(thirtyxCoverBaseNum);
 
 		return sb.toString();
 	}
 	
 	public void addCoverage(int depthNum) {
 		coverBaseNum++;
-		if(depthNum > 4)
+		if(depthNum >= 4)
 			fourxCoverBaseNum++;
+		if(depthNum >= 10)
+			tenxCoverBaseNum++;
+		if(depthNum >= 30)
+			thirtyxCoverBaseNum++;
 	}
 	
 	public void addDepth(int depth) {
@@ -169,6 +179,17 @@ public class SingleRegionStatistic {
 		this.middleRmdupDepth = middleRmdupDepth;
 	}
 
+	public void add(int coverNum, int fourxCoverNum, int tenxCoverNum, int thirtyxCoverNum,int depthNum, int rmdupDepthNum, double middleDepth, double middleRmdupDepth) {
+		this.coverBaseNum = coverNum;
+		this.fourxCoverBaseNum = fourxCoverNum;
+		this.tenxCoverBaseNum = tenxCoverNum;
+		this.thirtyxCoverBaseNum = thirtyxCoverNum;
+		this.depthNum = depthNum;
+		this.rmdupDepthNum = rmdupDepthNum;
+		this.middleDepth = middleDepth;
+		this.middleRmdupDepth = middleRmdupDepth;
+	}
+
 	public void addPart(int coverNum, int depthNum, int rmdupDepthNum, ArrayList<String> depthPartList) {
 		this.coverBaseNum += coverNum;
 		this.depthNum += depthNum;
@@ -182,9 +203,11 @@ public class SingleRegionStatistic {
 		}
 	}
 
-	public void addPart(int coverNum, int fourxCoverNum, int depthNum, int rmdupDepthNum, ArrayList<String> depthPartList) {
+	public void addPart(int coverNum, int fourxCoverNum, int tenxCoverNum, int thirtyxCoverNum,int depthNum, int rmdupDepthNum, ArrayList<String> depthPartList) {
 		this.coverBaseNum += coverNum;
 		this.fourxCoverBaseNum += fourxCoverNum;
+		this.tenxCoverBaseNum += tenxCoverNum;
+		this.thirtyxCoverBaseNum += thirtyxCoverNum;
 		this.depthNum += depthNum;
 		this.rmdupDepthNum += rmdupDepthNum;
 
@@ -239,6 +262,14 @@ public class SingleRegionStatistic {
 
 	public int getFourxCoverBaseNum() {
 		return fourxCoverBaseNum;
+	}
+
+	public int getTenxCoverBaseNum() {
+		return tenxCoverBaseNum;
+	}
+
+	public int getThirtyxCoverBaseNum() {
+		return thirtyxCoverBaseNum;
 	}
 
 	public double getDepth(SingleRegion.Regiondata regiondata) {
