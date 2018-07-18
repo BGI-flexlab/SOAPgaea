@@ -154,6 +154,7 @@ public class HaplotypeCallerOptions  extends GaeaOptions implements HadoopOption
 		this.readPaddingSize = getOptionIntValue("d",100);
 		this.maxReadsPerPosition = getOptionIntValue("x",0);		
 		this.output = getOptionValue("o",null);
+		this.region = getOptionValue("R",null);
 		this.reference = getOptionValue("r",null);
 		this.dbsnp = getOptionValue("k",null);
 		
