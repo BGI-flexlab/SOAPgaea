@@ -40,12 +40,17 @@ public class WindowsBasedPlaceholderSamRecordMapper extends WindowsBasedMapper<S
         samRecord.setReadString("*");
         samRecord.setBaseQualityString("*");
 
+        int splitCount = context.getConfiguration().getInt("mapreduce.input.fileinputformat.numinputfiles", 0);
+
         List<SAMSequenceRecord> sequences = header.getSequenceDictionary().getSequences();
         for (SAMSequenceRecord seqRec : sequences) {
             int index = seqRec.getSequenceIndex();
             outputValue.set(samRecord);
             int winNum = (int) Math.ceil(seqRec.getSequenceLength() / windowsSize);
             for (int i = 0; i < winNum; i++) {
+                int mapperIndex = i % splitCount;
+                if(mapperIndex != context.getTaskAttemptID().getTaskID().getId() )
+                    continue;
                 int start = i * windowsSize + 1;
                 for (String sample: sampleIDs.keySet()) {
                     setKey(sample, index, i, start);
