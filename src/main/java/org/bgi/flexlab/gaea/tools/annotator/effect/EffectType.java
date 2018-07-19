@@ -719,10 +719,11 @@ public enum EffectType {
 			case SPLICE_SITE_REGION:
 				return "SpliceSite";
 
-//			case SPLICE_SITE_BRANCH:
+			case SPLICE_SITE_BRANCH:
 //				return "splice_branch_variant";
 //
-//			case SPLICE_SITE_BRANCH_U12:
+			case SPLICE_SITE_BRANCH_U12:
+				return ".";
 //				return "splice_branch_variant";
 
 			case START_LOST:
@@ -750,13 +751,14 @@ public enum EffectType {
 			case TRANSCRIPT:
 				return "NonCoding";
 
-//			case TRANSCRIPT_DELETED:
+			case TRANSCRIPT_DELETED:
 //				return "transcript_ablation";
 //
-//			case TRANSCRIPT_DUPLICATION:
+			case TRANSCRIPT_DUPLICATION:
 //				return "duplication";
 //
-//			case TRANSCRIPT_INVERSION:
+			case TRANSCRIPT_INVERSION:
+				return ".";
 //				return "inversion";
 
 //			case UPSTREAM:
