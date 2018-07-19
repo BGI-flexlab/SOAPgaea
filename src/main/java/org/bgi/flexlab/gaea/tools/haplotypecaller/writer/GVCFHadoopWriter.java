@@ -1,9 +1,6 @@
 package org.bgi.flexlab.gaea.tools.haplotypecaller.writer;
 
-import htsjdk.variant.variantcontext.Genotype;
-import htsjdk.variant.variantcontext.GenotypeBuilder;
-import htsjdk.variant.variantcontext.VariantContext;
-import htsjdk.variant.variantcontext.VariantContextBuilder;
+import htsjdk.variant.variantcontext.*;
 import htsjdk.variant.vcf.VCFConstants;
 import htsjdk.variant.vcf.VCFHeader;
 import htsjdk.variant.vcf.VCFStandardHeaderLines;
@@ -58,11 +55,27 @@ public class GVCFHadoopWriter implements GaeaVariantContextWriter{
 		this.GQPartitions = parsePartitions(GVCFGQBands, defaultPloidy);
 		this.header = setGVCFHeader(header);
 	}
+
+	@SuppressWarnings("rawtypes")
+	public GVCFHadoopWriter(Context context, VCFHeader header, List<Integer> GVCFGQBands, int defaultPloidy, String sampleName) {
+		this.context = context;
+		this.defaultPloidy = defaultPloidy;
+		this.GQPartitions = parsePartitions(GVCFGQBands, defaultPloidy);
+		this.header = setGVCFHeader(header);
+		this.sampleName = sampleName;
+	}
 	
 	@SuppressWarnings("unchecked")
 	@Override
 	public void write(VariantContext record) {
 		if(record != null) {
+			if(record.getSampleNames().size() > 1){
+				throw new UserException("VariantContext Sample > 1 !");
+			}
+			Genotype genotype = record.getGenotype(sampleName);
+			genotype = new GenotypeBuilder(genotype).name("multiSample").make();
+			record = new VariantContextBuilder(record).attribute("SM", sampleName).genotypes(genotype).make();
+//			writable.set(record);
 			writable.set(record, header);
 			try {
 				context.write(NullWritable.get(), writable);
@@ -121,6 +134,10 @@ public class GVCFHadoopWriter implements GaeaVariantContextWriter{
 			result.add(new HomRefBlock(lastThreshold, MAX_GENOTYPE_QUAL + 1, defaultPloidy));
 		}
 		return result;
+	}
+
+	public VCFHeader getGVCFHeader() {
+		return header;
 	}
 
 	/**
@@ -183,7 +200,7 @@ public class GVCFHadoopWriter implements GaeaVariantContextWriter{
 	/**
 	 * Flush the current hom-ref block, if necessary, to the underlying writer, and reset the currentBlock to null
 	 */
-	private void emitCurrentBlock() {
+	public void emitCurrentBlock() {
 		if ( currentBlock != null ) {
 			// there's actually some work to do
 			write(blockToVCF(currentBlock));
