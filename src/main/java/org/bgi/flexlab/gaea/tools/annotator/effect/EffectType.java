@@ -604,8 +604,18 @@ public enum EffectType {
 			case CODON_INSERTION:
 				return "InframeInsertion";
 
-			case EXON:
-				return "NonCoding";
+			case EXON_DELETED:
+			case EXON_DELETED_PARTIAL:
+			case EXON_DUPLICATION:
+			case EXON_DUPLICATION_PARTIAL:
+			case EXON_INVERSION:
+			case EXON_INVERSION_PARTIAL:
+			case FEATURE_FUSION:
+			case GENE:
+			case GENE_INVERSION:
+			case GENE_DELETED:
+			case GENE_DUPLICATION:
+				return ".";
 //
 //			case EXON_DELETED:
 //				return "exon_loss_variant";
@@ -709,10 +719,11 @@ public enum EffectType {
 			case SPLICE_SITE_REGION:
 				return "SpliceSite";
 
-//			case SPLICE_SITE_BRANCH:
+			case SPLICE_SITE_BRANCH:
 //				return "splice_branch_variant";
 //
-//			case SPLICE_SITE_BRANCH_U12:
+			case SPLICE_SITE_BRANCH_U12:
+				return ".";
 //				return "splice_branch_variant";
 
 			case START_LOST:
@@ -736,16 +747,18 @@ public enum EffectType {
 			case SYNONYMOUS_START:
 				return "Synonymous";
 
+			case EXON:
 			case TRANSCRIPT:
 				return "NonCoding";
 
-//			case TRANSCRIPT_DELETED:
+			case TRANSCRIPT_DELETED:
 //				return "transcript_ablation";
 //
-//			case TRANSCRIPT_DUPLICATION:
+			case TRANSCRIPT_DUPLICATION:
 //				return "duplication";
 //
-//			case TRANSCRIPT_INVERSION:
+			case TRANSCRIPT_INVERSION:
+				return ".";
 //				return "inversion";
 
 //			case UPSTREAM:

@@ -43,10 +43,13 @@
 package org.bgi.flexlab.gaea.util;
 
 import org.apache.commons.math3.exception.NotFiniteNumberException;
+import org.apache.commons.math3.stat.descriptive.rank.Median;
+import org.apache.commons.math3.util.FastMath;
 import org.bgi.flexlab.gaea.data.exception.UserException;
 
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.function.DoubleUnaryOperator;
 
@@ -813,5 +816,24 @@ public class MathUtils {
 	
 	public static double log10BinomialProbability(final int n, final int k) {
 	    return log10BinomialCoefficient(n, k) + (n * FAIR_BINOMIAL_PROB_LOG10_0_5);
+	}
+
+	public static int median(final int[] values) {
+		Utils.nonNull(values);
+		return (int) FastMath.round(new Median().evaluate(Arrays.stream(values).mapToDouble(n -> n).toArray()));
+	}
+
+	/**
+	 * Compute the median of a list of numbers
+	 *
+	 * If values.length is even, this will be the middle value when the elements are sorted
+	 * If values.length is odd then it will be the mean of the two values closest to the middle.
+	 *
+	 * @param values a list of numbers
+	 * @return the median element of values
+	 */
+	public static <T extends Number & Comparable<T>> double median(final Collection<T> values) {
+		Utils.nonEmpty(values, "cannot take the median of a collection with no values.");
+		return new Median().evaluate(values.stream().mapToDouble(Number::doubleValue).toArray());
 	}
 }

@@ -53,12 +53,12 @@ import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.CombineFileSplit;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
-import org.seqdoop.hadoop_bam.SAMRecordWritable;
+import org.bgi.flexlab.gaea.data.mapreduce.writable.SamRecordWritable;
 
 import java.io.IOException;
 
 public class GaeaCombineCramFileRecordReader extends
-		RecordReader<LongWritable, SAMRecordWritable> {
+		RecordReader<LongWritable, SamRecordWritable> {
 	protected GaeaCramRecordReader currentReader = null;
 	protected CombineFileSplit split;
 	protected int fileIndex;
@@ -92,7 +92,7 @@ public class GaeaCombineCramFileRecordReader extends
 	}
 
 	@Override
-	public SAMRecordWritable getCurrentValue() throws IOException,
+	public SamRecordWritable getCurrentValue() throws IOException,
 			InterruptedException {
 		return currentReader.getCurrentValue();
 	}

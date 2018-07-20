@@ -158,7 +158,9 @@ public class WholeGenomeResultReport extends ResultReport{
 		long coverBaseNum = 0;
 		long fourxCoverBaseNum = 0;
 		long tenxCoverBaseNum = 0;
+		long tenxNonnCoverBaseNum = 0;
 		long thirtyxCoverBaseNum = 0;
+		long thirtyxNonnCoverBaseNum = 0;
 		long nonnCoverBaseNum = 0;
 		long fourxNonnCoverBaseNum = 0;
 		long genomeLength = 0;
@@ -168,9 +170,11 @@ public class WholeGenomeResultReport extends ResultReport{
 			WholeGenomeCoverReport cover = coverReports.get(key);
 			coverBaseNum += cover.getCoverBaseNum();
 			fourxCoverBaseNum += cover.getFourXCoverBaseNum();
-			fourxNonnCoverBaseNum += cover.getFourXCoverBaseNum();
+			fourxNonnCoverBaseNum += cover.getFourXNonNCoverBaseNum();
 			tenxCoverBaseNum += cover.getTenXCoverBaseNum();
+			tenxNonnCoverBaseNum += cover.getTenXNonNCoverBaseNum();
 			thirtyxCoverBaseNum += cover.getThirtyXCoverBaseNum();
+			thirtyxNonnCoverBaseNum += cover.getThirtyXNonnCoverBaseNum();
 			nonnCoverBaseNum += cover.getNonNCoverBaseNum();
 			genomeLength += cover.getChrInfo().getLength();
 			nonnGenomeLength += cover.getChrInfo().getNonNbaselength();
@@ -182,22 +186,26 @@ public class WholeGenomeResultReport extends ResultReport{
 		info.append(df.format(depth/(double)coverBaseNum));
 		info.append("\nAverage depth(rmdup):\t");
 		info.append(df.format(rmdupDepth/(double)coverBaseNum));
-		info.append("\nCoverage (>0x):\t");
+		info.append("\nCoverage (>=1x):\t");
 		info.append(df.format(100*coverBaseNum/(double)genomeLength));
-		info.append("%\nCoverage (>4x):\t");
+		info.append("%\nCoverage (>=4x):\t");
 		info.append(df.format(100*fourxCoverBaseNum/(double)genomeLength));
-		info.append("%\nCoverage (>10x):\t");
+		info.append("%\nCoverage (>=10x):\t");
 		info.append(df.format(100*tenxCoverBaseNum/(double)genomeLength));
-		info.append("%\nCoverage (>30x):\t");
+		info.append("%\nCoverage (>=30x):\t");
 		info.append(df.format(100*thirtyxCoverBaseNum/(double)genomeLength));
 		info.append("%\nNonN Average depth:\t");
 		info.append(df.format(depth/(double)nonnCoverBaseNum));
 		info.append("\nNonN Average depth(rmdup):\t");
 		info.append(df.format(rmdupDepth/(double)nonnCoverBaseNum));
-		info.append("\nNonN Coverage (>0x):\t");
+		info.append("\nNonN Coverage (>=1x):\t");
 		info.append(df.format(100*nonnCoverBaseNum/(double)nonnGenomeLength));
-		info.append("%\nNonN Coverage (>4x):\t");
+		info.append("%\nNonN Coverage (>=4x):\t");
 		info.append(df.format(100*fourxNonnCoverBaseNum/(double)nonnGenomeLength));
+		info.append("%\nNonN Coverage (>=10x):\t");
+		info.append(df.format(100*tenxNonnCoverBaseNum/(double)nonnGenomeLength));
+		info.append("%\nNonN Coverage (>=30x):\t");
+		info.append(df.format(100*thirtyxNonnCoverBaseNum/(double)nonnGenomeLength));
 		if(cnvSingleRegionReport != null) {
 			info.append("%\n[Target] Len of region(without XY):\t");
 			info.append((long) cnvSingleRegionReport.getRegionSizeTotal());
@@ -205,12 +213,16 @@ public class WholeGenomeResultReport extends ResultReport{
 			info.append(df.format(cnvSingleRegionReport.getAllRegionAverageDepth()));
 			info.append("\n[Target] Average depth(rmdup):\t");
 			info.append(df.format(cnvSingleRegionReport.getAllRegionAverageRmdupDepth()));
-			info.append("\n[Target] Coverage (>0x):\t");
+			info.append("\n[Target] Coverage (>=1x):\t");
 			info.append(df.format(100*cnvSingleRegionReport.getAllRegionCoverage()));
-			info.append("%\n[Target] Coverage (>4x):\t");
+			info.append("%\n[Target] Coverage (>=4x):\t");
 			info.append(df.format(100*cnvSingleRegionReport.getAllRegionFourxCoverage()));
+			info.append("%\n[Target] Coverage (>=10x):\t");
+			info.append(df.format(100*cnvSingleRegionReport.getAllRegionTenxCoverage()));
+			info.append("%\n[Target] Coverage (>=30x):\t");
+			info.append(df.format(100*cnvSingleRegionReport.getAllRegionThirtyxCoverage()));
 		}
-		info.append("%\ncoverage information:\n");
+		info.append("%\n\ncoverage information:\n");
 		TreeSet<String> keys2 = new TreeSet<String>(coverReports.keySet());
 		for(String key : keys2) {
 			WholeGenomeCoverReport cover = coverReports.get(key);

@@ -105,12 +105,8 @@ public class JointCallingEngine {
 
 		// take care of the VCF headers
 		final Set<VCFHeaderLine> headerLines = new HashSet<VCFHeaderLine>();
-		
-		for ( final Iterator<VCFHeaderLine> iter = headerLines.iterator(); iter.hasNext(); ) {
-            if ( iter.next().getKey().contains(GVCF_BLOCK) ) {
-                iter.remove();
-            }
-        }
+
+		headerLines.removeIf(vcfHeaderLine -> vcfHeaderLine.getKey().contains(GVCF_BLOCK));
 		
 		headerLines.addAll(vcfheader.getMetaDataInInputOrder());
 
@@ -148,9 +144,8 @@ public class JointCallingEngine {
 		// now that we have all the VCF headers, initialize the annotations
 		// (this is particularly important to turn off RankSumTest dithering in
 		// integration tests)
-		Set<String> sampleNamesHashSet = new HashSet<String>();
-		for(String sample : sampleArray)
-			sampleNamesHashSet.add(sample);
+		Set<String> sampleNamesHashSet = new HashSet<>();
+		sampleNamesHashSet.addAll(Arrays.asList(sampleArray));
 		annotationEngine.invokeAnnotationInitializationMethods(headerLines, sampleNamesHashSet);
 
 		GvcfMathUtils.resetRandomGenerator();
@@ -174,12 +169,7 @@ public class JointCallingEngine {
 	public void purgeOutOfScopeRecords(GenomeLocation location) {
 
 		for (String sample : variantsForSample.keySet()) {
-			Iterator<VariantContext> iter = variantsForSample.get(sample).iterator();
-			while (iter.hasNext()) {
-				VariantContext context = iter.next();
-				if (context.getEnd() < location.getStart())
-					iter.remove();
-			}
+			variantsForSample.get(sample).removeIf(context -> context.getEnd() < location.getStart());
 		}
 	}
 
@@ -227,8 +217,10 @@ public class JointCallingEngine {
 
 			if (iterator.hasNext()) {
 				currentContext = iterator.next().get();
-			} else
+			} else {
 				currentContext = null;
+				max_position = -1;
+			}
 		}
 	}
 	

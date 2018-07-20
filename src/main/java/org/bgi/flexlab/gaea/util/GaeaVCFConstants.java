@@ -7,6 +7,7 @@ import htsjdk.variant.variantcontext.Allele;
 
 public final class GaeaVCFConstants {
 	 //INFO keys
+    public static final String SAMPLE_NAME =             "SM";
     public static final String ALLELE_SPECIFIC_PREFIX =             "AS_";
     public static final String RAW_RMS_MAPPING_QUALITY_KEY =        "RAW_MQ";
     public static final String AS_RMS_MAPPING_QUALITY_KEY =         "AS_MQ";

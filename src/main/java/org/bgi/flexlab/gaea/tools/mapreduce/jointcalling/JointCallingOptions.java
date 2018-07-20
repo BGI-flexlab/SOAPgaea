@@ -7,6 +7,8 @@ import java.util.List;
 import org.apache.commons.cli.ParseException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
+import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.util.LineReader;
@@ -54,6 +56,7 @@ public class JointCallingOptions extends GaeaOptions implements HadoopOptions{
 	public double STANDARD_CONFIDENCE_FOR_CALLING = 30.0;//S
 	public double STANDARD_CONFIDENCE_FOR_EMITTING = 30.0;//s
 	public double heterozygosityStandardDeviation = 0.01;//j
+	public String vcfHeaderFile = null;
 	
 	public JointCallingOptions(){
 		addOption("a","allSitePLs",false,"Annotate all sites with PLs");
@@ -99,8 +102,12 @@ public class JointCallingOptions extends GaeaOptions implements HadoopOptions{
 		try {
 			cmdLine = parser.parse(options, args);
 		} catch (ParseException e) {
-			System.err.println(e.getMessage());
-			FormatHelpInfo(RealignerExtendOptions.SOFTWARE_NAME, RealignerExtendOptions.SOFTWARE_VERSION);
+			helpInfo.printHelp("Options:", options, true);
+			System.exit(1);
+		}
+
+		if(args.length == 0 || getOptionBooleanValue("h", false)) {
+			printHelpInfotmation(SOFTWARE_NAME);
 			System.exit(1);
 		}
 		
@@ -109,6 +116,9 @@ public class JointCallingOptions extends GaeaOptions implements HadoopOptions{
 		} catch (IOException e) {
 			throw new UserException(e.toString());
 		}
+
+		if(input.size() <= 0)
+			throw new RuntimeException("Input is empty!");
 		
 		this.samplePloidy = getOptionIntValue("C",2);
 		this.MAX_ALTERNATE_ALLELES = getOptionIntValue("M",6);
@@ -172,15 +182,26 @@ public class JointCallingOptions extends GaeaOptions implements HadoopOptions{
 			throw new UserException.BadArgumentValueException("i",inputpath);
 		Path path = new Path(inputpath);
 		Configuration conf = new Configuration();
-		boolean isvcf = AbstractVCFLoader.isVCFStream(path.getFileSystem(conf).open(path), MAGIC_HEADER_LINE);
-		
+		FileSystem inFS = path.getFileSystem(conf);
+		if(inFS.isDirectory(path)){
+			FileStatus[] fileStatuses = inFS.globStatus(new Path(inputpath +"/part*"));
+			for (FileStatus f: fileStatuses)
+				input.add(f.getPath());
+			Path vcfHeaderPath = new Path(path.getParent().toString() + "/vcfFileHeader.vcf");
+			if(inFS.exists(vcfHeaderPath))
+				setVcfHeaderFile(vcfHeaderPath.toString());
+			return;
+		}
+
+		boolean isvcf = AbstractVCFLoader.isVCFStream(inFS.open(path), MAGIC_HEADER_LINE);
+
 		if(isvcf){
 			input.add(path);
 		}
 		else{
 			FSDataInputStream currInput;
 			try {
-				currInput = path.getFileSystem(conf).open(path);
+				currInput = inFS.open(path);
 				@SuppressWarnings("resource")
 				LineReader lineReader = new LineReader(currInput,conf);
 				Text line = new Text();
@@ -259,7 +280,15 @@ public class JointCallingOptions extends GaeaOptions implements HadoopOptions{
 	public int getReducerNumber(){
 		return this.num_reducer;
 	}
-	
+
+	public String getVcfHeaderFile() {
+		return vcfHeaderFile;
+	}
+
+	public void setVcfHeaderFile(String vcfHeaderFile) {
+		this.vcfHeaderFile = vcfHeaderFile;
+	}
+
 	public String getVCFHeaderOutput(){
 		return this.output;
 	}

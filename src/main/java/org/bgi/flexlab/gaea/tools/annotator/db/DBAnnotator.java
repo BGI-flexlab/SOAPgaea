@@ -98,10 +98,7 @@ public class DBAnnotator implements Serializable{
 		Condition condition = dbConditionHashMap.get(dbName);
 		condition.createConditionMap(vac);
 		DBQuery dbQuery = DbQueryMap.get(dbName);
-		for (Map<String,String> annos : vac.toAnnotationMaps(config.getFields())) {
-			dbQuery.insert(condition, annos);
-		}
-		return true;
+		return dbQuery.insert(condition, vac.toAnnotationMaps(config.getFieldsWithoutVariant()));
 	}
 
 

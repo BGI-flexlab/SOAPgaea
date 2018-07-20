@@ -27,8 +27,8 @@ public class AllLocusIterator implements Iterator<AlignmentContext> {
         
         this.nestedLocusIterator = new PeekableIterator<>(nestedLocusIterator);
         this.interval = interval;
-        //this.currentPosition = interval.getStart();
-        this.currentPosition = -1;
+        this.currentPosition = interval.getStart();
+//        this.currentPosition = -1;
 
         // Sanity check:
         if ( this.nestedLocusIterator.peek() != null && ! this.nestedLocusIterator.peek().getContig().equals(interval.getContig()) ) {
@@ -74,26 +74,29 @@ public class AllLocusIterator implements Iterator<AlignmentContext> {
         AlignmentContext toReturn;
         
         if( nextNestedPileup != null ) {
-        	currentPosition = nextNestedPileup.getStart();
-        }
-        else
-        	return null;
-        	
-        // No more pileups from the nested iterator? then always return an empty pileup
-        if ( nextNestedPileup == null ) {
+            if ( nextNestedPileup.getStart() == currentPosition ) {
+                toReturn = nestedLocusIterator.next();
+            }else {
+                toReturn = createEmptyAlignmentContextForPosition(currentPosition);
+            }
+        }else
             toReturn = createEmptyAlignmentContextForPosition(currentPosition);
 
-        // If the pileup from the nested iterator matches our current position, return it
-        } else if ( nextNestedPileup.getStart() == currentPosition ) {
-            toReturn = nestedLocusIterator.next();
+//        // No more pileups from the nested iterator? then always return an empty pileup
+//        if ( nextNestedPileup == null ) {
+//            toReturn = createEmptyAlignmentContextForPosition(currentPosition);
+//
+//        // If the pileup from the nested iterator matches our current position, return it
+//        } else if ( nextNestedPileup.getStart() == currentPosition ) {
+//            toReturn = nestedLocusIterator.next();
+//
+//        // Otherwise, the next pileup from our nested iterator must come after our current position,
+//        // so keep it around and return an empty pileup for the current position
+//        } else {
+//            toReturn = createEmptyAlignmentContextForPosition(currentPosition);
+//        }
 
-        // Otherwise, the next pileup from our nested iterator must come after our current position,
-        // so keep it around and return an empty pileup for the current position
-        } else {
-            toReturn = createEmptyAlignmentContextForPosition(currentPosition);
-        }
-
-        //currentPosition++;
+        currentPosition++;
         return toReturn;
     }
 

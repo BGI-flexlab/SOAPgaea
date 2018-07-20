@@ -52,15 +52,15 @@ import org.apache.hadoop.mapreduce.JobContext;
 import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
-import org.seqdoop.hadoop_bam.SAMRecordWritable;
+import org.bgi.flexlab.gaea.data.mapreduce.writable.SamRecordWritable;
 
 import java.io.IOException;
 
 public class GaeaCramInputFormat extends
-		FileInputFormat<LongWritable, SAMRecordWritable> {
+		FileInputFormat<LongWritable, SamRecordWritable> {
 
 	@Override
-	public RecordReader<LongWritable, SAMRecordWritable> createRecordReader(
+	public RecordReader<LongWritable, SamRecordWritable> createRecordReader(
 			InputSplit inputSplit, TaskAttemptContext context)
 			throws IOException, InterruptedException {
 		Log.setGlobalLogLevel(LogLevel.ERROR);
@@ -68,7 +68,7 @@ public class GaeaCramInputFormat extends
 		int type = conf.getInt("cram.inputformat.type", 0);
 		CramInputFormatType inputType = CramInputFormatType.valueOf(type);
 		
-		RecordReader<LongWritable, SAMRecordWritable> rr = null;
+		RecordReader<LongWritable, SamRecordWritable> rr = null;
 		if(inputType == CramInputFormatType.ALL)
 			rr = new GaeaCramRecordReader();
 		else if(inputType == CramInputFormatType.CHROMOSOME)

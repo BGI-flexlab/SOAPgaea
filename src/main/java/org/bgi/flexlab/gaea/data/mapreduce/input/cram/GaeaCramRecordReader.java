@@ -56,7 +56,7 @@ import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
-import org.seqdoop.hadoop_bam.SAMRecordWritable;
+import org.bgi.flexlab.gaea.data.mapreduce.writable.SamRecordWritable;
 import org.seqdoop.hadoop_bam.util.MurmurHash3;
 import org.seqdoop.hadoop_bam.util.SAMHeaderReader;
 import org.seqdoop.hadoop_bam.util.WrapSeekable;
@@ -65,12 +65,12 @@ import java.io.File;
 import java.io.IOException;
 
 public class GaeaCramRecordReader extends
-		RecordReader<LongWritable, SAMRecordWritable> {
+		RecordReader<LongWritable, SamRecordWritable> {
 	public final static String INPUTFORMAT_REFERENCE = "inputformat.reference";
 	public final static String CRAM_FILE_SPLITABLE = "cram.file.splitable";
 
 	protected final LongWritable key = new LongWritable();
-	protected final SAMRecordWritable record = new SAMRecordWritable();
+	protected final SamRecordWritable record = new SamRecordWritable();
 	private boolean isInitialized = false;
 	protected SeekableStream seekableStream;
 	protected long start;
@@ -149,7 +149,7 @@ public class GaeaCramRecordReader extends
 	}
 
 	@Override
-	public SAMRecordWritable getCurrentValue() {
+	public SamRecordWritable getCurrentValue() {
 		return record;
 	}
 

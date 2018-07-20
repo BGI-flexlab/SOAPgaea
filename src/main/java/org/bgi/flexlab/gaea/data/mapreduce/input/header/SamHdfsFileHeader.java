@@ -92,7 +92,7 @@ public class SamHdfsFileHeader extends SamFileHeader {
 		return header;
 	}
 	
-	public static SAMFileHeader traversal(Path input, FileSystem fs, Configuration conf, boolean cram) {
+	/*public static SAMFileHeader traversal(Path input, FileSystem fs, Configuration conf, boolean cram) {
 		FileStatus status = null;
 		try {
 			status = fs.getFileStatus(input);
@@ -116,7 +116,7 @@ public class SamHdfsFileHeader extends SamFileHeader {
 			
 			return traversal(inputs,fs,conf,cram);
 		}
-	}
+	}*/
 
 	public static SAMFileHeader traversal(List<Path> inputs , FileSystem fs ,Configuration conf , boolean cram) {
 		ArrayList<SAMFileHeader> mergeHeaders = new ArrayList<SAMFileHeader>();
@@ -140,7 +140,7 @@ public class SamHdfsFileHeader extends SamFileHeader {
 		return mergedHeader;
 	}
 
-	/*public static SAMFileHeader traversal(Path input, FileSystem fs, Configuration conf, boolean cram) {
+	public static SAMFileHeader traversal(Path input, FileSystem fs, Configuration conf, boolean cram) {
 		ArrayList<SAMFileHeader> mergeHeaders = new ArrayList<SAMFileHeader>();
 		SAMFileHeader mergedHeader = null;
 		boolean matchedSortOrders = true;
@@ -169,7 +169,7 @@ public class SamHdfsFileHeader extends SamFileHeader {
 				Path filePath = file.getPath();
 				SAMFileHeader header = null;
 				if (file.isFile()) {
-					header = getSAMFileHeader(input,fs,cram);
+					header = getSAMFileHeader(filePath,fs,cram);
 				} else {
 					header = traversal(filePath, fs, conf, cram);
 				}
@@ -186,7 +186,7 @@ public class SamHdfsFileHeader extends SamFileHeader {
 		mergedHeader = new SamFileHeaderMerger(headerMergerSortOrder, mergeHeaders, MERGE_SEQUENCE_DICTIONARIES)
 				.getMergedHeader();
 		return mergedHeader;
-	}*/
+	}
 
 	public static SAMFileHeader loadHeader(Path input, Configuration conf, Path output) throws IOException {
 		return loadHeader(input, conf, output, false);
@@ -194,9 +194,12 @@ public class SamHdfsFileHeader extends SamFileHeader {
 
 	public static SAMFileHeader loadHeader(Path input, Configuration conf, Path output, boolean cram)
 			throws IOException {
-		List<Path> inputs = new ArrayList<Path>();
-		inputs.add(input);
-		return loadHeader(inputs,conf,output,cram);
+//		List<Path> inputs = new ArrayList<Path>();
+//		inputs.add(input);
+//		return loadHeader(inputs,conf,output,cram);
+		SAMFileHeader mergeHeader = traversal(input, input.getFileSystem(conf), conf, cram);
+		writeHeader(conf, mergeHeader, output);
+		return mergeHeader;
 	}
 	
 	public static SAMFileHeader loadHeader(List<Path> inputs, Configuration conf, Path output, boolean cram)

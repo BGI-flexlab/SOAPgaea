@@ -114,6 +114,8 @@ public class HaplotypeCallerTraversal {
 			return;
 		VariantAnnotatorEngine engine = hcEngine.getVariantAnnotatorEngine();
 
+		Set<String> sampleSet = ReadUtils.getSamplesFromHeader(header);
+
 		final Set<VCFHeaderLine> headerInfo = new HashSet<>();
 
 		// initialize the annotations (this is particularly important to turn off
@@ -126,6 +128,9 @@ public class HaplotypeCallerTraversal {
 		headerInfo.add(GaeaVCFHeaderLines.getInfoLine(GaeaVCFConstants.DOWNSAMPLED_KEY));
 		headerInfo.add(GaeaVCFHeaderLines.getInfoLine(GaeaVCFConstants.MLE_ALLELE_COUNT_KEY));
 		headerInfo.add(GaeaVCFHeaderLines.getInfoLine(GaeaVCFConstants.MLE_ALLELE_FREQUENCY_KEY));
+		if(options.isGVCF() && sampleSet.size() > 1) {
+			headerInfo.add(GaeaVCFHeaderLines.getInfoLine(GaeaVCFConstants.SAMPLE_NAME));
+		}
 		// all callers need to add these standard FORMAT field header lines
 		VCFStandardHeaderLines.addStandardFormatLines(headerInfo, true, VCFConstants.GENOTYPE_KEY,
 				VCFConstants.GENOTYPE_QUALITY_KEY, VCFConstants.DEPTH_KEY, VCFConstants.GENOTYPE_PL_KEY);
@@ -144,7 +149,6 @@ public class HaplotypeCallerTraversal {
 		if(options.getDBSnp() != null)
 			VCFStandardHeaderLines.addStandardInfoLines(headerInfo, true, VCFConstants.DBSNP_KEY);
 
-		Set<String> sampleSet = ReadUtils.getSamplesFromHeader(header);
 		SampleList samplesList = new IndexedSampleList(sampleSet);
 		getReferenceConfidenceModelHeaderLine(samplesList,headerInfo);
 
@@ -158,6 +162,53 @@ public class HaplotypeCallerTraversal {
 		if (hcArgs.emitReferenceConfidence != ReferenceConfidenceMode.NONE) {
 			headerInfo.addAll(referenceConfidenceModel.getVCFHeaderLines());
 		}
+	}
+
+
+
+	public VCFHeader getVCFHeader(String sample) {
+		VariantAnnotatorEngine engine = hcEngine.getVariantAnnotatorEngine();
+
+		Set<String> sampleSet = new TreeSet<>();
+		sampleSet.add(sample);
+
+		final Set<VCFHeaderLine> headerInfo = new HashSet<>();
+
+		// initialize the annotations (this is particularly important to turn off
+		// RankSumTest dithering in integration tests)
+		// do this before we write the header because SnpEff adds to header lines
+		headerInfo.addAll(engine.getVCFAnnotationDescriptions(options.getCompNames()));
+
+		headerInfo.addAll(hcEngine.getGenotypeingEngine().getAppropriateVCFInfoHeaders());
+		// all callers need to add these standard annotation header lines
+		headerInfo.add(GaeaVCFHeaderLines.getInfoLine(GaeaVCFConstants.DOWNSAMPLED_KEY));
+		headerInfo.add(GaeaVCFHeaderLines.getInfoLine(GaeaVCFConstants.MLE_ALLELE_COUNT_KEY));
+		headerInfo.add(GaeaVCFHeaderLines.getInfoLine(GaeaVCFConstants.MLE_ALLELE_FREQUENCY_KEY));
+		headerInfo.add(GaeaVCFHeaderLines.getInfoLine(GaeaVCFConstants.SAMPLE_NAME));
+		// all callers need to add these standard FORMAT field header lines
+		VCFStandardHeaderLines.addStandardFormatLines(headerInfo, true, VCFConstants.GENOTYPE_KEY,
+				VCFConstants.GENOTYPE_QUALITY_KEY, VCFConstants.DEPTH_KEY, VCFConstants.GENOTYPE_PL_KEY);
+
+		if (!doNotRunPhysicalPhasing) {
+			headerInfo.add(GaeaVCFHeaderLines.getFormatLine(GaeaVCFConstants.HAPLOTYPE_CALLER_PHASING_ID_KEY));
+			headerInfo.add(GaeaVCFHeaderLines.getFormatLine(GaeaVCFConstants.HAPLOTYPE_CALLER_PHASING_GT_KEY));
+		}
+
+		// FILTER fields are added unconditionally as it's not always 100% certain the
+		// circumstances
+		// where the filters are used. For example, in emitting all sites the lowQual
+		// field is used
+		headerInfo.add(GaeaVCFHeaderLines.getFilterLine(GaeaVCFConstants.LOW_QUAL_FILTER_NAME));
+
+		if(options.getDBSnp() != null)
+			VCFStandardHeaderLines.addStandardInfoLines(headerInfo, true, VCFConstants.DBSNP_KEY);
+
+		SampleList samplesList = new IndexedSampleList(sampleSet);
+		getReferenceConfidenceModelHeaderLine(samplesList,headerInfo);
+
+		VCFHeader vcfHeader = new VCFHeader(headerInfo,sampleSet);
+		vcfHeader.setSequenceDictionary(header.getSequenceDictionary());
+		return vcfHeader;
 	}
 
 	public VCFHeader getVCFHeader() {
@@ -266,9 +317,8 @@ public class HaplotypeCallerTraversal {
         return filters;
     }
 
-	public final void traverse(GaeaVariantContextWriter writer,Window win) {
+	public final void traverse(GaeaVariantContextWriter writer) {
 		CountingReadFilter countedFilter = getMergedCountingReadFilter(header);
-
 		for (final LocalReadShard readShard : shards) {
 			// Since reads in each shard are lazily fetched, we need to pass the filter to
 			// the window
@@ -279,12 +329,12 @@ public class HaplotypeCallerTraversal {
 							: null);
 			currentReadShard = readShard;
 
-			processReadShard(readShard, features, writer,win);
+			processReadShard(readShard, features, writer);
 		}
 	}
 
 	private void processReadShard(Shard<GaeaSamRecord> shard, RefMetaDataTracker features,
-			GaeaVariantContextWriter writer,Window win) {
+								  GaeaVariantContextWriter writer) {
 		final Iterator<AssemblyRegion> assemblyRegionIter = new AssemblyRegionIterator(shard, header, ref, features,
 				hcEngine, minAssemblyRegionSize, maxAssemblyRegionSize, assemblyRegionPadding, activeProbThreshold,
 				maxProbPropagationDistance, options.getMaxReadsPerPosition(),true);
@@ -298,10 +348,12 @@ public class HaplotypeCallerTraversal {
 				downSampleOfAssemblyRegion(assemblyRegion, 20);
 			writeAssemblyRegion(assemblyRegion);
 			List<VariantContext> results = apply(assemblyRegion, features);
-			
+
+//			todo 注意shard regoin 边界问题
 			for (VariantContext context : results) {
-				if(context.getStart() >= win.getStart() && context.getStart() < win.getStop())
-					writer.write(context);
+				if(context.getStart() > shard.getStart() && context.getStart() <= shard.getEnd()) {
+					writer.add(context);
+				}
 			}
 		}
 	}

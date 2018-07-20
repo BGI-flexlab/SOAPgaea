@@ -33,6 +33,8 @@ public class SingleRegionReport {
 	protected StringBuffer outputString;
 	private double allRegionCoverage = 0;
 	private double allRegionFourxCoverage = 0;
+	private double allRegionTenxCoverage = 0;
+	private double allRegionThirtyxCoverage = 0;
 	private double allRegionAverageDepth = 0;
 	private double allRegionAverageRmdupDepth = 0;
 	private double regionSizeTotal = 0;
@@ -186,17 +188,19 @@ public class SingleRegionReport {
 		String[] coverSplits = splits[2].split("\t");
 		int coverNum = Integer.parseInt(coverSplits[0]);
 		int fourxCoverNum = Integer.parseInt(coverSplits[3]);
+		int tenxCoverNum = Integer.parseInt(coverSplits[4]);
+		int thirtyxCoverNum = Integer.parseInt(coverSplits[5]);
 		int depthNum = Integer.parseInt(coverSplits[1]);
 		int rmdupDepthNum = Integer.parseInt(coverSplits[2]);
 
 		SingleRegionStatistic statistic;
 		if(!result.containsKey(singleReigon.getRegion(regionIndex))) {
 			statistic = new SingleRegionStatistic(true);
-			statistic.addPart(coverNum, fourxCoverNum, depthNum, rmdupDepthNum, depth);
+			statistic.addPart(coverNum, fourxCoverNum, tenxCoverNum,thirtyxCoverNum, depthNum, rmdupDepthNum, depth);
 			result.put(singleReigon.getRegion(regionIndex), statistic);
 		} else {
 			statistic = result.get(singleReigon.getRegion(regionIndex));
-			statistic.addPart(coverNum, fourxCoverNum,  depthNum, rmdupDepthNum, depth);
+			statistic.addPart(coverNum, fourxCoverNum, tenxCoverNum,thirtyxCoverNum, depthNum, rmdupDepthNum, depth);
 		}
 	}
 
@@ -207,11 +211,13 @@ public class SingleRegionReport {
 		int depthNum =  Integer.parseInt(coverSplits[1]);
 		int rmdupDepthNum =  Integer.parseInt(coverSplits[2]);
 		int fourxCoverNum = Integer.parseInt(coverSplits[3]);
-		double middleDepth = Double.parseDouble(coverSplits[4]);
-		double middleRmdupDepth = Double.parseDouble(coverSplits[5]);
+		int tenxCoverNum = Integer.parseInt(coverSplits[4]);
+		int thirtyxCoverNum = Integer.parseInt(coverSplits[5]);
+		double middleDepth = Double.parseDouble(coverSplits[6]);
+		double middleRmdupDepth = Double.parseDouble(coverSplits[7]);
 
 		SingleRegionStatistic statistic = new SingleRegionStatistic(false);
-		statistic.add(coverNum, depthNum, rmdupDepthNum, middleDepth, middleRmdupDepth);
+		statistic.add(coverNum, fourxCoverNum, tenxCoverNum,thirtyxCoverNum, depthNum, rmdupDepthNum, middleDepth, middleRmdupDepth);
 		result.put(singleReigon.getRegion(regionIndex), statistic);
 	}
 
@@ -220,6 +226,8 @@ public class SingleRegionReport {
 		long rmdupDepthAll = 0;
 		long coverBaseAll = 0;
 		long fourxCoverBaseAll = 0;
+		long tenxCoverBaseAll = 0;
+		long thirtyxCoverBaseAll = 0;
 		regionSizeTotal = 0.0;
 		updateResult();
 		System.out.println(result.keySet().size());
@@ -231,6 +239,8 @@ public class SingleRegionReport {
 				rmdupDepthAll += statistic.getRmdupDepthNum();
 				coverBaseAll += statistic.getCoverBaseNum();
 				fourxCoverBaseAll += statistic.getFourxCoverBaseNum();
+				tenxCoverBaseAll += statistic.getTenxCoverBaseNum();
+				thirtyxCoverBaseAll += statistic.getThirtyxCoverBaseNum();
 				regionSizeTotal += regionData.size();
 			}
 		}
@@ -239,6 +249,8 @@ public class SingleRegionReport {
 		allRegionAverageRmdupDepth = rmdupDepthAll / regionSizeTotal;
 		allRegionCoverage = coverBaseAll / regionSizeTotal;
 		allRegionFourxCoverage = fourxCoverBaseAll / regionSizeTotal;
+		allRegionTenxCoverage = tenxCoverBaseAll / regionSizeTotal;
+		allRegionThirtyxCoverage = thirtyxCoverBaseAll / regionSizeTotal;
 		System.err.println("allRegionAverageDeepth:" + allRegionAverageDepth);
 	}
 
@@ -270,6 +282,14 @@ public class SingleRegionReport {
 
 	public double getAllRegionFourxCoverage() {
 		return allRegionFourxCoverage;
+	}
+
+	public double getAllRegionTenxCoverage() {
+		return allRegionTenxCoverage;
+	}
+
+	public double getAllRegionThirtyxCoverage() {
+		return allRegionThirtyxCoverage;
 	}
 
 	public boolean isStatPosDepth() {

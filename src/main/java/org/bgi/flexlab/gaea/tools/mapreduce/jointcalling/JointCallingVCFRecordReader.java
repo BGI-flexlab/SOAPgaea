@@ -68,9 +68,8 @@ public class JointCallingVCFRecordReader extends RecordReader<LongWritable, Vari
 		vcfHeaderDataCache.setHeader(header);
 
 		contigDict.clear();
-		int i = 0;
 		for (final VCFContigHeaderLine contig : header.getContigLines())
-			contigDict.put(contig.getID(), i++);
+			contigDict.put(contig.getID(), contig.getContigIndex());
 
 		// Note that we create a new reader here, so reader.getPosition() is 0
 		// at
@@ -132,7 +131,8 @@ public class JointCallingVCFRecordReader extends RecordReader<LongWritable, Vari
 		}
 		
 		CommonInfo info = v.getCommonInfo();
-		info.putAttribute("SM",vtemp.getSampleNamesOrderedByName().get(0));
+		if(!info.hasAttribute("SM"))
+			info.putAttribute("SM",vtemp.getSampleNamesOrderedByName().get(0));
 
 		Integer chromIdx = contigDict.get(v.getContig());
 		if (chromIdx == null)

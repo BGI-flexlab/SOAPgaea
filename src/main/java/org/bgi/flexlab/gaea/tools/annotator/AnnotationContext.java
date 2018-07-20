@@ -857,13 +857,17 @@ public class AnnotationContext implements Serializable{
 		return allele;
 	}
 
-	public String toAnnoString(List<String> fields){
-		StringBuilder sb = new StringBuilder(getGenotype());
+	public List<String> getAnnoValues(List<String> fields){
+		List<String> annoValues = new ArrayList<>();
 		for (String field : fields){
-			sb.append("|");
-			sb.append(getAnnoItemAsString(field, "."));
+			annoValues.add(getAnnoItemAsString(field, "."));
 		}
-		return sb.toString();
+		return annoValues;
+	}
+
+	public String toAnnoString(List<String> fields){
+		getAnnoValues(fields);
+		return String.join("|", getAnnoValues(fields));
 	}
 
 }

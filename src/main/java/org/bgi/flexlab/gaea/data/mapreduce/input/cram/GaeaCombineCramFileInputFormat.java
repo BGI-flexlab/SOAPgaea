@@ -50,18 +50,18 @@ import org.apache.hadoop.mapreduce.JobContext;
 import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.CombineFileInputFormat;
-import org.seqdoop.hadoop_bam.SAMRecordWritable;
+import org.bgi.flexlab.gaea.data.mapreduce.writable.SamRecordWritable;
 
 import java.io.IOException;
 
 public class GaeaCombineCramFileInputFormat extends
-		CombineFileInputFormat<LongWritable, SAMRecordWritable> {
+		CombineFileInputFormat<LongWritable, SamRecordWritable> {
 
 	@Override
-	public RecordReader<LongWritable, SAMRecordWritable> createRecordReader(
+	public RecordReader<LongWritable, SamRecordWritable> createRecordReader(
 			InputSplit split, TaskAttemptContext context) throws IOException {
 		Log.setGlobalLogLevel(Log.LogLevel.ERROR);
-		RecordReader<LongWritable, SAMRecordWritable> rr = new GaeaCombineCramFileRecordReader(
+		RecordReader<LongWritable, SamRecordWritable> rr = new GaeaCombineCramFileRecordReader(
 				split, context);
 		return rr;
 	}

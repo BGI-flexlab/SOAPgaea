@@ -64,19 +64,22 @@ public class JointCalling extends ToolsRunner{
         JointCallingOptions options = new JointCallingOptions();
         options.parse(remainArgs);
         options.setHadoopConf(remainArgs, conf);
-        conf.set(GaeaVCFOutputFormat.OUT_PATH_PROP, options.getVCFHeaderOutput() + "/vcfFileHeader.vcf");
         conf.set(KeyIgnoringVCFOutputFormat.OUTPUT_VCF_FORMAT_PROPERTY, options.getOuptputFormat().toString());
         conf.setBoolean(GaeaVCFOutputFormat.HEADER_MODIFY, true);
-        
         MultipleVCFHeaderForJointCalling multiVcfHeader = new MultipleVCFHeaderForJointCalling();
-        multiVcfHeader.headersConfig(options.getInput(), options.getVCFHeaderOutput()+"/vcfHeaders", conf);
+        if(options.getVcfHeaderFile() != null) {
+            conf.set(GaeaVCFOutputFormat.OUT_PATH_PROP, options.getVcfHeaderFile());
+            multiVcfHeader.headersConfig(new Path(options.getVcfHeaderFile()), options.getVCFHeaderOutput()+"/vcfHeaders", conf);
+        }else {
+            conf.set(GaeaVCFOutputFormat.OUT_PATH_PROP, options.getVCFHeaderOutput() + "/vcfFileHeader.vcf");
+            multiVcfHeader.headersConfig(options.getInput(), options.getVCFHeaderOutput()+"/vcfHeaders", conf);
+            VCFHeader vcfHeader = getVCFHeaderFromInput(multiVcfHeader.getHeaders());
+            VCFHdfsWriter vcfHdfsWriter = new VCFHdfsWriter(conf.get(GaeaVCFOutputFormat.OUT_PATH_PROP), false, false, conf);
+            vcfHdfsWriter.writeHeader(vcfHeader);
+            vcfHdfsWriter.close();
+        }
         conf.set(INPUT_ORDER, Utils.join(",", multiVcfHeader.getSamplesAsInputOrder()));
-        
-        VCFHeader vcfHeader = getVCFHeaderFromInput(multiVcfHeader.getHeaders());
-        VCFHdfsWriter vcfHdfsWriter = new VCFHdfsWriter(conf.get(GaeaVCFOutputFormat.OUT_PATH_PROP), false, false, conf);
-        vcfHdfsWriter.writeHeader(vcfHeader);
-        vcfHdfsWriter.close();
-        
+
         job.setJobName("Gaea joint calling");
         
         job.setJarByClass(JointCalling.class);

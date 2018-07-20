@@ -416,11 +416,11 @@ public class HgvsProtein extends Hgvs {
 			for (int cn = codonNum; cn < len; cn++) {
 				char aa = protSeq.charAt(cn);
 				char newAa = newProtSeq.charAt(cn);
-				if (aa != newAa) return codonTable.aaThreeLetterCode(aa) + (cn + 1);
+				if (aa != newAa) return (hgvsOneLetterAa ? String.valueOf(aa) : codonTable.aaThreeLetterCode(aa)) + (cn + 1);
 			}
 		}
 
-		return codonTable.aaThreeLetterCode(protSeq.charAt(codonNum)) + (codonNum + 1);
+		return (hgvsOneLetterAa ? String.valueOf(protSeq.charAt(codonNum)) :codonTable.aaThreeLetterCode(protSeq.charAt(codonNum))) + (codonNum + 1);
 	}
 
 	/**
@@ -601,6 +601,7 @@ public class HgvsProtein extends Hgvs {
 		}
 
 		if (protChange == null || pos == null) return null;
+		if (!hgvsOneLetterAa) protChange = protChange.replace("Ter", "*");
 
 		return prefix + typeOfReference() + pos + protChange + suffix;
 	}

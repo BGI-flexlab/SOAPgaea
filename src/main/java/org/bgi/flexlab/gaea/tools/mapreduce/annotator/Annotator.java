@@ -76,7 +76,6 @@ public class Annotator extends ToolsRunner {
 
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
-        job.setInputFormatClass(MNLineInputFormat.class);
 
         Path inputPath = new Path(options.getInputFilePath());
         FileSystem fs = inputPath.getFileSystem(conf);
@@ -98,9 +97,16 @@ public class Annotator extends ToolsRunner {
             }
         }
 
-        MNLineInputFormat.addInputPath(job, new Path(options.getInputFilePath()));
-        MNLineInputFormat.setMinNumLinesToSplit(job,1000); //按行处理的最小单位
-        MNLineInputFormat.setMapperNum(job, options.getReducerNum());
+        if(sampleNames.size() <= 10){
+            job.setInputFormatClass(MNLineInputFormat.class);
+            MNLineInputFormat.addInputPath(job, new Path(options.getInputFilePath()));
+            MNLineInputFormat.setMinNumLinesToSplit(job,1000); //按行处理的最小单位
+            MNLineInputFormat.setMapperNum(job, options.getReducerNum());
+        }else {
+            job.setInputFormatClass(TextInputFormat.class);
+            FileInputFormat.addInputPath(job, new Path(options.getInputFilePath()));
+        }
+
         Path partTmp = new Path(options.getTmpPath());
 
         FileOutputFormat.setOutputPath(job, partTmp);

@@ -186,12 +186,12 @@ public final class VariantAnnotatorEngine {
 
 	public static VariantAnnotatorEngine ofSelectedMinusExcluded(
 			final VariantAnnotationArgumentCollection argumentCollection) {
-		for(String line : argumentCollection.annotationGroupsToUse) {
-			System.err.println("annotationGroupsToUse:"+line);
-		}
-		for(String line : argumentCollection.annotationsToExclude) {
-			System.err.println("annotationsToExclude:"+line);
-		}
+//		for(String line : argumentCollection.annotationGroupsToUse) {
+//			System.err.println("annotationGroupsToUse:"+line);
+//		}
+//		for(String line : argumentCollection.annotationsToExclude) {
+//			System.err.println("annotationsToExclude:"+line);
+//		}
 		return ofSelectedMinusExcluded(argumentCollection.annotationGroupsToUse, argumentCollection.annotationsToUse,
 				argumentCollection.annotationsToExclude);
 	}
