@@ -2,7 +2,6 @@ package org.bgi.flexlab.gaea.tools.mapreduce.jointcalling;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
@@ -38,10 +37,8 @@ public class JointCallingMapper extends
 		header = VCFHeaderReader.readHeaderFrom(in);
 		in.close();
 		
-		chrIndexs = new HashMap<String,Integer>();
-		List<VCFContigHeaderLine> lines = header.getContigLines();
-		for(int i = 0 ; i < lines.size() ; i++){
-			VCFContigHeaderLine line = lines.get(i);
+		chrIndexs = new HashMap<>();
+		for (VCFContigHeaderLine line : header.getContigLines()) {
 			chrIndexs.put(line.getID(), line.getContigIndex());
 		}
 	}
@@ -55,12 +52,9 @@ public class JointCallingMapper extends
 		int eWin = variantContext.getEnd() / windowSize;
 		
 		int chrIndex = chrIndexs.get(variantContext.getContig());
-		
-		outKey.set(chrIndex, sWin, variantContext.getStart());
-		context.write(outKey, value);
-		
-		if(eWin != sWin){
-			outKey.set(chrIndex, eWin, variantContext.getStart());
+
+		for (int i = sWin; i <= eWin; i++) {
+			outKey.set(chrIndex, i, variantContext.getStart());
 			context.write(outKey, value);
 		}
 	}
