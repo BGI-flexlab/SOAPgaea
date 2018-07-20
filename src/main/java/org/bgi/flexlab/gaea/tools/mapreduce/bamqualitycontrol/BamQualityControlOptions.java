@@ -33,6 +33,7 @@ public class BamQualityControlOptions extends GaeaOptions implements HadoopOptio
 		addOption("i", "input", true, "Path of the alignment result file(s)", true);
 		addOption("o", "output", true, "Path of the bamqc report file", true);
 		addOption("d", "index", true, "Path of the reference index list", true);
+		addOption("f", "ref", true, "reference file for read cram");
 		addBooleanOption("b", "basic", "Basic mapping Statitis of each sample without coverage info");
 		addBooleanOption("l", "lane", "Get basic information by lane rather than samples");
 		addOption("r", "reducer", true, "The reducer nums");
@@ -62,6 +63,8 @@ public class BamQualityControlOptions extends GaeaOptions implements HadoopOptio
 	 * 参考基因组序列文件路径
 	 */
 	private String referenceSequencePath;
+
+	private String localReferenceSequencePath;
 
 	/**
 	 * Reducer个数
@@ -163,6 +166,7 @@ public class BamQualityControlOptions extends GaeaOptions implements HadoopOptio
 		islane = getOptionBooleanValue("l", false);
 		alignmentFilePath = getOptionValue("i", null);
 		referenceSequencePath = getOptionValue("d", null);
+		localReferenceSequencePath = getOptionValue("f", null);
 		outputPath = getOptionValue("o", null);
 		reducerNum = getOptionIntValue("r", 30);
 		region = getOptionValue("R", null);
@@ -225,6 +229,10 @@ public class BamQualityControlOptions extends GaeaOptions implements HadoopOptio
 	 */
 	public void setReferenceSequencePath(String referenceSequencePath) {
 		this.referenceSequencePath = referenceSequencePath;
+	}
+
+	public String getLocalReferenceSequencePath() {
+		return localReferenceSequencePath;
 	}
 
 	/**

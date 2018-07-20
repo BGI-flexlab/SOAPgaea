@@ -24,11 +24,14 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.bgi.flexlab.gaea.data.mapreduce.input.bam.GaeaAnySAMInputFormat;
+import org.bgi.flexlab.gaea.data.mapreduce.input.cram.GaeaCramInputFormat;
 import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamHdfsFileHeader;
 import org.bgi.flexlab.gaea.data.structure.reference.ReferenceShare;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.BioJob;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.ToolsRunner;
 import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report.BamReport;
+
+import static org.bgi.flexlab.gaea.data.mapreduce.input.cram.GaeaCramRecordReader.INPUTFORMAT_REFERENCE;
 
 public class BamQualityControl extends ToolsRunner{
 	
@@ -54,7 +57,15 @@ public class BamQualityControl extends ToolsRunner{
 		if(options.isDistributeCache()) {
 			ReferenceShare.distributeCache(options.getReferenceSequencePath(), job);
 		}
-		SamHdfsFileHeader.loadHeader(new Path(options.getAlignmentFilePath()), conf, new Path(options.getOutputPath()));
+
+		boolean iscram = options.getAlignmentFilePath().endsWith("cram");
+		if(iscram){
+			if(options.getLocalReferenceSequencePath() == null)
+				throw new RuntimeException("Please set local reference for cram (-f).");
+			conf.set(INPUTFORMAT_REFERENCE, options.getLocalReferenceSequencePath());
+		}
+
+		SamHdfsFileHeader.loadHeader(new Path(options.getAlignmentFilePath()), conf, new Path(options.getOutputPath()), iscram);
 
 		job.setJobName("BamQualityControl");
 		job.setJarByClass(BamQualityControl.class);
@@ -65,7 +76,10 @@ public class BamQualityControl extends ToolsRunner{
 		job.setNumReduceTasks(options.getReducerNum());
 		
 		FileInputFormat.addInputPaths(job, options.getAlignmentFilePath());
-		job.setInputFormatClass(GaeaAnySAMInputFormat.class);
+		if(iscram)
+			job.setInputFormatClass(GaeaCramInputFormat.class);
+		else
+			job.setInputFormatClass(GaeaAnySAMInputFormat.class);
 
 		job.setOutputFormatClass(TextOutputFormat.class);
 		
