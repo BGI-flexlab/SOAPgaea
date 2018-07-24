@@ -18,7 +18,9 @@ package org.bgi.flexlab.gaea.framework.tools.mapreduce;
 
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMSequenceRecord;
+import org.apache.hadoop.io.LongWritable;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.SamRecordWritable;
+import org.bgi.flexlab.gaea.util.SamRecordUtils;
 
 import java.io.IOException;
 import java.util.List;
@@ -58,6 +60,10 @@ public class WindowsBasedPlaceholderSamRecordMapper extends WindowsBasedMapper<S
                 }
             }
         }
+    }
+
+    protected boolean skipUnmapped(){
+        return true;
     }
 
     @Override

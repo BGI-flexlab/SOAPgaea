@@ -129,6 +129,10 @@ public abstract class WindowsBasedMapper<VALUEOUT extends Writable> extends
 		keyout.set(sampleID, chrIndex, winNum, position);
 	}
 
+	protected boolean skipUnmapped(){
+		return bqsrOnly;
+	}
+
 	@Override
 	protected void map(LongWritable key, SamRecordWritable value, Context context)
 			throws IOException, InterruptedException {
@@ -139,7 +143,7 @@ public abstract class WindowsBasedMapper<VALUEOUT extends Writable> extends
 		setOutputValue(sam);
 
 		if (SamRecordUtils.isUnmapped(sam)) {
-			if(!bqsrOnly){
+			if(!skipUnmapped()){
 				int readNameHashCode = sam.getReadName().hashCode();
 				if(readNameHashCode >= Integer.MAX_VALUE)
 					readNameHashCode = 0;
