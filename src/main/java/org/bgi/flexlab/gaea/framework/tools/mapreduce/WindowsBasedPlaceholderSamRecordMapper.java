@@ -18,6 +18,7 @@ package org.bgi.flexlab.gaea.framework.tools.mapreduce;
 
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMSequenceRecord;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.LongWritable;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.SamRecordWritable;
 import org.bgi.flexlab.gaea.util.SamRecordUtils;
@@ -26,9 +27,14 @@ import java.io.IOException;
 import java.util.List;
 
 public class WindowsBasedPlaceholderSamRecordMapper extends WindowsBasedMapper<SamRecordWritable>{
+    public static final String WINDOWS_OUTPUT_ALL = "windows.output.all";
 
     @Override
     void otherSetup(Context context) throws IOException, InterruptedException {
+        Configuration conf = context.getConfiguration();
+        if(!conf.getBoolean(WINDOWS_OUTPUT_ALL, false))
+            return;
+
         SAMRecord samRecord = new SAMRecord(header);
         samRecord.setReadName("placeholder");
         samRecord.setFlags(12);

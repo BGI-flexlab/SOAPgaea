@@ -25,7 +25,6 @@ import org.seqdoop.hadoop_bam.VCFRecordReader;
 import org.seqdoop.hadoop_bam.VariantContextWritable;
 import org.seqdoop.hadoop_bam.util.WrapSeekable;
 
-import hbparquet.hadoop.util.ContextUtil;
 import htsjdk.samtools.seekablestream.SeekableStream;
 
 public class JointCallingVCFInputFormat extends FileInputFormat<LongWritable,VariantContextWritable>{
@@ -147,7 +146,7 @@ public class JointCallingVCFInputFormat extends FileInputFormat<LongWritable,Var
 				"split '"+split+"' has unknown type: cannot extract path");
 
 		if (this.conf == null)
-			this.conf = ContextUtil.getConfiguration(ctx);
+			this.conf = ctx.getConfiguration();
 
 		final VCFFormat fmt = getFormat(path);
 		if (fmt == null)
@@ -174,7 +173,8 @@ public class JointCallingVCFInputFormat extends FileInputFormat<LongWritable,Var
 		throws IOException
 	{
 		if (this.conf == null)
-			this.conf = ContextUtil.getConfiguration(job);
+			this.conf = job.getConfiguration();
+//			this.conf = ContextUtil.getConfiguration(job);
 
 		final List<InputSplit> origSplits = super.getSplits(job);
 

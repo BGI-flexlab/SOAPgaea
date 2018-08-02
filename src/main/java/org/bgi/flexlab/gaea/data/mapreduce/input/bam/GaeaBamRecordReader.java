@@ -42,7 +42,6 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.mapreduce.input.bam;
 
-import hbparquet.hadoop.util.ContextUtil;
 import htsjdk.samtools.BAMRecordCodec;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.ValidationStringency;
@@ -139,7 +138,7 @@ public class GaeaBamRecordReader extends RecordReader<LongWritable, SamRecordWri
 			close();
 		isInitialized = true;
 
-		final Configuration conf = ContextUtil.getConfiguration(ctx);
+		final Configuration conf = ctx.getConfiguration();
 
 		final FileVirtualSplit split = (FileVirtualSplit) spl;
 		final Path file = split.getPath();

@@ -42,7 +42,6 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.mapreduce.input.sam;
 
-import hbparquet.hadoop.util.ContextUtil;
 import htsjdk.samtools.*;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
@@ -83,7 +82,7 @@ public class GaeaSamRecordReader extends RecordReader<LongWritable,SamRecordWrit
 		this.start =         split.getStart();
 		this.end   = start + split.getLength();
 
-		final Configuration conf = ContextUtil.getConfiguration(ctx);
+		final Configuration conf = ctx.getConfiguration();
 
 		final ValidationStringency stringency =
 			SAMHeaderReader.getValidationStringency(conf);

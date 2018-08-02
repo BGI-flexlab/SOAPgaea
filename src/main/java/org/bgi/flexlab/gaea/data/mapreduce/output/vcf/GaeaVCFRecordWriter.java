@@ -13,7 +13,6 @@ import org.seqdoop.hadoop_bam.LazyVCFGenotypesContext;
 import org.seqdoop.hadoop_bam.VCFRecordWriter;
 import org.seqdoop.hadoop_bam.VariantContextWritable;
 
-import hbparquet.hadoop.util.ContextUtil;
 import htsjdk.tribble.readers.AsciiLineReader;
 import htsjdk.tribble.readers.AsciiLineReaderIterator;
 import htsjdk.variant.variantcontext.GenotypesContext;
@@ -41,7 +40,7 @@ public abstract class GaeaVCFRecordWriter<K> extends RecordWriter<K,VariantConte
 		throws IOException
 	{
 		final AsciiLineReader r = new AsciiLineReader(
-			input.getFileSystem(ContextUtil.getConfiguration(ctx)).open(input));
+			input.getFileSystem(ctx.getConfiguration()).open(input));
 
 		final Object h = codec.readHeader(new AsciiLineReaderIterator(r));
 		if (!(h instanceof VCFHeader))
@@ -57,7 +56,7 @@ public abstract class GaeaVCFRecordWriter<K> extends RecordWriter<K,VariantConte
 		throws IOException
 	{
 		init(
-			output.getFileSystem(ContextUtil.getConfiguration(ctx)).create(output),
+			output.getFileSystem(ctx.getConfiguration()).create(output),
 			header, writeHeader);
 	}
 	public GaeaVCFRecordWriter(
@@ -75,7 +74,7 @@ public abstract class GaeaVCFRecordWriter<K> extends RecordWriter<K,VariantConte
 		throws IOException
 	{
 		init(
-			output.getFileSystem(ContextUtil.getConfiguration(ctx)).create(output),
+			output.getFileSystem(ctx.getConfiguration()).create(output),
 			header, writeHeader);
 	}
 	private void init(

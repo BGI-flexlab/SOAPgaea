@@ -42,7 +42,6 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.mapreduce.input.bam;
 
-import hbparquet.hadoop.util.ContextUtil;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
@@ -137,7 +136,7 @@ public class GaeaAnySAMInputFormat extends
 					+ "' has unknown type: cannot extract path");
 
 		if (this.conf == null)
-			this.conf = ContextUtil.getConfiguration(ctx);
+			this.conf = ctx.getConfiguration();
 
 		final SAMFormat fmt = getFormat(path);
 		if (fmt == null)
@@ -158,7 +157,7 @@ public class GaeaAnySAMInputFormat extends
 	@Override
 	public boolean isSplitable(JobContext job, Path path) {
 		if (this.conf == null)
-			this.conf = ContextUtil.getConfiguration(job);
+			this.conf = job.getConfiguration();
 
 		final SAMFormat fmt = getFormat(path);
 		if (fmt == null)
@@ -178,7 +177,7 @@ public class GaeaAnySAMInputFormat extends
 	@Override
 	public List<InputSplit> getSplits(JobContext job) throws IOException {
 		if (this.conf == null)
-			this.conf = ContextUtil.getConfiguration(job);
+			this.conf = job.getConfiguration();
 
 		final List<InputSplit> origSplits = super.getSplits(job);
 
@@ -195,7 +194,7 @@ public class GaeaAnySAMInputFormat extends
 				newSplits.add(split);
 		}
 		newSplits.addAll(bamIF.getSplits(bamOrigSplits,
-				ContextUtil.getConfiguration(job)));
+				job.getConfiguration()));
 		return newSplits;
 	}
 }

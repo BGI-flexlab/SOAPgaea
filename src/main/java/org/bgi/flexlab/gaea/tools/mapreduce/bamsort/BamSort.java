@@ -21,6 +21,7 @@ import htsjdk.samtools.SAMReadGroupRecord;
 import htsjdk.samtools.util.BlockCompressedStreamConstants;
 import htsjdk.samtools.util.Log;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.filecache.DistributedCache;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -40,7 +41,6 @@ import org.bgi.flexlab.gaea.data.mapreduce.writable.SamRecordWritable;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.BioJob;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.ToolsRunner;
 import org.seqdoop.hadoop_bam.SAMFormat;
-import org.seqdoop.hadoop_bam.cli.Utils;
 import org.seqdoop.hadoop_bam.util.SAMOutputPreparer;
 import org.seqdoop.hadoop_bam.util.Timer;
 
@@ -103,7 +103,7 @@ public class BamSort extends ToolsRunner {
     }
 
     public int runSingleSort() throws IOException, ClassNotFoundException, InterruptedException, URISyntaxException {
-        Utils.configureSampling(tmpPath, intermediateOutName, conf);
+        configureSampling(tmpPath, intermediateOutName, conf);
 
         conf.setBoolean(SortOutputFormat.WRITE_HEADER_PROP, options.getOutdir() == null);
         conf.set(SortOutputFormat.OUTPUT_NAME_PROP, intermediateOutName);
@@ -337,6 +337,27 @@ public class BamSort extends ToolsRunner {
             return null;
         }
         return fileStatuses[0].getPath();
+    }
+
+    public static void configureSampling(
+            Path workDir, String outName, Configuration conf)
+            throws IOException
+    {
+        final Path partition =
+                workDir.getFileSystem(conf).makeQualified(
+                        new Path(workDir, "_partitioning" + outName));
+
+        TotalOrderPartitioner.setPartitionFile(conf, partition);
+        try {
+            final URI partitionURI = new URI(
+                    partition.toString() + "#" + partition.getName());
+
+            if (partitionURI.getScheme().equals("file"))
+                return;
+
+            DistributedCache.addCacheFile(partitionURI, conf);
+            DistributedCache.createSymlink(conf);
+        } catch (URISyntaxException e) { throw new RuntimeException(e); }
     }
 
     @Override

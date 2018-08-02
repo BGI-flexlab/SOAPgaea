@@ -17,7 +17,6 @@ import org.seqdoop.hadoop_bam.LazyVCFGenotypesContext;
 import org.seqdoop.hadoop_bam.VariantContextWritable;
 import org.seqdoop.hadoop_bam.util.MurmurHash3;
 
-import hbparquet.hadoop.util.ContextUtil;
 import htsjdk.tribble.FeatureCodecHeader;
 import htsjdk.tribble.readers.AsciiLineReader;
 import htsjdk.tribble.readers.AsciiLineReaderIterator;
@@ -52,7 +51,7 @@ public class JointCallingVCFRecordReader extends RecordReader<LongWritable, Vari
 		this.length = split.getLength();
 
 		final Path file = split.getPath();
-		final FileSystem fs = file.getFileSystem(ContextUtil.getConfiguration(ctx));
+		final FileSystem fs = file.getFileSystem(ctx.getConfiguration());
 
 		final FSDataInputStream ins = fs.open(file);
 

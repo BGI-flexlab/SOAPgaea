@@ -42,7 +42,6 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.data.mapreduce.output.vcf;
 
-import hbparquet.hadoop.util.ContextUtil;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.JobContext;
@@ -73,7 +72,7 @@ public class GaeaVCFOutputFormat<K> extends FileOutputFormat<K, VariantContextWr
     @Override public RecordWriter<K,VariantContextWritable> getRecordWriter(
             TaskAttemptContext context)
             throws IOException {
-        final Configuration conf = ContextUtil.getConfiguration(context);
+        final Configuration conf = context.getConfiguration();
         initBaseOF(conf);
         if (baseOF.getHeader() == null) {
         	if(conf.get(OUT_PATH_PROP) != null){
@@ -83,7 +82,7 @@ public class GaeaVCFOutputFormat<K> extends FileOutputFormat<K, VariantContextWr
         }
         
         if(conf.getBoolean(GaeaVCFOutputFormat.HEADER_MODIFY, false)){
-        	final boolean wh = ContextUtil.getConfiguration(context).getBoolean(
+        	final boolean wh = context.getConfiguration().getBoolean(
         			KeyIgnoringVCFOutputFormat.WRITE_HEADER_PROPERTY, true);
         	return new GaeaKeyIgnoringVCFRecordWriter<K>(getDefaultWorkFile(context, ""),baseOF.getHeader(),wh,context);
         }
