@@ -111,14 +111,14 @@ public class DBAnnotator implements Serializable{
 		}
 		
 		HashMap<String, String> result = resultList.get(0);
-		resultList.removeFirst();
-		for (HashMap<String, String> r : resultList) {
+		for (int i = 1; i < resultList.size(); i++) {
+			HashMap<String, String> r = resultList.get(i);
 			for (Entry<String, String> entry : r.entrySet()) {
 				String key = entry.getKey();
 				String value = entry.getValue();
 				if(result.putIfAbsent(key, value) != null) {
 					if (!result.get(key).equals(value)) {
-						String mergeValue = result.get(key) + "," + value;
+						String mergeValue = result.get(key) + "&" + value;
 						result.put(key, mergeValue);
 					}
 				}
