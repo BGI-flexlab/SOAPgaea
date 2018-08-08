@@ -28,6 +28,8 @@ import org.bgi.flexlab.gaea.tools.vcfstats.report.VCFReport;
 import org.seqdoop.hadoop_bam.VCFInputFormat;
 import org.seqdoop.hadoop_bam.VCFOutputFormat;
 
+import java.util.concurrent.TimeUnit;
+
 public class VCFStats extends ToolsRunner {
 
     private Configuration conf;
@@ -70,6 +72,12 @@ public class VCFStats extends ToolsRunner {
 //                TextOutputFormat.class, NullWritable.class, Text.class);
 
         if (job.waitForCompletion(true)) {
+            int loop = 0;
+            while (!partTmp.getFileSystem(conf).exists(partTmp) && loop < 30){
+                TimeUnit.MILLISECONDS.sleep(1000);
+                loop ++;
+            }
+
             VCFReport report = new VCFReport();
             report.mergeReport(partTmp, conf,
                     new Path(options.getOutputPath()));

@@ -39,6 +39,7 @@ public class VCFReport {
     private Map<String, PerSampleVCFReport> perSampleVCFReports;
     private VCFStatsOptions options;
     private ReferenceShare genomeShare;
+    private VCFFileReader vcfReader;
 
     public VCFReport(){
         perSampleVCFReports = new HashMap<>();
@@ -49,32 +50,33 @@ public class VCFReport {
         this.options = options;
         genomeShare = new ReferenceShare();
         genomeShare.loadChromosomeList(options.getReferenceSequencePath());
+        if(options.getDbsnpFile() != null)
+            vcfReader = new VCFFileReader(new File(options.getDbsnpFile()));
     }
 
     public void parseVariation(VariantContext vc){
 
-//        if(options.getDbsnpFile() != null)
-//            vc = setDbSNP(vc);
+        if(options.getDbsnpFile() != null)
+            vc = setDbSNP(vc);
 
-        PerSampleVCFReport PerSampleVCFReport;
+        PerSampleVCFReport aSampleVCFReport;
         for(String sample: vc.getSampleNames()){
             Genotype gt = vc.getGenotype(sample);
             if(!gt.isCalled())
                 return;
 
             if(perSampleVCFReports.containsKey(sample))
-                PerSampleVCFReport = perSampleVCFReports.get(sample);
+                aSampleVCFReport = perSampleVCFReports.get(sample);
             else {
-                PerSampleVCFReport = new PerSampleVCFReport(genomeShare);
-                perSampleVCFReports.put(sample, PerSampleVCFReport);
+                aSampleVCFReport = new PerSampleVCFReport(genomeShare);
+                perSampleVCFReports.put(sample, aSampleVCFReport);
             }
 
-            PerSampleVCFReport.add(vc, sample);
+            aSampleVCFReport.add(vc, sample);
         }
     }
 
     private VariantContext setDbSNP(VariantContext vc) {
-        VCFFileReader vcfReader = new VCFFileReader(new File(options.getDbsnpFile()));
         CloseableIterator<VariantContext> vcfIter = vcfReader.query(vc.getContig(), vc.getStart(), vc.getEnd());
 
         String id = null;
@@ -119,6 +121,13 @@ public class VCFReport {
         LineReader lineReader = new LineReader(FSinput, conf);
         Text line = new Text();
         PerSampleVCFReport perSampleVCFReport;
+        PerSampleVCFReport totalVCFReport;
+        if(!perSampleVCFReports.containsKey("total")) {
+            totalVCFReport = new PerSampleVCFReport(genomeShare);
+            perSampleVCFReports.put("total", totalVCFReport);
+        }else {
+            totalVCFReport = perSampleVCFReports.get("total");
+        }
         while ((lineReader.readLine(line)) != 0) {
             String reducerStr = line.toString();
             if(reducerStr.isEmpty()) continue;
@@ -132,6 +141,7 @@ public class VCFReport {
                 perSampleVCFReports.put(sample, perSampleVCFReport);
             }
             perSampleVCFReport.parseReducerString(fields[1]);
+            totalVCFReport.parseReducerString(fields[1]);
         }
         lineReader.close();
     }
@@ -150,10 +160,10 @@ public class VCFReport {
         FileStatus filelist[] = fs.listStatus(input);
 //        FileStatus filelist[] = fs.listStatus(input,new StaticPathFilter());
 
-        for (int i = 0; i < filelist.length; i++) {
-            if (!filelist[i].isDirectory()) {
-                readFromHdfs(filelist[i].getPath(), conf);
-                fs.delete(filelist[i].getPath(), false);
+        for (FileStatus aFilelist : filelist) {
+            if (!aFilelist.isDirectory()) {
+                readFromHdfs(aFilelist.getPath(), conf);
+                fs.delete(aFilelist.getPath(), false);
             }
         }
 

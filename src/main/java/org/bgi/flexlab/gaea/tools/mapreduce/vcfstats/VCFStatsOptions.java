@@ -36,6 +36,7 @@ public class VCFStatsOptions extends GaeaOptions implements HadoopOptions {
 
     private String referenceSequencePath; //参考序列gaeaindex
 
+    private boolean varLength = false;
     private boolean verbose = false;
     private boolean debug = false;
 
@@ -44,8 +45,9 @@ public class VCFStatsOptions extends GaeaOptions implements HadoopOptions {
     public VCFStatsOptions() {
         addOption("i", "input",      true,  "input file(VCF). [request]", true);
         addOption("o", "output",     true,  "output file [request]", true);
-//        addOption("d", "dbsnp",     true,  "dbsnp file(.vcf.gz), must be indexed [null]");
+        addOption("d", "dbsnp",     true,  "dbsnp file(.vcf.gz), must be indexed [null]");
         addOption("r", "reference",  true,  "indexed reference sequence file list [request]", true);
+        addOption("l", "varLength",  true,  "count variant length");
         addOption(null,"verbose",    false, "display verbose information.");
         addOption(null,"debug",      false, "for debug.");
         addOption("h", "help",       false, "help information.");
@@ -74,9 +76,10 @@ public class VCFStatsOptions extends GaeaOptions implements HadoopOptions {
         tmpPath = "/user/" + System.getProperty("user.name") + "/vcfsummarytmp-" + df.format(new Date());
 
         setInput(cmdLine.getOptionValue("input"));
-//        setDbsnpFile(cmdLine.getOptionValue("dbsnp"));
+        setDbsnpFile(cmdLine.getOptionValue("dbsnp"));
         setReferenceSequencePath(cmdLine.getOptionValue("reference",""));
         setOutputPath(cmdLine.getOptionValue("output"));
+        setVarLength(getOptionBooleanValue("varLength", false));
         setVerbose(getOptionBooleanValue("verbose", false));
         setDebug(getOptionBooleanValue("debug", false));
     }
@@ -134,6 +137,14 @@ public class VCFStatsOptions extends GaeaOptions implements HadoopOptions {
 
     public void setVerbose(boolean verbose) {
         this.verbose = verbose;
+    }
+
+    public boolean isVarLength() {
+        return varLength;
+    }
+
+    public void setVarLength(boolean varLength) {
+        this.varLength = varLength;
     }
 
     public boolean isDebug() {

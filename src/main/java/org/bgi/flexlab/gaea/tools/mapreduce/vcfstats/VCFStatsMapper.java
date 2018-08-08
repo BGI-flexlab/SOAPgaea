@@ -51,9 +51,15 @@ public class VCFStatsMapper extends Mapper<LongWritable, VariantContextWritable,
 //        }
     }
 
+    private boolean filteVariant(VariantContext variantContext){
+        return !variantContext.isVariant();
+    }
+
     @Override
     protected void map(LongWritable key, VariantContextWritable value, Context context) throws IOException, InterruptedException {
         VariantContext vc = value.get();
+        if(filteVariant(vc))
+            return;
         vcfReport.parseVariation(vc);
     }
 
