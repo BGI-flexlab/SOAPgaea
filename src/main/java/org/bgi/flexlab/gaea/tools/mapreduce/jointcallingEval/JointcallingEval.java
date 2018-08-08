@@ -31,10 +31,13 @@ import org.bgi.flexlab.gaea.tools.mapreduce.annotator.*;
 import java.io.BufferedReader;
 import java.io.FileOutputStream;
 import java.io.InputStreamReader;
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPOutputStream;
 
 /**
@@ -49,7 +52,7 @@ public class JointcallingEval extends ToolsRunner {
         Configuration conf = new Configuration();
         String[] remainArgs = remainArgs(arg0, conf);
 
-        JointcallingEcalOptions options = new JointcallingEcalOptions();
+        JointcallingEvalOptions options = new JointcallingEvalOptions();
         options.parse(remainArgs);
         options.setHadoopConf(remainArgs, conf);
         BioJob job = BioJob.getInstance(conf);
@@ -80,48 +83,61 @@ public class JointcallingEval extends ToolsRunner {
         FileOutputFormat.setOutputPath(job, outputPath);
 //        FileOutputFormat.setOutputPath(job, partTmp);
         if (job.waitForCompletion(true)) {
-                final FileStatus[] parts = outputPath.getFileSystem(conf).globStatus(new Path(options.getOutputTmpPath() +
-                        "/part" + "-*-[0-9][0-9][0-9][0-9][0-9]*"));
-                GZIPOutputStream os = new GZIPOutputStream(new FileOutputStream(options.getOutputPath() + "/report.tsv.gz"));
-
-                List<String> statKey = new ArrayList<>();
-                Map<String, int[]> stat = new HashMap<>();
-                boolean writeHeader = true;
-                for (FileStatus p : parts) {
-                    FSDataInputStream dis = p.getPath().getFileSystem(conf).open(p.getPath());
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(dis));
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        if (line.startsWith("#")) {
-                            if (writeHeader) {
-                                os.write(line.getBytes());
-                                os.write('\n');
-                                writeHeader = false;
-                            }
-                            continue;
-                        }
-                        int[] statResult;
-                        String[] fields = line.split("\t");
-                        if(stat.containsKey(fields[0]))
-                            statResult = stat.get(fields[0]);
-                        else
-                            statResult = new int[3];
-                        for(int i=1; i<4; i++){
-                            statResult[i-1] += Integer.parseInt(fields[i]);
-                        }
-                        if (!statKey.contains(fields[0]))
-                            statKey.add(fields[0]);
-                        stat.put(fields[0],statResult);
+            TimeUnit.MILLISECONDS.sleep(3000);
+            final FileStatus[] parts = outputPath.getFileSystem(conf).globStatus(new Path(options.getOutputTmpPath() +
+                    "/part" + "-*-[0-9][0-9][0-9][0-9][0-9]*"));
+            GZIPOutputStream os = new GZIPOutputStream(new FileOutputStream(options.getOutputPath() + "/report.tsv.gz"));
+            List<String> statKey = new ArrayList<>();
+            Map<String, int[]> stat = new HashMap<>();
+            stat.put("total", new int[3]);
+            statKey.add("total");
+            boolean writeHeader = true;
+            for (FileStatus p : parts) {
+                FSDataInputStream dis = p.getPath().getFileSystem(conf).open(p.getPath());
+                BufferedReader reader = new BufferedReader(new InputStreamReader(dis));
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (line.startsWith("#")) {
+//                            if (writeHeader) {
+//                                os.write(line.getBytes());
+//                                os.write('\n');
+//                                writeHeader = false;
+//                            }
+                        continue;
                     }
+                    int[] statResult;
+                    String[] fields = line.split("\t");
+                    if(stat.containsKey(fields[0]))
+                        statResult = stat.get(fields[0]);
+                    else
+                        statResult = new int[3];
+                    for(int i=1; i<4; i++){
+                        statResult[i-1] += Integer.parseInt(fields[i]);
+                        if(!fields[0].equals("REF"))
+                            stat.get("total")[i-1] += Integer.parseInt(fields[i]);
+                    }
+                    if (!statKey.contains(fields[0]))
+                        statKey.add(fields[0]);
+                    stat.put(fields[0],statResult);
                 }
+            }
 
-                for(String key: statKey){
-                    int[] statResult = stat.get(key);
-                    String result = key +"\t" + statResult[0] +"\t" + statResult[1] +"\t"+ statResult[2];
-                    os.write(result.getBytes());
-                    os.write('\n');
-                }
-                os.close();
+            String header = "#Sample\tTotal\ttest\tbaseline\tconcordance\tconcordance_rate\n";
+            os.write(header.getBytes());
+
+            DecimalFormat df = new DecimalFormat("0.00");
+            df.setRoundingMode(RoundingMode.HALF_UP);
+
+            for(String key: statKey){
+                int[] statResult = stat.get(key);
+                int total = statResult[0] + statResult[1] - statResult[2];
+                double ratio = (double)statResult[2]/total;
+                String result = String.format("%s\t%s\t%s\t%s\t%s\t%s%%", key, total, statResult[0], statResult[1], statResult[2], df.format(ratio*100));
+//                    String result = key +"\t" + statResult[0] +"\t" + statResult[1] +"\t"+ statResult[2];
+                os.write(result.getBytes());
+                os.write('\n');
+            }
+            os.close();
 //                partTmp.getFileSystem(conf).delete(partTmp, true);
             return 0;
         }else {

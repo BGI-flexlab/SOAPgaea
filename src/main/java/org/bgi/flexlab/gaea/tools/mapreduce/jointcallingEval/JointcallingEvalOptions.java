@@ -16,6 +16,7 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.mapreduce.jointcallingEval;
 
+import htsjdk.variant.variantcontext.VariantContext;
 import org.apache.commons.cli.ParseException;
 import org.apache.hadoop.conf.Configuration;
 import org.bgi.flexlab.gaea.data.mapreduce.options.HadoopOptions;
@@ -28,20 +29,26 @@ import java.util.Date;
 /**
  * Created by huangzhibo on 2017/12/12.
  */
-public class JointcallingEcalOptions extends GaeaOptions implements HadoopOptions {
+public class JointcallingEvalOptions extends GaeaOptions implements HadoopOptions {
     private final static String SOFTWARE_NAME = "JointcallingEval";
     private final static String SOFTWARE_VERSION = "1.0";
+
+    public enum Mode {
+        SNP, INDEL, BOTH
+    }
 
     private String tmpPath = null; //输出格式 txt,vcf
     private String outputPath = null;
     private String inputFilePath = null;
     private String baselineFile = null;
     private int reducerNum;
+    private Mode mode;
 
-    public JointcallingEcalOptions() {
+    public JointcallingEvalOptions() {
         addOption("i", "input",      true,  "input file(VCF). [request]", true);
         addOption("b", "baseline",      true,  "baseline file(VCF). [request]", true);
         addOption("o", "output",     true,  "output file of annotation results(.gz) [request]", true);
+        addOption("m", "mode",     true,  "only count SNP， INDEL or BOTH [BOTH]");
         addOption("h", "help",       false, "help information.");
         addOption("R", "reducer", true, "reducer numbers [30]");
         FormatHelpInfo(SOFTWARE_NAME,SOFTWARE_VERSION);
@@ -65,6 +72,7 @@ public class JointcallingEcalOptions extends GaeaOptions implements HadoopOption
         setInputFilePath(cmdLine.getOptionValue("input"));
         setOutputPath(cmdLine.getOptionValue("output"));
         setBaselineFile(cmdLine.getOptionValue("baseline"));
+        setMode(getOptionValue("m", "BOTH"));
     }
 
     @Override
@@ -131,5 +139,18 @@ public class JointcallingEcalOptions extends GaeaOptions implements HadoopOption
 
     public void setBaselineFile(String baselineFile) {
         this.baselineFile = baselineFile;
+    }
+
+    public Mode getMode() {
+        return mode;
+    }
+
+    public void setMode(String mode) {
+        if(mode.equalsIgnoreCase("SNP"))
+            this.mode = Mode.SNP;
+        else if(mode.equalsIgnoreCase("INDEL"))
+            this.mode = Mode.INDEL;
+        else
+            this.mode = Mode.BOTH;
     }
 }

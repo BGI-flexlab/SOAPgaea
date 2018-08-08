@@ -16,6 +16,7 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.mapreduce.jointcallingEval;
 
+import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFCodec;
@@ -31,10 +32,7 @@ import org.bgi.flexlab.gaea.data.structure.header.SingleVCFHeader;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.VcfLineWritable;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 public class JointcallingEvalReducer extends Reducer<Text, VcfLineWritable, NullWritable, Text> {
 
@@ -48,13 +46,13 @@ public class JointcallingEvalReducer extends Reducer<Text, VcfLineWritable, Null
 
 	@Override
 	protected void setup(Context context) throws IOException, InterruptedException {
-		JointcallingEcalOptions options = new JointcallingEcalOptions();
+		JointcallingEvalOptions options = new JointcallingEvalOptions();
 		Configuration conf = context.getConfiguration();
 		options.getOptionsFromHadoopConf(conf);
 		sampleNames = new ArrayList<>();
 		vcfCodecs = new HashMap<>();
 		stat = new HashMap<>();
-		stat.put("Total", new int[3]);
+		stat.put("Total", new int[9]);
 
 		inputPath = new Path(options.getInputFilePath());
 		FileSystem fs = inputPath.getFileSystem(conf);
@@ -111,7 +109,7 @@ public class JointcallingEvalReducer extends Reducer<Text, VcfLineWritable, Null
 				if(testVariantContext != null && baselineVariantContext != null) {
 					Genotype testGenotype = testVariantContext.getGenotype(sampleName);
 					Genotype baselineGenotype = baselineVariantContext.getGenotype(sampleName);
-					if(isVar(testGenotype) && isVar(baselineGenotype) && testGenotype.sameGenotype(baselineGenotype)){
+					if(isVar(testGenotype) && isVar(baselineGenotype) && sameGenotype(testGenotype, baselineGenotype)){
 						stat.get(sampleName)[2]++;
 					}
 					if(isVar(testGenotype))
@@ -135,8 +133,32 @@ public class JointcallingEvalReducer extends Reducer<Text, VcfLineWritable, Null
 
 	}
 
-	public boolean isVar(Genotype gt){
-		return  gt.isCalled() && !gt.isHomRef();
+	private boolean isVar(Genotype gt){
+		if(gt == null || gt.isNoCall() || gt.isHomRef())
+			return false;
+
+		for (Allele allele:gt.getAlleles()){
+			if(allele.isReference() || Allele.wouldBeStarAllele(allele.getBases()))
+				continue;
+			return true;
+		}
+		return false;
+	}
+
+	public static boolean sameGenotype(Genotype gt1, Genotype gt2){
+		Set<Allele> thisAlleles = new TreeSet<>();
+		for (Allele allele: gt1.getAlleles()){
+			if(allele.isReference() || Allele.wouldBeStarAllele(allele.getBases()))
+				continue;
+			thisAlleles.add(allele);
+		}
+		Set<Allele> otherAlleles = new TreeSet<>();
+		for (Allele allele: gt2.getAlleles()){
+			if(allele.isReference() || Allele.wouldBeStarAllele(allele.getBases()))
+				continue;
+			otherAlleles.add(allele);
+		}
+		return thisAlleles.equals(otherAlleles);
 	}
 
 	@Override

@@ -41,6 +41,8 @@ public class JointcallingEvalMapper extends Mapper<LongWritable, Text, Text, Vcf
 	private VcfLineWritable resultValue;
 	private Configuration conf;
 	private HashMap<String, VCFCodec> vcfCodecs;
+	private JointcallingEvalOptions options;
+
 	@Override
 	protected void setup(Context context)
 			throws IOException, InterruptedException {
@@ -49,7 +51,7 @@ public class JointcallingEvalMapper extends Mapper<LongWritable, Text, Text, Vcf
 		conf = context.getConfiguration();
 		vcfCodecs = new HashMap<>();
 
-		JointcallingEcalOptions options = new JointcallingEcalOptions();
+		options = new JointcallingEvalOptions();
 		Configuration conf = context.getConfiguration();
 		options.getOptionsFromHadoopConf(conf);
 
@@ -75,6 +77,18 @@ public class JointcallingEvalMapper extends Mapper<LongWritable, Text, Text, Vcf
 
 	}
 
+	private boolean filteVariant(VariantContext variantContext) {
+		boolean filter = !variantContext.isVariant() || variantContext.isFiltered();
+		if(filter) return true;
+		if(options.getMode().equals(JointcallingEvalOptions.Mode.SNP))
+			if(!variantContext.isSNP())
+				return true;
+		if(options.getMode().equals(JointcallingEvalOptions.Mode.INDEL))
+			if(!variantContext.isIndel())
+				return true;
+		return false;
+	}
+
 	@Override
 	protected void map(LongWritable key, Text value, Context context)
 			throws IOException, InterruptedException {
@@ -89,7 +103,10 @@ public class JointcallingEvalMapper extends Mapper<LongWritable, Text, Text, Vcf
 		if (vcfLine.startsWith("#")) return;
 		VariantContext variantContext = vcfcodec.decode(vcfLine);
 
-		String chr = null;
+		if(filteVariant(variantContext))
+			return;
+
+		String chr;
 
 		if(variantContext.getContig().startsWith("chr")){
 			chr = variantContext.getContig().substring(3);
@@ -99,7 +116,7 @@ public class JointcallingEvalMapper extends Mapper<LongWritable, Text, Text, Vcf
 
 
 		resultValue.set(fileName, vcfLine);
-		System.out.println("mapper: "+chr+"-"+variantContext.getStart() + "-" + variantContext.getReference().toString());
+//		System.out.println("mapper: "+chr+"-"+variantContext.getStart() + "-" + variantContext.getReference().toString());
 		resultKey.set(chr+"-"+variantContext.getStart() + "-" + variantContext.getReference().toString());
 //		System.out.println("mapper: " + resultKey.toString() + " " + vcfLine);
 		/*根据chr-start-end*/
