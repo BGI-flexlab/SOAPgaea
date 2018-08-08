@@ -192,9 +192,10 @@ public class PerSampleVCFReport {
         Genotype gt = vc.getGenotype(sample);
         VariantType type = VariantType.determineType(vc, sample);
 
-        if(vc.isFiltered())
+        if(vc.isFiltered()) {
             mTotalFailedFilters++;
-        else
+            return;
+        }else
             mTotalPassedFilters++;
 
         if(gt.isNoCall()) {

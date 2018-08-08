@@ -74,6 +74,8 @@ public class JointcallingEvalReducer extends Reducer<Text, VcfLineWritable, Null
 		vcfcodec = new VCFCodec();
 		vcfcodec.setVCFHeader(vcfHeader, vcfVersion);
 		vcfCodecs.put(baselinePath.getName(), vcfcodec);
+
+		sampleNames.retainAll(vcfHeader.getSampleNamesInOrder());
 	}
 
 	@Override

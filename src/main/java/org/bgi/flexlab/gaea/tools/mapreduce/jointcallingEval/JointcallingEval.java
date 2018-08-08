@@ -83,7 +83,11 @@ public class JointcallingEval extends ToolsRunner {
         FileOutputFormat.setOutputPath(job, outputPath);
 //        FileOutputFormat.setOutputPath(job, partTmp);
         if (job.waitForCompletion(true)) {
-            TimeUnit.MILLISECONDS.sleep(3000);
+            int loop = 0;
+            while (!outputPath.getFileSystem(conf).exists(outputPath) && loop < 30){
+                TimeUnit.MILLISECONDS.sleep(1000);
+                loop ++;
+            }
             final FileStatus[] parts = outputPath.getFileSystem(conf).globStatus(new Path(options.getOutputTmpPath() +
                     "/part" + "-*-[0-9][0-9][0-9][0-9][0-9]*"));
             GZIPOutputStream os = new GZIPOutputStream(new FileOutputStream(options.getOutputPath() + "/report.tsv.gz"));
