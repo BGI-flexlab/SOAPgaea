@@ -42,6 +42,7 @@ public class MarkDuplicateOptions extends GaeaOptions implements HadoopOptions {
     private int outputFormat;
     private boolean outputDupRead;
     private boolean isSE;
+    private boolean removeSecond;
     private int reducerNum;
     private int windowSize;
     private int extendSize;
@@ -53,6 +54,7 @@ public class MarkDuplicateOptions extends GaeaOptions implements HadoopOptions {
         addOption("o", "output", true, "output directory [required]", true);
         addOption("O", "outputFormat", true, "output Format. 0:BAM; 1:SAM [0]");
         addOption("D", "outputDupRead", false, "output Duplicates reads [true]");
+        addOption("M", "removeSecond", false, "remove not primary and supplementary alignment reads [false]");
         addOption("S", "isSE", false, "input is SE data [false]");
         addOption("R", "reducer", true, "reducer numbers [30]");
         addOption("W", "windowSize", true, "window size that sharding the data [100000]");
@@ -86,6 +88,7 @@ public class MarkDuplicateOptions extends GaeaOptions implements HadoopOptions {
         output = getOptionValue("o", null);
         outputFormat = getOptionIntValue("O", 0);
         outputDupRead = getOptionBooleanValue("D", true);
+        removeSecond = getOptionBooleanValue("M", false);
         isSE = getOptionBooleanValue("S", false);
         reducerNum = getOptionIntValue("R", 30);
         windowSize = getOptionIntValue("W", 100000);
@@ -165,6 +168,14 @@ public class MarkDuplicateOptions extends GaeaOptions implements HadoopOptions {
 
     public boolean isSE() {
         return isSE;
+    }
+
+    public boolean isRemoveSecond() {
+        return removeSecond;
+    }
+
+    public void setRemoveSecond(boolean removeSecond) {
+        this.removeSecond = removeSecond;
     }
 
     public int getReducerNum() {
