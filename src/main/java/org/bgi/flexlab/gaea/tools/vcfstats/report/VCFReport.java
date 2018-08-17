@@ -68,7 +68,7 @@ public class VCFReport {
             if(perSampleVCFReports.containsKey(sample))
                 aSampleVCFReport = perSampleVCFReports.get(sample);
             else {
-                aSampleVCFReport = new PerSampleVCFReport(genomeShare);
+                aSampleVCFReport = new PerSampleVCFReport(genomeShare, options.isCountVarLength());
                 perSampleVCFReports.put(sample, aSampleVCFReport);
             }
 
@@ -123,7 +123,7 @@ public class VCFReport {
         PerSampleVCFReport perSampleVCFReport;
         PerSampleVCFReport totalVCFReport;
         if(!perSampleVCFReports.containsKey("total")) {
-            totalVCFReport = new PerSampleVCFReport(genomeShare);
+            totalVCFReport = new PerSampleVCFReport(genomeShare, options.isCountVarLength());
             perSampleVCFReports.put("total", totalVCFReport);
         }else {
             totalVCFReport = perSampleVCFReports.get("total");
@@ -136,7 +136,7 @@ public class VCFReport {
             if(perSampleVCFReports.containsKey(sample))
                 perSampleVCFReport = perSampleVCFReports.get(sample);
             else {
-                perSampleVCFReport = new PerSampleVCFReport(genomeShare);
+                perSampleVCFReport = new PerSampleVCFReport(genomeShare, options.isCountVarLength());
                 perSampleVCFReport.setSampleName(sample);
                 perSampleVCFReports.put(sample, perSampleVCFReport);
             }

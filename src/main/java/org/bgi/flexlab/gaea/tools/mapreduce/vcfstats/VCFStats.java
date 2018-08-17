@@ -78,7 +78,7 @@ public class VCFStats extends ToolsRunner {
                 loop ++;
             }
 
-            VCFReport report = new VCFReport();
+            VCFReport report = new VCFReport(options);
             report.mergeReport(partTmp, conf,
                     new Path(options.getOutputPath()));
             return 0;

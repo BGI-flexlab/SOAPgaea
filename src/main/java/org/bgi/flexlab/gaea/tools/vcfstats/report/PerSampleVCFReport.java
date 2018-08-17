@@ -37,6 +37,7 @@ public class PerSampleVCFReport {
     private static final String ALLELE_LENGTH_TAG = "AlleleLen:";
     private static final int ALLELE_LENGTH_MAX_PRINT = 200;
     private ReferenceShare genomeShare;
+    private boolean countVarLength = false;
 
     private String sampleName;
 
@@ -88,24 +89,27 @@ public class PerSampleVCFReport {
     private long mNovelTransversions = 0;
 
 
-    private final Histogram[] mAlleleLengths;
+    private Histogram[] mAlleleLengths = null;
 
 
-    public PerSampleVCFReport(ReferenceShare genomeShare){
+    public PerSampleVCFReport(ReferenceShare genomeShare, boolean countVarLength){
         sampleName = null;
         this.genomeShare = genomeShare;
+        this.countVarLength = countVarLength;
 
-        mAlleleLengths = new Histogram[VARIANT_TYPE_COUNT_LENGTH.length];
-        for (int i = VariantType.SNP.ordinal(); i < mAlleleLengths.length; ++i) {
-            // i from SNP as we don't care about NO_CALL/UNCHANGED
-            mAlleleLengths[i] = new Histogram();
+        if(countVarLength) {
+            mAlleleLengths = new Histogram[VARIANT_TYPE_COUNT_LENGTH.length];
+            for (int i = VariantType.SNP.ordinal(); i < mAlleleLengths.length; ++i) {
+                // i from SNP as we don't care about NO_CALL/UNCHANGED
+                mAlleleLengths[i] = new Histogram();
+            }
         }
     }
 
     // reducerStr: without sampleName
     public void parseReducerString(String reducerStr){
 
-        if(reducerStr.startsWith(ALLELE_LENGTH_TAG)){
+        if(countVarLength && reducerStr.startsWith(ALLELE_LENGTH_TAG)){
             String[] fields = reducerStr.split("\t", 3);
             VariantType type = VariantType.valueOf(fields[1]);
             if(type.ordinal() < mAlleleLengths.length)
@@ -171,6 +175,8 @@ public class PerSampleVCFReport {
         sb.append(value);
         sb.append("\n");
 
+        if(!countVarLength)
+            return sb.toString();
 
         for (int i = VariantType.SNP.ordinal(); i < mAlleleLengths.length; ++i) {
             Histogram histogram = mAlleleLengths[i];
@@ -222,7 +228,8 @@ public class PerSampleVCFReport {
         for(Allele allele: gt.getAlleles()){
             if(allele.isReference() || Allele.wouldBeStarAllele(allele.getBases()))
                 continue;
-            tallyAlleleLengths(vc.getReference(), allele);
+            if(countVarLength)
+                tallyAlleleLengths(vc.getReference(), allele);
             if(type == VariantType.SNP){
                 tallyTransitionTransversionRatio(vc.getReference().getBaseString(), allele.getBaseString(), vc.hasID());
             }
@@ -499,6 +506,9 @@ public class PerSampleVCFReport {
             outString.append(values.get(i));
             outString.append("\n");
         }
+
+        if(!countVarLength)
+            return outString.toString();
 
         outString.append("\n");
         appendHistograms(outString);

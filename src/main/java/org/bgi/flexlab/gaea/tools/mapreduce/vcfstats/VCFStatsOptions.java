@@ -36,7 +36,7 @@ public class VCFStatsOptions extends GaeaOptions implements HadoopOptions {
 
     private String referenceSequencePath; //参考序列gaeaindex
 
-    private boolean varLength = false;
+    private boolean countVarLength = false;
     private boolean verbose = false;
     private boolean debug = false;
 
@@ -47,7 +47,7 @@ public class VCFStatsOptions extends GaeaOptions implements HadoopOptions {
         addOption("o", "output",     true,  "output file [request]", true);
         addOption("d", "dbsnp",     true,  "dbsnp file(.vcf.gz), must be indexed [null]");
         addOption("r", "reference",  true,  "indexed reference sequence file list [request]", true);
-        addOption("l", "varLength",  true,  "count variant length");
+        addOption("c", "countVarLength",  false,  "count variant length");
         addOption(null,"verbose",    false, "display verbose information.");
         addOption(null,"debug",      false, "for debug.");
         addOption("h", "help",       false, "help information.");
@@ -79,7 +79,7 @@ public class VCFStatsOptions extends GaeaOptions implements HadoopOptions {
         setDbsnpFile(cmdLine.getOptionValue("dbsnp"));
         setReferenceSequencePath(cmdLine.getOptionValue("reference",""));
         setOutputPath(cmdLine.getOptionValue("output"));
-        setVarLength(getOptionBooleanValue("varLength", false));
+        setCountVarLength(getOptionBooleanValue("c", false));
         setVerbose(getOptionBooleanValue("verbose", false));
         setDebug(getOptionBooleanValue("debug", false));
     }
@@ -139,12 +139,12 @@ public class VCFStatsOptions extends GaeaOptions implements HadoopOptions {
         this.verbose = verbose;
     }
 
-    public boolean isVarLength() {
-        return varLength;
+    public boolean isCountVarLength() {
+        return countVarLength;
     }
 
-    public void setVarLength(boolean varLength) {
-        this.varLength = varLength;
+    public void setCountVarLength(boolean countVarLength) {
+        this.countVarLength = countVarLength;
     }
 
     public boolean isDebug() {
