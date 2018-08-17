@@ -91,6 +91,9 @@ public class JointcallingEval extends ToolsRunner {
             final FileStatus[] parts = outputPath.getFileSystem(conf).globStatus(new Path(options.getOutputTmpPath() +
                     "/part" + "-*-[0-9][0-9][0-9][0-9][0-9]*"));
             GZIPOutputStream os = new GZIPOutputStream(new FileOutputStream(options.getOutputPath() + "/report.tsv.gz"));
+            GZIPOutputStream diffos = null;
+            if(options.isOutputdiff())
+                diffos = new GZIPOutputStream(new FileOutputStream(options.getOutputPath() + "/diff.txt.gz"));
             List<String> statKey = new ArrayList<>();
             Map<String, int[]> stat = new HashMap<>();
             stat.put("total", new int[3]);
@@ -109,8 +112,15 @@ public class JointcallingEval extends ToolsRunner {
 //                            }
                         continue;
                     }
+                    if(diffos != null && line.startsWith("diff")){
+                        diffos.write(line.split("\t",2)[1].getBytes());
+                        diffos.write('\n');
+                        continue;
+                    }
+
                     int[] statResult;
                     String[] fields = line.split("\t");
+
                     if(stat.containsKey(fields[0]))
                         statResult = stat.get(fields[0]);
                     else
@@ -124,6 +134,9 @@ public class JointcallingEval extends ToolsRunner {
                         statKey.add(fields[0]);
                     stat.put(fields[0],statResult);
                 }
+            }
+            if (diffos != null) {
+                diffos.close();
             }
 
             String header = "#Sample\tTotal\ttest\tbaseline\tconcordance\tconcordance_rate\n";

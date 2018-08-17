@@ -40,13 +40,14 @@ public class JointcallingEvalReducer extends Reducer<Text, VcfLineWritable, Null
 	private List<String> sampleNames;
 	private HashMap<String, VCFCodec> vcfCodecs;
 	private Path inputPath;
+	JointcallingEvalOptions options;
 
 	//	test, baseline, intersection
 	private HashMap<String, int[]> stat;
 
 	@Override
 	protected void setup(Context context) throws IOException, InterruptedException {
-		JointcallingEvalOptions options = new JointcallingEvalOptions();
+		options = new JointcallingEvalOptions();
 		Configuration conf = context.getConfiguration();
 		options.getOptionsFromHadoopConf(conf);
 		sampleNames = new ArrayList<>();
@@ -86,6 +87,9 @@ public class JointcallingEvalReducer extends Reducer<Text, VcfLineWritable, Null
 		Iterator<VcfLineWritable> iter =  values.iterator();
 		int count = 0;
 
+		String[] keys = key.toString().split("-");
+		String posTag = keys[0] + ":" + keys[1];
+
 		while(iter.hasNext()) {
 			VcfLineWritable vcfInput = iter.next();
 			String tag = vcfInput.getFileName();
@@ -107,29 +111,53 @@ public class JointcallingEvalReducer extends Reducer<Text, VcfLineWritable, Null
 		}
 
 		for (String sampleName : sampleNames){
+			boolean printDiffPos = false;
 			if(stat.containsKey(sampleName)){
 				if(testVariantContext != null && baselineVariantContext != null) {
 					Genotype testGenotype = testVariantContext.getGenotype(sampleName);
 					Genotype baselineGenotype = baselineVariantContext.getGenotype(sampleName);
-					if(isVar(testGenotype) && isVar(baselineGenotype) && sameGenotype(testGenotype, baselineGenotype)){
-						stat.get(sampleName)[2]++;
+					if(isVar(testGenotype) && isVar(baselineGenotype)){
+						if(sameGenotype(testGenotype, baselineGenotype))
+							stat.get(sampleName)[2]++;
+						else{
+							if(options.isOutputdiff())
+								printDiffPos = true;
+						}
+
+
 					}
-					if(isVar(testGenotype))
-						stat.get(sampleName)[0] ++;
-					if(isVar(baselineGenotype))
-						stat.get(sampleName)[1] ++;
+					if(isVar(testGenotype)) {
+						stat.get(sampleName)[0]++;
+						if(options.isOutputdiff() && !isVar(baselineGenotype))
+							printDiffPos = true;
+
+					}
+					if(isVar(baselineGenotype)) {
+						stat.get(sampleName)[1]++;
+						if(options.isOutputdiff() && !isVar(testGenotype))
+							printDiffPos = true;
+					}
 				}else if(testVariantContext != null){
 					Genotype gt = testVariantContext.getGenotype(sampleName);
-					if(isVar(gt))
-						stat.get(sampleName)[0] ++;
+					if(isVar(gt)) {
+						stat.get(sampleName)[0]++;
+						if(options.isOutputdiff())
+							printDiffPos = true;
+					}
 				}else if(baselineVariantContext != null){
 					Genotype gt = baselineVariantContext.getGenotype(sampleName);
-					if(isVar(gt))
-						stat.get(sampleName)[1] ++;
+					if(isVar(gt)) {
+						stat.get(sampleName)[1]++;
+						if(options.isOutputdiff())
+							printDiffPos = true;
+					}
 				}
+				if(printDiffPos)
+					printDiff(context, sampleName, posTag);
 			}else {
 				stat.put(sampleName, new int[3]);
 			}
+
 		}
 
 
@@ -161,6 +189,11 @@ public class JointcallingEvalReducer extends Reducer<Text, VcfLineWritable, Null
 			otherAlleles.add(allele);
 		}
 		return thisAlleles.equals(otherAlleles);
+	}
+
+	private void printDiff(Context context, String sampleName, String posTag) throws IOException, InterruptedException {
+		resultValue.set("diff\t"+sampleName+"\t"+posTag);
+		context.write(NullWritable.get(), resultValue);
 	}
 
 	@Override

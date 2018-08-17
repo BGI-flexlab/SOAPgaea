@@ -43,11 +43,13 @@ public class JointcallingEvalOptions extends GaeaOptions implements HadoopOption
     private String baselineFile = null;
     private int reducerNum;
     private Mode mode;
+    private boolean outputdiff;
 
     public JointcallingEvalOptions() {
         addOption("i", "input",      true,  "input file(VCF). [request]", true);
         addOption("b", "baseline",      true,  "baseline file(VCF). [request]", true);
         addOption("o", "output",     true,  "output file of annotation results(.gz) [request]", true);
+        addOption("d", "outputdiff",     false,  "output diff variations (.gz) [false]");
         addOption("m", "mode",     true,  "only count SNP， INDEL or BOTH [BOTH]");
         addOption("h", "help",       false, "help information.");
         addOption("R", "reducer", true, "reducer numbers [30]");
@@ -73,6 +75,7 @@ public class JointcallingEvalOptions extends GaeaOptions implements HadoopOption
         setOutputPath(cmdLine.getOptionValue("output"));
         setBaselineFile(cmdLine.getOptionValue("baseline"));
         setMode(getOptionValue("m", "BOTH"));
+        setOutputdiff(getOptionBooleanValue("d", false));
     }
 
     @Override
@@ -139,6 +142,14 @@ public class JointcallingEvalOptions extends GaeaOptions implements HadoopOption
 
     public void setBaselineFile(String baselineFile) {
         this.baselineFile = baselineFile;
+    }
+
+    public boolean isOutputdiff() {
+        return outputdiff;
+    }
+
+    public void setOutputdiff(boolean outputdiff) {
+        this.outputdiff = outputdiff;
     }
 
     public Mode getMode() {
