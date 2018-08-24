@@ -80,6 +80,8 @@ public class JointcallingEvalMapper extends Mapper<LongWritable, Text, Text, Vcf
 	private boolean filteVariant(VariantContext variantContext) {
 		boolean filter = !variantContext.isVariant() || variantContext.isFiltered();
 		if(filter) return true;
+		if(variantContext.isSymbolicOrSV())
+			return true;
 		if(options.getMode().equals(JointcallingEvalOptions.Mode.SNP))
 			if(!variantContext.isSNP())
 				return true;
@@ -117,7 +119,7 @@ public class JointcallingEvalMapper extends Mapper<LongWritable, Text, Text, Vcf
 
 		resultValue.set(fileName, vcfLine);
 //		System.out.println("mapper: "+chr+"-"+variantContext.getStart() + "-" + variantContext.getReference().toString());
-		resultKey.set(chr+"-"+variantContext.getStart() + "-" + variantContext.getReference().toString());
+		resultKey.set(chr+"-"+variantContext.getStart() + "-" +variantContext.getEnd()+ "-"+ variantContext.getAlternateAllele(0).getBaseString());
 //		System.out.println("mapper: " + resultKey.toString() + " " + vcfLine);
 		/*根据chr-start-end*/
 		context.write(resultKey, resultValue);

@@ -139,7 +139,7 @@ public class JointcallingEval extends ToolsRunner {
                 diffos.close();
             }
 
-            String header = "#Sample\tTotal\ttest\tbaseline\tconcordance\tconcordance_rate\n";
+            String header = "#Sample\tTotal\ttest\tbaseline\tconcordance\tconcordance_rate\tPrecision\tSensitivity\tF-measure\n";
             os.write(header.getBytes());
 
             DecimalFormat df = new DecimalFormat("0.00");
@@ -149,7 +149,10 @@ public class JointcallingEval extends ToolsRunner {
                 int[] statResult = stat.get(key);
                 int total = statResult[0] + statResult[1] - statResult[2];
                 double ratio = (double)statResult[2]/total;
-                String result = String.format("%s\t%s\t%s\t%s\t%s\t%s%%", key, total, statResult[0], statResult[1], statResult[2], df.format(ratio*100));
+                double precision = (double)statResult[2]/statResult[0];
+                double sen = (double)statResult[2]/statResult[1];
+                double fm = 2*precision*sen/(precision+sen);
+                String result = String.format("%s\t%s\t%s\t%s\t%s\t%s%%\t%s%%\t%s%%\t%s%%", key, total, statResult[0], statResult[1], statResult[2], df.format(ratio*100), df.format(precision*100), df.format(sen*100), df.format(fm*100));
 //                    String result = key +"\t" + statResult[0] +"\t" + statResult[1] +"\t"+ statResult[2];
                 os.write(result.getBytes());
                 os.write('\n');
