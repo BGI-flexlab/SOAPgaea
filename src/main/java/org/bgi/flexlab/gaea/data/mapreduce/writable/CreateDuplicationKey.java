@@ -86,7 +86,7 @@ public class CreateDuplicationKey {
 		} else {
 			Library=header.getReadGroup(readgroup).getLibrary();
 			if (Library == null) {
-				Library = UNKNOW_LIBARY;
+				Library = header.getReadGroup(readgroup).getSample();
 			}
 		}
 		return Library;

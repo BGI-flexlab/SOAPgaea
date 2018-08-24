@@ -70,30 +70,16 @@ public class MarkDuplicatesFunc {
             }
 
             //mark rest pairs
-            ArrayList<String> highScoreNames = new ArrayList<>();
             for(String rName : rNames) {
                 ArrayList<SAMRecord> samPair = samPairs.get(rName);
-                boolean keep = !(maxScoreName.equals("") && !rName.equals(maxScoreName));
-                if(keep) {
-                    highScoreNames.add(rName);
-                } else {
+                assert !maxScoreName.equals("");
+                if(!rName.equals(maxScoreName)){
                     for(SAMRecord sam : samPair) {
                         sam.setDuplicateReadFlag(true);
                     }
                 }
             }
 
-            //deal special case : multi high score
-            if(highScoreNames.size() > 1) {
-                int keepIndex = (RandomUtils.getRandomGenerator().nextInt()) % highScoreNames.size();
-                for(int i = 0; i < highScoreNames.size(); i++) {
-                    if (i != keepIndex) {
-                        for(SAMRecord sam : samPairs.get(highScoreNames.get(i))) {
-                            sam.setDuplicateReadFlag(true);
-                        }
-                    }
-                }
-            }
         }
     }
 
