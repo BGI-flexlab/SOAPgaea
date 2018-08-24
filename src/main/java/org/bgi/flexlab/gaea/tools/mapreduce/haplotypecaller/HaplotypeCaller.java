@@ -11,6 +11,7 @@ import org.bgi.flexlab.gaea.data.mapreduce.output.vcf.GaeaVCFOutputFormat;
 import org.bgi.flexlab.gaea.data.mapreduce.output.vcf.VCFHdfsWriter;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.SamRecordWritable;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.WindowsBasedWritable;
+import org.bgi.flexlab.gaea.data.structure.bam.filter.HaplotypeCallerFilter;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.BioJob;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.ToolsRunner;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.WindowsBasedPlaceholderSamRecordMapper;
@@ -23,6 +24,9 @@ import org.seqdoop.hadoop_bam.VCFOutputFormat;
 import org.seqdoop.hadoop_bam.VariantContextWritable;
 
 import java.util.Set;
+
+import static org.bgi.flexlab.gaea.framework.tools.mapreduce.WindowsBasedMapper.BASERECALIBRATOR_ONLY;
+import static org.bgi.flexlab.gaea.framework.tools.mapreduce.WindowsBasedPlaceholderSamRecordMapper.WINDOWS_OUTPUT_ALL;
 
 public class HaplotypeCaller extends ToolsRunner {
 
@@ -37,6 +41,8 @@ public class HaplotypeCaller extends ToolsRunner {
         options.setHadoopConf(remainArgs, conf);
         conf.set(VCFOutputFormat.OUTPUT_VCF_FORMAT_PROPERTY, "VCF");
         conf.setBoolean(GaeaVCFOutputFormat.HEADER_MODIFY, true);
+        conf.getBoolean(BASERECALIBRATOR_ONLY,true);
+        conf.getBoolean(WINDOWS_OUTPUT_ALL,options.isOutputAllWindows());  //if true, output N or uncovor region windows
 
 
         SAMFileHeader samFileHeader = job.setHeader(options.getInput(), new Path(options.getHeaderOutput()));
@@ -54,6 +60,7 @@ public class HaplotypeCaller extends ToolsRunner {
         vcfHdfsWriter.close();
 
         job.setJobName("Gaea haplotype caller");
+        job.setFilterClass(HaplotypeCallerFilter.class);
         
         job.setJarByClass(HaplotypeCaller.class);
         if(options.isGVCF()) {

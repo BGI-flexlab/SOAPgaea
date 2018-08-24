@@ -64,6 +64,8 @@ public class HaplotypeCallerOptions  extends GaeaOptions implements HadoopOption
 	
 	private int maxReadsPerPosition = 0;
 
+	private boolean outputAllWindows;
+
 	public List<Integer> GVCFGQBands = new ArrayList<>(70);
 	
 	public HaplotypeCallerOptions() {
@@ -98,6 +100,7 @@ public class HaplotypeCallerOptions  extends GaeaOptions implements HadoopOption
 		addOption("u","uniquifySamples",false,"Assume duplicate samples are present and uniquify all names with '.variant' and file number index");
 		addOption("U","useNewAFCalculator",false,"Use new AF model instead of the so-called exact model");
 		addOption("w", "keyWindow", true, "window size for key[10000]");
+		addOption("W", "outputAllWindow", false, "output N or uncover region windows [false]");
 		FormatHelpInfo(SOFTWARE_NAME,SOFTWARE_VERSION);
 	}
 	
@@ -157,6 +160,7 @@ public class HaplotypeCallerOptions  extends GaeaOptions implements HadoopOption
 		this.region = getOptionValue("R",null);
 		this.reference = getOptionValue("r",null);
 		this.dbsnp = getOptionValue("k",null);
+		setOutputAllWindows(getOptionBooleanValue("W", false));
 		
 		if(dbsnp != null) {
 			comps.put("DB", dbsnp);
@@ -262,7 +266,15 @@ public class HaplotypeCallerOptions  extends GaeaOptions implements HadoopOption
 			return SAMFormat.SAM;
 		return SAMFormat.BAM;
 	}
-	
+
+	public boolean isOutputAllWindows() {
+		return outputAllWindows;
+	}
+
+	public void setOutputAllWindows(boolean outputAllWindows) {
+		this.outputAllWindows = outputAllWindows;
+	}
+
 	public HaplotypeCallerArgumentCollection getHaplotypeCallerArguments() {
 		return this.hcArgs;
 	}
