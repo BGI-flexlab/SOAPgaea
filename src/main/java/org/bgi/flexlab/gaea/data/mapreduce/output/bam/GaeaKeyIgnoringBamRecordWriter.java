@@ -128,10 +128,10 @@ public class GaeaKeyIgnoringBamRecordWriter<K> extends
 			initialize(sam.getHeader());
 		}
 		
-		/*check?*/
-		if(sam.getReadUnmappedFlag()){
-			sam.setAlignmentStart(0);
-		}
+//		/*check?*/
+//		if(sam.getReadUnmappedFlag()){
+//			sam.setAlignmentStart(0);
+//		}
 		bamRecordCodec.encode(sam);
 	}
 }
