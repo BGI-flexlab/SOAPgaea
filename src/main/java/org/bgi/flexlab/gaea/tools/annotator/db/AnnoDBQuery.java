@@ -100,11 +100,11 @@ public class AnnoDBQuery extends DBQuery {
 
 			String alt =  anno.get(INDEX_ALT_COLUMN_NAME);
 			int index = ArrayUtils.indexOf(alts, alt);
-			if(index == -1){
+			if(index != -1){
 				continue;
 			}
 
-			String mainKey = getHashRowKey(condition.getConditionString(), count);
+			String mainKey = getHashRowKey(condition.getConditionString(), count + alts.length);
 			dbAdapter.insert(condition.getRefTable().getTable(), mainKey, anno);
 			if(keys.containsKey(alt)){
 				keys.put(alt, keys.get(alt) + "," + mainKey);
