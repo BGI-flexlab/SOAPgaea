@@ -21,6 +21,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.PathFilter;
 import org.bgi.flexlab.gaea.data.mapreduce.options.HadoopOptions;
 import org.bgi.flexlab.gaea.data.options.GaeaOptions;
 import org.seqdoop.hadoop_bam.SAMFormat;
@@ -116,6 +117,7 @@ public class MarkDuplicateOptions extends GaeaOptions implements HadoopOptions {
     private void traversalInputPath(String input)
     {
         Path path = new Path(input);
+        PathFilter filter = file -> !file.getName().startsWith("_");
         try {
             if (!fs.exists(path)) {
                 System.err.println("Input File Path is not exist! Please check -i var.");
@@ -124,7 +126,11 @@ public class MarkDuplicateOptions extends GaeaOptions implements HadoopOptions {
             if (fs.isFile(path)) {
                 inputFileList.add(path);
             }else {
-                FileStatus stats[]=fs.listStatus(path);
+                FileStatus[] stats=fs.listStatus(path, filter);
+                if(stats.length <= 0){
+                    System.err.println("Input File Path is empty! Please check input : " +path.toString());
+                    System.exit(-1);
+                }
 
                 for (FileStatus file : stats) {
                     Path filePath=file.getPath();

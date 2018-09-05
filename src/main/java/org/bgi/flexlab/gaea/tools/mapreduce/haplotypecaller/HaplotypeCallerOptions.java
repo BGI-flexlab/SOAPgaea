@@ -5,6 +5,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.PathFilter;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.util.LineReader;
 import org.bgi.flexlab.gaea.data.exception.UserException;
@@ -173,9 +174,14 @@ public class HaplotypeCallerOptions  extends GaeaOptions implements HadoopOption
 	private void parseInput(String input) throws IOException {
 		Path path = new Path(input);
 		FileSystem inFS = path.getFileSystem(new Configuration());
+		PathFilter filter = file -> !file.getName().startsWith("_");
 		if(inFS.isDirectory(path)){
-			FileStatus[] fileStatuses = inFS.globStatus(new Path(input +"/part*"));
-			for (FileStatus f: fileStatuses)
+			FileStatus[] stats = inFS.listStatus(path, filter);
+			if(stats.length <= 0){
+				System.err.println("Input File Path is empty! Please check input : " +path.toString());
+				System.exit(-1);
+			}
+			for (FileStatus f: stats)
 				inputs.add(f.getPath());
 			return;
 		}
