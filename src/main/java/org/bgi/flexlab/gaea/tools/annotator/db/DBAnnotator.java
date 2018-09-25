@@ -49,16 +49,17 @@ public class DBAnnotator implements Serializable{
 			
 			DBQuery dbQuery = DbQueryMap.get(dbName);
 			if (!dbQuery.executeQuery(condition)) continue;
-			
-			for (AnnotationContext annotationContext : vac.getAnnotationContexts()) {
-				LinkedList<HashMap<String,String>> resultList = dbQuery.getAcResultList(annotationContext);
+
+			for(String alt: vac.getAlts()) {
+				LinkedList<HashMap<String, String>> resultList = dbQuery.getResultList(alt);
 				HashMap<String,String> result = mergeResult(resultList);
 				if (result == null) continue;
-				for (String field : config.getFieldsByDB(dbName)) {
-					annotationContext.putAnnoItem(field, result.get(field),false);
+				for (AnnotationContext annotationContext : vac.getAnnotationContexts(alt)) {
+					for (String field : config.getFieldsByDB(dbName)) {
+						annotationContext.putAnnoItem(field, result.get(field),false);
+					}
 				}
 			}
-			
 		}
 	}
 

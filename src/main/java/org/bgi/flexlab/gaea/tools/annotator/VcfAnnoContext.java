@@ -28,6 +28,7 @@ import org.bgi.flexlab.gaea.tools.annotator.interval.Variant;
 import org.bgi.flexlab.gaea.tools.annotator.realignment.VcfRefAltAlign;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class VcfAnnoContext {
 
@@ -270,6 +271,10 @@ public class VcfAnnoContext {
 
     public List<AnnotationContext> getAnnotationContexts() {
         return annotationContexts;
+    }
+
+    public List<AnnotationContext> getAnnotationContexts(String alt) {
+        return annotationContexts.stream().filter(ac -> ac.getAlt().equals(alt)).collect(Collectors.toList());
     }
 
     public void setAnnotationContexts(List<AnnotationContext> annotationContexts) {
