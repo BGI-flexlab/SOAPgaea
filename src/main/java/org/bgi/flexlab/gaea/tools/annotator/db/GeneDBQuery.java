@@ -37,8 +37,8 @@ public class GeneDBQuery extends DBQuery {
 	}
 
 	@Override
-	public LinkedList<HashMap<String,String>> getAcResultList(AnnotationContext ac) {
-		return results.get(ac.getGeneName());
+	public HashMap<String,String> getMergeResult(AnnotationContext ac) {
+		return results.getMergeResult(ac.getGeneName());
 	}
 
 }

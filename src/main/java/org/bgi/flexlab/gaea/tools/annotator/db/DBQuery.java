@@ -16,6 +16,7 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.annotator.db;
 
+import org.bgi.flexlab.gaea.tools.annotator.VcfAnnoContext;
 import org.bgi.flexlab.gaea.tools.annotator.config.DatabaseInfo.DbType;
 import org.bgi.flexlab.gaea.tools.annotator.AnnotationContext;
 
@@ -131,12 +132,12 @@ public class DBQuery implements Serializable {
 		return resultList;
 	}
 	
-	public LinkedList<HashMap<String,String>> getAcResultList(AnnotationContext ac) {
-		return results.get(ac.getAlt());
-	}
-
 	public LinkedList<HashMap<String,String>> getResultList(String tag) {
 		return results.get(tag);
+	}
+
+	public HashMap<String,String> getMergeResult(AnnotationContext ac) {
+		return results.getMergeResult(ac.getAlt());
 	}
 
 	public boolean insert(Condition condition,	List<Map<String,String>> annos)throws IOException{

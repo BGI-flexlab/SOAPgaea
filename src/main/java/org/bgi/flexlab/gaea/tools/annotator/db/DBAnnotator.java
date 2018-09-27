@@ -50,14 +50,12 @@ public class DBAnnotator implements Serializable{
 			DBQuery dbQuery = DbQueryMap.get(dbName);
 			if (!dbQuery.executeQuery(condition)) continue;
 
-			for(String alt: vac.getAlts()) {
-				LinkedList<HashMap<String, String>> resultList = dbQuery.getResultList(alt);
-				HashMap<String,String> result = mergeResult(resultList);
+//			alt & gene
+			for (AnnotationContext annotationContext : vac.getAnnotationContexts()) {
+				HashMap<String,String> result = dbQuery.getMergeResult(annotationContext);
 				if (result == null) continue;
-				for (AnnotationContext annotationContext : vac.getAnnotationContexts(alt)) {
-					for (String field : config.getFieldsByDB(dbName)) {
-						annotationContext.putAnnoItem(field, result.get(field),false);
-					}
+				for (String field : config.getFieldsByDB(dbName)) {
+					annotationContext.putAnnoItem(field, result.get(field),false);
 				}
 			}
 		}
@@ -100,32 +98,6 @@ public class DBAnnotator implements Serializable{
 		condition.createConditionMap(vac);
 		DBQuery dbQuery = DbQueryMap.get(dbName);
 		return dbQuery.insert(condition, vac.toAnnotationMaps(config.getFieldsWithoutVariant()));
-	}
-
-
-	private HashMap<String, String> mergeResult(
-			LinkedList<HashMap<String, String>> resultList) {
-		if (resultList == null || resultList.isEmpty()) return null;
-		
-		if (resultList.size() == 1) {
-			return resultList.get(0);
-		}
-		
-		HashMap<String, String> result = resultList.get(0);
-		for (int i = 1; i < resultList.size(); i++) {
-			HashMap<String, String> r = resultList.get(i);
-			for (Entry<String, String> entry : r.entrySet()) {
-				String key = entry.getKey();
-				String value = entry.getValue();
-				if(result.putIfAbsent(key, value) != null) {
-					if (!result.get(key).equals(value)) {
-						String mergeValue = result.get(key) + "&" + value;
-						result.put(key, mergeValue);
-					}
-				}
-			}
-		}
-		return result;
 	}
 
 	public void connection() throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException {
