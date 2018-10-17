@@ -6,6 +6,18 @@ import java.util.Locale;
 
 public class StatsUtils {
 
+    public static String perc(long numerator, long denominator) {
+        DecimalFormat df = new DecimalFormat("0.00");
+        df.setRoundingMode(RoundingMode.HALF_UP);
+        final StringBuilder sb = new StringBuilder();
+        if (denominator == 0) {
+            sb.append("-");
+        } else {
+            sb.append(realFormat((double) numerator / denominator * 100, 1));
+        }
+        return sb.toString();
+    }
+
     public static String percent(long numerator, long denominator) {
         DecimalFormat df = new DecimalFormat("0.00");
         df.setRoundingMode(RoundingMode.HALF_UP);

@@ -79,8 +79,8 @@ public class BamReport {
 			System.err.println("sample:" + sampleName);
 			ResultReport report = reports.get(sampleName);
 			report.write(fs, sampleName);
-		}	
-		
+		}
+		fs.delete(oPath, true);
 		fs.close();
 	}
 }

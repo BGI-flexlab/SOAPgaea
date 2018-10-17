@@ -38,7 +38,7 @@ public class SingleRegionReport {
 	private double allRegionAverageDepth = 0;
 	private double allRegionAverageRmdupDepth = 0;
 	private double regionSizeTotal = 0;
-	private boolean statPosDepth = true;
+	private boolean statPosDepth = false;
 	protected Map<SingleRegion.Regiondata, SingleRegionStatistic> result = null;
 	
 	public SingleRegionReport(SingleRegion singleReigon) {
@@ -161,7 +161,7 @@ public class SingleRegionReport {
 			outputString.append("\t");
 			outputString.append(deep.get(i)).append(",").append(rmdupDeep.get(i));
 			if(rmdupDeep.get(i) != 0){
-				statistic.addCoverage(rmdupDeep.get(start));
+				statistic.addCoverage(rmdupDeep.get(i));
 				statistic.addDepth(deep.get(i));
 				statistic.addRmdupDepth(rmdupDeep.get(i));
 			}

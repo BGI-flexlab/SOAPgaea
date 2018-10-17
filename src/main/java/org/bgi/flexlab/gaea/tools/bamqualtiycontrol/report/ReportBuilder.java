@@ -16,6 +16,7 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report;
 
+import htsjdk.samtools.SAMRecordIterator;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer.Context;
 import org.apache.hadoop.util.LineReader;
@@ -48,6 +49,10 @@ public class ReportBuilder {
 	}
 	
 	public boolean unmappedReport(long winNum, String chrName, Iterable<Text> values) {
+		return report.unmappedReport(winNum, chrName, values);
+	}
+
+	public boolean unmappedReport(long winNum, String chrName, SAMRecordIterator values) {
 		return report.unmappedReport(winNum, chrName, values);
 	}
 	
