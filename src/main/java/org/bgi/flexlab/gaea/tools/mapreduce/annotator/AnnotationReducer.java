@@ -117,23 +117,18 @@ public class AnnotationReducer extends Reducer<Text, VcfLineWritable, Text, Text
 			throws IOException, InterruptedException {
 		long start = System.currentTimeMillis();
 		Iterator<VcfLineWritable> iter =  values.iterator();
-		Map<String, VcfAnnoContext> posVariantInfo = new HashMap<>();
-		Map<Integer, String> posToPosKey = new HashMap<>();
-		List<Integer> positions = new ArrayList<>();
+		Map<Long, VcfAnnoContext> posVariantInfo = new HashMap<>();
+		TreeSet<Long> positions = new TreeSet<>();
 
 		while(iter.hasNext()) {
 			VcfLineWritable vcfInput =  iter.next();
 			String fileName = vcfInput.getFileName();
 			String vcfLine = vcfInput.getVCFLine();
 			VariantContext variantContext =  vcfCodecs.get(fileName).decode(vcfLine);
-			int pos = variantContext.getStart();
-			int end = variantContext.getEnd();
+			long posKey = (long)variantContext.getStart();
+			posKey = (posKey << 32) & variantContext.getEnd();
+			positions.add(posKey);
 
-
-			if(!positions.contains(pos))
-				positions.add(pos);
-			String posKey = pos + "-" + Integer.toString(end);
-			posToPosKey.put(pos, posKey);
 			if(posVariantInfo.containsKey(posKey)){
 				posVariantInfo.get(posKey).add(variantContext, fileName);
 			}else {
@@ -142,19 +137,18 @@ public class AnnotationReducer extends Reducer<Text, VcfLineWritable, Text, Text
 			}
 		}
 
-		Collections.sort(positions);
-
-		for(VcfAnnoContext vcfAnnoContext: posVariantInfo.values()){
+		for(Map.Entry<Long, VcfAnnoContext> entry: posVariantInfo.entrySet()){
+			VcfAnnoContext vcfAnnoContext = entry.getValue();
 			String chr = ChromosomeUtils.getNoChrName(vcfAnnoContext.getContig());
 			String posPrefix = chr+"-"+vcfAnnoContext.getStart()/1000;
 
 			if(!posPrefix.equals(key.toString()))
 				continue;
 
+			long posKey = entry.getKey();
+			long lowerPositionKeyEnd = positions.lower(posKey) != null ? positions.lower(posKey)&0xFFFFFFFFL : (long)0;
 			// 标记附近有其他变异的点
-			int index = positions.indexOf(vcfAnnoContext.getStart());
-			if(index > 0 && vcfAnnoContext.getStart() - positions.get(index-1) <= 5){
-				String posKey = posToPosKey.get(positions.get(index-1));
+			if(lowerPositionKeyEnd != 0 && vcfAnnoContext.getStart() - lowerPositionKeyEnd <= 5){
 				VcfAnnoContext vcfAnnoContextNear = posVariantInfo.get(posKey);
 				for(SampleAnnotationContext sac: vcfAnnoContext.getSampleAnnoContexts().values()){
 					String sampleName = sac.getSampleName();
