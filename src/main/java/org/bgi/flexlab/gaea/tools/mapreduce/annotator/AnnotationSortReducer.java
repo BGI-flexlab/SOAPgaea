@@ -17,44 +17,35 @@
 package org.bgi.flexlab.gaea.tools.mapreduce.annotator;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
-import org.bgi.flexlab.gaea.data.mapreduce.writable.PairWritable;
-import org.bgi.flexlab.gaea.tools.annotator.config.Config;
 
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
 
-public class AnnotationSortReducer extends Reducer<PairWritable, Text, NullWritable, Text> {
+public class AnnotationSortReducer extends Reducer<LongWritable, Text, NullWritable, Text> {
 
-	private MultipleOutputs<NullWritable,Text> multipleOutputs = null;
+	private MultipleOutputs<NullWritable,Text> multipleOutputs;
 	private Text resultValue;
-	private Set<String> printHeader = new HashSet<>();
-	private Config userConfig;
+	private String[] sampleNames;
 
 	@Override
 	protected void setup(Context context) throws IOException, InterruptedException {
 		resultValue = new Text();
 		multipleOutputs = new MultipleOutputs<>(context);
 		Configuration conf = context.getConfiguration();
-		userConfig = new Config(conf);
+		sampleNames = conf.getStrings("sampleName");
 	}
 
 	@Override
-	protected void reduce(PairWritable key, Iterable<Text> values, Context context)
+	protected void reduce(LongWritable key, Iterable<Text> values, Context context)
 			throws IOException, InterruptedException {
-		if(!printHeader.contains(key.getFirst())) {
-			resultValue.set(userConfig.getHeaderString());
-			multipleOutputs.write(NullWritable.get(), resultValue, key.getFirst());
-			printHeader.add(key.getFirst());
-		}
+		int index = (int)(key.get() >> 48);
 		for (Text inputLine : values) {
 			resultValue.set(inputLine);
-			multipleOutputs.write(NullWritable.get(), resultValue, key.getFirst());
+			multipleOutputs.write(NullWritable.get(), resultValue, sampleNames[index]);
 		}
 	}
 

@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  *******************************************************************************/
-package org.bgi.flexlab.gaea.tools.mapreduce.bamsort;
+package org.bgi.flexlab.gaea.data.structure.bam;
 
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMReadGroupRecord;
@@ -25,22 +25,23 @@ import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamHdfsFileHeader;
+import org.bgi.flexlab.gaea.data.mapreduce.writable.SamRecordWritable;
+import org.bgi.flexlab.gaea.tools.mapreduce.bamsort.BamSortOptions;
 import org.seqdoop.hadoop_bam.BAMRecordReader;
-import org.seqdoop.hadoop_bam.SAMRecordWritable;
 import org.seqdoop.hadoop_bam.util.MurmurHash3;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 
-public class SortRecordReader extends
-		RecordReader<LongWritable, SAMRecordWritable> {
-	private final RecordReader<LongWritable, SAMRecordWritable> baseRR;
+public class GaeaSamSortRecordReader extends
+		RecordReader<LongWritable, SamRecordWritable> {
+	private final RecordReader<LongWritable, SamRecordWritable> baseRR;
 
 	private HashMap<String,Integer> sampleID = new HashMap<>();
 	private BamSortOptions options = new BamSortOptions();
 
-	public SortRecordReader(RecordReader<LongWritable, SAMRecordWritable> rr) {
+	public GaeaSamSortRecordReader(RecordReader<LongWritable, SamRecordWritable> rr) {
 		baseRR = rr;
 	}
 
@@ -78,7 +79,7 @@ public class SortRecordReader extends
 	}
 
 	@Override
-	public SAMRecordWritable getCurrentValue() throws InterruptedException,
+	public SamRecordWritable getCurrentValue() throws InterruptedException,
 			IOException {
 		return baseRR.getCurrentValue();
 	}
