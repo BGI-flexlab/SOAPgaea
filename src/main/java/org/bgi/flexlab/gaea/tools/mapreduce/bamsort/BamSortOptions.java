@@ -16,8 +16,16 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.mapreduce.bamsort;
 
+import org.apache.commons.cli.Option;
 import org.apache.commons.cli.ParseException;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.PathFilter;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.util.LineReader;
+import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.data.mapreduce.options.HadoopOptions;
 import org.bgi.flexlab.gaea.data.options.GaeaOptions;
 import org.seqdoop.hadoop_bam.SAMFormat;
@@ -36,7 +44,7 @@ public class BamSortOptions extends GaeaOptions implements HadoopOptions {
     private final static String SOFTWARE_NAME = "BamSort";
     private final static String SOFTWARE_VERSION = "1.0";
 
-    private List<String> strInputs = null;
+    private List<Path> inputs = new ArrayList<>();
     private HashMap<String,String> renames = null;
     private String outdir = null;
     private String tmpPath = null;
@@ -44,8 +52,9 @@ public class BamSortOptions extends GaeaOptions implements HadoopOptions {
     private String inputFormat = "BAM";
     private String outputFormat = "BAM";
     private String type = "all";
-    private boolean isMultiSample = true;
+    private boolean isMultiSample = false;
     private boolean verbose = false;
+    private String partitionFile;
 
     private int reducerNum;
 
@@ -60,6 +69,7 @@ public class BamSortOptions extends GaeaOptions implements HadoopOptions {
         addOption("h", "help",       false, "help information.");
         addOption("R", "reducer", true, "reducer numbers [30]");
         addOption("T","type",    true, "filter mode. unmap/all [all]");
+        addOption("p", "partitonFile", true, "the partiton file (_partitons.lst) [null]");
 //        addOption(null,"tmpdir",    true, "hdfs tmpdir [default]");
         addOption(null,"verbose",    false, "display verbose information.");
 
@@ -87,15 +97,16 @@ public class BamSortOptions extends GaeaOptions implements HadoopOptions {
 //            setTmpPath(cmdLine.getOptionValue("tmpdir"));
 //        }else {
             SimpleDateFormat df = new SimpleDateFormat("yyyyMMddHHmmss");
-            tmpPath = cmdLine.getOptionValue("outdir") + "/bamsort-tmp-" + df.format(new Date());
+            tmpPath = "/user/" + System.getProperty("user.name") + "/bamsorttmp-" + df.format(new Date());
 //        }
 
         try {
-            setStrInputs(cmdLine.getOptionValue("input"));
+            parseInput( getOptionValue("i",null));
             setRenames(getOptionValue("rename",null));
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new UserException(e.toString());
         }
+
         setOutputFormat(getOptionValue("outputFormat", "BAM"));
         setInputFormat(getOptionValue("inputFormat","BAM"));
         setOutdir(cmdLine.getOptionValue("outdir"));
@@ -103,6 +114,7 @@ public class BamSortOptions extends GaeaOptions implements HadoopOptions {
         setVerbose(getOptionBooleanValue("verbose", false));
         setType(getOptionValue("type", "all"));
         setReference(getOptionValue("reference",null));
+        setPartitionFile(getOptionValue("partitonFile",null));
         setReducerNum(getOptionIntValue("reducer",30));
     }
 
@@ -115,6 +127,14 @@ public class BamSortOptions extends GaeaOptions implements HadoopOptions {
     public void getOptionsFromHadoopConf(Configuration conf) {
         String[] args = conf.getStrings("args");
         this.parse(args);
+    }
+
+    public String getPartitionFile() {
+        return partitionFile;
+    }
+
+    public void setPartitionFile(String partitionFile) {
+        this.partitionFile = partitionFile;
     }
 
     public int getReducerNum() {
@@ -170,28 +190,42 @@ public class BamSortOptions extends GaeaOptions implements HadoopOptions {
         this.outputFormat = outputFormat;
     }
 
-    public List<String> getStrInputs() {
-        return strInputs;
+    public List<Path> getInputs() {
+        return inputs;
     }
 
-    public void setStrInputs(String inputList) throws IOException {
-        List<String> strInputs = new ArrayList<>();
+    private void parseInput(String input) throws IOException {
+        Path path = new Path(input);
+        FileSystem inFS = path.getFileSystem(new Configuration());
+        if(inFS.isDirectory(path)){
+            PathFilter filter = file -> !file.getName().startsWith("_");
+            FileStatus[] stats=inFS.listStatus(path, filter);
+            if(stats.length <= 0){
+                System.err.println("Input File Path is empty! Please check input : " +path.toString());
+                System.exit(-1);
+            }
 
-        FileReader fr = new FileReader(inputList);
-        BufferedReader br = new BufferedReader(fr);
-
-        String line;
-        while ((line = br.readLine()) != null) {
-            line = line.trim();
-            if(line.isEmpty())
-                continue;
-            strInputs.add(line);
+            for (FileStatus f: stats)
+                inputs.add(f.getPath());
+            return;
         }
 
-        br.close();
-        fr.close();
-        this.strInputs = strInputs;
+        SAMFormat fmt = SAMFormat.inferFromData(inFS.open(path));
+
+        if(fmt == SAMFormat.BAM) {
+            inputs.add(path);
+        }
+        else {
+            LineReader reader = new LineReader(inFS.open(path));
+            Text line = new Text();
+
+            while(reader.readLine(line) > 0 && line.getLength() != 0) {
+                inputs.add(new Path(line.toString()));
+            }
+            reader.close();
+        }
     }
+
 
     public boolean isMultiSample() {
         return isMultiSample;
