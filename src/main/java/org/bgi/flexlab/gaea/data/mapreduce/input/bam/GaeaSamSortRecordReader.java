@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  *******************************************************************************/
-package org.bgi.flexlab.gaea.data.structure.bam;
+package org.bgi.flexlab.gaea.data.mapreduce.input.bam;
 
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMReadGroupRecord;
@@ -36,6 +36,7 @@ import java.util.List;
 
 public class GaeaSamSortRecordReader extends
 		RecordReader<LongWritable, SamRecordWritable> {
+	public static final String SAMPLENAME_ARRAY_PROP = "bamsort.sample.names";
 	private final RecordReader<LongWritable, SamRecordWritable> baseRR;
 
 	private HashMap<String,Integer> sampleID = new HashMap<>();
@@ -55,7 +56,7 @@ public class GaeaSamSortRecordReader extends
 		SAMFileHeader header = SamHdfsFileHeader.getHeader(conf);
 
 		List<SAMReadGroupRecord> list = header.getReadGroups();
-		
+
 		for(int i=0;i<list.size();i++)
 			sampleID.put(list.get(i).getSample(), i);
 	}
@@ -85,41 +86,36 @@ public class GaeaSamSortRecordReader extends
 	}
 	
 	public long setKey(SAMRecord r) throws InterruptedException, IOException{
-		long newKey = 0;
+		long newKey;
 		int ridx = r.getReferenceIndex();
 		int start = r.getAlignmentStart();
-		
-		if(options.isMultiSample()){
-			String sample = r.getReadGroup().getSample();
-			if(!sampleID.containsKey(sample))
-				throw new RuntimeException("cantains not sample "+sample+"\t"+sampleID.size());
-			int idIndex = sampleID.get(sample);
-			
-			if((ridx < 0 || start < 0)){
-				int hash = 0;
-				byte[] var;
-				if ((var = r.getVariableBinaryRepresentation()) != null) {
-					// Undecoded BAM record: just hash its raw data.
-					hash = (int)MurmurHash3.murmurhash3(var, hash);
-				} else {
-					// Decoded BAM record or any SAM record: hash a few representative
-					// fields together.
-					hash = (int)MurmurHash3.murmurhash3(r.getReadName(), hash);
-					hash = (int)MurmurHash3.murmurhash3(r.getReadBases(), hash);
-					hash = (int)MurmurHash3.murmurhash3(r.getBaseQualities(), hash);
-					hash = (int)MurmurHash3.murmurhash3(r.getCigarString(), hash);
-				}
-				hash = Math.abs(hash);
-				newKey = ((long)idIndex << 48) | ((long)65535 << 32) | (long)hash;
-			}else{
-				newKey = ((long)idIndex << 48) | (((long)ridx) << 32) | ((long)start-1);
+
+		String sample = r.getReadGroup().getSample();
+		if(!sampleID.containsKey(sample))
+			throw new RuntimeException("cantains not sample "+sample+"\t"+sampleID.size());
+		int idIndex = sampleID.get(sample);
+
+		if((ridx < 0 || start < 0)){
+			int hash = 0;
+			byte[] var;
+			if ((var = r.getVariableBinaryRepresentation()) != null) {
+				// Undecoded BAM record: just hash its raw data.
+				hash = (int)MurmurHash3.murmurhash3(var, hash);
+			} else {
+				// Decoded BAM record or any SAM record: hash a few representative
+				// fields together.
+				hash = (int)MurmurHash3.murmurhash3(r.getReadName(), hash);
+				hash = (int)MurmurHash3.murmurhash3(r.getReadBases(), hash);
+				hash = (int)MurmurHash3.murmurhash3(r.getBaseQualities(), hash);
+				hash = (int)MurmurHash3.murmurhash3(r.getCigarString(), hash);
 			}
-			getCurrentKey().set(newKey);
+			hash = Math.abs(hash);
+			newKey = ((long)idIndex << 48) | ((long)65535 << 32) | (long)hash;
 		}else{
-			if(ridx != -1 && r.getAlignmentStart() != -1)
-				getCurrentKey().set(BAMRecordReader.getKey(ridx,start));
+			newKey = ((long)idIndex << 48) | (((long)ridx) << 32) | (long)start;
 		}
-		
+		getCurrentKey().set(newKey);
+
 		return  newKey;
 	}
 

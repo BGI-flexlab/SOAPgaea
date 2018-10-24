@@ -238,5 +238,6 @@ public class AnnotationLineRecordReader extends RecordReader<LongWritable, Text>
                 decompressor = null;
             }
         }
+        contigIndexs.clear();
     }
 }
