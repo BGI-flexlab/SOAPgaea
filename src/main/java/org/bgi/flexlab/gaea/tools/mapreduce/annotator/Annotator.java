@@ -261,7 +261,7 @@ public class Annotator extends ToolsRunner {
                 outgz.write(BlockCompressedStreamConstants.EMPTY_GZIP_BLOCK);
                 outgz.close();
             }
-//            fs.delete(new Path(options.getTmpPath()), true);
+            fs.delete(new Path(options.getTmpPath()), true);
             return 0;
         }
         return 1;

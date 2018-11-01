@@ -23,10 +23,10 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.bgi.flexlab.gaea.data.mapreduce.input.txt.MNLineInputFormat;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.VcfLineWritable;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.BioJob;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.ToolsRunner;
-import org.bgi.flexlab.gaea.tools.mapreduce.annotator.*;
 
 import java.io.BufferedReader;
 import java.io.FileOutputStream;

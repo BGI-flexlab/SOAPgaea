@@ -58,6 +58,7 @@ import java.io.Writer;
 public class GaeaKeyIgnoringBamRecordWriter<K> extends
 		RecordWriter<K, SamRecordWritable> {
 
+	protected SAMFileHeader header;
 	private BinaryCodec binaryCodec;
 	private BAMRecordCodec bamRecordCodec;
 	private Path outputPath;
@@ -70,6 +71,16 @@ public class GaeaKeyIgnoringBamRecordWriter<K> extends
 		this.outputStream = outputPath.getFileSystem(ctx.getConfiguration()).create(
 				outputPath);
 		this.writeHeader = w;
+	}
+
+	public GaeaKeyIgnoringBamRecordWriter(Path p, SAMFileHeader header,Boolean w,
+										  TaskAttemptContext ctx) throws IOException {
+		this.outputPath = p;
+		this.outputStream = outputPath.getFileSystem(ctx.getConfiguration()).create(
+				outputPath);
+		this.writeHeader = w;
+		this.header = header;
+		initialize(header);
 	}
 
 	public GaeaKeyIgnoringBamRecordWriter(OutputStream os, Boolean w,
