@@ -48,7 +48,8 @@ public class SortOutputFormat extends
 			cramOF.setHeader(multiSample);
 		} else {
 			baseOF = new GaeaBamOutputFormat<>();
-			baseOF.setHeader(conf.getBoolean(WRITE_HEADER_PROP,true));
+			baseOF.setHeader(false);
+//			baseOF.setHeader(conf.getBoolean(WRITE_HEADER_PROP,true));
 		}
 	}
 

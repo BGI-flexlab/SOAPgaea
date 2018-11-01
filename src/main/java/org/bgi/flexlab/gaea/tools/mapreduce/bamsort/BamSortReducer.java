@@ -39,7 +39,7 @@ public final class BamSortReducer
 
 	private SAMFileHeader samHeader;
 	private MultipleOutputs<NullWritable,SamRecordWritable> mos;
-	private Map<Integer, String> sampleNames;
+//	private Map<Integer, String> sampleNames;
 
 	@Override
 	public void setup(Context context){
@@ -47,10 +47,10 @@ public final class BamSortReducer
 		samHeader = SamHdfsFileHeader.getHeader(conf);
 		mos = new MultipleOutputs<>(context);
 
-		sampleNames = new HashMap<>();
-		List<SAMReadGroupRecord> list = samHeader.getReadGroups();
-		for(int i=0;i<list.size();i++)
-			sampleNames.put(i, list.get(i).getSample());
+//		sampleNames = new HashMap<>();
+//		List<SAMReadGroupRecord> list = samHeader.getReadGroups();
+//		for(int i=0;i<list.size();i++)
+//			sampleNames.put(i, list.get(i).getSample());
 	}
 
 	@Override
@@ -59,10 +59,6 @@ public final class BamSortReducer
 			Iterable<SamRecordWritable> records,
 			Context ctx)
 			throws IOException, InterruptedException {
-		int index = (int)(key.get() >> 48);
-		if(index == -1)
-			System.err.println("index:" + index);
-		//	index 值可能为 -1
 
 		for (SamRecordWritable rec : records) {
 			GaeaSamRecord sam = new GaeaSamRecord(samHeader, rec.get());

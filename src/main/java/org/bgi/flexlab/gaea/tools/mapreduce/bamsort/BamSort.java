@@ -128,11 +128,11 @@ public class BamSort extends ToolsRunner {
         if(options.getPartitionFile() == null) {
             partitionFile = new Path(tmpDir + "/_partitons.lst");
             TotalOrderPartitioner.setPartitionFile(job.getConfiguration(), partitionFile);
-            System.err.println("vcf-sort :: Sampling...");
+            System.err.println("bam-sort :: Sampling...");
             InputSampler.writePartitionFile(
                     job,
                     new InputSampler.RandomSampler<LongWritable, SamRecordWritable>(
-                            0.1, 10000, options.getReducerNum()));
+                            0.01, 10000, options.getReducerNum()));
 
         }else {
             System.err.println("bamsort :: use partitionFile:"+options.getPartitionFile() + " ...");
