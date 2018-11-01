@@ -76,6 +76,10 @@ public class AnnotationMapper extends Mapper<LongWritable, Text, Text, VcfLineWr
 
 	}
 
+	private boolean filteVariant(VariantContext variantContext){
+		return !variantContext.isVariant();
+	}
+
 	@Override
 	protected void map(LongWritable key, Text value, Context context)
 			throws IOException, InterruptedException {
@@ -85,6 +89,9 @@ public class AnnotationMapper extends Mapper<LongWritable, Text, Text, VcfLineWr
 		String vcfLine = value.toString();
 		if (vcfLine.startsWith("#")) return;
 		VariantContext variantContext = vcfcodec.decode(vcfLine);
+
+		if(filteVariant(variantContext))
+			return;
 
 		String chr = ChromosomeUtils.getNoChrName(variantContext.getContig());
 

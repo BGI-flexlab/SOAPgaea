@@ -25,14 +25,16 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-/**
- * Created by huangzhibo on 2017/7/7.
- */
 public class AnnotatorOptions extends GaeaOptions implements HadoopOptions{
 
     //the results file format:  tsv,vcf
     public enum OutputFormat {
         TSV, VCF
+    }
+
+    //the results file format:  tsv,vcf
+    public enum RunStep {
+        ANN, SORT, ALL
     }
 
     private final static String SOFTWARE_NAME = "Annotator";
@@ -45,6 +47,7 @@ public class AnnotatorOptions extends GaeaOptions implements HadoopOptions{
     private String inputFilePath;
 
     private String referenceSequencePath; //参考序列gaeaindex
+    private RunStep runStep = RunStep.ALL;
 
     private boolean multiOutput = false;
     private boolean databaseCache = false;
@@ -63,13 +66,13 @@ public class AnnotatorOptions extends GaeaOptions implements HadoopOptions{
         addOption("M", "MultiOutput", true,  "output to multi file when have more than one sample");
         addOption("d","doDatabaseCache",    false, "cache annotation database");
         addOption("u","useDatabaseCache",    false, "use cached annotation database");
+        addOption("s","runStep",    true, "only run annotation step (ANN), only run sort step (SORT), run all steps (ALL) [ALL]");
         addOption(null,"verbose",    false, "display verbose information.");
         addOption(null,"debug",      false, "for debug.");
         addOption("h", "help",       false, "help information.");
         addOption("R", "reducer", true, "reducer numbers [30]");
 
         FormatHelpInfo(SOFTWARE_NAME,SOFTWARE_VERSION);
-
     }
 
     @Override
@@ -99,6 +102,7 @@ public class AnnotatorOptions extends GaeaOptions implements HadoopOptions{
         setOutputPath(cmdLine.getOptionValue("output"));
         setDatabaseCache(getOptionBooleanValue("doDatabaseCache", false));
         setUseDatabaseCache(getOptionBooleanValue("useDatabaseCache", false));
+        setRunStep(getOptionValue("runStep", "ALL"));
         setVerbose(getOptionBooleanValue("verbose", false));
         setDebug(getOptionBooleanValue("debug", false));
     }
@@ -221,5 +225,18 @@ public class AnnotatorOptions extends GaeaOptions implements HadoopOptions{
 
     public void setUseDatabaseCache(boolean useDatabaseCache) {
         this.useDatabaseCache = useDatabaseCache;
+    }
+
+    public RunStep getRunStep() {
+        return runStep;
+    }
+
+    public void setRunStep(String runStep) {
+        if(runStep.equalsIgnoreCase("ANN"))
+            this.runStep = RunStep.ANN;
+        else if(runStep.equalsIgnoreCase("SORT"))
+            this.runStep = RunStep.SORT;
+        else
+            this.runStep = RunStep.ALL;
     }
 }

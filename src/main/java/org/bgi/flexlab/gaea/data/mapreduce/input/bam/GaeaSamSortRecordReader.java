@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  *******************************************************************************/
-package org.bgi.flexlab.gaea.tools.mapreduce.bamsort;
+package org.bgi.flexlab.gaea.data.mapreduce.input.bam;
 
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMReadGroupRecord;
@@ -25,22 +25,24 @@ import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamHdfsFileHeader;
+import org.bgi.flexlab.gaea.data.mapreduce.writable.SamRecordWritable;
+import org.bgi.flexlab.gaea.tools.mapreduce.bamsort.BamSortOptions;
 import org.seqdoop.hadoop_bam.BAMRecordReader;
-import org.seqdoop.hadoop_bam.SAMRecordWritable;
 import org.seqdoop.hadoop_bam.util.MurmurHash3;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 
-public class SortRecordReader extends
-		RecordReader<LongWritable, SAMRecordWritable> {
-	private final RecordReader<LongWritable, SAMRecordWritable> baseRR;
+public class GaeaSamSortRecordReader extends
+		RecordReader<LongWritable, SamRecordWritable> {
+	public static final String SAMPLENAME_ARRAY_PROP = "bamsort.sample.names";
+	private final RecordReader<LongWritable, SamRecordWritable> baseRR;
 
 	private HashMap<String,Integer> sampleID = new HashMap<>();
 	private BamSortOptions options = new BamSortOptions();
 
-	public SortRecordReader(RecordReader<LongWritable, SAMRecordWritable> rr) {
+	public GaeaSamSortRecordReader(RecordReader<LongWritable, SamRecordWritable> rr) {
 		baseRR = rr;
 	}
 
@@ -54,7 +56,7 @@ public class SortRecordReader extends
 		SAMFileHeader header = SamHdfsFileHeader.getHeader(conf);
 
 		List<SAMReadGroupRecord> list = header.getReadGroups();
-		
+
 		for(int i=0;i<list.size();i++)
 			sampleID.put(list.get(i).getSample(), i);
 	}
@@ -78,47 +80,42 @@ public class SortRecordReader extends
 	}
 
 	@Override
-	public SAMRecordWritable getCurrentValue() throws InterruptedException,
+	public SamRecordWritable getCurrentValue() throws InterruptedException,
 			IOException {
 		return baseRR.getCurrentValue();
 	}
 	
 	public long setKey(SAMRecord r) throws InterruptedException, IOException{
-		long newKey = 0;
+		long newKey;
 		int ridx = r.getReferenceIndex();
 		int start = r.getAlignmentStart();
-		
-		if(options.isMultiSample()){
-			String sample = r.getReadGroup().getSample();
-			if(!sampleID.containsKey(sample))
-				throw new RuntimeException("cantains not sample "+sample+"\t"+sampleID.size());
-			int idIndex = sampleID.get(sample);
-			
-			if((ridx < 0 || start < 0)){
-				int hash = 0;
-				byte[] var;
-				if ((var = r.getVariableBinaryRepresentation()) != null) {
-					// Undecoded BAM record: just hash its raw data.
-					hash = (int)MurmurHash3.murmurhash3(var, hash);
-				} else {
-					// Decoded BAM record or any SAM record: hash a few representative
-					// fields together.
-					hash = (int)MurmurHash3.murmurhash3(r.getReadName(), hash);
-					hash = (int)MurmurHash3.murmurhash3(r.getReadBases(), hash);
-					hash = (int)MurmurHash3.murmurhash3(r.getBaseQualities(), hash);
-					hash = (int)MurmurHash3.murmurhash3(r.getCigarString(), hash);
-				}
-				hash = Math.abs(hash);
-				newKey = ((long)idIndex << 48) | ((long)65535 << 32) | (long)hash;
-			}else{
-				newKey = ((long)idIndex << 48) | (((long)ridx) << 32) | ((long)start-1);
+
+		String sample = r.getReadGroup().getSample();
+		if(!sampleID.containsKey(sample))
+			throw new RuntimeException("cantains not sample "+sample+"\t"+sampleID.size());
+		int idIndex = sampleID.get(sample);
+
+		if((ridx < 0 || start < 0)){
+			int hash = 0;
+			byte[] var;
+			if ((var = r.getVariableBinaryRepresentation()) != null) {
+				// Undecoded BAM record: just hash its raw data.
+				hash = (int)MurmurHash3.murmurhash3(var, hash);
+			} else {
+				// Decoded BAM record or any SAM record: hash a few representative
+				// fields together.
+				hash = (int)MurmurHash3.murmurhash3(r.getReadName(), hash);
+				hash = (int)MurmurHash3.murmurhash3(r.getReadBases(), hash);
+				hash = (int)MurmurHash3.murmurhash3(r.getBaseQualities(), hash);
+				hash = (int)MurmurHash3.murmurhash3(r.getCigarString(), hash);
 			}
-			getCurrentKey().set(newKey);
+			hash = Math.abs(hash);
+			newKey = ((long)idIndex << 48) | ((long)65535 << 32) | (long)hash;
 		}else{
-			if(ridx != -1 && r.getAlignmentStart() != -1)
-				getCurrentKey().set(BAMRecordReader.getKey(ridx,start));
+			newKey = ((long)idIndex << 48) | (((long)ridx) << 32) | (long)start;
 		}
-		
+		getCurrentKey().set(newKey);
+
 		return  newKey;
 	}
 

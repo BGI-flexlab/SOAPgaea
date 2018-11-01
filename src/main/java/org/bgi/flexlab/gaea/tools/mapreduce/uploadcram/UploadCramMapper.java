@@ -14,31 +14,19 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  *******************************************************************************/
-package org.bgi.flexlab.gaea.tools.annotator.db;
+package org.bgi.flexlab.gaea.tools.mapreduce.uploadcram;
 
-import org.bgi.flexlab.gaea.tools.annotator.AnnotationContext;
+import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.NullWritable;
+import org.apache.hadoop.mapreduce.Mapper;
+import org.bgi.flexlab.gaea.data.mapreduce.writable.SamRecordWritable;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.LinkedList;
 
-public class TrDBQuery extends DBQuery {
+public class UploadCramMapper extends Mapper<LongWritable, SamRecordWritable, NullWritable, SamRecordWritable>  {
 
-	@Override
-	public Results query(Condition condition)throws IOException{
-		Results results = new Results();
-
-		for (String tr : condition.getTranscriptIds()) {
-			HashMap<String,String> result = dbAdapter.getResult(condition.getRefTable().getTable(), tr, condition.getFields());
-			if (result ==null || result.isEmpty()) return null;
-			results.add(tr, result);
-		}
-		return results;
-	}
-
-	@Override
-	public HashMap<String,String> getMergeResult(AnnotationContext ac) {
-		return results.getMergeResult(ac.getTranscriptId());
-	}
-
+    @Override
+    public void map(LongWritable key, SamRecordWritable value, Context context) throws IOException, InterruptedException {
+        context.write(NullWritable.get(), value);
+    }
 }

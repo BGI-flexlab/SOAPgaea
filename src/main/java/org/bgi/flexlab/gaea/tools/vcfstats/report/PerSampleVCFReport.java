@@ -37,6 +37,7 @@ public class PerSampleVCFReport {
     private static final String ALLELE_LENGTH_TAG = "AlleleLen:";
     private static final int ALLELE_LENGTH_MAX_PRINT = 200;
     private ReferenceShare genomeShare;
+    private boolean countVarLength = false;
 
     private String sampleName;
 
@@ -82,25 +83,33 @@ public class PerSampleVCFReport {
     private long mHeterozygousInDels = 0;
     private long mHomozygousInDels = 0;
 
+    private long mKnownTransitions = 0;
+    private long mKnownTransversions = 0;
+    private long mNovelTransitions = 0;
+    private long mNovelTransversions = 0;
 
-    private final Histogram[] mAlleleLengths;
+
+    private Histogram[] mAlleleLengths = null;
 
 
-    public PerSampleVCFReport(ReferenceShare genomeShare){
+    public PerSampleVCFReport(ReferenceShare genomeShare, boolean countVarLength){
         sampleName = null;
         this.genomeShare = genomeShare;
+        this.countVarLength = countVarLength;
 
-        mAlleleLengths = new Histogram[VARIANT_TYPE_COUNT_LENGTH.length];
-        for (int i = VariantType.SNP.ordinal(); i < mAlleleLengths.length; ++i) {
-            // i from SNP as we don't care about NO_CALL/UNCHANGED
-            mAlleleLengths[i] = new Histogram();
+        if(countVarLength) {
+            mAlleleLengths = new Histogram[VARIANT_TYPE_COUNT_LENGTH.length];
+            for (int i = VariantType.SNP.ordinal(); i < mAlleleLengths.length; ++i) {
+                // i from SNP as we don't care about NO_CALL/UNCHANGED
+                mAlleleLengths[i] = new Histogram();
+            }
         }
     }
 
     // reducerStr: without sampleName
     public void parseReducerString(String reducerStr){
 
-        if(reducerStr.startsWith(ALLELE_LENGTH_TAG)){
+        if(countVarLength && reducerStr.startsWith(ALLELE_LENGTH_TAG)){
             String[] fields = reducerStr.split("\t", 3);
             VariantType type = VariantType.valueOf(fields[1]);
             if(type.ordinal() < mAlleleLengths.length)
@@ -121,6 +130,10 @@ public class PerSampleVCFReport {
         mTotalSnps += Integer.valueOf(fields[i++]);
         mTransitions += Integer.valueOf(fields[i++]);
         mTransversions += Integer.valueOf(fields[i++]);
+        mKnownTransitions += Integer.valueOf(fields[i++]);
+        mKnownTransversions += Integer.valueOf(fields[i++]);
+        mNovelTransitions += Integer.valueOf(fields[i++]);
+        mNovelTransversions += Integer.valueOf(fields[i++]);
         mHeterozygousSnps += Integer.valueOf(fields[i++]);
         mHomozygousSnps += Integer.valueOf(fields[i++]);
 
@@ -162,6 +175,8 @@ public class PerSampleVCFReport {
         sb.append(value);
         sb.append("\n");
 
+        if(!countVarLength)
+            return sb.toString();
 
         for (int i = VariantType.SNP.ordinal(); i < mAlleleLengths.length; ++i) {
             Histogram histogram = mAlleleLengths[i];
@@ -183,9 +198,10 @@ public class PerSampleVCFReport {
         Genotype gt = vc.getGenotype(sample);
         VariantType type = VariantType.determineType(vc, sample);
 
-        if(vc.isFiltered())
+        if(vc.isFiltered()) {
             mTotalFailedFilters++;
-        else
+            return;
+        }else
             mTotalPassedFilters++;
 
         if(gt.isNoCall()) {
@@ -193,23 +209,29 @@ public class PerSampleVCFReport {
             return;
         }
 
-        if(gt.isHomRef())
+        if(gt.isHomRef()) {
             mTotalUnchanged++;
+            return;
+        }
 
         if (gt.isHet())
             mHeterozygous++;
         else
             mHomozygous++;
 
-        if(genomeShare.getChromosomeInfo(vc.getContig()).isSNP(vc.getStart()))
+//        if(genomeShare.getChromosomeInfo(vc.getContig()).isSNP(vc.getStart()))
+//            mTotalDbSnp++;
+
+        if(vc.hasID())
             mTotalDbSnp++;
 
         for(Allele allele: gt.getAlleles()){
-            if(allele.isReference())
+            if(allele.isReference() || Allele.wouldBeStarAllele(allele.getBases()))
                 continue;
-            tallyAlleleLengths(vc.getReference(), allele);
+            if(countVarLength)
+                tallyAlleleLengths(vc.getReference(), allele);
             if(type == VariantType.SNP){
-                tallyTransitionTransversionRatio(vc.getReference().getBaseString(), allele.getBaseString());
+                tallyTransitionTransversionRatio(vc.getReference().getBaseString(), allele.getBaseString(), vc.hasID());
             }
             if(type == VariantType.MIXED){
                 VariantType type2 =VariantType.typeOfBiallelicVariant(vc.getReference(), allele);
@@ -283,6 +305,10 @@ public class PerSampleVCFReport {
         values.add(Long.toString(mTotalSnps));
         values.add(Long.toString(mTransitions));
         values.add(Long.toString(mTransversions));
+        values.add(Long.toString(mKnownTransitions));
+        values.add(Long.toString(mKnownTransversions));
+        values.add(Long.toString(mNovelTransitions));
+        values.add(Long.toString(mNovelTransversions));
         values.add(Long.toString(mHeterozygousSnps));
         values.add(Long.toString(mHomozygousSnps));
 
@@ -352,6 +378,10 @@ public class PerSampleVCFReport {
 //        values.add(mPhased > 0 ? StatsUtils.percent(mPhased, totalNonMissingGenotypes) : null);
         names.add("SNP Transitions/Transversions");
         values.add(StatsUtils.divide(mTransitions, mTransversions));
+        names.add("Known SNP Transitions/Transversions");
+        values.add(StatsUtils.divide(mKnownTransitions, mKnownTransversions));
+        names.add("Novel SNP Transitions/Transversions");
+        values.add(StatsUtils.divide(mNovelTransitions, mNovelTransversions));
 
         names.add("Total Het/Hom ratio");
         values.add(StatsUtils.divide(mHeterozygous, mHomozygous));
@@ -369,7 +399,7 @@ public class PerSampleVCFReport {
         names.add("Indel/SNP+MNP ratio");
         values.add(StatsUtils.divide(mTotalInsertions + mTotalDeletions, mTotalSnps + mTotalMnps));
         names.add("dbSNP ratio");
-        values.add(StatsUtils.divide(mTotalDbSnp, mTotalPassedFilters - mNoCall));
+        values.add(StatsUtils.divide(mTotalDbSnp, mTotalPassedFilters - mNoCall - mTotalUnchanged));
         return Pair.create(names, values);
     }
 
@@ -379,6 +409,23 @@ public class PerSampleVCFReport {
             mTransitions++;
         } else {
             mTransversions++;
+        }
+    }
+
+    private void tallyTransitionTransversionRatio(String ref, String pred, boolean hasID) {
+        final boolean transition = "AG".contains(ref) && "AG".contains(pred) || "CT".contains(ref) && "CT".contains(pred);
+        if (transition) {
+            mTransitions++;
+            if(hasID)
+                mKnownTransitions++;
+            else
+                mNovelTransitions++;
+        } else {
+            mTransversions++;
+            if(hasID)
+                mKnownTransversions++;
+            else
+                mNovelTransversions++;
         }
     }
 
@@ -393,6 +440,7 @@ public class PerSampleVCFReport {
     /**
      * Append per sample histograms to a buffer.
      * @param sb buffer to append to
+     * TODO snp长度个数统计有误？
      */
     private void appendHistograms(StringBuilder sb) {
         sb.append("Variant Allele Lengths :").append("\n");
@@ -458,6 +506,9 @@ public class PerSampleVCFReport {
             outString.append(values.get(i));
             outString.append("\n");
         }
+
+        if(!countVarLength)
+            return outString.toString();
 
         outString.append("\n");
         appendHistograms(outString);

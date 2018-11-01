@@ -5,6 +5,7 @@
 .DS_Store
 
 target/
+test/
 TempFatjarBuildDir_erase_me/
 
 *.jar

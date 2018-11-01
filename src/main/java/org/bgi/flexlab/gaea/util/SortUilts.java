@@ -78,8 +78,8 @@ public class SortUilts {
     		
     		if(partitionURI.getScheme().equals("file"))
     			return;
-    		
-    		ReferenceShare.distributeCache(partitionURI.toString(), job);
+    		job.addCacheFile(partitionURI);
+//    		ReferenceShare.distributeCache(partitionURI.toString(), job);
     	} catch (URISyntaxException e) { throw new RuntimeException(e); }
     	
 	}

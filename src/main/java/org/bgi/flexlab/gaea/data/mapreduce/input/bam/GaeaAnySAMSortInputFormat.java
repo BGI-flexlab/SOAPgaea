@@ -62,7 +62,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class GaeaAnySAMInputFormat extends
+public class GaeaAnySAMSortInputFormat extends
 		FileInputFormat<LongWritable, SamRecordWritable> {
 
 	public static final String TRUST_EXTS_PROPERTY = "hadoopbam.anysam.trust-exts";
@@ -76,12 +76,12 @@ public class GaeaAnySAMInputFormat extends
 	private Configuration conf;
 	private boolean trustExts;
 
-	public GaeaAnySAMInputFormat() {
+	public GaeaAnySAMSortInputFormat() {
 		this.formatMap = new HashMap<Path, SAMFormat>();
 		this.conf = null;
 	}
 
-	public GaeaAnySAMInputFormat(Configuration conf) {
+	public GaeaAnySAMSortInputFormat(Configuration conf) {
 		this.formatMap = new HashMap<Path, SAMFormat>();
 		this.conf = conf;
 		this.trustExts = conf.getBoolean(TRUST_EXTS_PROPERTY, true);
@@ -122,6 +122,7 @@ public class GaeaAnySAMInputFormat extends
 		return fmt;
 	}
 
+
 	@Override
 	public RecordReader<LongWritable, SamRecordWritable> createRecordReader(
 			InputSplit split, TaskAttemptContext ctx)
@@ -143,11 +144,18 @@ public class GaeaAnySAMInputFormat extends
 			throw new IllegalArgumentException(
 					"unknown SAM format, cannot create RecordReader: " + path);
 
+		RecordReader<LongWritable, SamRecordWritable> rr;
 		switch (fmt) {
 		case SAM:
-			return samIF.createRecordReader(split, ctx);
+			rr = new GaeaSamSortRecordReader(
+					samIF.createRecordReader(split, ctx));
+			rr.initialize(split, ctx);
+			return rr;
 		case BAM:
-			return bamIF.createRecordReader(split, ctx);
+			rr = new GaeaSamSortRecordReader(
+					bamIF.createRecordReader(split, ctx));
+			rr.initialize(split, ctx);
+			return rr;
 		default:
 			assert false;
 			return null;

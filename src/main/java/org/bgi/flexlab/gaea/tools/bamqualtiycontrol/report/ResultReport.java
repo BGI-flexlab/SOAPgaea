@@ -16,6 +16,7 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report;
 
+import htsjdk.samtools.SAMRecordIterator;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -94,6 +95,10 @@ public abstract class ResultReport {
 	}
 	
 	public boolean unmappedReport(long winNum, String chrName, Iterable<Text> values) {
+		return unmappedReport.constructMapReport(winNum, chrName, values, basicReport);
+	}
+
+	public boolean unmappedReport(long winNum, String chrName, SAMRecordIterator values) {
 		return unmappedReport.constructMapReport(winNum, chrName, values, basicReport);
 	}
 	
@@ -204,6 +209,10 @@ public abstract class ResultReport {
 	
 	public void write(FileSystem fs, String sampleName) throws IOException {
 		if(cnvSingleRegionReport != null) {
+			Map<Regiondata, SingleRegionStatistic> result = cnvSingleRegionReport.getResult();
+			cnvSingleRegionReport.updateAllRegionAverageDeepth();
+
+//			//输出小区域每个位点的深度，should setStatPosDepth(true) for cnvSingleRegionReport
 //			String depthFileStr = options.getOutputPath() +
 //					"/" + sampleName + ".region.depth.tsv.gz";
 //			Path depthFilePath = new Path(depthFileStr);
@@ -212,6 +221,24 @@ public abstract class ResultReport {
 //			CompressionCodec codec = codecFactory.getCodec(depthFilePath);
 //			CompressionOutputStream depthCompressedOutput = codec.createOutputStream(cnvDepthStream);
 //			StringBuilder sb = new StringBuilder();
+//			sb.append("#Chr\tPos\tRaw Depth\tRmdup depth\n");
+//			for(Regiondata regionData : cnvSingleRegionReport.getRegion().getRegions()) {
+//				SingleRegionStatistic singleRegionStat = result.get(regionData);
+//				for (int i = 0; i < regionData.size(); i++) {
+//					sb.append(regionData.getChrName());
+//					sb.append("\t");
+//					sb.append(i + regionData.getStart() + 1);
+//					sb.append("\t");
+//					sb.append(singleRegionStat.getPosDepth(i));
+//					sb.append("\t");
+//					sb.append(singleRegionStat.getPosRmdupDepth(i));
+//					sb.append("\n");
+//				}
+//			}
+//			depthCompressedOutput.write(sb.toString().getBytes());
+//			depthCompressedOutput.close();
+//			cnvDepthStream.close();
+
 
 			String singleRegionFileStr = options.getOutputPath() +
 					"/" +
@@ -234,22 +261,8 @@ public abstract class ResultReport {
 			unsingleRegionwriter.write(SingleRegionStatistic.toReportTitleString().getBytes());
 			unsingleRegionwriter.write('\n');
 
-			Map<Regiondata, SingleRegionStatistic> result = cnvSingleRegionReport.getResult();
-			cnvSingleRegionReport.updateAllRegionAverageDeepth();
-//			sb.append("#Chr\tPos\tRaw Depth\tRmdup depth\n");
 			for(Regiondata regionData : cnvSingleRegionReport.getRegion().getRegions()) {
 				SingleRegionStatistic singleRegionStat = result.get(regionData);
-//				for (int i = 0; i < regionData.size(); i++) {
-//					sb.append(regionData.getChrName());
-//					sb.append("\t");
-//					sb.append(i + regionData.getStart() + 1);
-//					sb.append("\t");
-//					sb.append(singleRegionStat.getPosDepth(i));
-//					sb.append("\t");
-//					sb.append(singleRegionStat.getPosRmdupDepth(i));
-//					sb.append("\n");
-//				}
-
 				if(singleRegionStat.getDepth(regionData) > options.getMinSingleRegionDepth())
 					covCompressedOutput.write(result.get(regionData).toReportString(regionData, cnvSingleRegionReport.getAllRegionAverageDepth()).getBytes());
 				else {
@@ -257,9 +270,6 @@ public abstract class ResultReport {
 					unsingleRegionwriter.write(result.get(regionData).toReportString(regionData, cnvSingleRegionReport.getAllRegionAverageDepth()).getBytes());
 				}
 			}
-//			depthCompressedOutput.write(sb.toString().getBytes());
-//			depthCompressedOutput.close();
-//			cnvDepthStream.close();
 			covCompressedOutput.close();
 			unsingleRegionwriter.close();
 		}
@@ -291,27 +301,27 @@ public abstract class ResultReport {
 		}
 		
 		StringBuilder reportFilePath = new StringBuilder();
-		reportFilePath.append(options.getOutputPath());
-		reportFilePath.append("/");
-		reportFilePath.append(sampleName);
-		reportFilePath.append(".unmapped.bed");
-		Path bedPath = new Path(reportFilePath.toString());
-		FSDataOutputStream bedwriter = fs.create(bedPath);
-		
-		StringBuilder bedString = new StringBuilder();
-		for(String chrName:unmappedReport.getUnmappedSites().keySet()) {
-			ArrayList<Long> sites = unmappedReport.getUnmappedSites(chrName);
-			for(int i = 0; i < sites.size(); i += 2) {
-				bedString.append(chrName);
-				bedString.append("\t");
-				bedString.append(sites.get(i));
-				bedString.append("\t");
-				bedString.append(sites.get(i+1));
-				bedString.append("\n");
-			}
-		}
-		bedwriter.write(bedString.toString().getBytes());
-		bedwriter.close();
+//		reportFilePath.append(options.getOutputPath());
+//		reportFilePath.append("/");
+//		reportFilePath.append(sampleName);
+//		reportFilePath.append(".unmapped.bed");
+//		Path bedPath = new Path(reportFilePath.toString());
+//		FSDataOutputStream bedwriter = fs.create(bedPath);
+//
+//		StringBuilder bedString = new StringBuilder();
+//		for(String chrName:unmappedReport.getUnmappedSites().keySet()) {
+//			ArrayList<Long> sites = unmappedReport.getUnmappedSites(chrName);
+//			for(int i = 0; i < sites.size(); i += 2) {
+//				bedString.append(chrName);
+//				bedString.append("\t");
+//				bedString.append(sites.get(i));
+//				bedString.append("\t");
+//				bedString.append(sites.get(i+1));
+//				bedString.append("\n");
+//			}
+//		}
+//		bedwriter.write(bedString.toString().getBytes());
+//		bedwriter.close();
 		
 		reportFilePath.setLength(0);
 		reportFilePath.append(options.getOutputPath());

@@ -28,6 +28,7 @@ import org.bgi.flexlab.gaea.tools.annotator.interval.Variant;
 import org.bgi.flexlab.gaea.tools.annotator.realignment.VcfRefAltAlign;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class VcfAnnoContext {
 
@@ -82,7 +83,7 @@ public class VcfAnnoContext {
         end = variantContext.getEnd();
         alts = new ArrayList<>();
         for (Allele allele : variantContext.getAlternateAlleles()) {
-            if(! allele.isSymbolic())
+            if(! Allele.wouldBeStarAllele(allele.getBases()) )
                 alts.add(allele.getBaseString());
         }
         addSampleContext(variantContext);
@@ -97,7 +98,7 @@ public class VcfAnnoContext {
             variantContextMap.put(filename, variantContexts);
         }
         for(Allele allele: variantContext.getAlternateAlleles()){
-            if(allele.isSymbolic())
+            if(Allele.wouldBeStarAllele(allele.getBases()))
                 continue;
             if(!alts.contains(allele.getBaseString()))
                 alts.add(allele.getBaseString());
@@ -270,6 +271,10 @@ public class VcfAnnoContext {
 
     public List<AnnotationContext> getAnnotationContexts() {
         return annotationContexts;
+    }
+
+    public List<AnnotationContext> getAnnotationContexts(String alt) {
+        return annotationContexts.stream().filter(ac -> ac.getAlt().equals(alt)).collect(Collectors.toList());
     }
 
     public void setAnnotationContexts(List<AnnotationContext> annotationContexts) {

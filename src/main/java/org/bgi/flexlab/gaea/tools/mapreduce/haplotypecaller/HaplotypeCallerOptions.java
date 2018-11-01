@@ -5,6 +5,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.PathFilter;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.util.LineReader;
 import org.bgi.flexlab.gaea.data.exception.UserException;
@@ -64,6 +65,8 @@ public class HaplotypeCallerOptions  extends GaeaOptions implements HadoopOption
 	
 	private int maxReadsPerPosition = 0;
 
+	private boolean outputAllWindows;
+
 	public List<Integer> GVCFGQBands = new ArrayList<>(70);
 	
 	public HaplotypeCallerOptions() {
@@ -98,6 +101,7 @@ public class HaplotypeCallerOptions  extends GaeaOptions implements HadoopOption
 		addOption("u","uniquifySamples",false,"Assume duplicate samples are present and uniquify all names with '.variant' and file number index");
 		addOption("U","useNewAFCalculator",false,"Use new AF model instead of the so-called exact model");
 		addOption("w", "keyWindow", true, "window size for key[10000]");
+		addOption("W", "outputAllWindow", false, "output N or uncover region windows [false]");
 		FormatHelpInfo(SOFTWARE_NAME,SOFTWARE_VERSION);
 	}
 	
@@ -157,6 +161,7 @@ public class HaplotypeCallerOptions  extends GaeaOptions implements HadoopOption
 		this.region = getOptionValue("R",null);
 		this.reference = getOptionValue("r",null);
 		this.dbsnp = getOptionValue("k",null);
+		setOutputAllWindows(getOptionBooleanValue("W", false));
 		
 		if(dbsnp != null) {
 			comps.put("DB", dbsnp);
@@ -169,9 +174,14 @@ public class HaplotypeCallerOptions  extends GaeaOptions implements HadoopOption
 	private void parseInput(String input) throws IOException {
 		Path path = new Path(input);
 		FileSystem inFS = path.getFileSystem(new Configuration());
+		PathFilter filter = file -> !file.getName().startsWith("_");
 		if(inFS.isDirectory(path)){
-			FileStatus[] fileStatuses = inFS.globStatus(new Path(input +"/part*"));
-			for (FileStatus f: fileStatuses)
+			FileStatus[] stats = inFS.listStatus(path, filter);
+			if(stats.length <= 0){
+				System.err.println("Input File Path is empty! Please check input : " +path.toString());
+				System.exit(-1);
+			}
+			for (FileStatus f: stats)
 				inputs.add(f.getPath());
 			return;
 		}
@@ -262,7 +272,15 @@ public class HaplotypeCallerOptions  extends GaeaOptions implements HadoopOption
 			return SAMFormat.SAM;
 		return SAMFormat.BAM;
 	}
-	
+
+	public boolean isOutputAllWindows() {
+		return outputAllWindows;
+	}
+
+	public void setOutputAllWindows(boolean outputAllWindows) {
+		this.outputAllWindows = outputAllWindows;
+	}
+
 	public HaplotypeCallerArgumentCollection getHaplotypeCallerArguments() {
 		return this.hcArgs;
 	}

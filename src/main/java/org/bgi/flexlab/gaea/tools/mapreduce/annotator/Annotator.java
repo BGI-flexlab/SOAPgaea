@@ -16,11 +16,16 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.mapreduce.annotator;
 
+import htsjdk.samtools.SAMSequenceRecord;
+import htsjdk.samtools.util.BlockCompressedStreamConstants;
 import htsjdk.variant.vcf.VCFHeader;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.IOUtils;
+import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
@@ -28,32 +33,47 @@ import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.LazyOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
+import org.apache.hadoop.mapreduce.lib.partition.InputSampler;
+import org.apache.hadoop.mapreduce.lib.partition.TotalOrderPartitioner;
+import org.bgi.flexlab.gaea.data.mapreduce.input.txt.AnnotationTextInputFormat;
+import org.bgi.flexlab.gaea.data.mapreduce.partitioner.AnnoSortPartitioner;
 import org.bgi.flexlab.gaea.data.mapreduce.partitioner.FirstPartitioner;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.PairWritable;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.VcfLineWritable;
 import org.bgi.flexlab.gaea.data.structure.header.SingleVCFHeader;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.BioJob;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.ToolsRunner;
+import org.bgi.flexlab.gaea.tools.annotator.config.Config;
+import org.bgi.flexlab.gaea.util.FileIterator;
 import org.seqdoop.hadoop_bam.VCFOutputFormat;
+import org.seqdoop.hadoop_bam.util.BGZFCodec;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 public class Annotator extends ToolsRunner {
-    
+
+    public static final String SORT_TEMP_INFO = "sortinfo.tsv";
+
     private Configuration conf;
     private AnnotatorOptions options;
     private List<String> sampleNames;
+    private List<String> contigs;
     private List<String> fileNames;
+    private String sortInput;
+    private Path sortTmpPath;
 
     public Annotator(){
         sampleNames = new ArrayList<>();
         fileNames = new ArrayList<>();
     }
 
-    private int runAnnotator(String[] arg0) throws Exception {
+    public Annotator(String[] arg0) throws IOException {
+        sampleNames = new ArrayList<>();
+        fileNames = new ArrayList<>();
+        contigs = new ArrayList<>();
 
         conf = new Configuration();
         String[] remainArgs = remainArgs(arg0, conf);
@@ -61,21 +81,16 @@ public class Annotator extends ToolsRunner {
         options = new AnnotatorOptions();
         options.parse(remainArgs);
         options.setHadoopConf(remainArgs, conf);
-        conf.set(VCFOutputFormat.OUTPUT_VCF_FORMAT_PROPERTY, "VCF");
-        BioJob job = BioJob.getInstance(conf);
 
-        job.setJobName("GaeaAnnotator");
-        job.setJarByClass(this.getClass());
-        job.setMapperClass(AnnotationMapper.class);
-        job.setReducerClass(AnnotationReducer.class);
-        job.setNumReduceTasks(options.getReducerNum());
+        sortInput = options.getInputFilePath();
+        sortTmpPath = new Path(options.getTmpPath()+"/sort");
+    }
 
-        job.setMapOutputKeyClass(Text.class);
-        job.setMapOutputValueClass(VcfLineWritable.class);
+    public AnnotatorOptions getOptions() {
+        return options;
+    }
 
-
-        job.setOutputKeyClass(Text.class);
-        job.setOutputValueClass(Text.class);
+    private int runAnnotator() throws Exception {
 
         Path inputPath = new Path(options.getInputFilePath());
         FileSystem fs = inputPath.getFileSystem(conf);
@@ -94,22 +109,41 @@ public class Annotator extends ToolsRunner {
                     if(!sampleNames.contains(sample))
                         sampleNames.add(sample);
                 }
+                for(SAMSequenceRecord samSequenceRecord: vcfHeader.getSequenceDictionary().getSequences()){
+                    String contigName = samSequenceRecord.getSequenceName();
+                    if(!contigs.contains(contigName))
+                        contigs.add(contigName);
+                }
             }
         }
 
-        if(sampleNames.size() <= 10){
-            job.setInputFormatClass(MNLineInputFormat.class);
-            MNLineInputFormat.addInputPath(job, new Path(options.getInputFilePath()));
-            MNLineInputFormat.setMinNumLinesToSplit(job,1000); //按行处理的最小单位
-            MNLineInputFormat.setMapperNum(job, options.getReducerNum());
+        conf.set(VCFOutputFormat.OUTPUT_VCF_FORMAT_PROPERTY, "VCF");
+        BioJob job = BioJob.getInstance(conf);
+
+        job.setJobName("GaeaAnnotator");
+        job.setJarByClass(this.getClass());
+        job.setMapperClass(AnnotationMapper.class);
+        job.setReducerClass(AnnotationReducer.class);
+        job.setNumReduceTasks(options.getReducerNum());
+
+        job.setMapOutputKeyClass(Text.class);
+        job.setMapOutputValueClass(VcfLineWritable.class);
+
+        job.setOutputKeyClass(Text.class);
+        job.setOutputValueClass(Text.class);
+
+        job.setInputFormatClass(TextInputFormat.class);
+        FileInputFormat.addInputPath(job, inputPath);
+
+        if(options.getRunStep() == AnnotatorOptions.RunStep.ANN){
+            FileOutputFormat.setOutputPath(job, new Path(options.getOutputPath()+"/anno"));
+            createSortInfo(options.getOutputPath()+"/" + SORT_TEMP_INFO);
         }else {
-            job.setInputFormatClass(TextInputFormat.class);
-            FileInputFormat.addInputPath(job, new Path(options.getInputFilePath()));
+            Path partTmp = new Path(options.getTmpPath()+"/anno");
+            FileOutputFormat.setOutputPath(job, partTmp);
+            sortInput = partTmp.toString();
+            createSortInfo(options.getTmpPath()+"/" + SORT_TEMP_INFO);
         }
-
-        Path partTmp = new Path(options.getTmpPath());
-
-        FileOutputFormat.setOutputPath(job, partTmp);
 
         return job.waitForCompletion(true) ? 0 : 1;
     }
@@ -123,6 +157,7 @@ public class Annotator extends ToolsRunner {
 
     private int runVCFSort() throws Exception {
 
+        conf.set("io.compression.codecs", BGZFCodec.class.getCanonicalName());
         BioJob job = BioJob.getInstance(conf);
 
         job.setJobName("GaeaAnnotatorSort");
@@ -139,22 +174,18 @@ public class Annotator extends ToolsRunner {
         job.setOutputValueClass(Text.class);
         job.setInputFormatClass(TextInputFormat.class);
         LazyOutputFormat.setOutputFormatClass(job, TextOutputFormat.class);
+        conf.setInt("mapreduce.reduce.memory.mb", 20480);
 
-        Path inputPath = new Path(options.getTmpPath());
-        Path outputPath = new Path(options.getOutputPath());
+        Path inputPath = new Path(sortInput);
         FileInputFormat.setInputPaths(job, inputPath);
-        FileOutputFormat.setOutputPath(job, outputPath);
+        FileOutputFormat.setOutputPath(job, sortTmpPath);
+        FileOutputFormat.setCompressOutput(job, true);
+        FileOutputFormat.setOutputCompressorClass(job, BGZFCodec.class);
 
-        FileSystem fs = outputPath.getFileSystem(conf);
+        FileSystem fs = sortTmpPath.getFileSystem(conf);
         if(job.waitForCompletion(true)){
-            int loop = 0;
             for (String fileName : fileNames){
                 Path outputPart = getSampleOutputPath(fileName);
-                while (outputPart == null && loop < 10){
-                    TimeUnit.MILLISECONDS.sleep(6000);
-                    outputPart = getSampleOutputPath(fileName);
-                    loop ++;
-                }
                 Path outputName = new Path(options.getOutputPath() + "/" + fileName);
                 fs.rename(outputPart, outputName);
             }
@@ -166,41 +197,71 @@ public class Annotator extends ToolsRunner {
 
     private int runTSVSort() throws Exception {
 
+        conf.set("io.compression.codecs", BGZFCodec.class.getCanonicalName());
+//        conf.setInt("mapreduce.reduce.memory.mb", 30480);
         BioJob job = BioJob.getInstance(conf);
 
         job.setJobName("GaeaAnnotatorSort");
         job.setJarByClass(this.getClass());
         job.setMapperClass(AnnotationSortMapper.class);
         job.setReducerClass(AnnotationSortReducer.class);
-        job.setNumReduceTasks(sampleNames.size());
 
-        job.setMapOutputKeyClass(PairWritable.class);
-        job.setMapOutputValueClass(Text.class);
-
-        job.setPartitionerClass(FirstPartitioner.class);
+        job.setMapOutputKeyClass(LongWritable.class);
         job.setOutputKeyClass(NullWritable.class);
         job.setOutputValueClass(Text.class);
-        job.setInputFormatClass(TextInputFormat.class);
+        job.setInputFormatClass(AnnotationTextInputFormat.class);
         LazyOutputFormat.setOutputFormatClass(job, TextOutputFormat.class);
 
-        Path inputPath = new Path(options.getTmpPath());
-        Path outputPath = new Path(options.getOutputPath());
-        FileInputFormat.setInputPaths(job, inputPath);
-        FileOutputFormat.setOutputPath(job, outputPath);
+        if(options.getRunStep() == AnnotatorOptions.RunStep.SORT) {
+            getSortInfo(job.getConfiguration(), options.getInputFilePath() + "/" + SORT_TEMP_INFO);
+            FileInputFormat.setInputPaths(job, new Path(options.getInputFilePath() + "/anno"));
+        }else
+            FileInputFormat.setInputPaths(job, new Path(sortInput));
+        FileInputFormat.setMinInputSplitSize(job, 268435456);
+        FileOutputFormat.setOutputPath(job, sortTmpPath);
+        FileOutputFormat.setCompressOutput(job, true);
+        FileOutputFormat.setOutputCompressorClass(job, BGZFCodec.class);
 
-        FileSystem fs = outputPath.getFileSystem(conf);
+        if(sampleNames.size() == 1) {
+            job.setNumReduceTasks(options.getReducerNum());
+            job.setPartitionerClass(TotalOrderPartitioner.class);
+            Path partitionFile = new Path(options.getTmpPath() + "/_partitons.lst");
+            TotalOrderPartitioner.setPartitionFile(job.getConfiguration(), partitionFile);
+            System.err.println("anno-sort :: Sampling...");
+            InputSampler.writePartitionFile(
+                    job,
+                    new InputSampler.RandomSampler<LongWritable, Text>(
+                            0.01, 1000, options.getReducerNum()));
+        }else {
+            job.setNumReduceTasks(sampleNames.size());
+            job.setPartitionerClass(AnnoSortPartitioner.class);
+        }
+
+        FileSystem fs = sortTmpPath.getFileSystem(conf);
         if(job.waitForCompletion(true)){
-            int loop = 0;
-            for (String sampleName : sampleNames){
-                Path outputPart = getSampleOutputPath(sampleName);
-                while (outputPart == null && loop < 10){
-                    TimeUnit.MILLISECONDS.sleep(6000);
-                    outputPart = getSampleOutputPath(sampleName);
-                    loop ++;
+            Config userConfig = new Config(conf);
+            Path headerPath = new Path(options.getTmpPath()+"/header.tsv.gz");
+            BGZFCodec bgzfCodec = new BGZFCodec();
+            OutputStream os = bgzfCodec.createOutputStream(fs.create(headerPath));
+            os.write(userConfig.getHeaderString().getBytes());
+            os.write('\n');
+            os.close();
+
+            for (String sample : sampleNames){
+                Path outputName = new Path(options.getOutputPath() + "/" + sample + ".tsv.gz");
+                OutputStream outgz = outputName.getFileSystem(conf).create(outputName);
+                FSDataInputStream ins = fs.open(headerPath);
+                IOUtils.copyBytes(ins, outgz, conf, false);
+                FileStatus[] fileStatuses = fs.globStatus(new Path(sortTmpPath.toString() + "/" + sample + "*-r-[0-9]*"));
+                for(FileStatus fstat: fileStatuses){
+                    ins = fs.open(fstat.getPath());
+                    IOUtils.copyBytes(ins, outgz, conf, false);
+                    ins.close();
                 }
-                Path outputName = new Path(options.getOutputPath() + "/" + sampleName + ".tsv");
-                fs.rename(outputPart, outputName);
+                outgz.write(BlockCompressedStreamConstants.EMPTY_GZIP_BLOCK);
+                outgz.close();
             }
+            fs.delete(new Path(options.getTmpPath()), true);
             return 0;
         }
         return 1;
@@ -209,7 +270,7 @@ public class Annotator extends ToolsRunner {
     private Path getSampleOutputPath(String sample) throws IOException {
         Path outputPath = new Path(options.getOutputPath());
         FileSystem fs = outputPath.getFileSystem(conf);
-        FileStatus[] fileStatuses = fs.globStatus(new Path(options.getOutputPath() + "/" + sample + "-r-[0-9]*"));
+        FileStatus[] fileStatuses = fs.globStatus(new Path(sortTmpPath.toString() + "/" + sample + "-r-[0-9]*"));
         if(fileStatuses.length == 0){
             System.err.println(sample+": cann't get the output part file!");
             FileStatus[] fss = fs.globStatus(new Path(options.getOutputPath() + "/*"));
@@ -221,12 +282,49 @@ public class Annotator extends ToolsRunner {
         return fileStatuses[0].getPath();
     }
 
+    private void createSortInfo(String sortInfo) throws IOException {
+        conf.setStrings("sampleName", sampleNames.toArray(new String[0]));
+        conf.setStrings("contigName", contigs.toArray(new String[0]));
+
+        Path p = new Path(sortInfo);
+        OutputStream out = p.getFileSystem(conf).create(p);
+        out.write(String.join("\t", sampleNames).getBytes());
+        out.write('\n');
+        out.write(String.join("\t", contigs).getBytes());
+        out.write('\n');
+        out.close();
+    }
+
+    private void getSortInfo(Configuration conf, String sortInfo) throws IOException {
+        boolean firstLine = true;
+        FileIterator fi = new FileIterator(sortInfo);
+        while (fi.hasNext()){
+            String line = fi.next().toString();
+            if(firstLine) {
+                String[] samples = line.split("\t");
+                conf.setStrings("sampleName", samples);
+                for (String sample: samples){
+                    if(!sampleNames.contains(sample))
+                        sampleNames.add(sample);
+                }
+                firstLine = false;
+            }else {
+                String[] fields = line.split("\t");
+                conf.setStrings("contigName", fields);
+            }
+        }
+        fi.close();
+    }
+
     @Override
     public int run(String[] args) throws Exception {
-        Annotator annotator = new Annotator();
-        if(annotator.runAnnotator(args) != 0)
-            return 1;
-        return annotator.runAnnoSort();
+        Annotator annotator = new Annotator(args);
+        if(annotator.getOptions().getRunStep() == AnnotatorOptions.RunStep.SORT)
+            return annotator.runAnnoSort();
+        else if(annotator.getOptions().getRunStep() == AnnotatorOptions.RunStep.ANN)
+            return annotator.runAnnotator() == 0 ? 0 : 1;
+
+        return annotator.runAnnotator() == 0 ? annotator.runAnnoSort() : 1;
     }
 
 }

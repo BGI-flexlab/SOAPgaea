@@ -35,7 +35,7 @@ import static org.bgi.flexlab.gaea.data.mapreduce.input.cram.GaeaCramRecordReade
 
 public class BamQualityControl extends ToolsRunner{
 	
-	public final static int WINDOW_SIZE = 1000000; 
+	public final static int WINDOW_SIZE = 200000;
 	
 	public BamQualityControl() {
 			this.toolsDescription = "Gaea bam quality control\n"
@@ -58,14 +58,14 @@ public class BamQualityControl extends ToolsRunner{
 			ReferenceShare.distributeCache(options.getReferenceSequencePath(), job);
 		}
 
-		boolean iscram = options.getAlignmentFilePath().endsWith("cram");
+		boolean iscram = options.getInputs().get(0).toString().endsWith("cram");
 		if(iscram){
 			if(options.getLocalReferenceSequencePath() == null)
 				throw new RuntimeException("Please set local reference for cram (-f).");
 			conf.set(INPUTFORMAT_REFERENCE, options.getLocalReferenceSequencePath());
 		}
 
-		SamHdfsFileHeader.loadHeader(new Path(options.getAlignmentFilePath()), conf, new Path(options.getOutputPath()), iscram);
+		SamHdfsFileHeader.loadHeader(options.getInputs(), conf, new Path(options.getOutputPath()), iscram);
 
 		job.setJobName("BamQualityControl");
 		job.setJarByClass(BamQualityControl.class);
@@ -74,8 +74,8 @@ public class BamQualityControl extends ToolsRunner{
 		job.setOutputKeyValue(Text.class, Text.class, 
 				NullWritable.class, Text.class);
 		job.setNumReduceTasks(options.getReducerNum());
-		
-		FileInputFormat.addInputPaths(job, options.getAlignmentFilePath());
+
+		FileInputFormat.setInputPaths(job, options.getInputs().toArray(new Path[options.getInputs().size()]));
 		if(iscram)
 			job.setInputFormatClass(GaeaCramInputFormat.class);
 		else

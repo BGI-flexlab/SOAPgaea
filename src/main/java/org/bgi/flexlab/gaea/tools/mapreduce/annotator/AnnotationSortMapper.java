@@ -21,7 +21,6 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
-import org.bgi.flexlab.gaea.data.mapreduce.writable.PairWritable;
 import org.bgi.flexlab.gaea.tools.annotator.SampleAnnotationContext;
 import org.bgi.flexlab.gaea.tools.annotator.VcfAnnoContext;
 import org.bgi.flexlab.gaea.tools.annotator.config.Config;
@@ -32,24 +31,27 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class AnnotationSortMapper extends Mapper<LongWritable, Text, PairWritable, Text> {
+public class AnnotationSortMapper extends Mapper<LongWritable, Text, LongWritable, Text> {
 
-	private PairWritable resultKey;
+	private LongWritable resultKey;
 	private Text resultValue;
-	private AnnotatorOptions options;
 	private Config userConfig;
 	private Map<String, String> defaultValue;
+	private Map<String, Integer> sampleIDs;
 
 	@Override
 	protected void setup(Context context)
 			throws IOException, InterruptedException {
-		resultKey = new PairWritable();
+		resultKey = new LongWritable();
 		resultValue = new Text();
-		options = new AnnotatorOptions();
 		Configuration conf = context.getConfiguration();
-		options.getOptionsFromHadoopConf(conf);
 		userConfig = new Config(conf);
 		defaultValue = userConfig.getDefaultValue();
+		String[] sampleNames = conf.getStrings("sampleName");
+		sampleIDs = new HashMap<>();
+		for (int i = 0; i < sampleNames.length; i++) {
+			sampleIDs.put(sampleNames[i], i);
+		}
 	}
 
 	@Override
@@ -59,11 +61,10 @@ public class AnnotationSortMapper extends Mapper<LongWritable, Text, PairWritabl
 
 		VcfAnnoContext vac = new VcfAnnoContext();
 		vac.parseAnnotationStrings(annoLine, userConfig.getFields());
-		String[] fields = annoLine.split("\t", 4);
-		String secondKey = fields[1] + "-" + String.format("%09d",Integer.parseInt(fields[2]));
 
 		for(SampleAnnotationContext sac: vac.getSampleAnnoContexts().values()){
-			resultKey.set(sac.getSampleName(), secondKey);
+			long keyWithSample = key.get() | ((long)sampleIDs.get(sac.getSampleName()) << 48);
+			resultKey.set(keyWithSample);
 			List<String> anno = new ArrayList<>();
 			for(String field: userConfig.getFields()){
 				String annoValue = sac.getFieldByName(field, sac.getSingleAlt());
@@ -79,11 +80,5 @@ public class AnnotationSortMapper extends Mapper<LongWritable, Text, PairWritabl
 //			resultValue.set(vac.getAnnoStr()+"\t"+sac.toAlleleString(sac.getSingleAlt()));
 			context.write(resultKey, resultValue);
 		}
-	}
-	
-	@Override
-	protected void cleanup(Context context)
-			throws IOException, InterruptedException {
-
 	}
 }

@@ -35,7 +35,7 @@
 		<dependency>
 			<groupId>org.seqdoop</groupId>
 			<artifactId>hadoop-bam</artifactId>
-			<version>7.0.0</version>
+			<version>7.10.0</version>
 			<exclusions>
 				<exclusion>
 					<artifactId>hadoop-core</artifactId>

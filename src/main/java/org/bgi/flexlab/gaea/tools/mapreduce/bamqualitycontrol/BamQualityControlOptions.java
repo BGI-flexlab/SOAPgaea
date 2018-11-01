@@ -18,11 +18,21 @@ package org.bgi.flexlab.gaea.tools.mapreduce.bamqualitycontrol;
 
 import org.apache.commons.cli.ParseException;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.PathFilter;
+import org.apache.hadoop.io.Text;
 import org.apache.hadoop.util.GenericOptionsParser;
+import org.apache.hadoop.util.LineReader;
+import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.data.mapreduce.options.HadoopOptions;
 import org.bgi.flexlab.gaea.data.options.GaeaOptions;
+import org.seqdoop.hadoop_bam.SAMFormat;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class BamQualityControlOptions extends GaeaOptions implements HadoopOptions {
 	private final static String SOFTWARE_NAME = "Bam Quality Control";
@@ -30,7 +40,7 @@ public class BamQualityControlOptions extends GaeaOptions implements HadoopOptio
 	
 	public BamQualityControlOptions() {
 		// TODO Auto-generated constructor stub
-		addOption("i", "input", true, "Path of the alignment result file(s)", true);
+		addOption("i", "input", true, "Path of the alignment result file(s) or bam list", true);
 		addOption("o", "output", true, "Path of the bamqc report file", true);
 		addOption("d", "index", true, "Path of the reference index list", true);
 		addOption("f", "ref", true, "reference file for read cram");
@@ -53,6 +63,8 @@ public class BamQualityControlOptions extends GaeaOptions implements HadoopOptio
 	}
 
 	private String alignmentFilePath;
+
+	private List<Path> inputs = new ArrayList<>();
 
 	/**
 	 * 一致性序列文件名称
@@ -154,7 +166,16 @@ public class BamQualityControlOptions extends GaeaOptions implements HadoopOptio
 			printHelpInfotmation(SOFTWARE_NAME);
 			System.exit(1);
 		}
-		
+
+		try {
+			parseInput( getOptionValue("i",null));
+		} catch (IOException e) {
+			throw new UserException(e.toString());
+		}
+
+		if(inputs.size() <= 0)
+			throw new RuntimeException("Input is empty!");
+
 		cnvDepth = getOptionBooleanValue("C", false);
 		cnvRegion = getOptionValue("c", null);
 		outputUnmapped = getOptionBooleanValue("m", true);
@@ -164,7 +185,6 @@ public class BamQualityControlOptions extends GaeaOptions implements HadoopOptio
 		distributeCache = getOptionBooleanValue("D", false);
 		isBasic = getOptionBooleanValue("b", false);
 		islane = getOptionBooleanValue("l", false);
-		alignmentFilePath = getOptionValue("i", null);
 		referenceSequencePath = getOptionValue("d", null);
 		localReferenceSequencePath = getOptionValue("f", null);
 		outputPath = getOptionValue("o", null);
@@ -183,20 +203,45 @@ public class BamQualityControlOptions extends GaeaOptions implements HadoopOptio
 			}
 		}
 	}
-	
-	
-	/**
-	 * @return the alignmentFilePath
-	 */
-	public String getAlignmentFilePath() {
-		return alignmentFilePath;
+
+	private void parseInput(String input) throws IOException {
+		Path path = new Path(input);
+		FileSystem inFS = path.getFileSystem(new Configuration());
+		if(inFS.isDirectory(path)){
+			PathFilter filter = file -> !file.getName().startsWith("_");
+			FileStatus[] stats=inFS.listStatus(path, filter);
+			if(stats.length <= 0){
+				System.err.println("Input File Path is empty! Please check input : " +path.toString());
+				System.exit(-1);
+			}
+
+			for (FileStatus f: stats)
+				inputs.add(f.getPath());
+			return;
+		}
+
+		SAMFormat fmt = SAMFormat.inferFromData(inFS.open(path));
+
+		if(fmt == SAMFormat.BAM || input.endsWith(".cram")) {
+			inputs.add(path);
+		}
+		else {
+			LineReader reader = new LineReader(inFS.open(path));
+			Text line = new Text();
+
+			while(reader.readLine(line) > 0 && line.getLength() != 0) {
+				inputs.add(new Path(line.toString()));
+			}
+			reader.close();
+		}
 	}
 
-	/**
-	 * @param alignmentFilePath the alignmentFilePath to set
-	 */
-	public void setAlignmentFilePath(String alignmentFilePath) {
-		this.alignmentFilePath = alignmentFilePath;
+	public List<Path> getInputs() {
+		return inputs;
+	}
+
+	public void setInputs(List<Path> inputs) {
+		this.inputs = inputs;
 	}
 
 	/**

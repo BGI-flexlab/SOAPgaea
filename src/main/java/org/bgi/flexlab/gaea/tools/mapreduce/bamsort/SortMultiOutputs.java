@@ -26,6 +26,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.io.WritableComparable;
 import org.apache.hadoop.mapreduce.*;
+import org.apache.hadoop.mapreduce.task.TaskAttemptContextImpl;
 import org.apache.hadoop.util.ReflectionUtils;
 
 import java.io.IOException;
@@ -35,8 +36,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.StringTokenizer;
-
-import hbparquet.hadoop.util.ContextUtil;
 
 /**
  * The MultipleOutputs class simplifies writing output data to multiple outputs
@@ -214,8 +213,8 @@ public class SortMultiOutputs<KEYOUT, VALUEOUT> {
 	// Returns list of channel names.
 	private static List<String> getNamedOutputsList(JobContext job) {
 		List<String> names = new ArrayList<String>();
-		StringTokenizer st = new StringTokenizer(ContextUtil.getConfiguration(
-				job).get(MULTIPLE_OUTPUTS, ""), " ");
+		StringTokenizer st =
+				new StringTokenizer(job.getConfiguration().get(MULTIPLE_OUTPUTS, ""), " ");
 		while (st.hasMoreTokens()) {
 			names.add(st.nextToken());
 		}
@@ -226,8 +225,8 @@ public class SortMultiOutputs<KEYOUT, VALUEOUT> {
 	@SuppressWarnings("unchecked")
 	private static Class<? extends OutputFormat<?, ?>> getNamedOutputFormatClass(
 			JobContext job, String namedOutput) {
-		return (Class<? extends OutputFormat<?, ?>>) ContextUtil
-				.getConfiguration(job).getClass(
+		return (Class<? extends OutputFormat<?, ?>>) job
+				.getConfiguration().getClass(
 						MO_PREFIX + namedOutput + FORMAT, null,
 						OutputFormat.class);
 	}
@@ -235,14 +234,14 @@ public class SortMultiOutputs<KEYOUT, VALUEOUT> {
 	// Returns the key class for a named output.
 	private static Class<?> getNamedOutputKeyClass(JobContext job,
 			String namedOutput) {
-		return ContextUtil.getConfiguration(job).getClass(
+		return job.getConfiguration().getClass(
 				MO_PREFIX + namedOutput + KEY, null, WritableComparable.class);
 	}
 
 	// Returns the value class for a named output.
 	private static Class<? extends Writable> getNamedOutputValueClass(
 			JobContext job, String namedOutput) {
-		return ContextUtil.getConfiguration(job).getClass(
+		return job.getConfiguration().getClass(
 				MO_PREFIX + namedOutput + VALUE, null, Writable.class);
 	}
 
@@ -268,7 +267,7 @@ public class SortMultiOutputs<KEYOUT, VALUEOUT> {
 			Class<? extends OutputFormat> outputFormatClass, Class<?> keyClass,
 			Class<?> valueClass) {
 		checkNamedOutputName(job, namedOutput, true);
-		Configuration conf = ContextUtil.getConfiguration(job);
+		Configuration conf = job.getConfiguration();
 		conf.set(MULTIPLE_OUTPUTS, conf.get(MULTIPLE_OUTPUTS, "") + " "
 				+ namedOutput);
 		conf.setClass(MO_PREFIX + namedOutput + FORMAT, outputFormatClass,
@@ -291,7 +290,7 @@ public class SortMultiOutputs<KEYOUT, VALUEOUT> {
 	 *            indicates if the counters will be enabled or not.
 	 */
 	public static void setCountersEnabled(Job job, boolean enabled) {
-		ContextUtil.getConfiguration(job).setBoolean(COUNTERS_ENABLED, enabled);
+		job.getConfiguration().setBoolean(COUNTERS_ENABLED, enabled);
 	}
 
 	/**
@@ -303,7 +302,7 @@ public class SortMultiOutputs<KEYOUT, VALUEOUT> {
 	 * @return TRUE if the counters are enabled, FALSE if they are disabled.
 	 */
 	public static boolean getCountersEnabled(JobContext job) {
-		return ContextUtil.getConfiguration(job).getBoolean(COUNTERS_ENABLED,
+		return job.getConfiguration().getBoolean(COUNTERS_ENABLED,
 				false);
 	}
 
@@ -441,8 +440,7 @@ public class SortMultiOutputs<KEYOUT, VALUEOUT> {
 	public void write(KEYOUT key, VALUEOUT value, String baseOutputPath)
 			throws IOException, InterruptedException {
 		checkBaseOutputPath(baseOutputPath);
-		TaskAttemptContext taskContext = ContextUtil.newTaskAttemptContext(
-				ContextUtil.getConfiguration(context),
+		TaskAttemptContext taskContext = new TaskAttemptContextImpl(context.getConfiguration(),
 				context.getTaskAttemptID());
 		getRecordWriter(taskContext, baseOutputPath).write(key, value);
 	}
@@ -451,12 +449,12 @@ public class SortMultiOutputs<KEYOUT, VALUEOUT> {
 			TaskAttemptContext taskContext, String baseFileName)
 			throws IOException, InterruptedException {
 
-		ContextUtil.getConfiguration(taskContext).set(
+		taskContext.getConfiguration().set(
 				"mapreduce.output.basename", baseFileName);
 		try {
 			sortWriter = ((OutputFormat) ReflectionUtils.newInstance(
 					taskContext.getOutputFormatClass(),
-					ContextUtil.getConfiguration(taskContext)))
+					taskContext.getConfiguration()))
 					.getRecordWriter(taskContext);
 		} catch (ClassNotFoundException e) {
 			throw new IOException(e);
@@ -503,7 +501,7 @@ public class SortMultiOutputs<KEYOUT, VALUEOUT> {
 		// via
 		// the job thus supporting arbitrary output formats.
 
-		Job job = new Job(ContextUtil.getConfiguration(context));
+		Job job = new Job(context.getConfiguration());
 
 		job.setOutputFormatClass(getNamedOutputFormatClass(context, nameOutput));
 
@@ -511,8 +509,8 @@ public class SortMultiOutputs<KEYOUT, VALUEOUT> {
 
 		job.setOutputValueClass(getNamedOutputValueClass(context, nameOutput));
 
-		TaskAttemptContext taskContext = ContextUtil.newTaskAttemptContext(
-				ContextUtil.getConfiguration(job), context.getTaskAttemptID());
+		TaskAttemptContext taskContext = new TaskAttemptContextImpl(
+				job.getConfiguration(), context.getTaskAttemptID());
 		return taskContext;
 	}
 

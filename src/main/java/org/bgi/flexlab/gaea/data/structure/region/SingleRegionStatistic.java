@@ -18,6 +18,7 @@ package org.bgi.flexlab.gaea.data.structure.region;
 
 import org.bgi.flexlab.gaea.data.exception.BAMQCException;
 import org.bgi.flexlab.gaea.data.structure.reference.ChromosomeInformationShare;
+import org.bgi.flexlab.gaea.util.StatsUtils;
 
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
@@ -102,13 +103,12 @@ public class SingleRegionStatistic {
 	}
 
 	public static String toReportTitleString() {
-		return "#Chr\tStart\tEnd\tAve depth\tMedian\tAve depth(rmdup)\tMedian(rmdup)\tCoverage%\tnormalizedDepth";
+		return "#Chr\tStart\tEnd\tAve depth\tMedian\tAve depth(rmdup)\tMedian(rmdup)\tCoverage(>=1x)%\tCoverage(>=4x)%\tCoverage(>=10x)%\tCoverage(>=30x)%\tnormalizedDepth";
 	}
 
 	public String toReportString(SingleRegion.Regiondata regiondata, double allRegionAverageDepth) {
 		double averageDepth = getDepth(regiondata);
 		double averageRmdupDepth = getRmdupDepth(regiondata);
-		double coverage = coverBaseNum /(double) regiondata.size();
 		double normalizedDepth = averageDepth / (double)allRegionAverageDepth;
 		if(depth != null) {
 			while(depth.size() < regiondata.size()) {
@@ -142,7 +142,13 @@ public class SingleRegionStatistic {
 		outString.append("\t");
 		outString.append(df.format(middleRmdupDepth));
 		outString.append("\t");
-		outString.append(df.format(coverage*100));
+		outString.append(StatsUtils.perc(coverBaseNum, regiondata.size()));
+		outString.append("\t");
+		outString.append(StatsUtils.perc(fourxCoverBaseNum, regiondata.size()));
+		outString.append("\t");
+		outString.append(StatsUtils.perc(tenxCoverBaseNum, regiondata.size()));
+		outString.append("\t");
+		outString.append(StatsUtils.perc(thirtyxCoverBaseNum, regiondata.size()));
 		outString.append("\t");
 		outString.append(df.format(normalizedDepth));
 		outString.append("\n");
@@ -162,22 +168,22 @@ public class SingleRegionStatistic {
 		}*/
 	}
 
-	public void add(int coverNum, int depthNum, int rmdupDepthNum, double middleDepth, double middleRmdupDepth) {
-		this.coverBaseNum = coverNum;
-		this.depthNum = depthNum;
-		this.rmdupDepthNum = rmdupDepthNum;
-		this.middleDepth = middleDepth;
-		this.middleRmdupDepth = middleRmdupDepth;
-	}
-
-	public void add(int coverNum, int fourxCoverNum, int depthNum, int rmdupDepthNum, double middleDepth, double middleRmdupDepth) {
-		this.coverBaseNum = coverNum;
-		this.fourxCoverBaseNum = fourxCoverNum;
-		this.depthNum = depthNum;
-		this.rmdupDepthNum = rmdupDepthNum;
-		this.middleDepth = middleDepth;
-		this.middleRmdupDepth = middleRmdupDepth;
-	}
+//	public void add(int coverNum, int depthNum, int rmdupDepthNum, double middleDepth, double middleRmdupDepth) {
+//		this.coverBaseNum = coverNum;
+//		this.depthNum = depthNum;
+//		this.rmdupDepthNum = rmdupDepthNum;
+//		this.middleDepth = middleDepth;
+//		this.middleRmdupDepth = middleRmdupDepth;
+//	}
+//
+//	public void add(int coverNum, int fourxCoverNum, int depthNum, int rmdupDepthNum, double middleDepth, double middleRmdupDepth) {
+//		this.coverBaseNum = coverNum;
+//		this.fourxCoverBaseNum = fourxCoverNum;
+//		this.depthNum = depthNum;
+//		this.rmdupDepthNum = rmdupDepthNum;
+//		this.middleDepth = middleDepth;
+//		this.middleRmdupDepth = middleRmdupDepth;
+//	}
 
 	public void add(int coverNum, int fourxCoverNum, int tenxCoverNum, int thirtyxCoverNum,int depthNum, int rmdupDepthNum, double middleDepth, double middleRmdupDepth) {
 		this.coverBaseNum = coverNum;
@@ -281,10 +287,14 @@ public class SingleRegionStatistic {
 	}
 
 	public int getPosDepth(int index){
+		if(depth == null)
+			return 0;
 		return depth.get(index);
 	}
 
 	public int getPosRmdupDepth(int index){
+		if(depth == null)
+			return 0;
 		return rmdupDepth.get(index);
 	}
 

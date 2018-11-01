@@ -117,55 +117,48 @@ public class AnnotationReducer extends Reducer<Text, VcfLineWritable, Text, Text
 			throws IOException, InterruptedException {
 		long start = System.currentTimeMillis();
 		Iterator<VcfLineWritable> iter =  values.iterator();
-		Map<String, VcfAnnoContext> posVariantInfo = new HashMap<>();
-		Map<Integer, String> posToPosKey = new HashMap<>();
-		List<Integer> positions = new ArrayList<>();
+		Map<Long, VcfAnnoContext> posVariantInfo = new HashMap<>();
+		TreeSet<Long> positions = new TreeSet<>();
 
 		while(iter.hasNext()) {
 			VcfLineWritable vcfInput =  iter.next();
 			String fileName = vcfInput.getFileName();
 			String vcfLine = vcfInput.getVCFLine();
 			VariantContext variantContext =  vcfCodecs.get(fileName).decode(vcfLine);
-			int pos = variantContext.getStart();
-			int end = variantContext.getEnd();
+			long posKey = (long)variantContext.getStart();
+			posKey = (posKey << 32) | variantContext.getEnd();
 
-
-			if(!positions.contains(pos))
-				positions.add(pos);
-			String posKey = pos + "-" + Integer.toString(end);
-			posToPosKey.put(pos, posKey);
-			if(posVariantInfo.containsKey(posKey)){
+			if(positions.contains(posKey)){
 				posVariantInfo.get(posKey).add(variantContext, fileName);
 			}else {
 				VcfAnnoContext vcfAnnoContext = new VcfAnnoContext(variantContext, fileName);
 				posVariantInfo.put(posKey, vcfAnnoContext);
+				positions.add(posKey);
 			}
 		}
 
-		Collections.sort(positions);
-
-		for(VcfAnnoContext vcfAnnoContext: posVariantInfo.values()){
+		for (long posKey : positions) {
+			VcfAnnoContext vcfAnnoContext = posVariantInfo.get(posKey);
 			String chr = ChromosomeUtils.getNoChrName(vcfAnnoContext.getContig());
-			String posPrefix = chr+"-"+vcfAnnoContext.getStart()/1000;
+			String posPrefix = chr + "-" + vcfAnnoContext.getStart() / 1000;
 
-			if(!posPrefix.equals(key.toString()))
-				continue;
-
+			long higherPositionKey = positions.higher(posKey) != null ? positions.higher(posKey) : (long) 0;
 			// 标记附近有其他变异的点
-			int index = positions.indexOf(vcfAnnoContext.getStart());
-			if(index > 0 && vcfAnnoContext.getStart() - positions.get(index-1) <= 5){
-				String posKey = posToPosKey.get(positions.get(index-1));
-				VcfAnnoContext vcfAnnoContextNear = posVariantInfo.get(posKey);
-				for(SampleAnnotationContext sac: vcfAnnoContext.getSampleAnnoContexts().values()){
+			if (higherPositionKey != 0 && (higherPositionKey >> 32) - vcfAnnoContext.getEnd() <= 5) {
+				VcfAnnoContext vcfAnnoContextNear = posVariantInfo.get(higherPositionKey);
+				for (SampleAnnotationContext sac : vcfAnnoContext.getSampleAnnoContexts().values()) {
 					String sampleName = sac.getSampleName();
-					if(vcfAnnoContextNear.hasSample(sampleName)){
+					if (vcfAnnoContextNear.hasSample(sampleName)) {
 						sac.setHasNearVar();
 						vcfAnnoContextNear.getSampleAnnoContexts().get(sampleName).setHasNearVar();
 					}
 				}
 			}
 
-			if(userConfig.getFields().contains("FLKSEQ")) {
+			if (!posPrefix.equals(key.toString()))
+				continue;
+
+			if (userConfig.getFields().contains("FLKSEQ")) {
 				ChromosomeInformationShare chrShare = genomeShare.getChromosomeInfo(vcfAnnoContext.getContig());
 				int lelfStart = vcfAnnoContext.getStart() - 11;
 				lelfStart = lelfStart < 0 ? 0 : lelfStart;
@@ -187,22 +180,22 @@ public class AnnotationReducer extends Reducer<Text, VcfLineWritable, Text, Text
 					dbAnnotator.insert(vcfAnnoContext, "ANNO");
 			}
 
-			if(options.getOutputFormat() == AnnotatorOptions.OutputFormat.VCF){
+			if (options.getOutputFormat() == AnnotatorOptions.OutputFormat.VCF) {
 				Map<String, List<VariantContext>> annos = vcfAnnoContext.toAnnotationVariantContexts(userConfig.getFieldsWithoutVariant());
-				for(String filename: annos.keySet()){
+				for (String filename : annos.keySet()) {
 					resultKey.set(filename);
 					VCFHeader vcfHeader = vcfHeaders.get(filename);
 					List<VariantContext> variantContexts = annos.get(filename);
 					VCFEncoder vcfEncoder = new VCFEncoder(vcfHeader, true, true);
-					for(VariantContext vc: variantContexts){
+					for (VariantContext vc : variantContexts) {
 						String vcfLine = vcfEncoder.encode(vc);
 						resultValue.set(vcfLine);
 						context.write(resultKey, resultValue);
 					}
 				}
-			}else {
+			} else {
 				List<String> annoLines = vcfAnnoContext.toAnnotationStrings(userConfig.getFields());
-				for(String annoLine: annoLines){
+				for (String annoLine : annoLines) {
 					resultValue.set(annoLine);
 					context.write(resultKey, resultValue);
 				}

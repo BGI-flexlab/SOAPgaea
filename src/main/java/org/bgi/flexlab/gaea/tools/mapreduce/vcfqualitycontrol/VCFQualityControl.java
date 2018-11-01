@@ -16,7 +16,6 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.mapreduce.vcfqualitycontrol;
 
-import hbparquet.hadoop.util.ContextUtil;
 import htsjdk.tribble.FeatureCodecHeader;
 import htsjdk.tribble.readers.AsciiLineReader;
 import htsjdk.tribble.readers.AsciiLineReaderIterator;
@@ -148,7 +147,7 @@ final class VariantRecalibrationOutputFormat<K> extends FileOutputFormat<K, Vari
 	@Override public RecordWriter<K,VariantContextWritable> getRecordWriter(
 			TaskAttemptContext context)
 		throws IOException {
-		final Configuration conf = ContextUtil.getConfiguration(context);
+		final Configuration conf = context.getConfiguration();
 		initBaseOF(conf);
 		baseOF.setHeader(VCFRecalibrator.finalHeader);
 	

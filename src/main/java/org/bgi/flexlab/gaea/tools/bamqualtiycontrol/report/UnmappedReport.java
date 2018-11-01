@@ -16,6 +16,7 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.bamqualtiycontrol.report;
 
+import htsjdk.samtools.SAMRecordIterator;
 import org.apache.hadoop.io.Text;
 import org.bgi.flexlab.gaea.tools.bamqualtiycontrol.counter.CounterProperty.ReadType;
 
@@ -69,6 +70,17 @@ public class UnmappedReport {
 			while (vals.hasNext()) {
 				basicReport.getReadsTracker().setTrackerAttribute(ReadType.TOTALREADS);
 				vals.next();
+			}
+			return true;
+		}
+		return false;
+	}
+
+	public boolean constructMapReport(long winNum, String chrName, SAMRecordIterator values, BasicReport basicReport) {
+		if(winNum < 0 || chrName.equals("-1")) {//unmapped
+			while (values.hasNext()) {
+				basicReport.getReadsTracker().setTrackerAttribute(ReadType.TOTALREADS);
+				values.next();
 			}
 			return true;
 		}

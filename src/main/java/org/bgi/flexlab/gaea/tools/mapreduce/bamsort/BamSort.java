@@ -21,26 +21,27 @@ import htsjdk.samtools.SAMReadGroupRecord;
 import htsjdk.samtools.util.BlockCompressedStreamConstants;
 import htsjdk.samtools.util.Log;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.filecache.DistributedCache;
+import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
+import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.LazyOutputFormat;
 import org.apache.hadoop.mapreduce.lib.partition.InputSampler;
 import org.apache.hadoop.mapreduce.lib.partition.TotalOrderPartitioner;
-import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamHdfsFileHeader;
-import org.bgi.flexlab.gaea.data.mapreduce.output.bam.GaeaBamOutputFormat;
-import org.bgi.flexlab.gaea.data.mapreduce.partitioner.FirstPartitioner;
-import org.bgi.flexlab.gaea.data.mapreduce.writable.PairWritable;
+import org.bgi.flexlab.gaea.data.mapreduce.input.bam.GaeaAnySAMSortInputFormat;
+import org.bgi.flexlab.gaea.data.mapreduce.output.bam.GaeaNoheaderBamOutputFormat;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.SamRecordWritable;
+import org.bgi.flexlab.gaea.data.mapreduce.input.bam.GaeaSamSortRecordReader;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.BioJob;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.ToolsRunner;
 import org.seqdoop.hadoop_bam.SAMFormat;
-import org.seqdoop.hadoop_bam.cli.Utils;
 import org.seqdoop.hadoop_bam.util.SAMOutputPreparer;
 import org.seqdoop.hadoop_bam.util.Timer;
 
@@ -53,7 +54,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 public class BamSort extends ToolsRunner {
 
@@ -62,11 +62,14 @@ public class BamSort extends ToolsRunner {
     private SAMFileHeader header;
     private Map<String, String> formatSampleName;
     private List<String> sampleNames;
+    private List<Path> inputs = new ArrayList<>();
     BioJob job;
     Configuration conf;
-    List<Path> inputs;
     Path tmpPath;
+    Path tmpDir;
     Path outputPath;
+    SAMFormat format;
+    String fileSuffix;
 
     public BamSort(){
         this.toolsDescription = "Gaea BamSort";
@@ -80,94 +83,91 @@ public class BamSort extends ToolsRunner {
         String[] remainArgs = remainArgs(args, conf);
         options = new BamSortOptions();
         options.parse(remainArgs);
-        tmpPath = new Path(options.getTmpPath());
+        tmpPath = new Path(options.getTmpPath()+"/data");
+        tmpDir = new Path(options.getTmpPath());
         outputPath = new Path(options.getOutdir());
         options.setHadoopConf(remainArgs, conf);
 
-        inputs = new ArrayList<>();
-        for (String in : options.getStrInputs())
-            inputs.add(new Path(in));
-        job.setHeader(inputs, outputPath);
-        job.setJarByClass(BamSort.class);
+        inputs = options.getInputs();
+        header = job.setHeader(inputs, outputPath);
 
-        header = SamHdfsFileHeader.getHeader(conf);
-        if(header == null){
-            System.err.println("Header is null!");
-            System.exit(-1);
+        format = options.getOutputFormat(conf);
+        fileSuffix = BamSortUtils.getFileSuffix(format);
+
+        for (SAMReadGroupRecord rg : header.getReadGroups()) {
+            if(!sampleNames.contains(rg.getSample()))
+                sampleNames.add(rg.getSample());
         }
+        conf.setStrings(GaeaSamSortRecordReader.SAMPLENAME_ARRAY_PROP, sampleNames.toArray(new String[0]));
 
-        if(options.isMultiSample())
-            return runMultiSort();
-
-        return runSingleSort();
-    }
-
-    public int runSingleSort() throws IOException, ClassNotFoundException, InterruptedException, URISyntaxException {
-        Utils.configureSampling(tmpPath, intermediateOutName, conf);
-
-        conf.setBoolean(SortOutputFormat.WRITE_HEADER_PROP, options.getOutdir() == null);
+        conf.setBoolean(SortOutputFormat.WRITE_HEADER_PROP, false);
         conf.set(SortOutputFormat.OUTPUT_NAME_PROP, intermediateOutName);
         conf.set(SortOutputFormat.OUTPUT_SAM_FORMAT_PROPERTY, options.getOutputFormat());
 
-        job.setMapperClass(SortMapper.class);
-        job.setReducerClass(SortReducer.class);
-        job.setJobName("bamsort");
 
+        job.setJarByClass(BamSort.class);
+        job.setMapperClass(Mapper.class);
+        job.setReducerClass(BamSortReducer.class);
+        job.setJobName("bamsort");
+        job.setNumReduceTasks(options.getReducerNum());
         job.setMapOutputKeyClass(LongWritable.class);
         job.setOutputKeyClass(NullWritable.class);
         job.setOutputValueClass(SamRecordWritable.class);
+        job.setInputFormatClass(GaeaAnySAMSortInputFormat.class);
+        if (format == SAMFormat.BAM)
+            LazyOutputFormat.setOutputFormatClass(job, GaeaNoheaderBamOutputFormat.class);
 
-        job.setAnySamInputFormat(options.getInputFormat());
-        job.setOutputFormatClass(SortOutputFormat.class);
-
-        Timer t = new Timer();
-        formatSampleName = new HashMap<>();
-
-        for (final Path in : inputs)
+        for (Path in : inputs)
             FileInputFormat.addInputPath(job, in);
 
         FileOutputFormat.setOutputPath(job, tmpPath);
-        if(options.getRenames() != null){
-            header = BamSortUtils.replaceSampleName(header.clone(), options.getRenames());
-        }
-
-        for (SAMReadGroupRecord rg : header.getReadGroups()) {
-            String fsn = BamSortUtils.formatSampleName(rg.getSample());
-            if (!formatSampleName.containsKey(fsn)) {
-                formatSampleName.put(fsn, rg.getSample());
-                SortMultiOutputs.addNamedOutput(job, fsn,
-                        SortOutputFormat.class, NullWritable.class,
-                        SamRecordWritable.class);
-            }
-            break;
-        }
-
-        System.out.println("sort :: Sampling...");
-        t.start();
 
         job.setPartitionerClass(TotalOrderPartitioner.class);
-        InputSampler.writePartitionFile(
-                job,
-                new InputSampler.RandomSampler<LongWritable, SamRecordWritable>(
-                        0.01, 10000, Math.max(100, options.getReducerNum())));
-        System.out.printf("sort :: Sampling complete in %d.%03d s.\n",
-                t.stopS(), t.fms());
-        String partitionFile = TotalOrderPartitioner.getPartitionFile(job.getConfiguration());
-        URI partitionUri = new URI(partitionFile + "#" + TotalOrderPartitioner.DEFAULT_PATH);
-        job.addCacheFile(partitionUri);
 
-        System.out.println("sort :: Waiting for job completion...");
-        t.start();
+        Path partitionFile;
+        if(options.getPartitionFile() == null) {
+            partitionFile = new Path(tmpDir + "/_partitons.lst");
+            TotalOrderPartitioner.setPartitionFile(job.getConfiguration(), partitionFile);
+            System.err.println("bam-sort :: Sampling...");
+            InputSampler.writePartitionFile(
+                    job,
+                    new InputSampler.RandomSampler<LongWritable, SamRecordWritable>(
+                            0.01, 10000, options.getReducerNum()));
 
-        if (!job.waitForCompletion(true)) {
-            System.err.println("sort :: Job failed.");
-            return 4;
+        }else {
+            System.err.println("bamsort :: use partitionFile:"+options.getPartitionFile() + " ...");
+            partitionFile = new Path(options.getPartitionFile());
+            TotalOrderPartitioner.setPartitionFile(job.getConfiguration(), partitionFile);
         }
 
-        System.out.printf("sort :: Job complete in %d.%03d s.\n",
-                t.stopS(), t.fms());
 
-        return mergeBAM(conf, options.getOutputFormat(conf));
+        if(job.waitForCompletion(true)) {
+            header.setSortOrder(SAMFileHeader.SortOrder.coordinate);
+
+            FileSystem fs = tmpPath.getFileSystem(conf);
+            for (String sample : sampleNames){
+                SAMFileHeader sampleHeader = BamSortUtils.deleteSampleFromHeader(header, sample);
+                Path outputPath = new Path(options.getOutdir() + "/" + sample + fileSuffix);
+                final FileSystem dstFS = outputPath.getFileSystem(conf);
+
+                OutputStream os = dstFS.create(outputPath);
+                new SAMOutputPreparer().prepareForRecords(
+                        os, format,
+                        sampleHeader);
+
+                FileStatus[] fileStatuses = fs.globStatus(new Path(tmpPath.toString() + "/" + sample + "*-r-[0-9]*"));
+                for(FileStatus fstat: fileStatuses){
+                    FSDataInputStream ins = fs.open(fstat.getPath());
+                    IOUtils.copyBytes(ins, os, conf, false);
+                    ins.close();
+                }
+                os.write(BlockCompressedStreamConstants.EMPTY_GZIP_BLOCK);
+                os.close();
+            }
+//            fs.delete(tmpPath, true);
+            return 0;
+        }
+        return 1;
     }
 
     public int runMultiSort2() throws IOException, ClassNotFoundException, InterruptedException, URISyntaxException {
@@ -184,7 +184,7 @@ public class BamSort extends ToolsRunner {
         job.setOutputKeyClass(NullWritable.class);
         job.setOutputValueClass(SamRecordWritable.class);
 
-        job.setAnySamInputFormat(options.getInputFormat());
+        job.setInputFormatClass(GaeaAnySAMSortInputFormat.class);
         job.setOutputFormatClass(SortOutputFormat.class);
 
         Timer t = new Timer();
@@ -221,51 +221,6 @@ public class BamSort extends ToolsRunner {
                 t.stopS(), t.fms());
 
         return 0;
-    }
-
-    public int runMultiSort() throws IOException, ClassNotFoundException, InterruptedException {
-
-        for (SAMReadGroupRecord rg : header.getReadGroups()) {
-            if(!sampleNames.contains(rg.getSample()))
-                sampleNames.add(rg.getSample());
-        }
-
-        job.setMapperClass(MultiSortMapper.class);
-        job.setReducerClass(MultiSortReducer.class);
-        job.setJobName("multi bamsort");
-        job.setNumReduceTasks(sampleNames.size());
-
-        job.setMapOutputKeyClass(PairWritable.class);
-        job.setOutputKeyClass(NullWritable.class);
-        job.setOutputValueClass(SamRecordWritable.class);
-
-        job.setAnySamInputFormat(options.getInputFormat());
-        LazyOutputFormat.setOutputFormatClass(job, GaeaBamOutputFormat.class);
-
-        for (Path in : inputs)
-            FileInputFormat.addInputPath(job, in);
-
-        FileOutputFormat.setOutputPath(job, tmpPath);
-
-        job.setPartitionerClass(FirstPartitioner.class);
-
-        FileSystem fs = tmpPath.getFileSystem(conf);
-        if(job.waitForCompletion(true)){
-            int loop = 0;
-            for (String fileName : sampleNames){
-                Path outputPart = getSampleOutputPath(fileName);
-                while (outputPart == null && loop < 10){
-                    TimeUnit.MILLISECONDS.sleep(6000);
-                    outputPart = getSampleOutputPath(fileName);
-                    loop ++;
-                }
-                Path outputName = new Path(options.getOutdir() + "/" + fileName+".bam");
-                fs.rename(outputPart, outputName);
-            }
-            fs.delete(tmpPath, true);
-            return 0;
-        }
-        return 1;
     }
 
     public int mergeBAM(Configuration conf, SAMFormat format) {
@@ -337,6 +292,27 @@ public class BamSort extends ToolsRunner {
             return null;
         }
         return fileStatuses[0].getPath();
+    }
+
+    public static void configureSampling(
+            Path workDir, String outName, Configuration conf)
+            throws IOException
+    {
+        final Path partition =
+                workDir.getFileSystem(conf).makeQualified(
+                        new Path(workDir, "_partitioning" + outName));
+
+        TotalOrderPartitioner.setPartitionFile(conf, partition);
+        try {
+            final URI partitionURI = new URI(
+                    partition.toString() + "#" + partition.getName());
+
+            if (partitionURI.getScheme().equals("file"))
+                return;
+
+            DistributedCache.addCacheFile(partitionURI, conf);
+            DistributedCache.createSymlink(conf);
+        } catch (URISyntaxException e) { throw new RuntimeException(e); }
     }
 
     @Override

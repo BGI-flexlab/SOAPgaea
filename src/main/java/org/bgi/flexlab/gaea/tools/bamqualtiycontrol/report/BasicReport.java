@@ -51,7 +51,8 @@ public class BasicReport{
 		rTracker.setTrackerAttribute(ReadType.TOTALREADS);
 		// 当位点坐标值+read长度大于染色体的长度时，则不处理该read，进入下一次循环
 		if(datum.getEnd() >= chrInfo.getLength()) {
-			context.getCounter("Exception", "read end pos more than chr end pos").increment(1);
+			if(context != null)
+				context.getCounter("Exception", "read end pos more than chr end pos").increment(1);
 			return false;
 		}
 		

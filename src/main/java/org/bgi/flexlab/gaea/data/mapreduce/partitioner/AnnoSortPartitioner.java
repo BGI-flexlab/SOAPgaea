@@ -14,31 +14,20 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  *******************************************************************************/
-package org.bgi.flexlab.gaea.tools.annotator.db;
+package org.bgi.flexlab.gaea.data.mapreduce.partitioner;
 
-import org.bgi.flexlab.gaea.tools.annotator.AnnotationContext;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.LinkedList;
+import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.mapreduce.Partitioner;
 
-public class TrDBQuery extends DBQuery {
+public class AnnoSortPartitioner<T> extends Partitioner<LongWritable, T> {
 
-	@Override
-	public Results query(Condition condition)throws IOException{
-		Results results = new Results();
-
-		for (String tr : condition.getTranscriptIds()) {
-			HashMap<String,String> result = dbAdapter.getResult(condition.getRefTable().getTable(), tr, condition.getFields());
-			if (result ==null || result.isEmpty()) return null;
-			results.add(tr, result);
-		}
-		return results;
-	}
-
-	@Override
-	public HashMap<String,String> getMergeResult(AnnotationContext ac) {
-		return results.getMergeResult(ac.getTranscriptId());
-	}
-
+    @Override
+    public int getPartition(LongWritable key, T value, int numPartitions) {
+        /*
+         * 默认的实现 (key.hashCode() & Integer.MAX_VALUE) % numPartitions
+         * 让key中first字段作为分区依据
+         */
+        return (int)((key.get()>>48) % numPartitions);
+    }
 }

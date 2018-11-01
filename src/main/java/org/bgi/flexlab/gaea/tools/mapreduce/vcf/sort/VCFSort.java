@@ -43,7 +43,6 @@
 package org.bgi.flexlab.gaea.tools.mapreduce.vcf.sort;
 
 
-import hbparquet.hadoop.util.ContextUtil;
 import htsjdk.tribble.readers.AsciiLineReader;
 import htsjdk.tribble.readers.AsciiLineReaderIterator;
 import org.apache.hadoop.conf.Configuration;
@@ -83,21 +82,22 @@ public class VCFSort extends ToolsRunner{
 	@Override
 	public int run(String[] args) {
 		try {
-			options = new VCFSortOptions();
-			options.parse(args);
-			
 			BioJob job = BioJob.getInstance();
-			
 			Configuration conf = job.getConfiguration();
-			options.setHadoopConf(args, conf);
+			String[] remainArgs = remainArgs(args, conf);
+			options = new VCFSortOptions();
+			options.parse(remainArgs);
+
 			conf.set(SortOutputFormat.INPUT_PATH_PROP, options.getInputFileList().get(0).toString());
-			
+
 			SortUilts.configureSampling(new Path(options.getTempOutput()), job, options);
 
 			MultipleVCFHeader mVcfHeader = mergeHeader(options, job);
-			
+
 			initChrOrder(conf);
-			
+
+			options.setHadoopConf(remainArgs, conf);
+
 			job.setJobName("VCFSort");
 			
 			job.setJarByClass(VCFSort.class);
@@ -245,7 +245,7 @@ final class SortOutputFormat<K> extends FileOutputFormat<K, VariantContextWritab
 	@Override public RecordWriter<K,VariantContextWritable> getRecordWriter(
 			TaskAttemptContext context)
 		throws IOException {
-		final Configuration conf = ContextUtil.getConfiguration(context);
+		final Configuration conf = context.getConfiguration();
 		initBaseOF(conf);
 		if (baseOF.getHeader() == null) {
 			final Path p = new Path(conf.get(INPUT_PATH_PROP));

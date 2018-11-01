@@ -55,6 +55,7 @@ public abstract class WindowsBasedMapper<VALUEOUT extends Writable> extends
 	protected WindowsBasedWritable keyout = new WindowsBasedWritable();
 	private SamRecordFilter recordFilter = null;
 	private RegionHdfsParser region = null;
+	private RegionHdfsParser regionExtend = null;
 	protected VALUEOUT outputValue;
 
 	protected HashMap<String, Integer> sampleIDs = null;
@@ -99,7 +100,9 @@ public abstract class WindowsBasedMapper<VALUEOUT extends Writable> extends
 
 		if (conf.get(REFERENCE_REGION) != null) {
 			region = new RegionHdfsParser();
+			regionExtend = new RegionHdfsParser();
 			region.parseBedFileFromHDFS(conf.get(REFERENCE_REGION), false);
+			regionExtend.parseBedFileFromHDFS(conf.get(REFERENCE_REGION), true);
 		}
 
 		otherSetup(context);
@@ -129,17 +132,21 @@ public abstract class WindowsBasedMapper<VALUEOUT extends Writable> extends
 		keyout.set(sampleID, chrIndex, winNum, position);
 	}
 
+	protected boolean skipUnmapped(){
+		return bqsrOnly;
+	}
+
 	@Override
 	protected void map(LongWritable key, SamRecordWritable value, Context context)
 			throws IOException, InterruptedException {
 		SAMRecord sam = value.get();
-		if (recordFilter.filter(sam, region)) {
+		if (recordFilter.filter(sam, regionExtend)) {
 			return;
 		}
 		setOutputValue(sam);
 
 		if (SamRecordUtils.isUnmapped(sam)) {
-			if(!bqsrOnly){
+			if(!skipUnmapped()){
 				int readNameHashCode = sam.getReadName().hashCode();
 				if(readNameHashCode >= Integer.MAX_VALUE)
 					readNameHashCode = 0;

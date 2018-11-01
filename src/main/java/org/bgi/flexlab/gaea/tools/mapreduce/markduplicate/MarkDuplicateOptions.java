@@ -21,6 +21,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.PathFilter;
 import org.bgi.flexlab.gaea.data.mapreduce.options.HadoopOptions;
 import org.bgi.flexlab.gaea.data.options.GaeaOptions;
 import org.seqdoop.hadoop_bam.SAMFormat;
@@ -42,6 +43,7 @@ public class MarkDuplicateOptions extends GaeaOptions implements HadoopOptions {
     private int outputFormat;
     private boolean outputDupRead;
     private boolean isSE;
+    private boolean removeSecond;
     private int reducerNum;
     private int windowSize;
     private int extendSize;
@@ -53,6 +55,7 @@ public class MarkDuplicateOptions extends GaeaOptions implements HadoopOptions {
         addOption("o", "output", true, "output directory [required]", true);
         addOption("O", "outputFormat", true, "output Format. 0:BAM; 1:SAM [0]");
         addOption("D", "outputDupRead", false, "output Duplicates reads [true]");
+        addOption("M", "removeSecond", false, "remove not primary and supplementary alignment reads [false]");
         addOption("S", "isSE", false, "input is SE data [false]");
         addOption("R", "reducer", true, "reducer numbers [30]");
         addOption("W", "windowSize", true, "window size that sharding the data [100000]");
@@ -86,6 +89,7 @@ public class MarkDuplicateOptions extends GaeaOptions implements HadoopOptions {
         output = getOptionValue("o", null);
         outputFormat = getOptionIntValue("O", 0);
         outputDupRead = getOptionBooleanValue("D", true);
+        removeSecond = getOptionBooleanValue("M", false);
         isSE = getOptionBooleanValue("S", false);
         reducerNum = getOptionIntValue("R", 30);
         windowSize = getOptionIntValue("W", 100000);
@@ -113,6 +117,7 @@ public class MarkDuplicateOptions extends GaeaOptions implements HadoopOptions {
     private void traversalInputPath(String input)
     {
         Path path = new Path(input);
+        PathFilter filter = file -> !file.getName().startsWith("_");
         try {
             if (!fs.exists(path)) {
                 System.err.println("Input File Path is not exist! Please check -i var.");
@@ -121,7 +126,11 @@ public class MarkDuplicateOptions extends GaeaOptions implements HadoopOptions {
             if (fs.isFile(path)) {
                 inputFileList.add(path);
             }else {
-                FileStatus stats[]=fs.listStatus(path);
+                FileStatus[] stats=fs.listStatus(path, filter);
+                if(stats.length <= 0){
+                    System.err.println("Input File Path is empty! Please check input : " +path.toString());
+                    System.exit(-1);
+                }
 
                 for (FileStatus file : stats) {
                     Path filePath=file.getPath();
@@ -165,6 +174,14 @@ public class MarkDuplicateOptions extends GaeaOptions implements HadoopOptions {
 
     public boolean isSE() {
         return isSE;
+    }
+
+    public boolean isRemoveSecond() {
+        return removeSecond;
+    }
+
+    public void setRemoveSecond(boolean removeSecond) {
+        this.removeSecond = removeSecond;
     }
 
     public int getReducerNum() {

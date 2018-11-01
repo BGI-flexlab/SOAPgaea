@@ -52,7 +52,7 @@ public final class SortReducer
 			header = BamSortUtils.replaceSampleName(_header.clone(), options.getRenames());
 		else
 			header = _header;
-//		header.setSortOrder(SAMFileHeader.SortOrder.coordinate);
+		header.setSortOrder(SAMFileHeader.SortOrder.coordinate);
 		for (SAMReadGroupRecord rg : header.getReadGroups()) {
 			if (!formatSampleName.containsKey(rg.getSample()))
 				formatSampleName.put(rg.getSample(),

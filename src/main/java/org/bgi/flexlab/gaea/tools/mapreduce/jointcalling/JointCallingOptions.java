@@ -6,10 +6,7 @@ import java.util.List;
 
 import org.apache.commons.cli.ParseException;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FSDataInputStream;
-import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.*;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.util.LineReader;
 import org.bgi.flexlab.gaea.data.exception.UserException;
@@ -183,10 +180,14 @@ public class JointCallingOptions extends GaeaOptions implements HadoopOptions{
 		Path path = new Path(inputpath);
 		Configuration conf = new Configuration();
 		FileSystem inFS = path.getFileSystem(conf);
+		PathFilter filter = file -> !file.getName().startsWith("_");
 		if(inFS.isDirectory(path)){
-			FileStatus[] fileStatuses = inFS.globStatus(new Path(inputpath +"/part*"));
-			for (FileStatus f: fileStatuses)
+			FileStatus[] fileStatuses = inFS.listStatus(path, filter);
+			for (FileStatus f: fileStatuses) {
+				if(f.getLen() <= 0)
+					continue;
 				input.add(f.getPath());
+			}
 			Path vcfHeaderPath = new Path(path.getParent().toString() + "/vcfFileHeader.vcf");
 			if(inFS.exists(vcfHeaderPath))
 				setVcfHeaderFile(vcfHeaderPath.toString());

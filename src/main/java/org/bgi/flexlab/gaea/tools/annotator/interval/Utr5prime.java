@@ -137,6 +137,10 @@ public class Utr5prime extends Utr {
 		char[] chars = sequence.toCharArray();
 		char snpBase = seqChange.netChange(this).charAt(0);
 		if (isStrandMinus()) snpBase = GprSeq.wc(snpBase);
+		if(pos >= chars.length) {
+			System.err.println("Utr5prime:" + sequence + ";" + pos);
+			return "";
+		}
 		chars[pos] = snpBase;
 
 		// Do we gain a new start codon?

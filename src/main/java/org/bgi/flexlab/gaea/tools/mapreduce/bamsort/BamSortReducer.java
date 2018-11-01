@@ -17,71 +17,61 @@
 package org.bgi.flexlab.gaea.tools.mapreduce.bamsort;
 
 import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.SAMReadGroupRecord;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
 import org.bgi.flexlab.gaea.data.mapreduce.input.header.SamHdfsFileHeader;
-import org.bgi.flexlab.gaea.data.mapreduce.writable.PairWritable;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.SamRecordWritable;
 import org.bgi.flexlab.gaea.data.structure.bam.GaeaSamRecord;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
-public final class MultiSortReducer
+public final class BamSortReducer
 		extends
-		Reducer<PairWritable, SamRecordWritable, NullWritable, SamRecordWritable> {
+		Reducer<LongWritable, SamRecordWritable, NullWritable, SamRecordWritable> {
+
+	private SAMFileHeader samHeader;
 	private MultipleOutputs<NullWritable,SamRecordWritable> mos;
-	private SAMFileHeader header;
-//	private Map<String, String> formatSampleName = new HashMap<>();
-	private Map<String, SAMFileHeader> sampleHeader = new HashMap<>();
-	private BamSortOptions options;
+//	private Map<Integer, String> sampleNames;
 
 	@Override
-	protected void setup(Context context) throws IOException {
+	public void setup(Context context){
 		Configuration conf = context.getConfiguration();
-		SAMFileHeader _header = SamHdfsFileHeader.getHeader(conf);;
-		options = new BamSortOptions();
-		options.getOptionsFromHadoopConf(conf);
-		if(options.getRenames() != null)
-			header = BamSortUtils.replaceSampleName(_header.clone(), options.getRenames());
-		else
-			header = _header;
-//		header.setSortOrder(SAMFileHeader.SortOrder.coordinate);
-//		for (SAMReadGroupRecord rg : header.getReadGroups()) {
-//			if (!formatSampleName.containsKey(rg.getSample()))
-//				formatSampleName.put(rg.getSample(),
-//						BamSortUtils.formatSampleName(rg.getSample()));
-//		}
+		samHeader = SamHdfsFileHeader.getHeader(conf);
 		mos = new MultipleOutputs<>(context);
+
+//		sampleNames = new HashMap<>();
+//		List<SAMReadGroupRecord> list = samHeader.getReadGroups();
+//		for(int i=0;i<list.size();i++)
+//			sampleNames.put(i, list.get(i).getSample());
 	}
 
 	@Override
 	protected void reduce(
-			PairWritable key,
+			LongWritable key,
 			Iterable<SamRecordWritable> records,
 			Context ctx)
 			throws IOException, InterruptedException {
 
-		if(!sampleHeader.containsKey(key.getFirst())) {
-			SAMFileHeader newHeader = BamSortUtils.deleteSampleFromHeader(header, key.getFirst());
-			sampleHeader.put(key.getFirst(), newHeader);
-		}
-
 		for (SamRecordWritable rec : records) {
-			GaeaSamRecord sam = new GaeaSamRecord(sampleHeader.get(key.getFirst()), rec.get());
+			GaeaSamRecord sam = new GaeaSamRecord(samHeader, rec.get());
 			SamRecordWritable w = new SamRecordWritable();
 			w.set(sam);
-			mos.write(NullWritable.get(), w, key.getFirst());
+			mos.write(NullWritable.get(), w, sam.getReadGroup().getSample());
 		}
 	}
 
 	@Override
-	protected void cleanup(Context context) throws IOException,
-			InterruptedException {
+	protected void cleanup(Context context)
+			throws IOException, InterruptedException {
 		mos.close();
 	}
+
 }

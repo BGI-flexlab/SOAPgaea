@@ -40,56 +40,31 @@
  *     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  *     OTHER DEALINGS IN THE SOFTWARE.
  *******************************************************************************/
-package org.bgi.flexlab.gaea.data.mapreduce.output.vcf;
+package org.bgi.flexlab.gaea.data.mapreduce.output.bam;
 
-import org.apache.hadoop.conf.Configuration;
+import htsjdk.samtools.util.Log;
+import htsjdk.samtools.util.Log.LogLevel;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.mapreduce.JobContext;
 import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import org.seqdoop.hadoop_bam.KeyIgnoringVCFOutputFormat;
-import org.seqdoop.hadoop_bam.VariantContextWritable;
+import org.bgi.flexlab.gaea.data.mapreduce.writable.SamRecordWritable;
 
 import java.io.IOException;
 
-/**
- * Created by zhangyong on 2017/3/3.
- * came form VCFsort
- */
-public class GaeaVCFOutputFormat<K> extends FileOutputFormat<K, VariantContextWritable> {
+public class GaeaNoheaderBamOutputFormat<K> extends FileOutputFormat<K,SamRecordWritable> {
 
-    public static final String OUT_PATH_PROP = "gaea.vcf.outpath";
-    public static final String HEADER_MODIFY = "gaea.vcf.header.modify";
-
-    private KeyIgnoringVCFOutputFormat<K> baseOF;
-
-    private void initBaseOF(Configuration conf) {
-        if (baseOF == null)
-            baseOF = new KeyIgnoringVCFOutputFormat<K>(conf);
-    }
-
-    @Override public RecordWriter<K,VariantContextWritable> getRecordWriter(
-            TaskAttemptContext context)
-            throws IOException {
-        final Configuration conf = context.getConfiguration();
-        initBaseOF(conf);
-        if (baseOF.getHeader() == null) {
-        	if(conf.get(OUT_PATH_PROP) != null){
-        		final Path p = new Path(conf.get(OUT_PATH_PROP));
-        		baseOF.readHeaderFrom(p, p.getFileSystem(conf));
-        	}
-        }
-        
-        if(conf.getBoolean(GaeaVCFOutputFormat.HEADER_MODIFY, false)){
-        	final boolean wh = context.getConfiguration().getBoolean(
-        			KeyIgnoringVCFOutputFormat.WRITE_HEADER_PROPERTY, true);
-        	return new GaeaKeyIgnoringVCFRecordWriter<K>(getDefaultWorkFile(context, ""),baseOF.getHeader(),wh,context);
-        }
-
-        return baseOF.getRecordWriter(context, getDefaultWorkFile(context, ""));
-    }
-
-    // Allow the output directory to exist.
-    @Override public void checkOutputSpecs(JobContext job) {}
+	@Override
+	public RecordWriter<K, SamRecordWritable> getRecordWriter(
+			TaskAttemptContext context) throws IOException, InterruptedException {
+		return getRecordWriter(context, getDefaultWorkFile(context, ""));
+	}
+	
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public RecordWriter<K, SamRecordWritable> getRecordWriter(
+			TaskAttemptContext context, Path outputPath) throws IOException {
+		Log.setGlobalLogLevel(LogLevel.ERROR);
+		return new GaeaKeyIgnoringBamRecordWriter(outputPath,
+				false, context);
+	}
 }
