@@ -81,6 +81,7 @@ public class VCFStats extends ToolsRunner {
             VCFReport report = new VCFReport(options);
             report.mergeReport(partTmp, conf,
                     new Path(options.getOutputPath()));
+            partTmp.getFileSystem(conf).delete(partTmp, true);
             return 0;
         } else {
             return 1;

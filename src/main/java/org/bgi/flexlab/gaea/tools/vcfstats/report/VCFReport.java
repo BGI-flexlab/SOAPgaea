@@ -164,7 +164,6 @@ public class VCFReport {
                 readFromHdfs(aFilelist.getPath(), conf);
             }
         }
-        fs.delete(input, false);
         fs.close();
         for(String sample: getPerSampleVCFReports().keySet()){
             PerSampleVCFReport psvcfReport = getPerSampleVCFReports().get(sample);
