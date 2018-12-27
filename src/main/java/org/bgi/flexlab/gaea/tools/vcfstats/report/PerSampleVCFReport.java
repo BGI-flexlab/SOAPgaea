@@ -193,9 +193,22 @@ public class PerSampleVCFReport {
         return sb.toString();
     }
 
+    public static boolean acceptableGenotype(Genotype gt){
+        for(Allele allele: gt.getAlleles()) {
+            if (allele.isReference() || Allele.wouldBeStarAllele(allele.getBases())
+                    || Allele.wouldBeSymbolicAllele(allele.getBases()))
+                continue;
+            return true;
+        }
+        return false;
+    }
+
     public void add(VariantContext vc, String sample) {
         setSampleName(sample);
         Genotype gt = vc.getGenotype(sample);
+        if(!acceptableGenotype(gt))
+            return;
+
         VariantType type = VariantType.determineType(vc, sample);
 
         if(vc.isFiltered()) {
@@ -226,7 +239,7 @@ public class PerSampleVCFReport {
             mTotalDbSnp++;
 
         for(Allele allele: gt.getAlleles()){
-            if(allele.isReference() || Allele.wouldBeStarAllele(allele.getBases()))
+            if(allele.isReference() || Allele.wouldBeStarAllele(allele.getBases()) || Allele.wouldBeSymbolicAllele(allele.getBases()))
                 continue;
             if(countVarLength)
                 tallyAlleleLengths(vc.getReference(), allele);
