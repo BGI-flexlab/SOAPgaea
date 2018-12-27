@@ -211,12 +211,6 @@ public class PerSampleVCFReport {
 
         VariantType type = VariantType.determineType(vc, sample);
 
-        if(vc.isFiltered()) {
-            mTotalFailedFilters++;
-            return;
-        }else
-            mTotalPassedFilters++;
-
         if(gt.isNoCall()) {
             mNoCall++;
             return;
@@ -226,6 +220,12 @@ public class PerSampleVCFReport {
             mTotalUnchanged++;
             return;
         }
+
+        if(vc.isFiltered()) {
+            mTotalFailedFilters++;
+            return;
+        }else
+            mTotalPassedFilters++;
 
         if (gt.isHet())
             mHeterozygous++;
