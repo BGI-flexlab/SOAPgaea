@@ -32,6 +32,7 @@ public class VCFStatsOptions extends GaeaOptions implements HadoopOptions {
     private String tmpPath;
     private String outputPath;
     private String input;
+    private double qualThreshold;
     private String dbsnpFile; //vcf.gz, must be indexed
 
     private String referenceSequencePath; //参考序列gaeaindex
@@ -45,6 +46,7 @@ public class VCFStatsOptions extends GaeaOptions implements HadoopOptions {
     public VCFStatsOptions() {
         addOption("i", "input",      true,  "input file(VCF). [request]", true);
         addOption("o", "output",     true,  "output file [request]", true);
+        addOption("q", "qual",     true,  "the minimum phred-scaled confidence threshold at which variants should be counted [0]");
         addOption("d", "dbsnp",     true,  "dbsnp file(.vcf.gz), must be indexed [null]");
         addOption("r", "reference",  true,  "indexed reference sequence file list [request]", true);
         addOption("c", "countVarLength",  false,  "count variant length");
@@ -76,6 +78,7 @@ public class VCFStatsOptions extends GaeaOptions implements HadoopOptions {
         tmpPath = "/user/" + System.getProperty("user.name") + "/vcfsummarytmp-" + df.format(new Date());
 
         setInput(cmdLine.getOptionValue("input"));
+        setQualThreshold(getOptionDoubleValue("qual", 0));
         setDbsnpFile(cmdLine.getOptionValue("dbsnp"));
         setReferenceSequencePath(cmdLine.getOptionValue("reference",""));
         setOutputPath(cmdLine.getOptionValue("output"));
@@ -161,5 +164,13 @@ public class VCFStatsOptions extends GaeaOptions implements HadoopOptions {
 
     public void setDbsnpFile(String dbsnpFile) {
         this.dbsnpFile = dbsnpFile;
+    }
+
+    public double getQualThreshold() {
+        return qualThreshold;
+    }
+
+    public void setQualThreshold(double qualThreshold) {
+        this.qualThreshold = qualThreshold;
     }
 }

@@ -194,11 +194,11 @@ public class PerSampleVCFReport {
     }
 
     public static boolean acceptableGenotype(Genotype gt){
+        if(gt.isHomRef())
+            return false;
         for(Allele allele: gt.getAlleles()) {
-            if (allele.isReference() || Allele.wouldBeStarAllele(allele.getBases())
-                    || Allele.wouldBeSymbolicAllele(allele.getBases()))
-                continue;
-            return true;
+            if (!allele.isReference() && !Allele.wouldBeStarAllele(allele.getBases()) && !Allele.wouldBeSymbolicAllele(allele.getBases()))
+                return true;
         }
         return false;
     }
@@ -213,11 +213,6 @@ public class PerSampleVCFReport {
 
         if(gt.isNoCall()) {
             mNoCall++;
-            return;
-        }
-
-        if(gt.isHomRef()) {
-            mTotalUnchanged++;
             return;
         }
 
