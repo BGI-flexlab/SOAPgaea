@@ -17,6 +17,7 @@
 package org.bgi.flexlab.gaea.tools.mapreduce.annotator;
 
 
+import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFCodec;
 import htsjdk.variant.vcf.VCFHeader;
@@ -77,8 +78,16 @@ public class AnnotationMapper extends Mapper<LongWritable, Text, Text, VcfLineWr
 	}
 
 	private boolean filteVariant(VariantContext variantContext){
-		return !variantContext.isVariant();
+		if(variantContext.isVariant()){
+
+			for(Allele allele: variantContext.getAlternateAlleles()) {
+				if (!allele.isReference() && !Allele.wouldBeStarAllele(allele.getBases()) && !Allele.wouldBeSymbolicAllele(allele.getBases()))
+					return false;
+			}
+		}
+		return true;
 	}
+
 
 	@Override
 	protected void map(LongWritable key, Text value, Context context)
