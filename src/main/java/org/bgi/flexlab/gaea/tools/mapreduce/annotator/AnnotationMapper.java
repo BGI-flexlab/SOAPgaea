@@ -80,14 +80,13 @@ public class AnnotationMapper extends Mapper<LongWritable, Text, Text, VcfLineWr
 
 	private boolean isBadVariant(VariantContext variantContext){
 		if(variantContext.isVariant()){
+			if (variantContext.getNoCallCount() + variantContext.getHomRefCount() == variantContext.getNSamples()) {
+				return true;
+			}
 
 			for(Allele allele: variantContext.getAlternateAlleles()) {
 				if (!allele.isReference() && !Allele.wouldBeStarAllele(allele.getBases()) && !Allele.wouldBeSymbolicAllele(allele.getBases()))
 					return false;
-			}
-
-			if (variantContext.getNoCallCount() + variantContext.getHomRefCount() == variantContext.getNSamples()) {
-				return true;
 			}
 		}
 		return true;
@@ -127,12 +126,6 @@ public class AnnotationMapper extends Mapper<LongWritable, Text, Text, VcfLineWr
 //		System.out.println("mapper: " + resultKey.toString() + " " + vcfLine);
 		/*根据chr-start-end*/
 		context.write(resultKey, resultValue);
-
 	}
 	
-	@Override
-	protected void cleanup(Context context)
-			throws IOException, InterruptedException {
-
-	}
 }
