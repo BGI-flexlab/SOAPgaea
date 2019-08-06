@@ -188,7 +188,7 @@ public class BamQualityControlOptions extends GaeaOptions implements HadoopOptio
 		referenceSequencePath = getOptionValue("d", null);
 		localReferenceSequencePath = getOptionValue("f", null);
 		outputPath = getOptionValue("o", null);
-		reducerNum = getOptionIntValue("r", 30);
+		reducerNum = getOptionIntValue("r", 50);
 		region = getOptionValue("R", null);
 		bedfile = getOptionValue("B", null);
 		intsertSize = getOptionIntValue("I", 2000);
