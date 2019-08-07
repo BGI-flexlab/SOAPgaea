@@ -14,62 +14,48 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  *******************************************************************************/
-package org.bgi.flexlab.gaea.tools.mapreduce.vcfstats;
+package org.bgi.flexlab.gaea.tools.mapreduce.bamstats;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.BioJob;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.ToolsRunner;
-import org.bgi.flexlab.gaea.tools.vcfstats.report.VCFReport;
-import org.seqdoop.hadoop_bam.VCFInputFormat;
-import org.seqdoop.hadoop_bam.VCFOutputFormat;
+import org.bgi.flexlab.gaea.tools.bamstats.BamReport;
+import org.seqdoop.hadoop_bam.SAMFormat;
 
 import java.util.concurrent.TimeUnit;
 
-public class VCFStats extends ToolsRunner {
 
-    private Configuration conf;
-    private VCFStatsOptions options;
+public class BamStats extends ToolsRunner {
 
-    private int runVCFStats(String[] arg0) throws Exception {
+    @Override
+    public int run(String[] args) throws Exception {
+        Configuration conf = new Configuration();
+        String[] remainArgs = remainArgs(args, conf);
 
-        conf = new Configuration();
-        String[] remainArgs = remainArgs(arg0, conf);
-
-        options = new VCFStatsOptions();
+        BamStatsOptions options = new BamStatsOptions();
         options.parse(remainArgs);
         options.setHadoopConf(remainArgs, conf);
-        conf.set(VCFOutputFormat.OUTPUT_VCF_FORMAT_PROPERTY, "VCF");
         BioJob job = BioJob.getInstance(conf);
 
-        job.setJobName("GaeaVCFStats");
+        job.setJobName("GaeaBamStats");
         job.setJarByClass(this.getClass());
-        job.setMapperClass(VCFStatsMapper.class);
-//        job.setReducerClass(VCFStatsReducer.class);
+        job.setMapperClass(BamStatsMapper.class);
         job.setNumReduceTasks(0);
-
-//        job.setMapOutputKeyClass(Text.class);
-//        job.setMapOutputValueClass(VariantContextWritable.class);
-
-
-        VCFInputFormat.addInputPath(job, new Path(options.getInput()));
 
         job.setOutputKeyClass(NullWritable.class);
         job.setOutputValueClass(Text.class);
-//        job.setOutputKeyValue();
 
-        job.setInputFormatClass(VCFInputFormat.class);
-        job.setOutputFormatClass(TextOutputFormat.class);
+        job.setAnySamInputFormat(SAMFormat.BAM);
 
-        Path partTmp = new Path(options.getOutputPath() + "/out_vcf");
+        FileInputFormat.setInputPaths(job, options.getInputsAsArray());
+
+        Path partTmp = new Path(options.getOutputPath() + "/out_temp");
         FileOutputFormat.setOutputPath(job, partTmp);
-
-//        MultipleOutputs.addNamedOutput(job, "Statistic",
-//                TextOutputFormat.class, NullWritable.class, Text.class);
 
         if (job.waitForCompletion(true)) {
             int loop = 0;
@@ -78,7 +64,7 @@ public class VCFStats extends ToolsRunner {
                 loop ++;
             }
 
-            VCFReport report = new VCFReport(options);
+            BamReport report = new BamReport(options);
             report.mergeReport(partTmp, conf,
                     new Path(options.getOutputPath()));
             partTmp.getFileSystem(conf).delete(partTmp, true);
@@ -86,12 +72,6 @@ public class VCFStats extends ToolsRunner {
         } else {
             return 1;
         }
-    }
-
-    @Override
-    public int run(String[] args) throws Exception {
-        VCFStats vcfStats = new VCFStats();
-        return vcfStats.runVCFStats(args);
     }
 
 }

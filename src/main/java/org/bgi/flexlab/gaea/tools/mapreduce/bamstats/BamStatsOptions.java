@@ -14,42 +14,34 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  *******************************************************************************/
-package org.bgi.flexlab.gaea.tools.mapreduce.vcfstats;
+package org.bgi.flexlab.gaea.tools.mapreduce.bamstats;
 
 import org.apache.commons.cli.ParseException;
 import org.apache.hadoop.conf.Configuration;
 import org.bgi.flexlab.gaea.data.mapreduce.options.HadoopOptions;
 import org.bgi.flexlab.gaea.data.options.GaeaOptions;
 
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class VCFStatsOptions extends GaeaOptions implements HadoopOptions {
+public class BamStatsOptions extends GaeaOptions implements HadoopOptions {
 
-    private final static String SOFTWARE_NAME = "VCFStats";
+    private final static String SOFTWARE_NAME = "BAMStats";
     private final static String SOFTWARE_VERSION = "1.0";
 
     private String tmpPath;
     private String outputPath;
-    private String input;
-    private double qualThreshold;
-    private String dbsnpFile; //vcf.gz, must be indexed
 
-    private String referenceSequencePath; //参考序列gaeaindex
-
-    private boolean countVarLength = false;
     private boolean verbose = false;
     private boolean debug = false;
 
     private int reducerNum;
 
-    public VCFStatsOptions() {
+    public BamStatsOptions() {
         addOption("i", "input",      true,  "input file(VCF). [request]", true);
         addOption("o", "output",     true,  "output file [request]", true);
         addOption("q", "qual",     true,  "the minimum phred-scaled confidence threshold at which variants should be counted [0]");
-        addOption("d", "dbsnp",     true,  "dbsnp file(.vcf.gz), must be indexed [null]");
-        addOption("r", "reference",  true,  "indexed reference sequence file list [request]", true);
-        addOption("c", "countVarLength",  false,  "count variant length");
         addOption(null,"verbose",    false, "display verbose information.");
         addOption(null,"debug",      false, "for debug.");
         addOption("h", "help",       false, "help information.");
@@ -59,7 +51,7 @@ public class VCFStatsOptions extends GaeaOptions implements HadoopOptions {
     }
 
     @Override
-    public void parse(String[] args) {
+    public void parse(String[] args) throws IOException {
         try {
             cmdLine = parser.parse(options, args);
             if(cmdLine.hasOption("h")) {
@@ -77,12 +69,8 @@ public class VCFStatsOptions extends GaeaOptions implements HadoopOptions {
         SimpleDateFormat df = new SimpleDateFormat("yyyyMMddHHmmss");
         tmpPath = "/user/" + System.getProperty("user.name") + "/vcfsummarytmp-" + df.format(new Date());
 
-        setInput(cmdLine.getOptionValue("input"));
-        setQualThreshold(getOptionDoubleValue("qual", 0));
-        setDbsnpFile(cmdLine.getOptionValue("dbsnp"));
-        setReferenceSequencePath(cmdLine.getOptionValue("reference",""));
+        setInputs(cmdLine.getOptionValue("input"));
         setOutputPath(cmdLine.getOptionValue("output"));
-        setCountVarLength(getOptionBooleanValue("c", false));
         setVerbose(getOptionBooleanValue("verbose", false));
         setDebug(getOptionBooleanValue("debug", false));
     }
@@ -95,7 +83,11 @@ public class VCFStatsOptions extends GaeaOptions implements HadoopOptions {
     @Override
     public void getOptionsFromHadoopConf(Configuration conf) {
         String[] args = conf.getStrings("args");
-        this.parse(args);
+        try {
+            this.parse(args);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public int getReducerNum() {
@@ -118,36 +110,12 @@ public class VCFStatsOptions extends GaeaOptions implements HadoopOptions {
         this.tmpPath = tmpPath;
     }
 
-    public String getInput() {
-        return input;
-    }
-
-    public void setInput(String input) {
-        this.input = input;
-    }
-
-    public String getReferenceSequencePath() {
-        return referenceSequencePath;
-    }
-
-    public void setReferenceSequencePath(String referenceSequencePath) {
-        this.referenceSequencePath = referenceSequencePath;
-    }
-
     public boolean isVerbose() {
         return verbose;
     }
 
     public void setVerbose(boolean verbose) {
         this.verbose = verbose;
-    }
-
-    public boolean isCountVarLength() {
-        return countVarLength;
-    }
-
-    public void setCountVarLength(boolean countVarLength) {
-        this.countVarLength = countVarLength;
     }
 
     public boolean isDebug() {
@@ -158,19 +126,4 @@ public class VCFStatsOptions extends GaeaOptions implements HadoopOptions {
         this.debug = debug;
     }
 
-    public String getDbsnpFile() {
-        return dbsnpFile;
-    }
-
-    public void setDbsnpFile(String dbsnpFile) {
-        this.dbsnpFile = dbsnpFile;
-    }
-
-    public double getQualThreshold() {
-        return qualThreshold;
-    }
-
-    public void setQualThreshold(double qualThreshold) {
-        this.qualThreshold = qualThreshold;
-    }
 }

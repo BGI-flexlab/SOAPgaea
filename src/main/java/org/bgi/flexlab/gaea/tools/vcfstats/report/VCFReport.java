@@ -121,13 +121,13 @@ public class VCFReport {
         LineReader lineReader = new LineReader(FSinput, conf);
         Text line = new Text();
         PerSampleVCFReport perSampleVCFReport;
-        PerSampleVCFReport totalVCFReport;
-        if(!perSampleVCFReports.containsKey("total")) {
-            totalVCFReport = new PerSampleVCFReport(genomeShare, options.isCountVarLength());
-            perSampleVCFReports.put("total", totalVCFReport);
-        }else {
-            totalVCFReport = perSampleVCFReports.get("total");
-        }
+//        PerSampleVCFReport totalVCFReport;
+//        if(!perSampleVCFReports.containsKey("total")) {
+//            totalVCFReport = new PerSampleVCFReport(genomeShare, options.isCountVarLength());
+//            perSampleVCFReports.put("total", totalVCFReport);
+//        }else {
+//            totalVCFReport = perSampleVCFReports.get("total");
+//        }
         while ((lineReader.readLine(line)) != 0) {
             String reducerStr = line.toString();
             if(reducerStr.isEmpty()) continue;
@@ -141,7 +141,7 @@ public class VCFReport {
                 perSampleVCFReports.put(sample, perSampleVCFReport);
             }
             perSampleVCFReport.parseReducerString(fields[1]);
-            totalVCFReport.parseReducerString(fields[1]);
+//            totalVCFReport.parseReducerString(fields[1]);
         }
         lineReader.close();
     }
@@ -157,21 +157,18 @@ public class VCFReport {
 
     public void mergeReport(Path input, Configuration conf, Path outputDir) throws IOException {
         FileSystem fs = input.getFileSystem(conf);
-        FileStatus filelist[] = fs.listStatus(input);
-//        FileStatus filelist[] = fs.listStatus(input,new StaticPathFilter());
+        FileStatus[] filelist = fs.listStatus(input);
 
         for (FileStatus aFilelist : filelist) {
             if (!aFilelist.isDirectory()) {
                 readFromHdfs(aFilelist.getPath(), conf);
-                fs.delete(aFilelist.getPath(), false);
             }
         }
-
         fs.close();
         for(String sample: getPerSampleVCFReports().keySet()){
-            PerSampleVCFReport PerSampleVCFReport = getPerSampleVCFReports().get(sample);
+            PerSampleVCFReport psvcfReport = getPerSampleVCFReports().get(sample);
             String fileName = outputDir + "/" + sample + ".vcfstats.report.txt";
-            write(fileName, conf, PerSampleVCFReport.getReport());
+            write(fileName, conf, psvcfReport.getReport());
         }
     }
 
@@ -182,9 +179,7 @@ public class VCFReport {
     static class StaticPathFilter implements PathFilter {
         @Override
         public boolean accept(Path path) {
-            if (path.getName().startsWith("Statistic"))
-                return true;
-            return false;
+            return path.getName().startsWith("Statistic");
         }
     }
 }

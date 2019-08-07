@@ -193,26 +193,34 @@ public class PerSampleVCFReport {
         return sb.toString();
     }
 
+    public static boolean acceptableGenotype(Genotype gt){
+        if(gt.isHomRef())
+            return false;
+        for(Allele allele: gt.getAlleles()) {
+            if (!allele.isReference() && !Allele.wouldBeStarAllele(allele.getBases()) && !Allele.wouldBeSymbolicAllele(allele.getBases()))
+                return true;
+        }
+        return false;
+    }
+
     public void add(VariantContext vc, String sample) {
         setSampleName(sample);
         Genotype gt = vc.getGenotype(sample);
-        VariantType type = VariantType.determineType(vc, sample);
-
-        if(vc.isFiltered()) {
-            mTotalFailedFilters++;
+        if(!acceptableGenotype(gt))
             return;
-        }else
-            mTotalPassedFilters++;
+
+        VariantType type = VariantType.determineType(vc, sample);
 
         if(gt.isNoCall()) {
             mNoCall++;
             return;
         }
 
-        if(gt.isHomRef()) {
-            mTotalUnchanged++;
+        if(vc.isFiltered()) {
+            mTotalFailedFilters++;
             return;
-        }
+        }else
+            mTotalPassedFilters++;
 
         if (gt.isHet())
             mHeterozygous++;
@@ -226,7 +234,7 @@ public class PerSampleVCFReport {
             mTotalDbSnp++;
 
         for(Allele allele: gt.getAlleles()){
-            if(allele.isReference() || Allele.wouldBeStarAllele(allele.getBases()))
+            if(allele.isReference() || Allele.wouldBeStarAllele(allele.getBases()) || Allele.wouldBeSymbolicAllele(allele.getBases()))
                 continue;
             if(countVarLength)
                 tallyAlleleLengths(vc.getReference(), allele);

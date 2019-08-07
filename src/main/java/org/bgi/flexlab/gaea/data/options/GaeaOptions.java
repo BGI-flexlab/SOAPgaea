@@ -17,21 +17,32 @@
 package org.bgi.flexlab.gaea.data.options;
 
 import org.apache.commons.cli.*;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.PathFilter;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.util.LineReader;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 public abstract class GaeaOptions {
+	public static final String INPUT_LIST_SUFFIX = ".list";
+
 	protected Options options = new Options();
 	protected CommandLine cmdLine;
 	protected CommandLineParser parser = new PosixParser();
 	protected HelpFormatter helpInfo = new HelpFormatter();
 	protected List<Option> optionsList = new ArrayList<Option>();
-	
+	protected List<Path> inputs = new ArrayList<>();
+
 	/**
 	 * parse parameter
 	 */
-	abstract public void parse(String[] args);
+	abstract public void parse(String[] args) throws IOException;
 
 	/**
 	 * help info must use it before parse.
@@ -150,5 +161,43 @@ public abstract class GaeaOptions {
 	
 	public List<Option> getOptionList(){
 		return this.optionsList;
+	}
+
+	public void setInputs(String input) throws IOException {
+		Path path = new Path(input);
+		FileSystem inFS = path.getFileSystem(new Configuration());
+		PathFilter filter = file -> !file.getName().startsWith("_");
+		if(inFS.isDirectory(path)){
+			FileStatus[] stats = inFS.listStatus(path, filter);
+			if(stats.length <= 0){
+				System.err.println("Input File Path is empty! Please check input : " +path.toString());
+				System.exit(-1);
+			}
+
+			for (FileStatus f: stats){
+				Path filePath = f.getPath();
+				if (inFS.isDirectory(filePath)) {
+					String childPath=filePath.toString();
+					setInputs(childPath);
+				}else {
+					inputs.add(filePath);
+				}
+			}
+		}else {
+			if(input.endsWith(INPUT_LIST_SUFFIX)){
+				LineReader reader = new LineReader(inFS.open(path));
+				Text line = new Text();
+				while(reader.readLine(line) > 0 && line.getLength() != 0) {
+					inputs.add(new Path(line.toString()));
+				}
+				reader.close();
+			}else {
+				inputs.add(path);
+			}
+		}
+	}
+
+	public Path[] getInputsAsArray(){
+		return inputs.toArray(new Path[0]);
 	}
 }

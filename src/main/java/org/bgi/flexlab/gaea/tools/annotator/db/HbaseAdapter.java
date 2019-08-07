@@ -63,8 +63,8 @@ public class HbaseAdapter extends DBAdapter {
 		Get get = new Get(Bytes.toBytes(rowKey));
 		get.addFamily(Bytes.toBytes(getColumnFamily()));
 		Table table = conn.getTable(TableName.valueOf(tableName));
-		if (!table.exists(get))
-			return null;
+//		if (!table.exists(get))
+//			return null;
 		Result result = table.get(get);
 
 		HashMap<String,String> resultMap = new HashMap<>();

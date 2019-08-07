@@ -58,14 +58,14 @@ public class VCFToHBaseMapper extends Mapper<LongWritable, VariantContextWritabl
 		
 		ImmutableBytesWritable rKey = new ImmutableBytesWritable(rowKeys);
 		Put put = new Put(rowKeys);
-		put.add(Bytes.toBytes("info"),Bytes.toBytes("REF"),Bytes.toBytes(ref));
-		put.add(Bytes.toBytes("info"),Bytes.toBytes("ALT"),Bytes.toBytes(alt));
-		put.add(Bytes.toBytes("info"),Bytes.toBytes("QUAL"),Bytes.toBytes(quality));
-		put.add(Bytes.toBytes("info"),Bytes.toBytes("GT"),gts);
+		put.addColumn(Bytes.toBytes("info"),Bytes.toBytes("REF"),Bytes.toBytes(ref));
+		put.addColumn(Bytes.toBytes("info"),Bytes.toBytes("ALT"),Bytes.toBytes(alt));
+		put.addColumn(Bytes.toBytes("info"),Bytes.toBytes("QUAL"),Bytes.toBytes(quality));
+		put.addColumn(Bytes.toBytes("info"),Bytes.toBytes("GT"),gts);
 		if(ad != null && ad.trim().length() > 0)
-			put.add(Bytes.toBytes("info"),Bytes.toBytes("AD"),Bytes.toBytes(ad));
+			put.addColumn(Bytes.toBytes("info"),Bytes.toBytes("AD"),Bytes.toBytes(ad));
 		if(dp >= 0)
-			put.add(Bytes.toBytes("info"),Bytes.toBytes("DP"),Bytes.toBytes(dp));
+			put.addColumn(Bytes.toBytes("info"),Bytes.toBytes("DP"),Bytes.toBytes(dp));
 		context.write(rKey, put);
 	}
 	

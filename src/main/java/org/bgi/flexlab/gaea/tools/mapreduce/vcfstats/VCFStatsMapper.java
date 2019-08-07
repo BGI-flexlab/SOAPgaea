@@ -16,6 +16,7 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.mapreduce.vcfstats;
 
+import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.VariantContext;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
@@ -37,10 +38,12 @@ public class VCFStatsMapper extends Mapper<LongWritable, VariantContextWritable,
 //    private VCFLocalLoader DBloader = null;
 
     private VCFReport vcfReport;
+    VCFStatsOptions options;
+
     private Text resultValue = new Text();
     protected void setup(Context context)
             throws IOException, InterruptedException {
-        VCFStatsOptions options = new VCFStatsOptions();
+        options = new VCFStatsOptions();
         options.getOptionsFromHadoopConf(context.getConfiguration());
         vcfReport = new VCFReport(options);
 
@@ -52,7 +55,17 @@ public class VCFStatsMapper extends Mapper<LongWritable, VariantContextWritable,
     }
 
     private boolean filteVariant(VariantContext variantContext){
-        return !variantContext.isVariant();
+        if(variantContext.isVariant()){
+            if(variantContext.getPhredScaledQual() < options.getQualThreshold()){
+                return true;
+            }
+
+            for(Allele allele: variantContext.getAlternateAlleles()) {
+                if (!allele.isReference() && !Allele.wouldBeStarAllele(allele.getBases()) && !Allele.wouldBeSymbolicAllele(allele.getBases()))
+                    return false;
+            }
+        }
+        return true;
     }
 
     @Override

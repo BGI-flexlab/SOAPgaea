@@ -17,6 +17,7 @@
 package org.bgi.flexlab.gaea.tools.mapreduce.annotator;
 
 
+import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFCodec;
 import htsjdk.variant.vcf.VCFHeader;
@@ -76,9 +77,20 @@ public class AnnotationMapper extends Mapper<LongWritable, Text, Text, VcfLineWr
 
 	}
 
-	private boolean filteVariant(VariantContext variantContext){
-		return !variantContext.isVariant();
+	private boolean isBadVariant(VariantContext variantContext){
+		if(variantContext.isVariant()){
+			if (variantContext.getNoCallCount() + variantContext.getHomRefCount() == variantContext.getNSamples()) {
+				return true;
+			}
+
+			for(Allele allele: variantContext.getAlternateAlleles()) {
+				if (!allele.isReference() && !Allele.wouldBeStarAllele(allele.getBases()) && !Allele.wouldBeSymbolicAllele(allele.getBases()))
+					return false;
+			}
+		}
+		return true;
 	}
+
 
 	@Override
 	protected void map(LongWritable key, Text value, Context context)
@@ -90,7 +102,7 @@ public class AnnotationMapper extends Mapper<LongWritable, Text, Text, VcfLineWr
 		if (vcfLine.startsWith("#")) return;
 		VariantContext variantContext = vcfcodec.decode(vcfLine);
 
-		if(filteVariant(variantContext))
+		if(isBadVariant(variantContext))
 			return;
 
 		String chr = ChromosomeUtils.getNoChrName(variantContext.getContig());
@@ -113,12 +125,6 @@ public class AnnotationMapper extends Mapper<LongWritable, Text, Text, VcfLineWr
 //		System.out.println("mapper: " + resultKey.toString() + " " + vcfLine);
 		/*根据chr-start-end*/
 		context.write(resultKey, resultValue);
-
 	}
 	
-	@Override
-	protected void cleanup(Context context)
-			throws IOException, InterruptedException {
-
-	}
 }

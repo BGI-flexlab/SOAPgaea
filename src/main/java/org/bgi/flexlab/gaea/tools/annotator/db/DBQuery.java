@@ -16,9 +16,8 @@
  *******************************************************************************/
 package org.bgi.flexlab.gaea.tools.annotator.db;
 
-import org.bgi.flexlab.gaea.tools.annotator.VcfAnnoContext;
-import org.bgi.flexlab.gaea.tools.annotator.config.DatabaseInfo.DbType;
 import org.bgi.flexlab.gaea.tools.annotator.AnnotationContext;
+import org.bgi.flexlab.gaea.tools.annotator.config.DatabaseInfo.DbType;
 
 import java.io.IOException;
 import java.io.Serializable;

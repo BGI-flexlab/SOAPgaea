@@ -52,11 +52,10 @@
 			<artifactId>kryo</artifactId>
 			<version>2.21</version>
 		</dependency>
-
 		<dependency>
 			<groupId>org.apache.hadoop</groupId>
 			<artifactId>hadoop-common</artifactId>
-			<version>2.6.0-cdh5.6.0</version>
+			<version>3.0.0-cdh6.2.0</version>
 			<exclusions>
 				<exclusion>
 					<artifactId>commons-cli</artifactId>
@@ -71,7 +70,7 @@
 		<dependency>
 			<groupId>org.apache.hadoop</groupId>
 			<artifactId>hadoop-mapreduce-client-core</artifactId>
-			<version>2.6.0-cdh5.6.0</version>
+			<version>3.0.0-cdh6.2.0</version>
 			<exclusions>
 				<exclusion>
 					<artifactId>commons-cli</artifactId>
@@ -82,23 +81,35 @@
 		<dependency>
 			<groupId>org.apache.hadoop</groupId>
 			<artifactId>hadoop-hdfs</artifactId>
-			<version>2.6.0-cdh5.6.0</version>
-			<exclusions>
-				<exclusion>
-					<artifactId>commons-cli</artifactId>
-					<groupId>commons-cli</groupId>
-				</exclusion>
-			</exclusions>
+			<version>3.0.0-cdh6.2.0</version>
+			<!--<exclusions>-->
+				<!--<exclusion>-->
+					<!--<artifactId>commons-cli</artifactId>-->
+					<!--<groupId>commons-cli</groupId>-->
+				<!--</exclusion>-->
+			<!--</exclusions>-->
 		</dependency>
 		<dependency>
 			<groupId>it.unimi.dsi</groupId>
 			<artifactId>fastutil</artifactId>
 			<version>6.3</version>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.apache.hbase/hbase-mapreduce -->
+		<dependency>
+			<groupId>org.apache.hbase</groupId>
+			<artifactId>hbase-mapreduce</artifactId>
+			<version>2.1.0-cdh6.2.0</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.glassfish</groupId>
+					<artifactId>javax.el</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
 		<dependency>
 			<groupId>org.apache.hbase</groupId>
 			<artifactId>hbase-client</artifactId>
-			<version>1.2.0-cdh5.10.0</version>
+			<version>2.1.0-cdh6.2.0</version>
 			<exclusions>
 				<exclusion>
 					<artifactId>jdk.tools</artifactId>
@@ -118,16 +129,29 @@
 					<artifactId>commons-logging</artifactId>
 					<groupId>commons-logging</groupId>
 				</exclusion>
-				<exclusion>
-					<artifactId>hadoop-core</artifactId>
-					<groupId>org.apache.hadoop</groupId>
-				</exclusion>
 			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.hbase</groupId>
 			<artifactId>hbase-server</artifactId>
-			<version>1.2.0-cdh5.10.0</version>
+			<version>2.1.0-cdh6.2.0</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.glassfish</groupId>
+					<artifactId>javax.el</artifactId>
+				</exclusion>
+				<exclusion>
+					<artifactId>hadoop-common</artifactId>
+					<groupId>org.apache.hadoop</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/org.glassfish/javax.el -->
+		<dependency>
+			<groupId>org.glassfish</groupId>
+			<artifactId>javax.el</artifactId>
+			<version>3.0.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
@@ -189,6 +213,7 @@
 			<url>https://repository.cloudera.com/content/repositories/releases/</url>
 		</repository>
 	</repositories>
+
 
 	<build>
 		<plugins>
