@@ -49,6 +49,7 @@ public class BamQualityControl extends ToolsRunner{
 	public int run(String[] args) throws Exception {
 		BioJob job = BioJob.getInstance();
 		Configuration conf = job.getConfiguration();
+		conf.setInt("mapreduce.input.fileinputformat.split.minsize", 268435456); // split.minsize 256M
 		String[] remainArgs =  remainArgs(args,conf);
 		options = new BamQualityControlOptions();
 		options.parse(remainArgs);
