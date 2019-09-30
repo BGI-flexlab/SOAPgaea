@@ -111,10 +111,10 @@
 			<artifactId>hbase-client</artifactId>
 			<version>2.1.0-cdh6.2.0</version>
 			<exclusions>
-				<exclusion>
+				<!--exclusion>
 					<artifactId>jdk.tools</artifactId>
 					<groupId>jdk.tools</groupId>
-				</exclusion>
+				</exclusion-->
 				<exclusion>
 					<artifactId>hadoop-common</artifactId>
 					<groupId>org.apache.hadoop</groupId>

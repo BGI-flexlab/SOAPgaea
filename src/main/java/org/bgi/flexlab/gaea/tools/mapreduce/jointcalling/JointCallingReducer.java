@@ -5,10 +5,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Reducer;
-import org.bgi.flexlab.gaea.data.mapreduce.output.vcf.GaeaVCFOutputFormat;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.WindowsBasedWritable;
 import org.bgi.flexlab.gaea.data.structure.dbsnp.DbsnpShare;
 import org.bgi.flexlab.gaea.data.structure.location.GenomeLocationParser;
@@ -19,10 +17,7 @@ import org.bgi.flexlab.gaea.data.variant.filter.VariantRegionFilter;
 import org.bgi.flexlab.gaea.tools.jointcalling.JointCallingEngine;
 import org.bgi.flexlab.gaea.tools.jointcalling.util.MultipleVCFHeaderForJointCalling;
 import org.seqdoop.hadoop_bam.VariantContextWritable;
-import org.seqdoop.hadoop_bam.util.VCFHeaderReader;
-import org.seqdoop.hadoop_bam.util.WrapSeekable;
 
-import htsjdk.samtools.seekablestream.SeekableStream;
 import htsjdk.variant.variantcontext.CommonInfo;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFContigHeaderLine;
@@ -50,15 +45,9 @@ public class JointCallingReducer
 		Configuration conf = context.getConfiguration();
 		contigs = new HashMap<>();
 		
-		Path path = new Path(conf.get(GaeaVCFOutputFormat.OUT_PATH_PROP));
-		SeekableStream in = WrapSeekable.openPath(path.getFileSystem(conf), path);
-		header = VCFHeaderReader.readHeaderFrom(in);
-		in.close();
+		headers.readHeaders(conf);
 		
-		if(header == null)
-			throw new RuntimeException("header is null !!!");
-		
-		for (VCFContigHeaderLine line : header.getContigLines()) {
+		for (VCFContigHeaderLine line : headers.getMergeHeader().getContigLines()) {
 			contigs.put(line.getContigIndex(), line.getID());
 		}
 
@@ -66,14 +55,9 @@ public class JointCallingReducer
 		options.getOptionsFromHadoopConf(conf);
 		
 		windowSize = options.getWindowsSize();
-		parser = new GenomeLocationParser(header.getSequenceDictionary());
-		headers.readHeaders(conf);
+		parser = new GenomeLocationParser(headers.getMergeHeader().getSequenceDictionary());
+		engine = new JointCallingEngine(options, parser,headers);
 		
-		String sampleStr = conf.get(JointCalling.INPUT_ORDER,null);
-		if(sampleStr != null)
-			engine = new JointCallingEngine(options, parser,header,headers,sampleStr.split(","));
-		else
-			engine = new JointCallingEngine(options, parser,header,headers,null);
 		genomeShare = new ReferenceShare();
 		genomeShare.loadChromosomeList(options.getReference());
 		dbsnpShare = new DbsnpShare(options.getDBSnp(), options.getReference());

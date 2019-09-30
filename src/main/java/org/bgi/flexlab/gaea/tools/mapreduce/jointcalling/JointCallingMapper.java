@@ -9,6 +9,7 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.bgi.flexlab.gaea.data.mapreduce.output.vcf.GaeaVCFOutputFormat;
 import org.bgi.flexlab.gaea.data.mapreduce.writable.WindowsBasedWritable;
+import org.bgi.flexlab.gaea.framework.tools.mapreduce.WindowsBasedMapper;
 import org.seqdoop.hadoop_bam.VariantContextWritable;
 import org.seqdoop.hadoop_bam.util.VCFHeaderReader;
 import org.seqdoop.hadoop_bam.util.WrapSeekable;
@@ -41,6 +42,8 @@ public class JointCallingMapper extends
 		for (VCFContigHeaderLine line : header.getContigLines()) {
 			chrIndexs.put(line.getID(), line.getContigIndex());
 		}
+		
+		this.windowSize = conf.getInt(WindowsBasedMapper.WINDOWS_SIZE, 10000);
 	}
 	
 	@Override

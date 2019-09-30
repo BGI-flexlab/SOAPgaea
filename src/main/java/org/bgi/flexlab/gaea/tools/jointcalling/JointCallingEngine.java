@@ -56,8 +56,8 @@ public class JointCallingEngine {
 	private boolean uniquifySamples = false;
 
 	// private ArrayList<VariantContext> variants = null;
-	private TreeMap<String, ArrayList<VariantContext>> variantsForSample = null;
-	private String[] samples = null;
+	private TreeMap<Integer, ArrayList<VariantContext>> variantsForSample = null;
+	//private String[] samples = null;
 
 	private VariantContext currentContext = null;
 
@@ -76,13 +76,15 @@ public class JointCallingEngine {
 			Arrays.asList(new String[] { StandardAnnotation.class.getSimpleName() }));
 
 	private final VCFHeader vcfHeader;
-	private HashMap<String,HeaderDataCache> vcfHeaderDateCaches = new HashMap<String,HeaderDataCache>();
+	private HashMap<Integer,HeaderDataCache> vcfHeaderDateCaches = null;
 	
 	final Set<String> infoHeaderAltAllelesLineNames = new LinkedHashSet<>();
+	
+	private int sampleSize = 0;
 
-	public JointCallingEngine(JointCallingOptions options, GenomeLocationParser parser, VCFHeader vcfheader,
-			MultipleVCFHeaderForJointCalling multiHeaders,String[] sampleArray) {
-		variantsForSample = new TreeMap<String, ArrayList<VariantContext>>();
+	public JointCallingEngine(JointCallingOptions options, GenomeLocationParser parser,
+			MultipleVCFHeaderForJointCalling multiHeaders) {
+		variantsForSample = new TreeMap<Integer, ArrayList<VariantContext>>();
 		this.INCLUDE_NON_VARIANTS = options.INCLUDE_NON_VARIANT;
 		this.uniquifySamples = options.isUniquifySamples();
 		this.parser = parser;
@@ -99,7 +101,7 @@ public class JointCallingEngine {
                 }
             }
         }
-		Set<String> sampleNames = getSampleList(vcfheader);
+		Set<String> sampleNames = getSampleList(multiHeaders.getMergeHeader());
 
 		genotypingEngine = new UnifiedGenotypingEngine(sampleNames.size(), options, this.parser);
 
@@ -108,7 +110,7 @@ public class JointCallingEngine {
 
 		headerLines.removeIf(vcfHeaderLine -> vcfHeaderLine.getKey().contains(GVCF_BLOCK));
 		
-		headerLines.addAll(vcfheader.getMetaDataInInputOrder());
+		headerLines.addAll(multiHeaders.getMergeHeader().getMetaDataInInputOrder());
 
 		headerLines.addAll(annotationEngine.getVCFAnnotationDescriptions());
 		headerLines.addAll(genotypingEngine.getAppropriateVCFInfoHeaders());
@@ -135,22 +137,23 @@ public class JointCallingEngine {
 
 		vcfHeader = new VCFHeader(headerLines, sampleNames);
 
-		for(String sample : multiHeaders.keySet()){
-			HeaderDataCache vcfHeaderDataCache = new HeaderDataCache();
+		/*for(String sample : multiHeaders.keySet()){
+			HeaderLineDataCache vcfHeaderDataCache = new HeaderLineDataCache();
 			vcfHeaderDataCache.setHeader(multiHeaders.getVCFHeader(sample));
 			vcfHeaderDateCaches.put(sample, vcfHeaderDataCache);
-		}
+		}*/
+		
+		this.sampleSize = multiHeaders.getHeaderSize();
+		this.vcfHeaderDateCaches = multiHeaders.getHeaderDataCache();
 
 		// now that we have all the VCF headers, initialize the annotations
 		// (this is particularly important to turn off RankSumTest dithering in
 		// integration tests)
 		Set<String> sampleNamesHashSet = new HashSet<>();
-		sampleNamesHashSet.addAll(Arrays.asList(sampleArray));
+		sampleNamesHashSet.addAll(multiHeaders.getMergeHeader().getSampleNamesInOrder());
 		annotationEngine.invokeAnnotationInitializationMethods(headerLines, sampleNamesHashSet);
 
 		GvcfMathUtils.resetRandomGenerator();
-		
-		this.samples = sampleArray;
 	}
 
 	public Set<String> getSampleList(VCFHeader header) {
@@ -168,7 +171,7 @@ public class JointCallingEngine {
 
 	public void purgeOutOfScopeRecords(GenomeLocation location) {
 
-		for (String sample : variantsForSample.keySet()) {
+		for (Integer sample : variantsForSample.keySet()) {
 			variantsForSample.get(sample).removeIf(context -> context.getEnd() < location.getStart());
 		}
 	}
@@ -179,7 +182,7 @@ public class JointCallingEngine {
 		if (curr <= max_position)
 			purgeOutOfScopeRecords(location);
 		else {
-			for (String sample : variantsForSample.keySet()) {
+			for (Integer sample : variantsForSample.keySet()) {
 				variantsForSample.get(sample).clear();
 			}
 			max_position = -1;
@@ -198,17 +201,19 @@ public class JointCallingEngine {
 				GenotypesContext gc = currentContext.getGenotypes();
 				String sampleName = currentContext.getAttributeAsString("SM", null);
 				if (sampleName == null)
-					throw new RuntimeException("Not contains SM attribute");
+					throw new UserException("Not contains SM attribute");
+				
+				int sampleID = Integer.parseInt(sampleName);
 				
 				if (gc instanceof LazyParsingGenotypesContext)
-					((LazyParsingGenotypesContext) gc).getParser().setHeaderDataCache(vcfHeaderDateCaches.get(sampleName));
+					((LazyParsingGenotypesContext) gc).getParser().setHeaderDataCache(vcfHeaderDateCaches.get(sampleID));
 				
-				if (variantsForSample.containsKey(sampleName)) {
-					variantsForSample.get(sampleName).add(currentContext);
+				if (variantsForSample.containsKey(sampleID)) {
+					variantsForSample.get(sampleID).add(currentContext);
 				} else {
 					ArrayList<VariantContext> list = new ArrayList<VariantContext>();
 					list.add(currentContext);
-					variantsForSample.put(sampleName, list);
+					variantsForSample.put(sampleID, list);
 				}
 
 				if (max_position < currentContext.getEnd())
@@ -224,7 +229,7 @@ public class JointCallingEngine {
 		}
 	}
 	
-	private VariantContext getValues(String sample,GenomeLocation loc,boolean requireStartHere){
+	private VariantContext getValues(int sample,GenomeLocation loc,boolean requireStartHere){
 		if(variantsForSample.containsKey(sample) && variantsForSample.get(sample).size() > 0){
 			for(VariantContext vc : variantsForSample.get(sample)){
 				if ( ! requireStartHere || vc.getStart() == loc.getStart()){
@@ -236,7 +241,7 @@ public class JointCallingEngine {
 		return null;
 	}
 	
-	private VariantContext getValues(String sample,GenomeLocation loc){
+	private VariantContext getValues(int sample,GenomeLocation loc){
 		VariantContext vc = getValues(sample,loc,true);
 		
 		if(vc == null)
@@ -247,20 +252,14 @@ public class JointCallingEngine {
 
 	private List<VariantContext> getValues(GenomeLocation loc) {
 		List<VariantContext> list = new ArrayList<VariantContext>();
-
-		if(this.samples != null){
-			for (String sample : samples) {
-				VariantContext vc = getValues(sample,loc);
-				if(vc != null)
-					list.add(vc);
-			}
-		}else{
-			for (String sample : variantsForSample.keySet()) {
-				VariantContext vc = getValues(sample,loc);
-				if(vc != null)
-					list.add(vc);
-			}
+		
+		int i;
+		for(i = 0 ; i < sampleSize ; i++) {
+			VariantContext vc = getValues(i,loc);
+			if(vc != null)
+				list.add(vc);
 		}
+
 		return list;
 	}
 

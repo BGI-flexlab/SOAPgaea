@@ -17,6 +17,7 @@ import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
+import org.bgi.flexlab.gaea.data.structure.filetype.GZipType;
 import org.seqdoop.hadoop_bam.BCFRecordReader;
 import org.seqdoop.hadoop_bam.BCFSplitGuesser;
 import org.seqdoop.hadoop_bam.FileVirtualSplit;
@@ -41,7 +42,7 @@ public class JointCallingVCFInputFormat extends FileInputFormat<LongWritable,Var
 
 	private Configuration conf;
 	private boolean trustExts;
-
+	
 	/** Creates a new input format, which will use the
 	 * <code>Configuration</code> from the first public method called. Thus this
 	 * will behave as though constructed with a <code>Configuration</code>
@@ -157,7 +158,7 @@ public class JointCallingVCFInputFormat extends FileInputFormat<LongWritable,Var
 
 		switch (fmt) {
 			case VCF: rr = new JointCallingVCFRecordReader(); break;
-			case BCF: rr = new BCFRecordReader(); break;
+			//case BCF: rr = new BCFRecordReader(); break;
 			default: assert false; return null;
 		}
 
@@ -284,5 +285,11 @@ public class JointCallingVCFInputFormat extends FileInputFormat<LongWritable,Var
 
 		sin.close();
 		return i;
+	}
+	
+	protected boolean isSplitable(JobContext context, Path file){
+		if(GZipType.isGzip(file))
+			return false;
+		return true;
 	}
 }

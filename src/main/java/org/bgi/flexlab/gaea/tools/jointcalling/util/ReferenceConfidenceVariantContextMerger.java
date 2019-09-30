@@ -241,21 +241,12 @@ public class ReferenceConfidenceVariantContextMerger {
 			for (ReducibleAnnotationData value : currentData.getValue()) {
 				try {
 					final String stringValue = value.getRawData();
-					if (stringValue.contains(".")) {
+					annotationValues.add(Double.parseDouble(stringValue));
+					/*if (stringValue.contains(".")) {
 						annotationValues.add(Double.parseDouble(stringValue));
 					} else if (Character.isDigit(stringValue.charAt(0))) {
 						annotationValues.add(Integer.parseInt(stringValue));
-						// TODO: uncomment this to parse dbSNP membership
-						// annotation once allele-specific merging for that
-						// attribute is added
-						/*
-						 * } else if (Character.isLetter(stringValue.charAt(0)))
-						 * { if (stringValue.equalsIgnoreCase("true"))
-						 * annotationValues.add(true); else if
-						 * (stringValue.equalsIgnoreCase("false"))
-						 * annotationValues.add(false);
-						 */
-					}
+					}*/
 
 				} catch (final NumberFormatException e) {
 				}
@@ -304,7 +295,9 @@ public class ReferenceConfidenceVariantContextMerger {
 				if (i > 0)
 					combinedString += ",";
 				combinedString += valueList.get(i);
+				
 			}
+			
 			ReducibleAnnotationData pairData = new AlleleSpecificAnnotationData(sampleAlleles, combinedString);
 			rawValuesList.add(pairData);
 			annotationMap.put(key, rawValuesList);

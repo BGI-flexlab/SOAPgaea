@@ -16,6 +16,7 @@ import org.bgi.flexlab.gaea.framework.tools.mapreduce.BioJob;
 import org.bgi.flexlab.gaea.framework.tools.mapreduce.ToolsRunner;
 import org.bgi.flexlab.gaea.tools.jointcalling.util.GaeaGvcfVariantContextUtils;
 import org.bgi.flexlab.gaea.tools.jointcalling.util.MultipleVCFHeaderForJointCalling;
+import org.bgi.flexlab.gaea.tools.jointcalling.util.MultipleVCFHeaderForJointCalling;
 import org.bgi.flexlab.gaea.util.Utils;
 import org.seqdoop.hadoop_bam.KeyIgnoringVCFOutputFormat;
 import org.seqdoop.hadoop_bam.VariantContextWritable;
@@ -31,29 +32,6 @@ public class JointCalling extends ToolsRunner{
 	public JointCalling(){
 		this.toolsDescription = "joing calling for gvcfs";
 	}
-	
-	private Set<String> getSampleList(Set<VCFHeader> headers){
-		Set<String> samples = new TreeSet<String>();
-		for(VCFHeader header : headers){
-			for ( String sample : header.getGenotypeSamples() ) {
-				samples.add(GaeaGvcfVariantContextUtils.mergedSampleName(null, sample, false));
-			}
-		}
-		
-		return samples;
-	}
-	
-	private VCFHeader getVCFHeaderFromInput(Set<VCFHeader> headers) throws IOException{
-        Set<String> samples = getSampleList(headers);
-        Set<VCFHeaderLine> headerLines = VCFUtils.smartMergeHeaders(headers, true);
-        VCFHeader vcfHeader = new VCFHeader(headerLines, samples);
-        
-        headers.clear();
-        samples.clear();
-        headerLines.clear();
-        
-        return vcfHeader;
-	}
 
 	@Override
 	public int run(String[] args) throws Exception {
@@ -68,17 +46,17 @@ public class JointCalling extends ToolsRunner{
         conf.setBoolean(GaeaVCFOutputFormat.HEADER_MODIFY, true);
         MultipleVCFHeaderForJointCalling multiVcfHeader = new MultipleVCFHeaderForJointCalling();
         if(options.getVcfHeaderFile() != null) {
-            conf.set(GaeaVCFOutputFormat.OUT_PATH_PROP, options.getVcfHeaderFile());
-            multiVcfHeader.headersConfig(new Path(options.getVcfHeaderFile()), options.getVCFHeaderOutput()+"/vcfHeaders", conf);
+            //conf.set(GaeaVCFOutputFormat.OUT_PATH_PROP, options.getVcfHeaderFile());
+            //multiVcfHeader.headersConfig(new Path(options.getVcfHeaderFile()), options.getVCFHeaderOutput()+"/vcfHeaders", conf);
         }else {
-            conf.set(GaeaVCFOutputFormat.OUT_PATH_PROP, options.getVCFHeaderOutput() + "/vcfFileHeader.vcf");
-            multiVcfHeader.headersConfig(options.getInput(), options.getVCFHeaderOutput()+"/vcfHeaders", conf);
-            VCFHeader vcfHeader = getVCFHeaderFromInput(multiVcfHeader.getHeaders());
+            //conf.set(GaeaVCFOutputFormat.OUT_PATH_PROP, options.getVCFHeaderOutput() + "/vcfFileHeader.vcf");
+            multiVcfHeader.headersConfig(options.getInput(), options.getVCFHeaderOutput(), conf);
+            /*VCFHeader vcfHeader = getVCFHeaderFromInput(multiVcfHeader.getHeaders());
             VCFHdfsWriter vcfHdfsWriter = new VCFHdfsWriter(conf.get(GaeaVCFOutputFormat.OUT_PATH_PROP), false, false, conf);
             vcfHdfsWriter.writeHeader(vcfHeader);
-            vcfHdfsWriter.close();
+            vcfHdfsWriter.close();*/
         }
-        conf.set(INPUT_ORDER, Utils.join(",", multiVcfHeader.getSamplesAsInputOrder()));
+        //conf.set(INPUT_ORDER, Utils.join(",", multiVcfHeader.getSamplesAsInputOrder()));
 
         job.setJobName("Gaea joint calling");
         

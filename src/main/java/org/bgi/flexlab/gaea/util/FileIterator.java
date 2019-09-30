@@ -67,6 +67,7 @@ public class FileIterator {
 		}
 		return false;
 	}
+	
 	public Text next()
 	{
 		if(value==null) {

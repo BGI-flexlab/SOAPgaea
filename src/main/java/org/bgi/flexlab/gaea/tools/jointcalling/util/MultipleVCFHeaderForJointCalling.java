@@ -9,13 +9,18 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import htsjdk.variant.vcf.VCFHeaderLine;
+import htsjdk.variant.vcf.VCFUtils;
+
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.Path;
+import org.bgi.flexlab.gaea.data.exception.UserException;
 import org.bgi.flexlab.gaea.data.mapreduce.input.vcf.VCFHdfsLoader;
+import org.bgi.flexlab.gaea.data.mapreduce.output.vcf.GaeaVCFOutputFormat;
 import org.bgi.flexlab.gaea.data.mapreduce.output.vcf.VCFHdfsWriter;
 import org.bgi.flexlab.gaea.data.structure.header.GaeaVCFHeader;
+import org.bgi.flexlab.gaea.util.FileIterator;
+import org.seqdoop.hadoop_bam.LazyVCFGenotypesContext.HeaderDataCache;
 import org.seqdoop.hadoop_bam.util.VCFHeaderReader;
 import org.seqdoop.hadoop_bam.util.WrapSeekable;
 
@@ -23,186 +28,260 @@ import htsjdk.samtools.seekablestream.SeekableStream;
 import htsjdk.variant.vcf.VCFHeader;
 
 public class MultipleVCFHeaderForJointCalling extends GaeaVCFHeader implements Serializable {
-	
-	class VCFHeaderWithIndex{
-		public int index;
-		public VCFHeader header;
-		
-		public VCFHeaderWithIndex(VCFHeader header,int index){
-			this.header = header;
-			this.index = index;
-		}
-	}
-
 	private static final long serialVersionUID = -3352974548797591555L;
 
-	private HashMap<String, VCFHeaderWithIndex> headers = new HashMap<String, VCFHeaderWithIndex>();
+	private String HEADER_DEFAULT_PATH = "vcfheader";
 	
-	private String HEADER_DEFAULT_PATH = "vcfHeaders";
-	
+	private String MERGER_HEADER_INFO = "vcfheaderinfo";
+
 	private int currentIndex = 0;
+
+	//private HashMap<String, Integer> nameIndexs = new HashMap<String, Integer>();
+	private HashMap<Integer, Set<String>> nameHeaders = new HashMap<Integer, Set<String>>();
+
+	private HashSet<VCFHeader> headers = new HashSet<VCFHeader>();
+
+	private FSDataOutputStream outputStream = null;
+
+	private VCFHeader mergeHeader = null;
+	
+	private HashMap<Integer,HeaderDataCache> vcfHeaderDateCaches = new HashMap<Integer,HeaderDataCache>();
 
 	public MultipleVCFHeaderForJointCalling() {
 	}
 
-	public VCFHeader getVCFHeader(String sampleName) {
-		if (headers.containsKey(sampleName))
-			return headers.get(sampleName).header;
+	/*public Set<String> getSampleList(String sampleName) {
+		if (nameIndexs.containsKey(sampleName))
+			return getSampleList(nameIndexs.get(sampleName));
+		return null;
+	}*/
+
+	public Set<String> getSampleList(int index) {
+		if (nameHeaders.containsKey(index)) {
+			if(nameHeaders.get(index).size() == 0)
+				return null;
+			return nameHeaders.get(index);
+		}
 		return null;
 	}
-	
-	public void headersConfig(List<Path> paths,String outputDir,Configuration conf){
-		getHeaders(paths);
-		writeHeaders(outputDir,conf);
+
+	/*
+	public Integer getIndex(String name) {
+		if (nameIndexs.containsKey(name))
+			return nameIndexs.get(name);
+		return null;
+	}
+	*/
+
+	public void headersConfig(List<Path> paths, String outdir, Configuration conf) {
+		conf.set(GaeaVCFOutputFormat.OUT_PATH_PROP, outdir + "/"+HEADER_DEFAULT_PATH);
+		conf.set(MERGER_HEADER_INFO, outdir+"/"+MERGER_HEADER_INFO);
+		
+		getHeaders(paths, outdir, conf);
+		writeMergeHeaders(conf);
 	}
 
-	public void headersConfig(VCFHeader header,String outputDir,Configuration conf){
-		getHeaders(header);
-		writeHeaders(outputDir,conf);
+	public static Set<String> getSampleList(Set<VCFHeader> headers) {
+		Set<String> samples = new TreeSet<String>();
+		for (VCFHeader header : headers) {
+			for (String sample : header.getGenotypeSamples()) {
+				samples.add(GaeaGvcfVariantContextUtils.mergedSampleName(null, sample, false));
+			}
+		}
+
+		return samples;
 	}
 
-	public void headersConfig(Path headerPath,String outputDir,Configuration conf){
-		getHeaders(headerPath, conf);
-		writeHeaders(outputDir,conf);
+	private VCFHeader smartMergeHeaders(Set<VCFHeader> headers) {
+		Set<String> samplelists = getSampleList(headers);
+		Set<VCFHeaderLine> headerLines = VCFUtils.smartMergeHeaders(headers, true);
+		VCFHeader vcfHeader = new VCFHeader(headerLines, samplelists);
+		headers.clear();
+		samplelists.clear();
+		headerLines.clear();
+
+		return vcfHeader;
 	}
 
-	public void getHeaders(List<Path> paths) {
+	private void writeInfo(Path outputpath, Configuration conf, String fileName, StringBuilder samples) {
+		if (outputStream == null) {
+			try {
+				outputStream = outputpath.getFileSystem(conf).create(outputpath);
+			} catch (IOException e) {
+				throw new UserException.CouldNotCreateOutputFile(outputpath.toString(), "create header info error.");
+			}
+		}
+
+		try {
+			outputStream.write((fileName + "\t" + currentIndex + "\t" + samples.toString()+"\n").getBytes());
+		} catch (IOException e) {
+			throw new UserException("write header info error.");
+		}
+	}
+
+	public void getHeaders(List<Path> paths, String outdir, Configuration conf) {
 		currentIndex = 0;
+		Path outpath = new Path(outdir+"/"+MERGER_HEADER_INFO);
 		for (Path p : paths) {
 			VCFHdfsLoader loader = null;
 			try {
 				loader = new VCFHdfsLoader(p.toString());
 			} catch (IllegalArgumentException | IOException e) {
-				e.printStackTrace();
+				throw new UserException.BadInput("read vcf file error.");
 			}
-			if (loader.getHeader().getSampleNamesInOrder().size() == 0)
-				throw new RuntimeException("VCF header contains no samples!");
-			String name = loader.getHeader().getSampleNamesInOrder().get(0);
 
-			if (headers.containsKey(name))
-				throw new RuntimeException("more than one VCF header contains same sample name!");
-			
-			VCFHeaderWithIndex headerWithIndex = new VCFHeaderWithIndex(loader.getHeader(),currentIndex);
+			if (loader.getHeader().getSampleNamesInOrder().size() == 0)
+				throw new UserException.MalformedVCF("VCF header contains no samples!");
+
+			StringBuilder samples = new StringBuilder();
+			for (String sample : loader.getHeader().getSampleNamesInOrder()) {
+				samples.append(sample + ",");
+			}
+
+			writeInfo(outpath, conf, p.getName(), samples);
+
+			headers.add(loader.getHeader());
+
+			if (headers.size() >= 1000) {
+				VCFHeader vcfHeader = smartMergeHeaders(headers);
+				headers.clear();
+				headers.add(vcfHeader);
+			}
+
 			currentIndex++;
-			headers.put(name, headerWithIndex);
 			loader.close();
 		}
-	}
 
-	public void getHeaders(VCFHeader header) {
-		currentIndex = 0;
-		Set<VCFHeaderLine> vcfHeaderLines = header.getMetaDataInInputOrder();
-		for(String sample: header.getSampleNamesInOrder()){
-			Set<String> sampleSet = new TreeSet<>();
-			sampleSet.add(sample);
-			VCFHeader vcfHeader = new VCFHeader(vcfHeaderLines, sampleSet);
-			VCFHeaderWithIndex headerWithIndex = new VCFHeaderWithIndex(vcfHeader,currentIndex);
-			currentIndex++;
-			headers.put(sample, headerWithIndex);
+		if (headers.size() >= 1) {
+			mergeHeader = smartMergeHeaders(headers);
+			headers.clear();
 		}
+		
+		close();
 	}
 
-	public void getHeaders(Path headerPath, Configuration conf) {
-		VCFHeader header = null;
+	private void readHeaderInfo(String outputpath, Configuration conf) {
 		try {
-			header = readHeader(headerPath, conf);
-		} catch (IOException | ClassNotFoundException e) {
-			e.printStackTrace();
-		}
-		currentIndex = 0;
-		Set<VCFHeaderLine> vcfHeaderLines = header.getMetaDataInInputOrder();
-		for(String sample: header.getSampleNamesInOrder()){
-			Set<String> sampleSet = new TreeSet<>();
-			sampleSet.add(sample);
-			VCFHeader vcfHeader = new VCFHeader(vcfHeaderLines, sampleSet);
-			VCFHeaderWithIndex headerWithIndex = new VCFHeaderWithIndex(vcfHeader,currentIndex);
-			currentIndex++;
-			headers.put(sample, headerWithIndex);
-		}
-	}
+			FileIterator iterator = new FileIterator(outputpath);
 
-	public void writeHeaders(String outputDir,Configuration conf) {
-		conf.set(HEADER_DEFAULT_PATH, outputDir);
-		if(!outputDir.endsWith("/"))
-			outputDir = outputDir+"/";
-		for (String name : headers.keySet()) {
-			VCFHdfsWriter vcfHdfsWriter = null;
-			try {
-				vcfHdfsWriter = new VCFHdfsWriter(outputDir+name, false, false, conf);
-			} catch (IOException e) {
-				throw new RuntimeException(e.toString());
+			while (iterator.hasNext()) {
+				String[] str = iterator.next().toString().split("\t");
+				Set<String> samples = new HashSet<String>();
+				String[] sample = str[2].split(",");
+				for (String s : sample)
+					samples.add(s);
+				nameHeaders.put(Integer.parseInt(str[1]), samples);
 			}
-	        vcfHdfsWriter.writeHeader(headers.get(name).header);
-	        vcfHdfsWriter.close();
+
+			iterator.close();
+		} catch (IOException e) {
+			throw new RuntimeException(" read header info error.");
 		}
 	}
 	
-	public VCFHeader readHeader(Path path,Configuration conf) throws IOException, ClassNotFoundException{
-		SeekableStream in = WrapSeekable.openPath(path.getFileSystem(conf), path);
-		VCFHeader header = VCFHeaderReader.readHeaderFrom(in);
-		in.close();
-		
-		return header;
-	}
-	
-	public void readHeaders(String outputDir,Configuration conf){
-		Path path = new Path(outputDir);
-		
-		currentIndex = 0;
-		FileSystem fs = null;
+	public int getIndex(Configuration conf,String fileName) {
+		String outputpath = conf.get(MERGER_HEADER_INFO);
+		int index = -1;
 		try {
-			fs = path.getFileSystem(conf);
-		
-			if(fs.isFile(path)){
-				VCFHeaderWithIndex headerWithIndex = new VCFHeaderWithIndex(readHeader(path,conf),0);
-				headers.put(path.getName(), headerWithIndex);
-			} else{
-				FileStatus stats[] = fs.listStatus(path);
+			FileIterator iterator = new FileIterator(outputpath);
+
+			while (iterator.hasNext()) {
+				String[] str = iterator.next().toString().split("\t");
 				
-				for (FileStatus file : stats) {
-					Path filePath = file.getPath();
-					if(!fs.isFile(filePath))
-						throw new RuntimeException("cann't not support sub dir");
-					VCFHeaderWithIndex headerWithIndex = new VCFHeaderWithIndex(readHeader(filePath,conf),currentIndex);
-					headers.put(filePath.getName(), headerWithIndex);
-					currentIndex++;
+				if(str[0].equals(fileName)) {
+					index = Integer.parseInt(str[1]);
+					break;
 				}
 			}
+
+			iterator.close();
 		} catch (IOException e) {
-			throw new RuntimeException(e.toString());
-		} catch (ClassNotFoundException e) {
-			throw new RuntimeException(e.toString());
-		}
-	}
-	
-	public void readHeaders(Configuration conf){
-		String outputDir = conf.get(HEADER_DEFAULT_PATH);
-		readHeaders(outputDir,conf);
-	}
-	
-	public Set<VCFHeader> getHeaders(){
-		Set<VCFHeader> headerSet = new HashSet<VCFHeader>();
-		for(VCFHeaderWithIndex headerWithIndex : headers.values()){
-			headerSet.add(headerWithIndex.header);
-		}
-		return headerSet;
-	}
-	
-	public String[] getSamplesAsInputOrder(){
-		String[] samples = new String[headers.size()];
-		
-		for(VCFHeaderWithIndex headerWithIndex : headers.values()){
-			samples[headerWithIndex.index] = headerWithIndex.header.getSampleNamesInOrder().get(0);
+			throw new RuntimeException(" read header info error.");
 		}
 		
-		return samples;
+		return index;
+	}
+
+	public void readHeaders(Configuration conf) {
+		String headerString = conf.get(GaeaVCFOutputFormat.OUT_PATH_PROP);
+		readHeader(new Path(headerString), conf);
+		readHeaderIndex(conf);
 	}
 	
-	public void clear(){
+	public void readHeaderIndex(Configuration conf) {
+		String headerInfo = conf.get(MERGER_HEADER_INFO);
+		readHeaderInfo(headerInfo, conf);
+		this.currentIndex = nameHeaders.size();
+		parseHeaderDataCache();
+	}
+	
+	private void parseHeaderDataCache() {
+		for(int i = 0 ; i < this.currentIndex ; i++) {
+			Set<String> samples = getSampleList(i);
+			if(samples == null) {
+				throw new UserException("samples null!!");
+			}
+			
+			VCFHeader header = new VCFHeader(mergeHeader.getMetaDataInInputOrder(), samples);
+			HeaderDataCache datacache = new HeaderDataCache();
+			datacache.setHeader(header);
+			vcfHeaderDateCaches.put(i, datacache);
+		}
+	}
+	
+	public HashMap<Integer,HeaderDataCache> getHeaderDataCache(){
+		return this.vcfHeaderDateCaches;
+	}
+
+	public void readHeader(Path path, Configuration conf) {
+		SeekableStream in = null;
+		try {
+			in = WrapSeekable.openPath(path.getFileSystem(conf), path);
+		} catch (IOException e1) {
+			throw new UserException.CouldNotReadInputFile("cann't open path " + path.toString());
+		}
+		try {
+			this.mergeHeader = VCFHeaderReader.readHeaderFrom(in);
+			in.close();
+		} catch (IOException e) {
+			throw new UserException("read/close vcf file error!");
+		}
+
+	}
+	
+	private void writeMergeHeaders(Configuration conf) {
+		VCFHdfsWriter vcfHdfsWriter = null;
+		try {
+			vcfHdfsWriter = new VCFHdfsWriter(conf.get(GaeaVCFOutputFormat.OUT_PATH_PROP), false, false, conf);
+		} catch (IOException e) {
+			throw new UserException(e.toString());
+		}
+        vcfHdfsWriter.writeHeader(this.mergeHeader);
+        vcfHdfsWriter.close();
+	}
+
+	public int getHeaderSize() {
+		return this.currentIndex;
+	}
+
+	public VCFHeader getMergeHeader() {
+		return mergeHeader;
+	}
+
+	public void close() {
+		if (outputStream != null) {
+			try {
+				outputStream.close();
+			} catch (IOException e) {
+				throw new RuntimeException("vcf output stream close errpr. " + e.toString());
+			}
+		}
+	}
+
+	public void clear() {
+		//nameIndexs.clear();
+		nameHeaders.clear();
 		headers.clear();
-	}
-	
-	public Set<String> keySet(){
-		return this.headers.keySet();
+		vcfHeaderDateCaches.clear();
 	}
 }
