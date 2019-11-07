@@ -161,7 +161,7 @@ public class VcfIndex extends ReferenceIndex {
 		VcfIndex index = new VcfIndex();
 
 		if (args.length < 2) {
-			System.err.println("java -Xmx10g -jar gaea-1.0.0.jar reference_path dbsnp_path output_path");
+			System.err.println("java -cp gaea-1.0.0.jar org.bgi.flexlab.gaea.data.structure.reference.index.VcfIndex reference_path [dbsnp_path] [output_path]");
 			System.exit(1);
 		}
 		
