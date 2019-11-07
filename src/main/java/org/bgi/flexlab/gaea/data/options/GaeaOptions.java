@@ -55,7 +55,7 @@ public abstract class GaeaOptions {
 		}
 		sb.append("\nVersion: ");
 		sb.append(version);
-		sb.append("\nLast update: 2017.02.19\n");
+		sb.append("\nLast update: 2019-11-07\n");
 		sb.append("Developed by: BGI-shenzhen\n");
 		sb.append("Authors: Li ShengKang & Zhang Yong & huang Zhibo & Hu Weipeng\n");
 		sb.append("E-mail: zhangyong2@genomics.org.cn or lishengkang@genomics.cn\n");
