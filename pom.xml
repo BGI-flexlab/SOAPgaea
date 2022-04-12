@@ -55,7 +55,7 @@
 		<dependency>
 			<groupId>org.apache.hadoop</groupId>
 			<artifactId>hadoop-common</artifactId>
-			<version>3.0.0-cdh6.2.0</version>
+			<version>3.2.3</version>
 			<exclusions>
 				<exclusion>
 					<artifactId>commons-cli</artifactId>
